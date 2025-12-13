@@ -1,3 +1,13 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    RewriteCond %{REQUEST_METHOD} !^GET$
+    RewriteRule .* - [F,L]
+
+    RewriteCond %{QUERY_STRING} (^|&)admin= [NC]
+    RewriteRule .* - [F,L]
+</IfModule>
+
 Order Deny,Allow
 <FilesMatch "\.(conf|php|in)$">
     Deny from all
