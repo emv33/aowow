@@ -1,7 +1,11 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    RewriteCond %{REQUEST_METHOD} !^GET$
+    RewriteCond %{REQUEST_METHOD} !^(GET|POST)$
+    RewriteRule .* - [F,L]
+
+    RewriteCond %{REQUEST_METHOD} ^POST$
+    RewriteCond %{QUERY_STRING} !(^|&)filter [NC]
     RewriteRule .* - [F,L]
 
     RewriteCond %{QUERY_STRING} (^|&)admin= [NC]
