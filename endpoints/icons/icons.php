@@ -45,7 +45,7 @@ class IconsBaseResponse extends TemplateResponse implements ICache
     {
         $this->h1 = Util::ucWords(Lang::game('icons'));
 
-        $conditions = [600];                                // LIMIT 600 - fits better onto the grid
+        $conditions = [Cfg::get('SQL_LIMIT_DEFAULT')];
         if (!User::isInGroup(U_GROUP_EMPLOYEE))
             $conditions[] = [['cuFlags', CUSTOM_EXCLUDE_FOR_LISTVIEW, '&'], 0];
 
