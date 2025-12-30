@@ -237,10 +237,43 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
             if ($id == $this->typeId)
                 $infobox[] = Lang::game('mode').Lang::game('modes', $this->mapType, $n);
 
-        // AI
         if (User::isInGroup(U_GROUP_EMPLOYEE))
+        {
+            $spawnData = DB::Aowow()->select('SELECT `guid` AS "0", `ScriptName` AS "1", `StringId` AS "2" FROM ?_spawns WHERE `type` = ?d AND `typeId` = ?d AND `ScriptName` IS NOT NULL ORDER BY `guid` ASC', Type::OBJECT, $this->typeId);
+
+            // AI
+            $scripts = null;
             if ($_ = $this->subject->getField('ScriptOrAI'))
-                $infobox[] = ($_ == 'SmartGameObjectAI' ? 'AI' :  'Script').Lang::main('colon').$_;
+                $scripts = ($_ == 'SmartGameObjectAI' ? 'AI' :  'Script').Lang::main('colon').$_;
+
+            if ($moreAI = array_filter(array_column($spawnData, 1, 0)))
+            {
+                $scripts ??= 'Script'.Lang::main('colon').'…';
+                $scripts   = '[toggler=hidden id=scriptName]'.$scripts.'[/toggler][div=hidden id=scriptName][ul]';
+                foreach ($moreAI as $guid => $script)
+                    $scripts .= sprintf('[li]GUID: %d - %s[/li]', $guid, $script);
+
+                $scripts .= '[/ul][/div]';
+            }
+
+            if ($scripts)
+                $infobox[] = $scripts;
+
+            // StringId
+            $stringIDs = null;
+            if ($_ = $this->subject->getField('StringId'))
+                $stringIDs = 'StringID'.Lang::main('colon').$_;
+
+            if ($moreStrings = array_filter(array_column($spawnData, 2, 0)))
+            {
+                $stringIDs ??= 'StringID'.Lang::main('colon').'…';
+                $stringIDs   = '[toggler=hidden id=stringId]'.$stringIDs.'[/toggler][div=hidden id=stringId][ul]';
+                foreach ($moreStrings as $guid => $stringId)
+                    $stringIDs .= sprintf('[li]GUID: %d - %s[/li]', $guid, $stringId);
+
+                $stringIDs .= '[/ul][/div]';
+            }
+        }
 
         if ($infobox)
             $this->infobox = new InfoboxMarkup($infobox, ['allow' => Markup::CLASS_STAFF, 'dbpage' => true], 'infobox-contents0');
@@ -311,7 +344,7 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
                 $this->smartAI = $sai->getMarkup();
             }
             else
-                trigger_error('Gameobject has AIName set in template but no SmartAI defined.');
+                trigger_error('Gameobject has `AIName`: SmartGameObjectAI set in template but no SmartAI defined.');
         }
 
         $this->redButtons  = array(
@@ -502,7 +535,7 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
         // tab: Spell Focus for
         if ($sfId = $this->subject->getField('spellFocusId'))
         {
-            $focusSpells = new SpellList(array(['spellFocusObject', $sfId]), ['calcTotal' => true]);
+            $focusSpells = new SpellList(array(Listview::DEFAULT_SIZE, ['spellFocusObject', $sfId]), ['calcTotal' => true]);
             if (!$focusSpells->error)
             {
                 $tabData = array(
@@ -514,9 +547,9 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
                 $this->extendGlobalData($focusSpells->getJSGlobals(GLOBALINFO_SELF | GLOBALINFO_RELATED));
 
                 // create note if search limit was exceeded
-                if ($focusSpells->getMatches() > Cfg::get('SQL_LIMIT_DEFAULT'))
+                if ($focusSpells->getMatches() > Listview::DEFAULT_SIZE)
                 {
-                    $tabData['note'] = sprintf(Util::$tryNarrowingString, 'LANG.lvnote_spellsfound', $focusSpells->getMatches(), Cfg::get('SQL_LIMIT_DEFAULT'));
+                    $tabData['note'] = sprintf(Util::$tryNarrowingString, 'LANG.lvnote_spellsfound', $focusSpells->getMatches(), Listview::DEFAULT_SIZE);
                     $tabData['_truncated'] = 1;
                 }
 

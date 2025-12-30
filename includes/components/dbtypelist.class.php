@@ -59,9 +59,9 @@ abstract class DBTypeList
     */
     public function __construct(array $conditions = [], array $miscData = [])
     {
-        $where     = [];
-        $linking   = ' AND ';
-        $limit     = Cfg::get('SQL_LIMIT_DEFAULT');
+        $where   = [];
+        $linking = ' AND ';
+        $limit   = 0;
 
         $calcTotal  = false;
         $totalQuery = '';
@@ -205,10 +205,10 @@ abstract class DBTypeList
                     break;
                 case 'string':
                 case 'integer':
-                    if (is_string($c))
-                        $linking = $c == 'AND' ? ' AND ' : ' OR ';
+                    if (is_numeric($c))
+                        $limit = max(0, (int)$c);
                     else
-                        $limit = $c > 0 ? $c : 0;
+                        $linking = $c == 'AND' ? ' AND ' : ' OR ';
                 default:
                     unset($conditions[$i]);
             }
@@ -723,18 +723,23 @@ trait spawnHelper
                     $info[4] = Lang::game('mode').implode(', ', $_);
                 }
 
+                if ($s['ScriptName'])
+                    $info[5] = 'ScriptName'.Lang::main('colon').$s['ScriptName'];
+                if ($s['StringId'])
+                    $info[6] = 'StringId'.Lang::main('colon').$s['StringId'];
+
                 if ($s['type'] == Type::AREATRIGGER)
                 {
                     // teleporter endpoint
                     if ($s['guid'] < 0)
                     {
                         $opts['type'] = 4;
-                        $info[5] = 'Teleport Destination';
+                        $info[7] = 'Teleport Destination';
                     }
                     else
                     {
                         $o = Util::O2Deg($this->getField('orientation'));
-                        $info[5] = 'Orientation'.Lang::main('colon').$o[0].'° ('.$o[1].')';
+                        $info[7] = 'Orientation'.Lang::main('colon').$o[0].'° ('.$o[1].')';
                     }
                 }
 
@@ -920,7 +925,7 @@ trait sourceHelper
                     $buff[$_curTpl['moreType']][] = $_curTpl['moreTypeId'];
 
             foreach ($buff as $type => $ids)
-                $this->sourceMore[$type] = Type::newList($type, [Cfg::get('SQL_LIMIT_NONE'), ['id', $ids]]);
+                $this->sourceMore[$type] = Type::newList($type, [['id', $ids]]);
         }
 
         $s = array_keys($this->sources[$this->id]);
