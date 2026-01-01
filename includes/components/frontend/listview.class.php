@@ -15,7 +15,7 @@ class Listview implements \JsonSerializable
     public const /* int */ MODE_CALENDAR = 4;
     public const /* int */ MODE_FLEXGRID = 5;
 
-    public const /* int */ DEFAULT_SIZE  = 300;
+    public const /* int */ DEFAULT_SIZE  = PHP_INT_MAX;
 
     private const TEMPLATES = array(
         'achievement'       => ['template' => 'achievement',       'id' => 'achievements',    'name' => '$LANG.tab_achievements'  ],

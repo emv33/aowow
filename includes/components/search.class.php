@@ -8,7 +8,7 @@ if (!defined('AOWOW_REVISION'))
 
 class Search
 {
-    public const /* int */ DEFAULT_MAX_RESULTS     = 500;
+    public const /* int */ DEFAULT_MAX_RESULTS     = PHP_INT_MAX;
     public const /* int */ SUGGESTIONS_MAX_RESULTS = 10;
 
     public const /* int */ MOD_CLASS            = 0;
