@@ -64,6 +64,7 @@ abstract class Filter
     protected const PATTERN_CRV   = '/[\p{C};:%\\\\]/ui';
     protected const PATTERN_INT   = '/\D/';
     public    const PATTERN_PARAM = '/^[\p{L}\p{Sm} \d\p{P}]+$/ui';
+    public    const PATTERN_FT    = '/[^[:alpha:] \d_-]/iu'; // +-*<>@()~" have special meaning; ' seems to fuck up the search; other irregular cases?
 
     protected const ENUM_FACTION       = array(  469,  1037,  1106,   529,  1012,    87,    21,   910,   609,   942,   909,   530,    69,   577,   930,  1068,  1104,   729,   369,    92,
                                                   54,   946,    67,  1052,   749,    47,   989,  1090,  1098,   978,  1011,    93,  1015,  1038,    76,   470,   349,  1031,  1077,   809,
@@ -229,13 +230,20 @@ abstract class Filter
             $this->cndSet = $this->createSQLForValues();
 
             // criteria
+            $filters = [];
             foreach ($this->criteriaIterator() as $_cr)
                 if ($cnd = $this->createSQLForCriterium(...$_cr))
-                    $this->cndSet[] = $cnd;
+                    $filters[] = $cnd;
 
-            if ($this->cndSet)                              // Note: TYPE_SOUND does not use 'match any'
-                array_unshift($this->cndSet, empty($this->values['ma']) ? 'AND' : 'OR');
+            if ($filters)                                   // if a filter uses criteria it must have a [ma]tch selector
+            {
+                $filters[] = empty($this->values['ma']) ? 'AND' : 'OR';
+                $this->cndSet[] = $filters;
+            }
         }
+
+        if ($this->cndSet)
+            array_unshift($this->cndSet, 'AND');
 
         return $this->cndSet;
     }
@@ -548,7 +556,7 @@ abstract class Filter
         return false;
     }
 
-    protected function transformToken(string $string, bool $exact) : string
+    protected function transformToken(string $string, string $outPH) : string
     {
         // escape manually entered _; entering % should be prohibited
         $string = str_replace('_', '\\_', $string);
@@ -556,13 +564,17 @@ abstract class Filter
         // now replace search wildcards with sql wildcards
         $string = strtr($string, self::$wCards);
 
-        return sprintf($exact ? '%s' : '%%%s%%', $string);
+        return sprintf($outPH, $string);
     }
 
     protected function tokenizeString(array $fields, string $string = '', bool $exact = false, bool $shortStr = false) : array
     {
         if (!$string && $this->values['na'])
             $string = $this->values['na'];
+
+        // always allow sub 3 chars for logographic locales
+        if (Lang::getLocale()->isLogographic())
+            $shortStr = true;
 
         $qry = [];
         foreach ($fields as $f)
@@ -572,9 +584,9 @@ abstract class Filter
             foreach ($parts as $p)
             {
                 if ($p[0] == '-' && (mb_strlen($p) > 3 || $shortStr))
-                    $sub[] = [$f, $this->transformToken(mb_substr($p, 1), $exact), '!'];
+                    $sub[] = [$f, $this->transformToken(mb_substr($p, 1), $exact ? '%s' : '%%%s%%'), '!'];
                 else if ($p[0] != '-' && (mb_strlen($p) > 2 || $shortStr))
-                    $sub[] = [$f, $this->transformToken($p, $exact)];
+                    $sub[] = [$f, $this->transformToken($p, $exact ? '%s' : '%%%s%%')];
             }
 
             // single cnd?
@@ -592,6 +604,47 @@ abstract class Filter
         if (!$qry)
         {
             trigger_error('Filter::tokenizeString - could not tokenize string: '.$string, E_USER_NOTICE);
+            $this->error = true;
+        }
+        else if (count($qry) > 1)
+            array_unshift($qry, 'OR');
+        else
+            $qry = $qry[0];
+
+        return $qry;
+    }
+
+    protected function buildMatchLookup(array $fields, string $string = '', bool $exact = false, bool $shortStr = false) : array
+    {
+        if (!$string && $this->values['na'])
+            $string = $this->values['na'];
+
+        // always allow sub 3 chars for logographic locales
+        if (Lang::getLocale()->isLogographic() && !Cfg::get('LOGOGRAPHIC_FT_SEARCH'))
+            return $this->tokenizeString($fields, $string, $exact, $shortStr);
+
+        $string = trim(preg_replace(self::PATTERN_FT, ' ', $string));
+        if (!$string)
+            return [];
+
+        $sub   = [];
+        $parts = $exact ? [$string] : array_filter(explode(' ', $string));
+        foreach ($parts as $p)
+        {
+            if ($p[0] == '-' && (mb_strlen($p) > 3 || $shortStr))
+                $sub[] = $this->transformToken($p, '%s*');
+            else if ($p[0] != '-' && (mb_strlen($p) > 2 || $shortStr))
+                $sub[] = $this->transformToken($p, '+%s*');
+        }
+
+        $qry = [];
+        foreach ($fields as $f)
+            $qry[] = [$f, $sub, 'MATCH'];
+
+        // single cnd?
+        if (!$qry)
+        {
+            trigger_error('Filter::buildMatchLookup - could build MATCH AGAINST from: '.$string, E_USER_NOTICE);
             $this->error = true;
         }
         else if (count($qry) > 1)

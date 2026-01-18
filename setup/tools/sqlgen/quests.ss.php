@@ -45,8 +45,8 @@ CLISetup::registerSetup("sql", new class extends SetupScript
                           IF(d.entry IS NULL, 0, 134217728) +         -- disabled
                           IF(q.Flags & 16384, 536870912, 0)           -- unavailable
                       ) AS cuFlags,
-                      IFNULL(qa.AllowableClasses, 0),
-                      AllowableRaces,
+                      IFNULL(IF((qa.`AllowableClasses` & 1535) = 1535, 0, qa.`AllowableClasses` & 1535), 0) AS "reqClassMask",
+                      IF((`AllowableRaces` & 1791) = 1791, 0, `AllowableRaces` & 1791) AS "reqRaceMask",
                       IFNULL(qa.RequiredSkillId, 0),      IFNULL(qa.RequiredSkillPoints, 0),
                       RequiredFactionId1,                 RequiredFactionId2,
                       RequiredFactionValue1,              RequiredFactionValue2,
@@ -116,8 +116,10 @@ CLISetup::registerSetup("sql", new class extends SetupScript
           { WHERE     q.Id IN (?a) }
             LIMIT     ?d, ?d';
 
-        $i = 0;
         DB::Aowow()->query('TRUNCATE ?_quests');
+        DB::Aowow()->query('SET SESSION innodb_ft_enable_stopword = OFF');
+
+        $i = 0;
         while ($quests = DB::World()->select($baseQuery, $ids ?: DBSIMPLE_SKIP, CLISetup::SQL_BATCH * $i, CLISetup::SQL_BATCH))
         {
             CLI::write(' * batch #' . ++$i . ' (' . count($quests) . ')', CLI::LOG_BLANK, true, true);

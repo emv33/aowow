@@ -570,13 +570,27 @@ CREATE TABLE `aowow_creature` (
   `ScriptOrAI` varchar(64) DEFAULT NULL,
   `StringId` varchar(64) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `idx_name` (`name_loc0`),
   KEY `difficultyEntry1` (`difficultyEntry1`),
   KEY `difficultyEntry2` (`difficultyEntry2`),
   KEY `difficultyEntry3` (`difficultyEntry3`),
   KEY `idx_loot` (`lootId`),
   KEY `idx_pickpocketloot` (`pickpocketLootId`),
-  KEY `idx_skinloot` (`skinLootId`)
+  KEY `idx_skinloot` (`skinLootId`),
+  KEY `idx_trainer` (`trainerType`),
+  KEY `idx_trainerrequirement` (`trainerRequirement`),
+  FULLTEXT `idx_name0` (`name_loc0`),
+  FULLTEXT `idx_name2` (`name_loc2`),
+  FULLTEXT `idx_name3` (`name_loc3`),
+  FULLTEXT `idx_name6` (`name_loc6`),
+  FULLTEXT `idx_name8` (`name_loc8`),
+  KEY `idx_spell1` (`spell1`),
+  KEY `idx_spell2` (`spell2`),
+  KEY `idx_spell3` (`spell3`),
+  KEY `idx_spell4` (`spell4`),
+  KEY `idx_spell5` (`spell5`),
+  KEY `idx_spell6` (`spell6`),
+  KEY `idx_spell7` (`spell7`),
+  KEY `idx_spell8` (`spell8`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1306,8 +1320,8 @@ CREATE TABLE `aowow_items` (
   `repairPrice` int(10) unsigned NOT NULL,
   `slot` tinyint(4) NOT NULL,
   `slotBak` tinyint(3) unsigned NOT NULL DEFAULT 0,
-  `requiredClass` int(11) NOT NULL DEFAULT -1,
-  `requiredRace` int(11) NOT NULL DEFAULT -1,
+  `requiredClass` smallint(5) unsigned NOT NULL DEFAULT 0,
+  `requiredRace` smallint(5) unsigned NOT NULL DEFAULT 0,
   `itemLevel` smallint(5) unsigned NOT NULL DEFAULT 0,
   `requiredLevel` tinyint(3) unsigned NOT NULL DEFAULT 0,
   `requiredSkill` smallint(5) unsigned NOT NULL DEFAULT 0,
@@ -1440,13 +1454,27 @@ CREATE TABLE `aowow_items` (
   `unsheatheSoundId` smallint(5) unsigned NOT NULL DEFAULT 0,
   `flagsCustom` int(10) unsigned NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
-  KEY `idx_name` (`name_loc0`),
   KEY `items_index` (`class`),
   KEY `idx_model` (`displayId`),
   KEY `idx_faction` (`requiredFaction`),
   KEY `iconId` (`iconId`),
-  KEY `spellId1` (`spellId1`),
-  KEY `spellId2` (`spellId2`)
+  KEY `idx_spell1` (`spellId1`),
+  KEY `idx_spell2` (`spellId2`),
+  KEY `idx_spell3` (`spellId3`),
+  KEY `idx_spell4` (`spellId4`),
+  KEY `idx_spell5` (`spellId5`),
+  KEY `idx_trigger1` (`spellTrigger1`),
+  KEY `idx_trigger2` (`spellTrigger2`),
+  KEY `idx_trigger3` (`spellTrigger3`),
+  KEY `idx_trigger4` (`spellTrigger4`),
+  KEY `idx_trigger5` (`spellTrigger5`),
+  KEY `idx_reqskill` (`requiredSkill`),
+  FULLTEXT `idx_name0` (`name_loc0`),
+  FULLTEXT `idx_name2` (`name_loc2`),
+  FULLTEXT `idx_name3` (`name_loc3`),
+  FULLTEXT `idx_name6` (`name_loc6`),
+  FULLTEXT `idx_name8` (`name_loc8`),
+  KEY `idx_itemset` (`itemset`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1631,7 +1659,15 @@ CREATE TABLE `aowow_objects` (
   `ScriptOrAI` varchar(64) DEFAULT NULL,
   `StringId` varchar(64) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `idx_name` (`name_loc0`)
+  KEY `idx_onusespell` (`onUseSpell`),
+  KEY `idx_onsuccessspell` (`onSuccessSpell`),
+  KEY `idx_auraspell` (`auraSpell`),
+  KEY `idx_triggeredspell` (`triggeredSpell`),
+  FULLTEXT `idx_name0` (`name_loc0`),
+  FULLTEXT `idx_name2` (`name_loc2`),
+  FULLTEXT `idx_name3` (`name_loc3`),
+  FULLTEXT `idx_name6` (`name_loc6`),
+  FULLTEXT `idx_name8` (`name_loc8`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1702,7 +1738,9 @@ CREATE TABLE `aowow_profiler_arena_team` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `realm_realmGUID` (`realm`,`realmGUID`),
   KEY `name` (`name`),
-  KEY `idx_stub` (`stub`)
+  KEY `idx_stub` (`stub`),
+  KEY `idx_type` (`type`),
+  KEY `idx_rating` (`rating`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1795,6 +1833,7 @@ CREATE TABLE `aowow_profiler_completion_skills` (
   `max` smallint(5) unsigned DEFAULT NULL,
   KEY `id` (`id`),
   KEY `typeId` (`skillId`),
+  KEY `idx_value` (`value`),
   CONSTRAINT `FK_pr_completion_skills` FOREIGN KEY (`id`) REFERENCES `aowow_profiler_profiles` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -2014,6 +2053,15 @@ CREATE TABLE `aowow_profiler_profiles` (
   KEY `idx_custom` (`custom`),
   KEY `idx_stub` (`stub`),
   KEY `idx_deleted` (`deleted`),
+  KEY `idx_race` (`race`),
+  KEY `idx_class` (`class`),
+  KEY `idx_level` (`level`),
+  KEY `idx_guildrank` (`guildrank`),
+  KEY `idx_gearscore` (`gearscore`),
+  KEY `idx_achievementpoints` (`achievementpoints`),
+  KEY `idx_talenttree1` (`talenttree1`),
+  KEY `idx_talenttree2` (`talenttree2`),
+  KEY `idx_talenttree3` (`talenttree3`),
   CONSTRAINT `FK_aowow_profiler_profiles_aowow_profiler_guild` FOREIGN KEY (`guild`) REFERENCES `aowow_profiler_guild` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -2122,12 +2170,12 @@ CREATE TABLE `aowow_quests` (
   `rewardFactionValue3` mediumint(9) NOT NULL DEFAULT 0,
   `rewardFactionValue4` mediumint(9) NOT NULL DEFAULT 0,
   `rewardFactionValue5` mediumint(9) NOT NULL DEFAULT 0,
-  `name_loc0` text DEFAULT NULL,
-  `name_loc2` text DEFAULT NULL,
-  `name_loc3` text DEFAULT NULL,
-  `name_loc4` text DEFAULT NULL,
-  `name_loc6` text DEFAULT NULL,
-  `name_loc8` text DEFAULT NULL,
+  `name_loc0` varchar(100) DEFAULT NULL,
+  `name_loc2` varchar(100) DEFAULT NULL,
+  `name_loc3` varchar(100) DEFAULT NULL,
+  `name_loc4` varchar(100) DEFAULT NULL,
+  `name_loc6` varchar(100) DEFAULT NULL,
+  `name_loc8` varchar(100) DEFAULT NULL,
   `objectives_loc0` text DEFAULT NULL,
   `objectives_loc2` text DEFAULT NULL,
   `objectives_loc3` text DEFAULT NULL,
@@ -2217,7 +2265,38 @@ CREATE TABLE `aowow_quests` (
   `objectiveText4_loc6` text DEFAULT NULL,
   `objectiveText4_loc8` text DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `nextQuestIdChain` (`nextQuestIdChain`)
+  KEY `nextQuestIdChain` (`nextQuestIdChain`),
+  FULLTEXT `idx_name0` (`name_loc0`),
+  FULLTEXT `idx_name2` (`name_loc2`),
+  FULLTEXT `idx_name3` (`name_loc3`),
+  FULLTEXT `idx_name6` (`name_loc6`),
+  FULLTEXT `idx_name8` (`name_loc8`),
+  KEY `idx_sourcespell` (`sourceSpellId`),
+  KEY `idx_rewardspell` (`rewardSpell`),
+  KEY `idx_rewardcastspell` (`rewardSpellCast`),
+  KEY `idx_classmask` (`reqRaceMask`),
+  KEY `idx_racemask` (`reqClassMask`),
+  KEY `idx_questsort` (`questSortId`),
+  KEY `idx_rewarditem1` (`rewardChoiceItemId1`),
+  KEY `idx_rewarditem2` (`rewardChoiceItemId2`),
+  KEY `idx_rewarditem3` (`rewardChoiceItemId3`),
+  KEY `idx_rewarditem4` (`rewardChoiceItemId4`),
+  KEY `idx_rewarditem5` (`rewardChoiceItemId5`),
+  KEY `idx_rewarditem6` (`rewardChoiceItemId6`),
+  KEY `idx_rewardfaction1` (`rewardFactionId1`),
+  KEY `idx_rewardfaction2` (`rewardFactionId2`),
+  KEY `idx_rewardfaction3` (`rewardFactionId3`),
+  KEY `idx_rewardfaction4` (`rewardFactionId4`),
+  KEY `idx_rewardfaction5` (`rewardFactionId5`),
+  KEY `idx_choiceitem1` (`rewardItemId1`),
+  KEY `idx_choiceitem2` (`rewardItemId2`),
+  KEY `idx_choiceitem3` (`rewardItemId3`),
+  KEY `idx_choiceitem4` (`rewardItemId4`),
+  KEY `idx_requirement1` (`reqNpcOrGo1`),
+  KEY `idx_requirement2` (`reqNpcOrGo2`),
+  KEY `idx_requirement3` (`reqNpcOrGo3`),
+  KEY `idx_requirement4` (`reqNpcOrGo4`),
+  KEY `idx_event` (`eventId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -2775,8 +2854,6 @@ CREATE TABLE `aowow_spell` (
   PRIMARY KEY (`id`),
   KEY `category` (`typeCat`),
   KEY `spell` (`id`) USING BTREE,
-  KEY `effects` (`effect1Id`,`effect2Id`,`effect3Id`),
-  KEY `items` (`effect1CreateItemId`,`effect2CreateItemId`,`effect3CreateItemId`),
   KEY `iconId` (`iconId`),
   KEY `reagent1` (`reagent1`),
   KEY `reagent2` (`reagent2`),
@@ -2794,7 +2871,21 @@ CREATE TABLE `aowow_spell` (
   KEY `effect3Id` (`effect3Id`),
   KEY `effect1AuraId` (`effect1AuraId`),
   KEY `effect2AuraId` (`effect2AuraId`),
-  KEY `effect3AuraId` (`effect3AuraId`)
+  KEY `effect3AuraId` (`effect3AuraId`),
+  KEY `idx_skill1` (`skillLine1`),
+  KEY `idx_skill2` (`skillLine2OrMask`),
+  FULLTEXT `idx_name0` (`name_loc0`),
+  FULLTEXT `idx_name2` (`name_loc2`),
+  FULLTEXT `idx_name3` (`name_loc3`),
+  FULLTEXT `idx_name6` (`name_loc6`),
+  FULLTEXT `idx_name8` (`name_loc8`),
+  KEY `idx_spellfamily` (`spellFamilyId`),
+  KEY `idx_miscvalue1` (`effect1MiscValue`),
+  KEY `idx_miscvalue2` (`effect2MiscValue`),
+  KEY `idx_miscvalue3` (`effect3MiscValue`),
+  KEY `idx_triggerspell1` (`effect1TriggerSpell`),
+  KEY `idx_triggerspell2` (`effect2TriggerSpell`),
+  KEY `idx_triggerspell3` (`effect3TriggerSpell`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -2881,8 +2972,11 @@ DROP TABLE IF EXISTS `aowow_taxinodes`;
 CREATE TABLE `aowow_taxinodes` (
   `id` smallint(5) unsigned NOT NULL,
   `mapId` smallint(5) unsigned NOT NULL,
-  `posX` float unsigned NOT NULL,
-  `posY` float unsigned NOT NULL,
+  `mapX` float unsigned NOT NULL,
+  `mapY` float unsigned NOT NULL,
+  `areaId` smallint(5) unsigned NOT NULL,
+  `areaX` float unsigned NOT NULL,
+  `areaY` float unsigned NOT NULL,
   `type` enum('NPC','GOBJECT') NOT NULL,
   `typeId` mediumint(8) unsigned NOT NULL,
   `reactA` tinyint(4) NOT NULL,

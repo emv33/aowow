@@ -46,12 +46,10 @@ class PageTemplate
 
     public function __construct(private string $template, private ?\Aowow\TemplateResponse $context = null)
     {
-        $this->locale       = Lang::getLocale();
-        $this->gStaticUrl   = Cfg::get('STATIC_URL');
-        $this->gHost        = Cfg::get('HOST_URL');
-        $this->hasAnalytics = !!Cfg::get('GTAG_MEASUREMENT_ID');
-        $this->gServerTime  = sprintf("new Date('%s')", date(Util::$dateFormatInternal));
-        $this->user         = User::class;
+        $this->locale = Lang::getLocale();
+        $this->user   = User::class;
+
+        self::__wakeup();                                   // init non-cached properties;
     }
 
     public function addDataLoader(string ...$dataFile) : void
@@ -470,22 +468,21 @@ class PageTemplate
     private function update() : void
     {
         // analytics + consent
-        if ($this->hasAnalytics && !isset($_COOKIE['consent']))
+        // not set or declined
+        if (empty($_COOKIE['consent']))
+            $this->hasAnalytics = false;
+
+        // not set
+        if (!isset($_COOKIE['consent']))
         {
             $this->addScript(SC_CSS_FILE, 'css/consent.css', SC_FLAG_NOCACHE);
             $this->addScript(SC_JS_FILE,  'js/consent.js', SC_FLAG_NOCACHE);
 
             $this->consentFooter = true;
-            $this->hasAnalytics  = false;
         }
-        else if ($this->hasAnalytics && !$_COOKIE['consent'])
-            $this->hasAnalytics = false;
 
         // js + css
         $this->prepareScripts();
-
-        $this->gUser      = Util::toJSON(User::getUserGlobal());
-        $this->gFavorites = Util::toJSON(User::getFavorites());
 
         // db profiling
         if (Cfg::get('DEBUG') >= LOG_LEVEL_INFO && User::isInGroup(U_GROUP_DEV | U_GROUP_ADMIN))
@@ -508,6 +505,15 @@ class PageTemplate
         $this->context  = null;                             // unlink from TemplateResponse
         $this->pageData = [];                               // clear modified data
 
+        unset(                                              // must be recreated on __wakeup
+            $this->gStaticUrl,
+            $this->gHost,
+            $this->hasAnalytics,
+            $this->gServerTime,
+            $this->gUser,
+            $this->gFavorites
+        );
+
         if ($this->lvTabs)                                  // do not store lvErrors in cache
             foreach ($this->lvTabs->iterate() as $lv)
                 if ($lv instanceof \Aowow\Listview)
@@ -529,6 +535,8 @@ class PageTemplate
         $this->gHost        = Cfg::get('HOST_URL');
         $this->hasAnalytics = !!Cfg::get('GTAG_MEASUREMENT_ID');
         $this->gServerTime  = sprintf("new Date('%s')", date(Util::$dateFormatInternal));
+        $this->gUser        = Util::toJSON(User::getUserGlobal());
+        $this->gFavorites   = Util::toJSON(User::getFavorites());
     }
 
     public function __set(string $var, mixed $value) : void
