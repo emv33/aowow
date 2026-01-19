@@ -108,6 +108,8 @@ class Search
             return;
         }
 
+        $allowShort = Lang::getLocale()->isLogographic();
+
         foreach (explode(' ', $this->query) as $raw)
         {
             // ivalid chars for both LIKE and MATCH
@@ -123,7 +125,7 @@ class Search
                 $raw   = mb_substr($raw, 1);
             }
 
-            if (mb_strlen($clean) < 3 && !Lang::getLocale()->isLogographic())
+            if (mb_strlen($clean) < 3 && !$allowShort)
             {
                 $this->invalid[] = $raw;
                 continue;
@@ -133,9 +135,17 @@ class Search
 
             // note: a fulltext search purely with exclude tokens will return no result
             if (($tokens = trim(preg_replace(Filter::PATTERN_FT, ' ', $clean))) !== '')
+            {
                 foreach (array_filter(explode(' ', $tokens)) as $t)
-                    if (mb_strlen($t) > 2)
+                {
+                    // cant have trailing/leading dashes. FT confuses them for additional modifiers and dies with a syntax error
+                    // would be an issue for all modifiers, but Filter::PATTERN_FT only allows for - at this point
+                    $t = preg_replace('/^-+|-+$/', '', $t);
+
+                    if ($allowShort || mb_strlen($t) > 2)
                         $this->fulltext[] = ($ex ? '-' : '+') . $t . '*';
+                }
+            }
         }
     }
 

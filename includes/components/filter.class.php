@@ -556,7 +556,7 @@ abstract class Filter
         return false;
     }
 
-    protected function transformToken(string $string, string $outPH) : string
+    protected function transformToken(string $string, bool $exact) : string
     {
         // escape manually entered _; entering % should be prohibited
         $string = str_replace('_', '\\_', $string);
@@ -564,29 +564,29 @@ abstract class Filter
         // now replace search wildcards with sql wildcards
         $string = strtr($string, self::$wCards);
 
-        return sprintf($outPH, $string);
+        return sprintf($exact ? '%s' : '%%%s%%', $string);
     }
 
-    protected function tokenizeString(array $fields, string $string = '', bool $exact = false, bool $shortStr = false) : array
+    protected function tokenizeString(array $fields, string $string = '', bool $exact = false, bool $allowShort = false) : array
     {
         if (!$string && $this->values['na'])
             $string = $this->values['na'];
 
         // always allow sub 3 chars for logographic locales
         if (Lang::getLocale()->isLogographic())
-            $shortStr = true;
+            $allowShort = true;
 
         $qry = [];
         foreach ($fields as $f)
         {
-            $sub   = [];
-            $parts = $exact ? [$string] : array_filter(explode(' ', $string));
-            foreach ($parts as $p)
+            $sub    = [];
+            $tokens = $exact ? [$string] : array_filter(explode(' ', $string));
+            foreach ($tokens as $t)
             {
-                if ($p[0] == '-' && (mb_strlen($p) > 3 || $shortStr))
-                    $sub[] = [$f, $this->transformToken(mb_substr($p, 1), $exact ? '%s' : '%%%s%%'), '!'];
-                else if ($p[0] != '-' && (mb_strlen($p) > 2 || $shortStr))
-                    $sub[] = [$f, $this->transformToken($p, $exact ? '%s' : '%%%s%%')];
+                if ($t[0] == '-' && (mb_strlen($t) > 3 || $allowShort))
+                    $sub[] = [$f, $this->transformToken(mb_substr($t, 1), $exact), '!'];
+                else if ($t[0] != '-' && (mb_strlen($t) > 2 || $allowShort))
+                    $sub[] = [$f, $this->transformToken($t, $exact)];
             }
 
             // single cnd?
@@ -614,27 +614,36 @@ abstract class Filter
         return $qry;
     }
 
-    protected function buildMatchLookup(array $fields, string $string = '', bool $exact = false, bool $shortStr = false) : array
+    protected function buildMatchLookup(array $fields, string $string = '', bool $exact = false, bool $allowShort = false) : array
     {
         if (!$string && $this->values['na'])
             $string = $this->values['na'];
 
-        // always allow sub 3 chars for logographic locales
         if (Lang::getLocale()->isLogographic() && !Cfg::get('LOGOGRAPHIC_FT_SEARCH'))
-            return $this->tokenizeString($fields, $string, $exact, $shortStr);
+            return $this->tokenizeString($fields, $string, $exact, $allowShort);
 
         $string = trim(preg_replace(self::PATTERN_FT, ' ', $string));
         if (!$string)
             return [];
 
-        $sub   = [];
-        $parts = $exact ? [$string] : array_filter(explode(' ', $string));
-        foreach ($parts as $p)
+        // always allow sub 3 chars for logographic locales
+        if (Lang::getLocale()->isLogographic())
+            $allowShort = true;
+
+        $sub    = [];
+        $tokens = $exact ? [$string] : array_filter(explode(' ', $string));
+        foreach ($tokens as $t)
         {
-            if ($p[0] == '-' && (mb_strlen($p) > 3 || $shortStr))
-                $sub[] = $this->transformToken($p, '%s*');
-            else if ($p[0] != '-' && (mb_strlen($p) > 2 || $shortStr))
-                $sub[] = $this->transformToken($p, '+%s*');
+            $ex = $t[0] === '-';
+            if ($ex)
+                $t = mb_substr($t, 1);
+
+            // cant have trailing/leading dashes. FT confuses them for additional modifiers and dies with a syntax error
+            // would be an issue for all modifiers, but Filter::PATTERN_FT only allows for - at this point
+            $t = preg_replace('/^-+|-+$/', '', $t);
+
+            if ($allowShort || mb_strlen($t) > 2)
+                $sub[] = ($ex ? '-' : '+') . $t . '*';
         }
 
         $qry = [];
