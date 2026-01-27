@@ -890,9 +890,9 @@ class QuestBaseResponse extends TemplateResponse implements ICache
         /* Main Content */
         /****************/
 
-        $this->series        = $this->createSeries($_side);
-        $this->gains         = $this->createGains();
-        $this->rewards       = $this->createRewards($_side);
+        $this->series        = $this->createSeries();
+        $this->gains         = $this->createGains($_side);
+        $this->rewards       = $this->createRewards();
         $this->objectives    = $this->subject->parseText('objectives', false);
         $this->details       = $this->subject->parseText('details', false);
         $this->offerReward   = $this->subject->parseText('offerReward', false);
@@ -984,11 +984,29 @@ class QuestBaseResponse extends TemplateResponse implements ICache
             ->getByCondition(Type::QUEST, $this->typeId)
             ->prepare();
 
-        if ($_ = $this->subject->getField('reqMinRepFaction'))
-            $cnd->addExternalCondition(Conditions::SRC_QUEST_AVAILABLE, '0:'.$this->typeId, [Conditions::REPUTATION_RANK, $_, 1 << Game::getReputationLevelForPoints($this->subject->getField('reqMinRepValue'))]);
 
-        if ($_ = $this->subject->getField('reqMaxRepFaction'))
-            $cnd->addExternalCondition(Conditions::SRC_QUEST_AVAILABLE, '0:'.$this->typeId, [-Conditions::REPUTATION_RANK, $_, 1 << Game::getReputationLevelForPoints($this->subject->getField('reqMaxRepValue'))]);
+        $minRepFac = $this->subject->getField('reqMinRepFaction');
+        $maxRepFac = $this->subject->getField('reqMaxRepFaction');
+        // add +/- 2 to contain edgecases. ie a reqMaxRepValue of 1 should not include the whole of REP_NEUTRAL
+        $minRepRank = $minRepFac ? Game::getReputationLevelForPoints($this->subject->getField('reqMinRepValue') + 2) : REP_HATED;
+        $maxRepRank = $maxRepFac ? Game::getReputationLevelForPoints($this->subject->getField('reqMaxRepValue') - 2) : REP_EXALTED;
+
+        $convertRankBits = function (int $minRank, int $maxRank) : int
+        {
+            $bits = 0;
+            for ($i = $minRank; $i <= $maxRank; $i++)
+                $bits |= (1 << $i);
+
+            return $bits;
+        };
+
+        if ($minRepFac && $maxRepFac && $minRepFac <> $maxRepFac)
+        {
+            $cnd->addExternalCondition(Conditions::SRC_QUEST_AVAILABLE, '0:'.$this->typeId, [Conditions::REPUTATION_RANK, $minRepFac, $convertRankBits($minRepRank, REP_EXALTED)]);
+            $cnd->addExternalCondition(Conditions::SRC_QUEST_AVAILABLE, '0:'.$this->typeId, [Conditions::REPUTATION_RANK, $maxRepFac, $convertRankBits(REP_HATED, $maxRepRank)]);
+        }
+        else if (($_ = $minRepFac) || ($_ = $maxRepFac))
+            $cnd->addExternalCondition(Conditions::SRC_QUEST_AVAILABLE, '0:'.$this->typeId, [Conditions::REPUTATION_RANK, $_, $convertRankBits($minRepRank, $maxRepRank)]);
 
         if ($tab = $cnd->toListviewTab())
         {
@@ -999,7 +1017,7 @@ class QuestBaseResponse extends TemplateResponse implements ICache
         parent::generate();
     }
 
-    private function createRewards(int $side) : ?array
+    private function createRewards() : ?array
     {
         $rewards = [[], [], [], ''];                        // [spells, items, choice, money]
 
@@ -1056,9 +1074,9 @@ class QuestBaseResponse extends TemplateResponse implements ICache
             }
         }
 
-        if (!empty($this->subject->rewards[$this->typeId][Type::CURRENCY]))
+        if ($currency = array_filter($this->subject->rewards[$this->typeId][Type::CURRENCY] ?? [],
+            fn($x) => $x != CURRENCY_ARENA_POINTS && $x != CURRENCY_HONOR_POINTS, ARRAY_FILTER_USE_KEY))
         {
-            $currency = $this->subject->rewards[$this->typeId][Type::CURRENCY];
             $rewCurr  = new CurrencyList(array(['id', array_keys($currency)]));
             if (!$rewCurr->error)
             {
@@ -1069,7 +1087,7 @@ class QuestBaseResponse extends TemplateResponse implements ICache
                         $id,
                         $rewCurr->getField('name', true),
                         quality: ITEM_QUALITY_NORMAL,
-                        num: $currency[$id] * ($side == SIDE_HORDE ? -1 : 1), // toggles the icon
+                        num: $currency[$id]
                     );
             }
         }
@@ -1187,12 +1205,18 @@ class QuestBaseResponse extends TemplateResponse implements ICache
         return true;
     }
 
-    private function createGains() : ?array
+    private function createGains(int $side) : ?array
     {
         $gains = [];
 
         // xp
         $gains[0] = $this->subject->getField('rewardXP');
+
+        // arena points
+        $gains[5] = $this->subject->getField('rewardArenaPoints');
+
+        // honor points
+        $gains[4] = [$this->subject->getField('rewardHonorPoints'), $side];
 
         // talent points
         $gains[3] = $this->subject->getField('rewardTalents');
