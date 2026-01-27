@@ -8,7 +8,7 @@
     RewriteCond %{QUERY_STRING} !(^|&)filter [NC]
     RewriteRule .* - [F,L]
 
-    RewriteCond %{QUERY_STRING} (^|&)admin= [NC]
+    RewriteCond %{QUERY_STRING} (^|&)(admin|user)= [NC]
     RewriteRule .* - [F,L]
 </IfModule>
 
