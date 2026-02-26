@@ -19,7 +19,7 @@ class ProfilePowerResponse extends TextResponse implements ICache
         'domain' => ['filter' => FILTER_CALLBACK, 'options' => [Locale::class, 'tryFromDomain']]
     );
 
-    public function __construct(string $rawParam)
+    public function __construct(private string $rawParam)
     {
         parent::__construct($rawParam);
 
@@ -38,7 +38,7 @@ class ProfilePowerResponse extends TextResponse implements ICache
             if (preg_match('/([^\-]+)-(\d+)/i', $this->subjectName, $m))
                 [, $this->subjectName, $renameItr] = $m;
 
-            if ($x = DB::Aowow()->selectCell('SELECT `id` FROM ?_profiler_profiles WHERE `realm` = ?d AND `custom` = 0 AND `name` = ? AND `renameItr` = ?d', $this->realmId, Util::ucWords($this->subjectName), $renameItr ?? 0))
+            if ($x = DB::Aowow()->selectCell('SELECT `id` FROM ::profiler_profiles WHERE `realm` = %i AND `custom` = 0 AND `name` = %s AND `renameItr` = %i', $this->realmId, Util::ucWords($this->subjectName), $renameItr ?? 0))
                 $this->typeId = $x;
         }
 
@@ -72,8 +72,12 @@ class ProfilePowerResponse extends TextResponse implements ICache
             );
         }
 
+        if ($_ = $profile->getField('renameItr'))
+            $ri = '-'.$_;
+
+        // the 'id' must be exactly as the js requested it or the tooltip won't register
         if ($this->subjectName)
-            $id = implode('.', [$this->region, Profiler::urlize($this->realm, true), urlencode($this->subjectName)]);
+            $id = urlencode($this->rawParam) . ($ri ?? '');
         else
             $id = $this->typeId;
 

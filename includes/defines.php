@@ -131,7 +131,7 @@ define('AUTH_IPBANNED',                     4);
 define('AUTH_ACC_INACTIVE',                 5);
 define('AUTH_INTERNAL_ERR',                 6);
 
-define('AUTH_MODE_SELF',                    0);             // uses ?_accounts
+define('AUTH_MODE_SELF',                    0);             // uses ::accounts
 define('AUTH_MODE_REALM',                   1);             // uses given realm-table
 define('AUTH_MODE_EXTERNAL',                2);             // uses external script
 
@@ -718,7 +718,7 @@ define('UNIT_FLAG_IMMUNE_TO_PC',            0x00000100);    // disables combat/a
 define('UNIT_FLAG_IMMUNE_TO_NPC',           0x00000200);    // disables combat/assistance with NonPlayerCharacters (NPC)
 define('UNIT_FLAG_LOOTING',                 0x00000400);    // Loot animation
 define('UNIT_FLAG_PET_IN_COMBAT',           0x00000800);    // In combat? 2.0.8
-define('UNIT_FLAG_PVP',                     0x00001000);    // Changed in 3.0.3
+define('UNIT_FLAG_PVP_ENABLING',            0x00001000);    // Changed in 3.0.3
 define('UNIT_FLAG_SILENCED',                0x00002000);    // Can't cast spells
 define('UNIT_FLAG_CANNOT_SWIM',             0x00004000);    // 2.0.8
 define('UNIT_FLAG_UNK_15',                  0x00008000);    // Only Swim ('OnlySwim' from UnitFlags.cs in WPP)
@@ -780,11 +780,16 @@ define('UNIT_VIS_FLAGS_UNK4',             0x08);
 define('UNIT_VIS_FLAGS_UNK5',             0x10);
 
 // UNIT_FIELD_BYTES_1 - idx 3 (UnitAnimTier)
-define('UNIT_BYTE1_ANIM_TIER_GROUND',    0);
-define('UNIT_BYTE1_ANIM_TIER_SWIM',      1);
-define('UNIT_BYTE1_ANIM_TIER_HOVER',     2);
-define('UNIT_BYTE1_ANIM_TIER_FLY',       3);
-define('UNIT_BYTE1_ANIM_TIER_SUMBERGED', 4);
+define('UNIT_ANIM_TIER_GROUND',    0);
+define('UNIT_ANIM_TIER_SWIM',      1);
+define('UNIT_ANIM_TIER_HOVER',     2);
+define('UNIT_ANIM_TIER_FLY',       3);
+define('UNIT_ANIM_TIER_SUMBERGED', 4);
+
+// UNIT_FIELD_BYTES_2 - idx 1 (UnitPvPStateFlags)
+define('UNIT_PVPSTATE_FLAG_PVP',       0x01);
+define('UNIT_PVPSTATE_FLAG_FFA_PVP',   0x04);               // not expected to be on NPCs, buuuut...
+define('UNIT_PVPSTATE_FLAG_SANCTUARY', 0x08);
 
 define('UNIT_DYNFLAG_LOOTABLE',                  0x01);     //
 define('UNIT_DYNFLAG_TRACK_UNIT',                0x02);     // Creature's location will be seen as a small dot in the minimap
@@ -801,24 +806,33 @@ define('PET_TALENT_TYPE_TENACITY', 1);
 define('PET_TALENT_TYPE_CUNNING',  2);
 
 // quest
-define('QUEST_FLAG_STAY_ALIVE',             0x00001);
-define('QUEST_FLAG_PARTY_ACCEPT',           0x00002);
-define('QUEST_FLAG_EXPLORATION',            0x00004);
-define('QUEST_FLAG_SHARABLE',               0x00008);
-define('QUEST_FLAG_AUTO_REWARDED',          0x00400);
-define('QUEST_FLAG_DAILY',                  0x01000);
-define('QUEST_FLAG_REPEATABLE',             0x02000);
-define('QUEST_FLAG_UNAVAILABLE',            0x04000);
-define('QUEST_FLAG_WEEKLY',                 0x08000);
-define('QUEST_FLAG_AUTO_COMPLETE',          0x10000);
-define('QUEST_FLAG_AUTO_ACCEPT',            0x80000);
+define('QUEST_FLAG_STAY_ALIVE',              0x00001);
+define('QUEST_FLAG_PARTY_ACCEPT',            0x00002);
+define('QUEST_FLAG_EXPLORATION',             0x00004);
+define('QUEST_FLAG_SHARABLE',                0x00008);
+define('QUEST_FLAG_HAS_CONDITION',           0x00010); // TC: Not used currently
+define('QUEST_FLAG_HIDE_REWARD_POI',         0x00020); // TC: Not used currently: Unsure of content
+define('QUEST_FLAG_RAID',                    0x00040);
+define('QUEST_FLAG_TBC',                     0x00080);
+define('QUEST_FLAG_NO_MONEY_FROM_XP',        0x00100);
+define('QUEST_FLAG_HIDDEN_REWARDS',          0x00200);
+define('QUEST_FLAG_TRACKING',                0x00400); // TC: These quests are automatically rewarded on quest complete and they will never appear in quest log client side.
+define('QUEST_FLAG_DEPRECATE_REPUTATION',    0x00800); // TC: Not used currently
+define('QUEST_FLAG_DAILY',                   0x01000);
+define('QUEST_FLAG_FLAGS_PVP',               0x02000);
+define('QUEST_FLAG_UNAVAILABLE',             0x04000);
+define('QUEST_FLAG_WEEKLY',                  0x08000);
+define('QUEST_FLAG_AUTO_COMPLETE',           0x10000);
+define('QUEST_FLAG_DISPLAY_ITEM_IN_TRACKER', 0x20000); // TC: Displays usable item in quest tracker
+define('QUEST_FLAG_OBJ_TEXT',                0x40000); // TC: use Objective text as Complete text
+define('QUEST_FLAG_AUTO_ACCEPT',             0x80000);
 
-define('QUEST_FLAG_SPECIAL_REPEATABLE',     0x01);
-define('QUEST_FLAG_SPECIAL_EXT_COMPLETE',   0x02);
-define('QUEST_FLAG_SPECIAL_AUTO_ACCEPT',    0x04);
-define('QUEST_FLAG_SPECIAL_DUNGEON_FINDER', 0x08);
-define('QUEST_FLAG_SPECIAL_MONTHLY',        0x10);
-define('QUEST_FLAG_SPECIAL_SPELLCAST',      0x20);          // not documented in wiki! :[
+define('QUEST_FLAG_SPECIAL_REPEATABLE',      0x01);
+define('QUEST_FLAG_SPECIAL_EXT_COMPLETE',    0x02);
+define('QUEST_FLAG_SPECIAL_AUTO_ACCEPT',     0x04);
+define('QUEST_FLAG_SPECIAL_DUNGEON_FINDER',  0x08);
+define('QUEST_FLAG_SPECIAL_MONTHLY',         0x10);
+define('QUEST_FLAG_SPECIAL_SPELLCAST',       0x20);    // not documented in wiki! :[
 
 // GameObject
 define('OBJECT_DOOR',                       0);
@@ -1073,7 +1087,7 @@ define('ENCHANTMENT_TYPE_PRISMATIC_SOCKET', 8);
 // define('ENCHANT_CONDITION_EQUAL_VALUE',        ?);
 define('ENCHANT_CONDITION_LESS_VALUE',            2);
 define('ENCHANT_CONDITION_MORE_COMPARE',          3);
-// define('ENCHANT_CONDITION_MORE_EQUAL_COMPARE', ?);
+// define('ENCHANT_CONDITION_MORE_EQUAL_COMPARE', %s);
 define('ENCHANT_CONDITION_MORE_VALUE',            5);
 // define('ENCHANT_CONDITION_NOT_EQUAL_COMPARE',  ?);
 // define('ENCHANT_CONDITION_NOT_EQUAL_VALUE',    ?);

@@ -12,15 +12,15 @@ class GameObjectList extends DBTypeList
 
     public static int    $type      = Type::OBJECT;
     public static string $brickFile = 'object';
-    public static string $dataTable = '?_objects';
+    public static string $dataTable = '::objects';
 
-    protected string $queryBase = 'SELECT o.*, o.`id` AS ARRAY_KEY FROM ?_objects o';
+    protected string $queryBase = 'SELECT o.*, o.`id` AS ARRAY_KEY FROM ::objects o';
     protected array  $queryOpts = array(
                         'o'   => [['ft', 'qse']],
-                        'ft'  => ['j' => ['?_factiontemplate ft ON ft.`id` = o.`faction`', true], 's' => ', ft.`factionId`, IFNULL(ft.`A`, 0) AS "A", IFNULL(ft.`H`, 0) AS "H"'],
-                        'qse' => ['j' => ['?_quests_startend qse ON qse.`type` = 2 AND qse.`typeId` = o.id', true], 's' => ', IF(MIN(qse.`method`) = 1 OR MAX(qse.`method`) = 3, 1, 0) AS "startsQuests", IF(MIN(qse.`method`) = 2 OR MAX(qse.`method`) = 3, 1, 0) AS "endsQuests"', 'g' => 'o.`id`'],
-                        'qt'  => ['j' => '?_quests qt ON qse.`questId` = qt.`id`'],
-                        's'   => ['j' => '?_spawns s ON s.`type` = 2 AND s.`typeId` = o.`id`']
+                        'ft'  => ['j' => ['::factiontemplate ft ON ft.`id` = o.`faction`', true], 's' => ', ft.`factionId`, IFNULL(ft.`A`, 0) AS "A", IFNULL(ft.`H`, 0) AS "H"'],
+                        'qse' => ['j' => ['::quests_startend qse ON qse.`type` = 2 AND qse.`typeId` = o.id', true], 's' => ', IF(MIN(qse.`method`) = 1 OR MAX(qse.`method`) = 3, 1, 0) AS "startsQuests", IF(MIN(qse.`method`) = 2 OR MAX(qse.`method`) = 3, 1, 0) AS "endsQuests"', 'g' => 'o.`id`'],
+                        'qt'  => ['j' => '::quests qt ON qse.`questId` = qt.`id`'],
+                        's'   => ['j' => '::spawns s ON s.`type` = 2 AND s.`typeId` = o.`id`']
                     );
 
     public function __construct(array $conditions = [], array $miscData = [])
@@ -167,7 +167,7 @@ class GameObjectListFilter extends Filter
         'cr'  => [parent::V_LIST,  [[1, 5], 7, 11, 13, 15, 16, 18, 50],              true ], // criteria ids
         'crs' => [parent::V_LIST,  [parent::ENUM_NONE, parent::ENUM_ANY, [0, 5000]], true ], // criteria operators
         'crv' => [parent::V_REGEX, parent::PATTERN_INT,                              true ], // criteria values - only numeric input values expected
-        'na'  => [parent::V_REGEX, parent::PATTERN_NAME,                             false], // name - only printable chars, no delimiter
+        'na'  => [parent::V_NAME,  false,                                            false], // name - only printable chars, no delimiter
         'ma'  => [parent::V_EQUAL, 1,                                                false]  // match any / all filter
     );
 
@@ -180,7 +180,7 @@ class GameObjectListFilter extends Filter
 
         // name
         if ($_v['na'])
-            if ($_ = $this->buildMatchLookup(['name_loc'.Lang::getLocale()->value]))
+            if ($_ = $this->buildMatchLookup(['na' => 'name_loc'.Lang::getLocale()->value]))
                 $parts[] = $_;
 
         return $parts;
@@ -189,7 +189,7 @@ class GameObjectListFilter extends Filter
     protected function cbOpenable(int $cr, int $crs, string $crv) : ?array
     {
         if ($this->int2Bool($crs))
-            return $crs ? ['OR', ['flags', 0x2, '&'], ['type', 3]] : ['AND', [['flags', 0x2, '&'], 0], ['type', 3, '!']];
+            return $crs ? [DB::OR, ['flags', 0x2, '&'], ['type', 3]] : [DB::AND, [['flags', 0x2, '&'], 0], ['type', 3, '!']];
 
         return null;
     }
@@ -199,13 +199,13 @@ class GameObjectListFilter extends Filter
         switch ($crs)
         {
             case 1:                                 // any
-                return ['AND', ['qse.method', $value, '&'], ['qse.questId', null, '!']];
+                return [DB::AND, ['qse.method', $value, '&'], ['qse.questId', null, '!']];
             case 2:                                 // alliance only
-                return ['AND', ['qse.method', $value, '&'], ['qse.questId', null, '!'], [['qt.reqRaceMask', ChrRace::MASK_HORDE, '&'], 0], ['qt.reqRaceMask', ChrRace::MASK_ALLIANCE, '&']];
+                return [DB::AND, ['qse.method', $value, '&'], ['qse.questId', null, '!'], [['qt.reqRaceMask', ChrRace::MASK_HORDE, '&'], 0], ['qt.reqRaceMask', ChrRace::MASK_ALLIANCE, '&']];
             case 3:                                 // horde only
-                return ['AND', ['qse.method', $value, '&'], ['qse.questId', null, '!'], [['qt.reqRaceMask', ChrRace::MASK_ALLIANCE, '&'], 0], ['qt.reqRaceMask', ChrRace::MASK_HORDE, '&']];
+                return [DB::AND, ['qse.method', $value, '&'], ['qse.questId', null, '!'], [['qt.reqRaceMask', ChrRace::MASK_ALLIANCE, '&'], 0], ['qt.reqRaceMask', ChrRace::MASK_HORDE, '&']];
             case 4:                                 // both
-                return ['AND', ['qse.method', $value, '&'], ['qse.questId', null, '!'], ['OR', ['AND', ['qt.reqRaceMask', ChrRace::MASK_ALLIANCE, '&'], ['qt.reqRaceMask', ChrRace::MASK_HORDE, '&']], ['qt.reqRaceMask', 0]]];
+                return [DB::AND, ['qse.method', $value, '&'], ['qse.questId', null, '!'], [DB::OR, [DB::AND, ['qt.reqRaceMask', ChrRace::MASK_ALLIANCE, '&'], ['qt.reqRaceMask', ChrRace::MASK_HORDE, '&']], ['qt.reqRaceMask', 0]]];
             case 5:                                 // none         todo (low): broken, if entry starts and ends quests...
                 $this->extraOpts['o']['h'][] = $field.' = 0';
                 return [1];
@@ -218,24 +218,24 @@ class GameObjectListFilter extends Filter
     {
         if ($crs == parent::ENUM_ANY)
         {
-            if ($eventIds = DB::Aowow()->selectCol('SELECT `id` FROM ?_events WHERE `holidayId` <> 0'))
-                if ($goGuids  = DB::World()->selectCol('SELECT DISTINCT `guid` FROM game_event_gameobject WHERE `eventEntry` IN (?a)', $eventIds))
+            if ($eventIds = DB::Aowow()->selectCol('SELECT `id` FROM ::events WHERE `holidayId` <> 0'))
+                if ($goGuids  = DB::World()->selectCol('SELECT DISTINCT `guid` FROM game_event_gameobject WHERE `eventEntry` IN %in', $eventIds))
                     return ['s.guid', $goGuids];
 
             return [0];
         }
         else if ($crs == parent::ENUM_NONE)
         {
-            if ($eventIds = DB::Aowow()->selectCol('SELECT `id` FROM ?_events WHERE `holidayId` <> 0'))
-                if ($goGuids  = DB::World()->selectCol('SELECT DISTINCT `guid` FROM game_event_gameobject WHERE `eventEntry` IN (?a)', $eventIds))
-                    return ['s.guid', $goGuids, '!'];
+            if ($eventIds = DB::Aowow()->selectCol('SELECT `id` FROM ::events WHERE `holidayId` <> 0'))
+                if ($goGuids  = DB::World()->selectCol('SELECT DISTINCT `guid` FROM game_event_gameobject WHERE `eventEntry` IN %in', $eventIds))
+                    return [DB::OR, ['s.guid', $goGuids, '!'], ['s.guid', null]];
 
             return [0];
         }
         else if (in_array($crs, self::$enums[$cr]))
         {
-            if ($eventIds = DB::Aowow()->selectCol('SELECT `id` FROM ?_events WHERE `holidayId` = ?d', $crs))
-                if ($goGuids  = DB::World()->selectCol('SELECT DISTINCT `guid` FROM game_event_gameobject WHERE `eventEntry` IN (?a)', $eventIds))
+            if ($eventIds = DB::Aowow()->selectCol('SELECT `id` FROM ::events WHERE `holidayId` = %i', $crs))
+                if ($goGuids  = DB::World()->selectCol('SELECT DISTINCT `guid` FROM game_event_gameobject WHERE `eventEntry` IN %in', $eventIds))
                     return ['s.guid', $goGuids];
 
             return [0];

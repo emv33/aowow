@@ -12,13 +12,13 @@ class AreaTriggerList extends DBTypeList
 
     public static int    $type       = Type::AREATRIGGER;
     public static string $brickFile  = 'areatrigger';
-    public static string $dataTable  = '?_areatrigger';
+    public static string $dataTable  = '::areatrigger';
     public static int    $contribute = CONTRIBUTE_CO;
 
-    protected string $queryBase = 'SELECT a.*, a.id AS ARRAY_KEY FROM ?_areatrigger a';
+    protected string $queryBase = 'SELECT a.*, a.id AS ARRAY_KEY FROM ::areatrigger a';
     protected array  $queryOpts = array(
                         'a' => [['s']],                     // guid < 0 are teleporter targets, so exclude them here
-                        's' => ['j' => ['?_spawns s ON s.`type` = 503 AND s.`typeId` = a.`id` AND s.`guid` > 0', true], 's' => ', GROUP_CONCAT(s.`areaId`) AS "areaId"', 'g' => 'a.`id`']
+                        's' => ['j' => ['::spawns s ON s.`type` = 503 AND s.`typeId` = a.`id` AND s.`guid` > 0', true], 's' => ', GROUP_CONCAT(s.`areaId`) AS "areaId"', 'g' => 'a.`id`']
                     );
 
     public function __construct(array $conditions = [], array $miscData = [])
@@ -32,7 +32,7 @@ class AreaTriggerList extends DBTypeList
 
     public static function getName(int $id) : ?LocString
     {
-        if ($n = DB::Aowow()->SelectRow('SELECT IF(`name`, `name`, CONCAT("Unnamed Areatrigger #", `id`) AS "name_loc0" FROM ?# WHERE `id` = ?d', self::$dataTable, $id))
+        if ($n = DB::Aowow()->SelectRow('SELECT IF(`name`, `name`, CONCAT("Unnamed Areatrigger #", `id`) AS "name_loc0" FROM %n WHERE `id` = %i', self::$dataTable, $id))
             return new LocString($n);
         return null;
     }
@@ -73,7 +73,7 @@ class AreaTriggerListFilter extends Filter
         'cr'  => [parent::V_LIST,  [2],                  true ], // criteria ids
         'crs' => [parent::V_RANGE, [1, 6],               true ], // criteria operators
         'crv' => [parent::V_REGEX, parent::PATTERN_INT,  true ], // criteria values - all criteria are numeric here
-        'na'  => [parent::V_REGEX, parent::PATTERN_NAME, false], // name - only printable chars, no delimiter
+        'na'  => [parent::V_NAME,  false,                false], // name - only printable chars, no delimiter
         'ma'  => [parent::V_EQUAL, 1,                    false], // match any / all filter
         'ty'  => [parent::V_RANGE, [0, 5],               true ]  // types
     );
@@ -85,7 +85,7 @@ class AreaTriggerListFilter extends Filter
 
         // name [str]
         if ($_v['na'])
-            if ($_ = $this->tokenizeString(['name']))
+            if ($_ = $this->buildLikeLookup(['na' => 'name']))
                 $parts[] = $_;
 
         // type [list]

@@ -12,18 +12,18 @@ class CreatureList extends DBTypeList
 
     public static int    $type      = Type::NPC;
     public static string $brickFile = 'npc';
-    public static string $dataTable = '?_creature';
+    public static string $dataTable = '::creature';
 
-    protected string $queryBase = 'SELECT ct.*, ct.`id` AS ARRAY_KEY FROM ?_creature ct';
+    protected string $queryBase = 'SELECT ct.*, ct.`id` AS ARRAY_KEY FROM ::creature ct';
     public    array  $queryOpts = array(
                         'ct'   => [['ft', 'qse', 'dct1', 'dct2', 'dct3'], 's' => ', IFNULL(dct1.`id`, IFNULL(dct2.`id`, IFNULL(dct3.`id`, 0))) AS "parentId", IFNULL(dct1.`name_loc0`, IFNULL(dct2.`name_loc0`, IFNULL(dct3.`name_loc0`, ""))) AS "parent_loc0", IFNULL(dct1.`name_loc2`, IFNULL(dct2.`name_loc2`, IFNULL(dct3.`name_loc2`, ""))) AS "parent_loc2", IFNULL(dct1.`name_loc3`, IFNULL(dct2.`name_loc3`, IFNULL(dct3.`name_loc3`, ""))) AS "parent_loc3", IFNULL(dct1.`name_loc4`, IFNULL(dct2.`name_loc4`, IFNULL(dct3.`name_loc4`, ""))) AS "parent_loc4", IFNULL(dct1.`name_loc6`, IFNULL(dct2.`name_loc6`, IFNULL(dct3.`name_loc6`, ""))) AS "parent_loc6", IFNULL(dct1.name_loc8, IFNULL(dct2.`name_loc8`, IFNULL(dct3.`name_loc8`, ""))) AS "parent_loc8", IF(dct1.`difficultyEntry1` = ct.`id`, 1, IF(dct2.`difficultyEntry2` = ct.`id`, 2, IF(dct3.`difficultyEntry3` = ct.`id`, 3, 0))) AS "difficultyMode"'],
-                        'dct1' => ['j' => ['?_creature dct1 ON ct.`cuFlags` & 0x02 AND dct1.`difficultyEntry1` = ct.`id`', true]],
-                        'dct2' => ['j' => ['?_creature dct2 ON ct.`cuFlags` & 0x02 AND dct2.`difficultyEntry2` = ct.`id`', true]],
-                        'dct3' => ['j' => ['?_creature dct3 ON ct.`cuFlags` & 0x02 AND dct3.`difficultyEntry3` = ct.`id`', true]],
-                        'ft'   => ['j' => '?_factiontemplate ft ON ft.`id` = ct.`faction`', 's' => ', ft.`factionId`, IFNULL(ft.`A`, 0) AS "A", IFNULL(ft.`H`, 0) AS "H"'],
-                        'qse'  => ['j' => ['?_quests_startend qse ON qse.`type` = 1 AND qse.`typeId` = ct.id', true], 's' => ', IF(MIN(qse.`method`) = 1 OR MAX(qse.`method`) = 3, 1, 0) AS "startsQuests", IF(MIN(qse.`method`) = 2 OR MAX(qse.`method`) = 3, 1, 0) AS "endsQuests"', 'g' => 'ct.`id`'],
-                        'qt'   => ['j' => '?_quests qt ON qse.`questId` = qt.`id`'],
-                        's'    => ['j' => ['?_spawns s ON s.`type` = 1 AND s.`typeId` = ct.`id`', true]]
+                        'dct1' => ['j' => ['::creature dct1 ON ct.`cuFlags` & 0x02 AND dct1.`difficultyEntry1` = ct.`id`', true]],
+                        'dct2' => ['j' => ['::creature dct2 ON ct.`cuFlags` & 0x02 AND dct2.`difficultyEntry2` = ct.`id`', true]],
+                        'dct3' => ['j' => ['::creature dct3 ON ct.`cuFlags` & 0x02 AND dct3.`difficultyEntry3` = ct.`id`', true]],
+                        'ft'   => ['j' => '::factiontemplate ft ON ft.`id` = ct.`faction`', 's' => ', ft.`factionId`, IFNULL(ft.`A`, 0) AS "A", IFNULL(ft.`H`, 0) AS "H"'],
+                        'qse'  => ['j' => ['::quests_startend qse ON qse.`type` = 1 AND qse.`typeId` = ct.id', true], 's' => ', IF(MIN(qse.`method`) = 1 OR MAX(qse.`method`) = 3, 1, 0) AS "startsQuests", IF(MIN(qse.`method`) = 2 OR MAX(qse.`method`) = 3, 1, 0) AS "endsQuests"', 'g' => 'ct.`id`'],
+                        'qt'   => ['j' => '::quests qt ON qse.`questId` = qt.`id`'],
+                        's'    => ['j' => ['::spawns s ON s.`type` = 1 AND s.`typeId` = ct.`id`', true]]
                     );
 
     public function __construct(array $conditions = [], array $miscData = [])
@@ -108,7 +108,7 @@ class CreatureList extends DBTypeList
                 $data[] = $_;
 
         if (count($data) == 1 && ($slotId = array_search($data[0], $totems)))
-            $data = DB::World()->selectCol('SELECT `DisplayId` FROM player_totem_model WHERE `TotemSlot` = ?d', $slotId);
+            $data = DB::World()->selectCol('SELECT `DisplayId` FROM player_totem_model WHERE `TotemSlot` = %i', $slotId);
 
         return !$data ? 0 : $data[array_rand($data)];
     }
@@ -184,8 +184,8 @@ class CreatureList extends DBTypeList
         if ($addInfoMask & NPCINFO_REP && $this->getFoundIDs())
         {
             $rewRep = DB::World()->selectCol(
-               'SELECT `creature_id` AS ARRAY_KEY, `RewOnKillRepFaction1` AS ARRAY_KEY2, `RewOnKillRepValue1` FROM creature_onkill_reputation WHERE `creature_id` IN (?a) AND `RewOnKillRepFaction1` > 0 UNION
-                SELECT `creature_id` AS ARRAY_KEY, `RewOnKillRepFaction2` AS ARRAY_KEY2, `RewOnKillRepValue2` FROM creature_onkill_reputation WHERE `creature_id` IN (?a) AND `RewOnKillRepFaction2` > 0',
+               'SELECT `creature_id` AS ARRAY_KEY, `RewOnKillRepFaction1` AS ARRAY_KEY2, `RewOnKillRepValue1` FROM creature_onkill_reputation WHERE `creature_id` IN %in AND `RewOnKillRepFaction1` > 0 UNION
+                SELECT `creature_id` AS ARRAY_KEY, `RewOnKillRepFaction2` AS ARRAY_KEY2, `RewOnKillRepValue2` FROM creature_onkill_reputation WHERE `creature_id` IN %in AND `RewOnKillRepFaction2` > 0',
                 $this->getFoundIDs(),
                 $this->getFoundIDs()
             );
@@ -328,12 +328,12 @@ class CreatureListFilter extends Filter
         31 => [parent::CR_FLAG,     'cuFlags',           CUSTOM_HAS_SCREENSHOT                         ], // hasscreenshots
         32 => [parent::CR_FLAG,     'cuFlags',           NPC_CU_INSTANCE_BOSS                          ], // instanceboss
         33 => [parent::CR_FLAG,     'cuFlags',           CUSTOM_HAS_COMMENT                            ], // hascomments
-        34 => [parent::CR_STRING,   'modelId',           STR_MATCH_EXACT | STR_ALLOW_SHORT             ], // usemodel [str] (wants int in string fmt <_<)
+        34 => [parent::CR_CALLBACK, 'cbUseModel'                                                       ], // usemodel [str]
         35 => [parent::CR_STRING,   'textureString'                                                    ], // useskin [str]
         37 => [parent::CR_NUMERIC,  'id',                NUM_CAST_INT,                       true      ], // id
         38 => [parent::CR_CALLBACK, 'cbRelEvent',        null,                               null      ], // relatedevent [enum]
         40 => [parent::CR_FLAG,     'cuFlags',           CUSTOM_HAS_VIDEO                              ], // hasvideos
-        41 => [parent::CR_NYI_PH,   1,                   null                                          ], // haslocation [yn] [staff]
+        41 => [parent::CR_CALLBACK, 'cbHasLocation'                                                    ], // haslocation [yn] [staff]
         42 => [parent::CR_CALLBACK, 'cbReputation',      '>',                                null      ], // increasesrepwith [enum]
         43 => [parent::CR_CALLBACK, 'cbReputation',      '<',                                null      ], // decreasesrepwith [enum]
         44 => [parent::CR_CALLBACK, 'cbSpecialSkinLoot', NPC_TYPEFLAG_SKIN_WITH_ENGINEERING, null      ]  // salvageable [yn]
@@ -343,7 +343,7 @@ class CreatureListFilter extends Filter
         'cr'    => [parent::V_LIST,     [[1, 3],[5, 12], 15, 16, [18, 25], [27, 29], [31, 35], 37, 38, [40, 44]], true ], // criteria ids
         'crs'   => [parent::V_LIST,     [parent::ENUM_NONE, parent::ENUM_ANY, [0, 9999]],                         true ], // criteria operators
         'crv'   => [parent::V_REGEX,    parent::PATTERN_CRV,                                                      true ], // criteria values - only printable chars, no delimiter
-        'na'    => [parent::V_REGEX,    parent::PATTERN_NAME,                                                     false], // name / subname - only printable chars, no delimiter
+        'na'    => [parent::V_NAME,     false,                                                                    false], // name / subname - only printable chars, no delimiter
         'ex'    => [parent::V_EQUAL,    'on',                                                                     false], // also match subname
         'ma'    => [parent::V_EQUAL,    1,                                                                        false], // match any / all filter
         'fa'    => [parent::V_CALLBACK, 'cbPetFamily',                                                            true ], // pet family [list]  -  cat[0] == 1
@@ -365,13 +365,13 @@ class CreatureListFilter extends Filter
         if ($_v['na'])
         {
             if ($_v['ex'] == 'on')
-                if ($_ = $this->tokenizeString(['subname_loc'.Lang::getLocale()->value]))
+                if ($_ = $this->buildLikeLookup(['na' => 'subname_loc'.Lang::getLocale()->value]))
                     $parts[] = $_;
 
-            if ($_ = $this->buildMatchLookup(['name_loc'.Lang::getLocale()->value]))
+            if ($_ = $this->buildMatchLookup(['na' => 'name_loc'.Lang::getLocale()->value]))
             {
                 if ($parts)
-                    $parts = ['OR', $_, ...$parts];
+                    $parts = [DB::OR, $_, ...$parts];
                 else
                     $parts[] = $_;
             }
@@ -422,24 +422,24 @@ class CreatureListFilter extends Filter
     {
         if ($crs == parent::ENUM_ANY)
         {
-            if ($eventIds = DB::Aowow()->selectCol('SELECT `id` FROM ?_events WHERE `holidayId` <> 0'))
-                if ($cGuids   = DB::World()->selectCol('SELECT DISTINCT `guid` FROM game_event_creature WHERE `eventEntry` IN (?a)', $eventIds))
+            if ($eventIds = DB::Aowow()->selectCol('SELECT `id` FROM ::events WHERE `holidayId` <> 0'))
+                if ($cGuids   = DB::World()->selectCol('SELECT DISTINCT `guid` FROM game_event_creature WHERE `eventEntry` IN %in', $eventIds))
                     return ['s.guid', $cGuids];
 
             return [0];
         }
         else if ($crs == parent::ENUM_NONE)
         {
-            if ($eventIds = DB::Aowow()->selectCol('SELECT `id` FROM ?_events WHERE `holidayId` <> 0'))
-                if ($cGuids   = DB::World()->selectCol('SELECT DISTINCT `guid` FROM game_event_creature WHERE `eventEntry` IN (?a)', $eventIds))
-                    return ['s.guid', $cGuids, '!'];
+            if ($eventIds = DB::Aowow()->selectCol('SELECT `id` FROM ::events WHERE `holidayId` <> 0'))
+                if ($cGuids   = DB::World()->selectCol('SELECT DISTINCT `guid` FROM game_event_creature WHERE `eventEntry` IN %in', $eventIds))
+                    return [DB::OR, ['s.guid', $cGuids, '!'], ['s.guid', null]];
 
             return [0];
         }
         else if (in_array($crs, self::$enums[$cr]))
         {
-            if ($eventIds = DB::Aowow()->selectCol('SELECT `id` FROM ?_events WHERE `holidayId` = ?d', $crs))
-                if ($cGuids   = DB::World()->selectCol('SELECT DISTINCT `guid` FROM `game_event_creature` WHERE `eventEntry` IN (?a)', $eventIds))
+            if ($eventIds = DB::Aowow()->selectCol('SELECT `id` FROM ::events WHERE `holidayId` = %i', $crs))
+                if ($cGuids   = DB::World()->selectCol('SELECT DISTINCT `guid` FROM `game_event_creature` WHERE `eventEntry` IN %in', $eventIds))
                     return ['s.guid', $cGuids];
 
             return [0];
@@ -453,7 +453,7 @@ class CreatureListFilter extends Filter
         if (!Util::checkNumeric($crv, NUM_CAST_INT) || !$this->int2Op($crs))
             return null;
 
-        return ['AND', ['((minGold + maxGold) / 2)', $crv, $crs]];
+        return [DB::AND, ['((minGold + maxGold) / 2)', $crv, $crs]];
     }
 
     protected function cbQuestRelation(int $cr, int $crs, string $crv, $field, $val) : ?array
@@ -461,13 +461,13 @@ class CreatureListFilter extends Filter
         switch ($crs)
         {
             case 1:                                 // any
-                return ['AND', ['qse.method', $val, '&'], ['qse.questId', null, '!']];
+                return [DB::AND, ['qse.method', $val, '&'], ['qse.questId', null, '!']];
             case 2:                                 // alliance
-                return ['AND', ['qse.method', $val, '&'], ['qse.questId', null, '!'], [['qt.reqRaceMask', ChrRace::MASK_HORDE, '&'], 0], ['qt.reqRaceMask', ChrRace::MASK_ALLIANCE, '&']];
+                return [DB::AND, ['qse.method', $val, '&'], ['qse.questId', null, '!'], [['qt.reqRaceMask', ChrRace::MASK_HORDE, '&'], 0], ['qt.reqRaceMask', ChrRace::MASK_ALLIANCE, '&']];
             case 3:                                 // horde
-                return ['AND', ['qse.method', $val, '&'], ['qse.questId', null, '!'], [['qt.reqRaceMask', ChrRace::MASK_ALLIANCE, '&'], 0], ['qt.reqRaceMask', ChrRace::MASK_HORDE, '&']];
+                return [DB::AND, ['qse.method', $val, '&'], ['qse.questId', null, '!'], [['qt.reqRaceMask', ChrRace::MASK_ALLIANCE, '&'], 0], ['qt.reqRaceMask', ChrRace::MASK_HORDE, '&']];
             case 4:                                 // both
-                return ['AND', ['qse.method', $val, '&'], ['qse.questId', null, '!'], ['OR', ['AND', ['qt.reqRaceMask', ChrRace::MASK_ALLIANCE, '&'], ['qt.reqRaceMask', ChrRace::MASK_HORDE, '&']], ['qt.reqRaceMask', 0]]];
+                return [DB::AND, ['qse.method', $val, '&'], ['qse.questId', null, '!'], [DB::OR, [DB::AND, ['qt.reqRaceMask', ChrRace::MASK_ALLIANCE, '&'], ['qt.reqRaceMask', ChrRace::MASK_HORDE, '&']], ['qt.reqRaceMask', 0]]];
             case 5:                                 // none
                 $this->extraOpts['ct']['h'][] = $field.' = 0';
                 return [1];
@@ -506,9 +506,9 @@ class CreatureListFilter extends Filter
 
 
         if ($crs)
-            return ['AND', ['skinLootId', 0, '>'], ['typeFlags', $typeFlag, '&']];
+            return [DB::AND, ['skinLootId', 0, '>'], ['typeFlags', $typeFlag, '&']];
         else
-            return ['OR', ['skinLootId', 0], [['typeFlags', $typeFlag, '&'], 0]];
+            return [DB::OR, ['skinLootId', 0], [['typeFlags', $typeFlag, '&'], 0]];
     }
 
     protected function cbRegularSkinLoot(int $cr, int $crs, string $crv, $typeFlag) : ?array
@@ -517,9 +517,9 @@ class CreatureListFilter extends Filter
             return null;
 
         if ($crs)
-            return ['AND', ['skinLootId', 0, '>'], [['typeFlags', $typeFlag, '&'], 0]];
+            return [DB::AND, ['skinLootId', 0, '>'], [['typeFlags', $typeFlag, '&'], 0]];
         else
-            return ['OR', ['skinLootId', 0], ['typeFlags', $typeFlag, '&']];
+            return [DB::OR, ['skinLootId', 0], ['typeFlags', $typeFlag, '&']];
     }
 
     protected function cbReputation(int $cr, int $crs, string $crv, $op) : ?array
@@ -527,10 +527,10 @@ class CreatureListFilter extends Filter
         if (!in_array($crs, self::$enums[$cr]))
             return null;
 
-        if ($_ = DB::Aowow()->selectRow('SELECT * FROM ?_factions WHERE `id` = ?d', $crs))
+        if ($_ = DB::Aowow()->selectRow('SELECT * FROM ::factions WHERE `id` = %i', $crs))
             $this->fiReputationCols[] = [$crs, Util::localizedString($_, 'name')];
 
-        if ($cIds = DB::World()->selectCol('SELECT `creature_id` FROM creature_onkill_reputation WHERE (`RewOnKillRepFaction1` = ?d AND `RewOnKillRepValue1` '.$op.' 0) OR (`RewOnKillRepFaction2` = ?d AND `RewOnKillRepValue2` '.$op.' 0)', $crs, $crs))
+        if ($cIds = DB::World()->selectCol('SELECT `creature_id` FROM creature_onkill_reputation WHERE (`RewOnKillRepFaction1` = %i AND `RewOnKillRepValue1` '.$op.' 0) OR (`RewOnKillRepFaction2` = %i AND `RewOnKillRepValue2` '.$op.' 0)', $crs, $crs))
             return ['id', $cIds];
         else
             return [0];
@@ -545,11 +545,28 @@ class CreatureListFilter extends Filter
             return null;
 
         $facTpls = [];
-        $facs    = new FactionList(array('OR', ['parentFactionId', $crs], ['id', $crs]));
+        $facs    = new FactionList(array(DB::OR, ['parentFactionId', $crs], ['id', $crs]));
         foreach ($facs->iterate() as $__)
             $facTpls = array_merge($facTpls, $facs->getField('templateIds'));
 
         return $facTpls ? ['faction', $facTpls] : [0];
+    }
+
+    // input is string, so there is no prompt for an operator. But a CR_NUMERIC expects crs to not be 0
+    protected function cbUseModel(int $cr, int $crs, string $crv) : ?array
+    {
+        if (!Util::checkNumeric($crv, NUM_CAST_INT))
+            return null;
+
+        return ['modelId', $crv];
+    }
+
+    protected function cbHasLocation(int $cr, int $crs, string $crv) : ?array
+    {
+        if (!$this->int2Bool($crs))
+            return null;
+
+        return ['s.typeId', null, $crs ? '!' : null];
     }
 }
 

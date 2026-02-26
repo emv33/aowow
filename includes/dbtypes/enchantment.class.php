@@ -12,16 +12,16 @@ class EnchantmentList extends DBTypeList
 
     public static int    $type      = Type::ENCHANTMENT;
     public static string $brickFile = 'enchantment';
-    public static string $dataTable = '?_itemenchantment';
+    public static string $dataTable = '::itemenchantment';
 
     private  array     $jsonStats  = [];
     private ?SpellList $relSpells  = null;
     private  array     $triggerIds = [];
 
-    protected string $queryBase = 'SELECT ie.*, ie.id AS ARRAY_KEY FROM ?_itemenchantment ie';
+    protected string $queryBase = 'SELECT ie.*, ie.id AS ARRAY_KEY FROM ::itemenchantment ie';
     protected array  $queryOpts = array(                    // 502 => Type::ENCHANTMENT
                         'ie' => [['is']],
-                        'is' => ['j' => ['?_item_stats `is`  ON `is`.`type` = 502 AND `is`.`typeId` = `ie`.`id`', true], 's' => ', `is`.*'],
+                        'is' => ['j' => ['::item_stats `is`  ON `is`.`type` = 502 AND `is`.`typeId` = `ie`.`id`', true], 's' => ', `is`.*'],
                     );
 
     public function __construct(array $conditions = [], array $miscData = [])
@@ -63,7 +63,7 @@ class EnchantmentList extends DBTypeList
 
         // issue with scaling stats enchantments
         // stats are stored as NOT NULL to be usable by the search filters and such become indistinguishable from scaling enchantments that _actually_ use the value 0
-        // so we can't rely on ?_item_stats and always have to calc stats
+        // so we can't rely on ::item_stats and always have to calc stats
         foreach ($this->iterate() as $ench)
         {
             $relSpells = [];
@@ -237,7 +237,7 @@ class EnchantmentListFilter extends Filter
         'cr'  => [parent::V_RANGE, [2, 123],             true ], // criteria ids
         'crs' => [parent::V_RANGE, [1, 15],              true ], // criteria operators
         'crv' => [parent::V_REGEX, parent::PATTERN_INT,  true ], // criteria values - only numerals
-        'na'  => [parent::V_REGEX, parent::PATTERN_NAME, false], // name - only printable chars, no delimiter
+        'na'  => [parent::V_NAME,  false,                false], // name - only printable chars, no delimiter
         'ma'  => [parent::V_EQUAL, 1,                    false], // match any / all filter
         'ty'  => [parent::V_RANGE, [1, 8],               true ]  // types
     );
@@ -249,12 +249,12 @@ class EnchantmentListFilter extends Filter
 
         //string
         if ($_v['na'])
-            if ($_ = $this->tokenizeString(['name_loc'.Lang::getLocale()->value]))
+            if ($_ = $this->buildLikeLookup(['na' => 'name_loc'.Lang::getLocale()->value]))
                 $parts[] = $_;
 
         // type
         if ($_v['ty'])
-            $parts[] = ['OR', ['type1', $_v['ty']], ['type2', $_v['ty']], ['type3', $_v['ty']]];
+            $parts[] = [DB::OR, ['type1', $_v['ty']], ['type2', $_v['ty']], ['type3', $_v['ty']]];
 
         return $parts;
     }

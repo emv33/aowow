@@ -191,7 +191,7 @@ class ItemsBaseResponse extends TemplateResponse implements ICache
         /* handle auto-gemming */
         /***********************/
 
-        $this->createGemScores($fiForm['gm'] ?? 0);
+        $this->createGemScores();
 
 
         /*************************/
@@ -289,7 +289,7 @@ class ItemsBaseResponse extends TemplateResponse implements ICache
             case ItemListFilter::GROUP_BY_LEVEL:            // itemlevel: first, try to find 10 level steps within range (if given) as tabs
                 // ohkayy, maybe i need to rethink $this
                 $this->filterOpts = $this->filter->extraOpts;
-                $this->filterOpts['is']['o'] = [null];      // remove 'order by' from ?_item_stats
+                $this->filterOpts['is']['o'] = [null];      // remove 'order by' from ::item_stats
                 $extraOpts = array_merge($this->filterOpts, ['i'  => ['g' => ['itemlevel'], 'o' => ['itemlevel DESC']]]);
 
                 $levelRef = new ItemList(array_merge($conditions, [10]), ['extraOpts' => $extraOpts]);
@@ -474,7 +474,7 @@ class ItemsBaseResponse extends TemplateResponse implements ICache
     }
 
     // fetch best possible gems for chosen weights
-    private function createGemScores(int $gemQuality) : void
+    private function createGemScores() : void
     {
         if (!$this->filter->fiSetWeights)
             return;
@@ -485,15 +485,15 @@ class ItemsBaseResponse extends TemplateResponse implements ICache
 
         array_push($this->sharedLV['hiddenCols'], 'type', 'source');
 
-        if (!$gemQuality)
+        if (!$this->filter->values['gm'])
             return;
 
         $this->sharedLV['computeDataFunc'] = '$fi_scoreSockets';
 
-        $q    = intVal($gemQuality);
+        $q    = $this->filter->values['gm'];
         $mask = 0xE;
         $cnd  = [10, ['class', ITEM_CLASS_GEM], ['gemColorMask', &$mask, '&'], ['quality', &$q]];
-        if (!isset($fiForm['jc']))
+        if (!$this->filter->values['jc'])
             $cnd[] = ['itemLimitCategory', 0];              // Jeweler's Gems
 
         if ($this->filter->wtCnd)
@@ -509,7 +509,7 @@ class ItemsBaseResponse extends TemplateResponse implements ICache
         for ($i = 0; $i < 4; $i++)
         {
             $mask = 1 << $i;
-            $q    = !$i ? ITEM_QUALITY_RARE : intVal($gemQuality);    // meta gems are always included.. ($q is backReferenced)
+            $q    = !$i ? ITEM_QUALITY_RARE : $this->filter->values['gm']; // meta gems are always included.. ($q is backReferenced)
             $byColor = new ItemList($cnd, ['extraOpts' => $this->filter->extraOpts]);
             if (!$byColor->error)
             {

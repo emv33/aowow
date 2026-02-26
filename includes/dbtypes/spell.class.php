@@ -10,9 +10,13 @@ class SpellList extends DBTypeList
 {
     use listviewHelper, sourceHelper;
 
+    public const /* int */ INTERACTIVE_NONE     = 0;
+    public const /* int */ INTERACTIVE_EMBEDDED = 1;        // parse combat ratings to %
+    public const /* int */ INTERACTIVE_FULL     = 2;        // additionaly allow links and hover tooltips
+
     public static  int      $type       = Type::SPELL;
     public static  string   $brickFile  = 'spell';
-    public static  string   $dataTable  = '?_spell';
+    public static  string   $dataTable  = '::spell';
     public         array    $ranks      = [];
     public        ?ItemList $relItems   = null;
     public static  array    $skillLines = array(
@@ -28,6 +32,11 @@ class SpellList extends DBTypeList
     );
     public const EFFECTS_SCALING_DAMAGE   = array( // as per Unit::SpellDamageBonusDone() calls in TC
         SPELL_EFFECT_SCHOOL_DAMAGE,         SPELL_EFFECT_HEALTH_LEECH,                      SPELL_EFFECT_POWER_BURN
+    );
+    public const EFFECTS_LDC_SCALING      = array(
+        SPELL_EFFECT_SCHOOL_DAMAGE,         SPELL_EFFECT_DUMMY,                             SPELL_EFFECT_POWER_DRAIN,                       SPELL_EFFECT_HEALTH_LEECH,                      SPELL_EFFECT_HEAL,
+        SPELL_EFFECT_WEAPON_DAMAGE,         SPELL_EFFECT_POWER_BURN,                        SPELL_EFFECT_SCRIPT_EFFECT,                     SPELL_EFFECT_NORMALIZED_WEAPON_DMG,             SPELL_EFFECT_FORCE_CAST_WITH_VALUE,
+        SPELL_EFFECT_TRIGGER_SPELL_WITH_VALUE,                                              SPELL_EFFECT_TRIGGER_MISSILE_SPELL_WITH_VALUE
     );
     public const EFFECTS_ITEM_CREATE      = array(
         SPELL_EFFECT_CREATE_ITEM,           SPELL_EFFECT_SUMMON_CHANGE_ITEM,                SPELL_EFFECT_CREATE_RANDOM_ITEM,                SPELL_EFFECT_CREATE_MANA_GEM,                   SPELL_EFFECT_CREATE_ITEM_2
@@ -61,6 +70,10 @@ class SpellList extends DBTypeList
     public const AURAS_SCALING_DAMAGE     = array( // as per Unit::SpellDamageBonusDone() calls in TC
         SPELL_AURA_PERIODIC_DAMAGE,         SPELL_AURA_PERIODIC_LEECH,                      SPELL_AURA_DAMAGE_SHIELD,                       SPELL_AURA_PROC_TRIGGER_DAMAGE
     );
+    public const AURAS_LDC_SCALING      = array(
+        SPELL_AURA_PERIODIC_DAMAGE,         SPELL_AURA_DUMMY,                               SPELL_AURA_PERIODIC_HEAL,                       SPELL_AURA_DAMAGE_SHIELD,                       SPELL_AURA_PROC_TRIGGER_DAMAGE,
+        SPELL_AURA_PERIODIC_LEECH,          SPELL_AURA_PERIODIC_MANA_LEECH,                 SPELL_AURA_SCHOOL_ABSORB,                       SPELL_AURA_PERIODIC_TRIGGER_SPELL_WITH_VALUE
+    );
     public const AURAS_ITEM_CREATE        = array(
         SPELL_AURA_CHANNEL_DEATH_ITEM
     );
@@ -79,7 +92,7 @@ class SpellList extends DBTypeList
     private        array $spellVars   = [];
     private        array $refSpells   = [];
     private        array $tools       = [];
-    private        bool  $interactive = false;
+    private        int   $interactive = self::INTERACTIVE_EMBEDDED;
     private        int   $charLevel   = MAX_LEVEL;
     private        array $scaling     = [];
     private        array $parsedText  = [];
@@ -89,13 +102,13 @@ class SpellList extends DBTypeList
         10 => 4
     );
 
-    protected string $queryBase = 'SELECT s.*, s.`id` AS ARRAY_KEY FROM ?_spell s';
+    protected string $queryBase = 'SELECT s.*, s.`id` AS ARRAY_KEY FROM ::spell s';
     protected array  $queryOpts = array(
                         's'   => [['src', 'sr', 'ic', 'ica']],  //  6: Type::SPELL
-                        'ic'  => ['j' => ['?_icons ic  ON ic.`id`  = s.`iconId`',    true], 's' => ', ic.`name` AS "iconString"'],
-                        'ica' => ['j' => ['?_icons ica ON ica.`id` = s.`iconIdAlt`', true], 's' => ', ica.`name` AS "iconStringAlt"'],
-                        'sr'  => ['j' => ['?_spellrange sr ON sr.`id` = s.`rangeId`'], 's' => ', sr.`rangeMinHostile`, sr.`rangeMinFriend`, sr.`rangeMaxHostile`, sr.`rangeMaxFriend`, sr.`name_loc0` AS "rangeText_loc0", sr.`name_loc2` AS "rangeText_loc2", sr.`name_loc3` AS "rangeText_loc3", sr.`name_loc4` AS "rangeText_loc4", sr.`name_loc6` AS "rangeText_loc6", sr.`name_loc8` AS "rangeText_loc8"'],
-                        'src' => ['j' => ['?_source src ON `type` = 6 AND `typeId` = s.`id`', true], 's' => ', `moreType`, `moreTypeId`, `moreZoneId`, `moreMask`, `src1`, `src2`, `src3`, `src4`, `src5`, `src6`, `src7`, `src8`, `src9`, `src10`, `src11`, `src12`, `src13`, `src14`, `src15`, `src16`, `src17`, `src18`, `src19`, `src20`, `src21`, `src22`, `src23`, `src24`']
+                        'ic'  => ['j' => ['::icons ic  ON ic.`id`  = s.`iconId`',    true], 's' => ', ic.`name` AS "iconString"'],
+                        'ica' => ['j' => ['::icons ica ON ica.`id` = s.`iconIdAlt`', true], 's' => ', ica.`name` AS "iconStringAlt"'],
+                        'sr'  => ['j' => ['::spellrange sr ON sr.`id` = s.`rangeId`'], 's' => ', sr.`rangeMinHostile`, sr.`rangeMinFriend`, sr.`rangeMaxHostile`, sr.`rangeMaxFriend`, sr.`name_loc0` AS "rangeText_loc0", sr.`name_loc2` AS "rangeText_loc2", sr.`name_loc3` AS "rangeText_loc3", sr.`name_loc4` AS "rangeText_loc4", sr.`name_loc6` AS "rangeText_loc6", sr.`name_loc8` AS "rangeText_loc8"'],
+                        'src' => ['j' => ['::source src ON `type` = 6 AND `typeId` = s.`id`', true], 's' => ', `moreType`, `moreTypeId`, `moreZoneId`, `moreMask`, `src1`, `src2`, `src3`, `src4`, `src5`, `src6`, `src7`, `src8`, `src9`, `src10`, `src11`, `src12`, `src13`, `src14`, `src15`, `src16`, `src17`, `src18`, `src19`, `src20`, `src21`, `src22`, `src23`, `src24`']
                     );
 
     public function __construct(array $conditions = [], array $miscData = [])
@@ -112,7 +125,7 @@ class SpellList extends DBTypeList
             $this->charLevel = $miscData['charLevel'];
 
         // post processing
-        $foo = DB::World()->selectCol('SELECT `perfectItemType` FROM skill_perfect_item_template WHERE `spellId` IN (?a)', $this->getFoundIDs());
+        $foo = DB::World()->selectCol('SELECT `perfectItemType` FROM skill_perfect_item_template WHERE `spellId` IN %in', $this->getFoundIDs());
         foreach ($this->iterate() as &$_curTpl)
         {
             // required for globals
@@ -437,7 +450,7 @@ class SpellList extends DBTypeList
             // TotemCategory
             if ($_ = $this->curTpl['toolCategory'.$i])
             {
-                $tc = DB::Aowow()->selectRow('SELECT * FROM ?_totemcategory WHERE `id` = ?d', $_);
+                $tc = DB::Aowow()->selectRow('SELECT * FROM ::totemcategory WHERE `id` = %i', $_);
                 $tools[$i + 1] = array(
                     'id'   => $_,
                     'name' => Util::localizedString($tc, 'name'));
@@ -511,7 +524,7 @@ class SpellList extends DBTypeList
                         2289 => [2289, 29415, 29418, 29419, 29420, 29421]   // Bear - Tauren
                     );
 
-                    if ($st = DB::Aowow()->selectRow('SELECT *, `displayIdA` AS "model1", `displayIdH` AS "model2" FROM ?_shapeshiftforms WHERE `id` = ?d', $effMV))
+                    if ($st = DB::Aowow()->selectRow('SELECT *, `displayIdA` AS "model1", `displayIdH` AS "model2" FROM ::shapeshiftforms WHERE `id` = %i', $effMV))
                     {
                         foreach ([1, 2] as $j)
                             if (isset($subForms[$st['model'.$j]]))
@@ -648,6 +661,9 @@ class SpellList extends DBTypeList
             $str .= $pcp."% ".Lang::spell('pctCostOf', [mb_strtolower(Lang::spell('powerTypes', $pt))]);
         else if ($pc > 0 || $pps > 0 || $pcpl > 0)
         {
+            if ($this->curTpl['attributes0'] & SPELL_ATTR0_LEVEL_DAMAGE_CALCULATION)
+                $str .= '<!--pts'.$this->curTpl['baseLevel'].':'.$pc.'-->';
+
             if (Lang::exist('spell', 'powerCost', $pt))
                 $str .= Lang::spell('powerCost', $pt,   intVal($pps > 0), [$pc, $pps]);
             else
@@ -690,13 +706,17 @@ class SpellList extends DBTypeList
     // formulae base from TC
     private function calculateAmountForCurrent(int $effIdx, int $nTicks = 1) : array
     {
-        $level   = $this->charLevel;
-        $maxBase = 0;
-        $rppl    = $this->getField('effect'.$effIdx.'RealPointsPerLevel');
-        $base    = $this->getField('effect'.$effIdx.'BasePoints');
-        $add     = $this->getField('effect'.$effIdx.'DieSides');
-        $maxLvl  = $this->getField('maxLevel');
-        $baseLvl = $this->getField('baseLevel');
+        $level    = $this->charLevel;
+        $maxBase  = 0;
+        $rppl     = $this->getField('effect'.$effIdx.'RealPointsPerLevel');
+        $base     = $this->getField('effect'.$effIdx.'BasePoints');
+        $add      = $this->getField('effect'.$effIdx.'DieSides');
+        $maxLvl   = $this->getField('maxLevel');
+        $baseLvl  = $this->getField('baseLevel');
+        $spellLvl = $this->getField('spellLevel');
+        $LDSEffs  = $this->canLevelDamageScale();
+        $modMin   =
+        $modMax   = null;
 
         if ($rppl)
         {
@@ -705,22 +725,29 @@ class SpellList extends DBTypeList
             else if ($level < $baseLvl)
                 $level = $baseLvl;
 
-            if (!$this->getField('atributes0') & SPELL_ATTR0_PASSIVE)
-                $level -= $this->getField('spellLevel');
+            if (!$this->getField('attributes0') & SPELL_ATTR0_PASSIVE)
+                $level -= $spellLvl;
 
             $maxBase += (int)(($level - $baseLvl) * $rppl);
             $maxBase *= $nTicks;
+
         }
 
         $min = $nTicks * ($add ? $base + 1 : $base);
         $max = $nTicks * ($add + $base);
 
-        return [
-            $min + $maxBase,
-            $max + $maxBase,
-            $rppl ? '<!--ppl'.$baseLvl.':'.($maxLvl ?: $level).':'.$min.':'.($rppl * 100 * $nTicks).'-->' : null,
-            $rppl ? '<!--ppl'.$baseLvl.':'.($maxLvl ?: $level).':'.$max.':'.($rppl * 100 * $nTicks).'-->' : null
-        ];
+        if ($rppl)
+        {
+            $modMin = '<!--ppl'.$baseLvl.':'.($maxLvl ?: $level).':'.$min.':'.($rppl * 100 * $nTicks).'-->';
+            $modMax = '<!--ppl'.$baseLvl.':'.($maxLvl ?: $level).':'.$max.':'.($rppl * 100 * $nTicks).'-->';
+        }
+        else if ($this->getField('attributes0') & SPELL_ATTR0_LEVEL_DAMAGE_CALCULATION && in_array($effIdx, $LDSEffs) && $spellLvl)
+        {
+            $modMin = '<!--pts'.$spellLvl.':'.abs($min).'-->';
+            $modMax = '<!--pts'.$spellLvl.':'.abs($max).'-->';
+        }
+
+        return [$min + $maxBase, $max + $maxBase, $modMin, $modMax];
     }
 
     public function canCreateItem() : array
@@ -766,6 +793,16 @@ class SpellList extends DBTypeList
         return $idx;
     }
 
+    public function canLevelDamageScale() : array
+    {
+        $idx = [];
+        for ($i = 1; $i < 4; $i++)
+            if (in_array($this->curTpl['effect'.$i.'Id'], SpellList::EFFECTS_LDC_SCALING) || in_array($this->curTpl['effect'.$i.'AuraId'], SpellList::AURAS_LDC_SCALING))
+                $idx[] = $i;
+
+        return $idx;
+    }
+
     public function isChanneledSpell() : bool
     {
         return $this->curTpl['attributes1'] & (SPELL_ATTR1_CHANNELED_1 | SPELL_ATTR1_CHANNELED_2);
@@ -800,28 +837,36 @@ class SpellList extends DBTypeList
         return $effMask;
     }
 
+    private function dfnText(string $tooltip, string $text) : string
+    {
+        if ($this->interactive < self::INTERACTIVE_FULL)
+            return $text;
+
+        return sprintf(Util::$dfnString, $tooltip, $text);
+    }
+
     // description-, buff-parsing component
     private function resolveEvaluation(string $formula) : string
     {
         // see Traits in javascript locales
 
         $PlayerName     = Lang::main('name');
-        $pl    = $PL    = /* playerLevel set manually ? $this->charLevel : */ $this->interactive ? sprintf(Util::$dfnString, 'LANG.level', Lang::game('level')) : Lang::game('level');
-        $ap    = $AP    = $this->interactive ? sprintf(Util::$dfnString, 'LANG.traits.atkpwr[0]',    Lang::spell('traitShort', 'atkpwr'))    : Lang::spell('traitShort', 'atkpwr');
-        $rap   = $RAP   = $this->interactive ? sprintf(Util::$dfnString, 'LANG.traits.rgdatkpwr[0]', Lang::spell('traitShort', 'rgdatkpwr')) : Lang::spell('traitShort', 'rgdatkpwr');
-        $sp    = $SP    = $this->interactive ? sprintf(Util::$dfnString, 'LANG.traits.splpwr[0]',    Lang::spell('traitShort', 'splpwr'))    : Lang::spell('traitShort', 'splpwr');
-        $spa   = $SPA   = $this->interactive ? sprintf(Util::$dfnString, 'LANG.traits.arcsplpwr[0]', Lang::spell('traitShort', 'arcsplpwr')) : Lang::spell('traitShort', 'arcsplpwr');
-        $spfi  = $SPFI  = $this->interactive ? sprintf(Util::$dfnString, 'LANG.traits.firsplpwr[0]', Lang::spell('traitShort', 'firsplpwr')) : Lang::spell('traitShort', 'firsplpwr');
-        $spfr  = $SPFR  = $this->interactive ? sprintf(Util::$dfnString, 'LANG.traits.frosplpwr[0]', Lang::spell('traitShort', 'frosplpwr')) : Lang::spell('traitShort', 'frosplpwr');
-        $sph   = $SPH   = $this->interactive ? sprintf(Util::$dfnString, 'LANG.traits.holsplpwr[0]', Lang::spell('traitShort', 'holsplpwr')) : Lang::spell('traitShort', 'holsplpwr');
-        $spn   = $SPN   = $this->interactive ? sprintf(Util::$dfnString, 'LANG.traits.natsplpwr[0]', Lang::spell('traitShort', 'natsplpwr')) : Lang::spell('traitShort', 'natsplpwr');
-        $sps   = $SPS   = $this->interactive ? sprintf(Util::$dfnString, 'LANG.traits.shasplpwr[0]', Lang::spell('traitShort', 'shasplpwr')) : Lang::spell('traitShort', 'shasplpwr');
-        $bh    = $BH    = $this->interactive ? sprintf(Util::$dfnString, 'LANG.traits.splheal[0]',   Lang::spell('traitShort', 'splheal'))   : Lang::spell('traitShort', 'splheal');
-        $spi   = $SPI   = $this->interactive ? sprintf(Util::$dfnString, 'LANG.traits.spi[0]',       Lang::spell('traitShort', 'spi'))       : Lang::spell('traitShort', 'spi');
-        $sta   = $STA   = $this->interactive ? sprintf(Util::$dfnString, 'LANG.traits.sta[0]',       Lang::spell('traitShort', 'sta'))       : Lang::spell('traitShort', 'sta');
-        $str   = $STR   = $this->interactive ? sprintf(Util::$dfnString, 'LANG.traits.str[0]',       Lang::spell('traitShort', 'str'))       : Lang::spell('traitShort', 'str');
-        $agi   = $AGI   = $this->interactive ? sprintf(Util::$dfnString, 'LANG.traits.agi[0]',       Lang::spell('traitShort', 'agi'))       : Lang::spell('traitShort', 'agi');
-        $int   = $INT   = $this->interactive ? sprintf(Util::$dfnString, 'LANG.traits.int[0]',       Lang::spell('traitShort', 'int'))       : Lang::spell('traitShort', 'int');
+        $pl    = $PL    = /* playerLevel set manually ? $this->charLevel : */ $this->dfnText('LANG.level', Lang::game('level'));
+        $ap    = $AP    = $this->dfnText('LANG.traits.atkpwr[0]',    Lang::spell('traitShort', 'atkpwr'));
+        $rap   = $RAP   = $this->dfnText('LANG.traits.rgdatkpwr[0]', Lang::spell('traitShort', 'rgdatkpwr'));
+        $sp    = $SP    = $this->dfnText('LANG.traits.splpwr[0]',    Lang::spell('traitShort', 'splpwr'));
+        $spa   = $SPA   = $this->dfnText('LANG.traits.arcsplpwr[0]', Lang::spell('traitShort', 'arcsplpwr'));
+        $spfi  = $SPFI  = $this->dfnText('LANG.traits.firsplpwr[0]', Lang::spell('traitShort', 'firsplpwr'));
+        $spfr  = $SPFR  = $this->dfnText('LANG.traits.frosplpwr[0]', Lang::spell('traitShort', 'frosplpwr'));
+        $sph   = $SPH   = $this->dfnText('LANG.traits.holsplpwr[0]', Lang::spell('traitShort', 'holsplpwr'));
+        $spn   = $SPN   = $this->dfnText('LANG.traits.natsplpwr[0]', Lang::spell('traitShort', 'natsplpwr'));
+        $sps   = $SPS   = $this->dfnText('LANG.traits.shasplpwr[0]', Lang::spell('traitShort', 'shasplpwr'));
+        $bh    = $BH    = $this->dfnText('LANG.traits.splheal[0]',   Lang::spell('traitShort', 'splheal'));
+        $spi   = $SPI   = $this->dfnText('LANG.traits.spi[0]',       Lang::spell('traitShort', 'spi'));
+        $sta   = $STA   = $this->dfnText('LANG.traits.sta[0]',       Lang::spell('traitShort', 'sta'));
+        $str   = $STR   = $this->dfnText('LANG.traits.str[0]',       Lang::spell('traitShort', 'str'));
+        $agi   = $AGI   = $this->dfnText('LANG.traits.agi[0]',       Lang::spell('traitShort', 'agi'));
+        $int   = $INT   = $this->dfnText('LANG.traits.int[0]',       Lang::spell('traitShort', 'int'));
 
         // only 'ron test spell', guess its %-dmg mod; no idea what bc2 might be
         $pa    = '<$PctArcane>';                            // %arcane
@@ -834,14 +879,14 @@ class SpellList extends DBTypeList
         $pbhd  = '<$PctHealDone>';                          // %heal done
         $bc2   = '<$bc2>';                                  // bc2
 
-        $HND   = $hnd   = $this->interactive ? sprintf(Util::$dfnString, '[Hands required by weapon]', 'HND') : 'HND';    // todo (med): localize this one
-        $MWS   = $mws   = $this->interactive ? sprintf(Util::$dfnString, 'LANG.traits.mlespeed[0]',    'MWS') : 'MWS';
-        $mw             = $this->interactive ? sprintf(Util::$dfnString, 'LANG.traits.dmgmin1[0]',     'mw')  : 'mw';
-        $MW             = $this->interactive ? sprintf(Util::$dfnString, 'LANG.traits.dmgmax1[0]',     'MW')  : 'MW';
-        $mwb            = $this->interactive ? sprintf(Util::$dfnString, 'LANG.traits.mledmgmin[0]',   'mwb') : 'mwb';
-        $MWB            = $this->interactive ? sprintf(Util::$dfnString, 'LANG.traits.mledmgmax[0]',   'MWB') : 'MWB';
-        $rwb            = $this->interactive ? sprintf(Util::$dfnString, 'LANG.traits.rgddmgmin[0]',   'rwb') : 'rwb';
-        $RWB            = $this->interactive ? sprintf(Util::$dfnString, 'LANG.traits.rgddmgmax[0]',   'RWB') : 'RWB';
+        $HND   = $hnd   = $this->dfnText('[Hands required by weapon]', 'HND'); // todo (med): localize this one
+        $MWS   = $mws   = $this->dfnText('LANG.traits.mlespeed[0]',    'MWS');
+        $mw             = $this->dfnText('LANG.traits.dmgmin1[0]',     'mw');
+        $MW             = $this->dfnText('LANG.traits.dmgmax1[0]',     'MW');
+        $mwb            = $this->dfnText('LANG.traits.mledmgmin[0]',   'mwb');
+        $MWB            = $this->dfnText('LANG.traits.mledmgmax[0]',   'MWB');
+        $rwb            = $this->dfnText('LANG.traits.rgddmgmin[0]',   'rwb');
+        $RWB            = $this->dfnText('LANG.traits.rgddmgmax[0]',   'RWB');
 
         $cond  = $COND  = fn($a, $b, $c) => $a ? $b : $c;
         $eq    = $EQ    = fn($a, $b)     => $a == $b;
@@ -878,14 +923,14 @@ class SpellList extends DBTypeList
             if (!$evalable)
             {
                 // can't eval constructs because of strings present. replace constructs with strings
-                $cond  = $COND  = !$this->interactive ? 'COND'  : sprintf(Util::$dfnString, 'COND(<span class=\'q1\'>a</span>, <span class=\'q1\'>b</span>, <span class=\'q1\'>c</span>)<br /> <span class=\'q1\'>a</span> ? <span class=\'q1\'>b</span> : <span class=\'q1\'>c</span>', 'COND');
-                $eq    = $EQ    = !$this->interactive ? 'EQ'    : sprintf(Util::$dfnString, 'EQ(<span class=\'q1\'>a</span>, <span class=\'q1\'>b</span>)<br /> <span class=\'q1\'>a</span> == <span class=\'q1\'>b</span>', 'EQ');
-                $gt    = $GT    = !$this->interactive ? 'GT'    : sprintf(Util::$dfnString, 'GT(<span class=\'q1\'>a</span>, <span class=\'q1\'>b</span>)<br /> <span class=\'q1\'>a</span> > <span class=\'q1\'>b</span>', 'GT');
-                $gte   = $GTE   = !$this->interactive ? 'GTE'   : sprintf(Util::$dfnString, 'GTE(<span class=\'q1\'>a</span>, <span class=\'q1\'>b</span>)<br /> <span class=\'q1\'>a</span> >= <span class=\'q1\'>b</span>', 'GTE');
-                $floor = $FLOOR = !$this->interactive ? 'FLOOR' : sprintf(Util::$dfnString, 'FLOOR(<span class=\'q1\'>a</span>)', 'FLOOR');
-                $min   = $MIN   = !$this->interactive ? 'MIN'   : sprintf(Util::$dfnString, 'MIN(<span class=\'q1\'>a</span>, <span class=\'q1\'>b</span>)', 'MIN');
-                $max   = $MAX   = !$this->interactive ? 'MAX'   : sprintf(Util::$dfnString, 'MAX(<span class=\'q1\'>a</span>, <span class=\'q1\'>b</span>)', 'MAX');
-                $pl    = $PL    = !$this->interactive ? 'PL'    : sprintf(Util::$dfnString, 'LANG.level', 'PL');
+                $cond  = $COND  = $this->dfnText('COND(<span class=\'q1\'>a</span>, <span class=\'q1\'>b</span>, <span class=\'q1\'>c</span>)<br /> <span class=\'q1\'>a</span> ? <span class=\'q1\'>b</span> : <span class=\'q1\'>c</span>', 'COND');
+                $eq    = $EQ    = $this->dfnText('EQ(<span class=\'q1\'>a</span>, <span class=\'q1\'>b</span>)<br /> <span class=\'q1\'>a</span> == <span class=\'q1\'>b</span>', 'EQ');
+                $gt    = $GT    = $this->dfnText('GT(<span class=\'q1\'>a</span>, <span class=\'q1\'>b</span>)<br /> <span class=\'q1\'>a</span> > <span class=\'q1\'>b</span>', 'GT');
+                $gte   = $GTE   = $this->dfnText('GTE(<span class=\'q1\'>a</span>, <span class=\'q1\'>b</span>)<br /> <span class=\'q1\'>a</span> >= <span class=\'q1\'>b</span>', 'GTE');
+                $floor = $FLOOR = $this->dfnText('FLOOR(<span class=\'q1\'>a</span>)', 'FLOOR');
+                $min   = $MIN   = $this->dfnText('MIN(<span class=\'q1\'>a</span>, <span class=\'q1\'>b</span>)', 'MIN');
+                $max   = $MAX   = $this->dfnText('MAX(<span class=\'q1\'>a</span>, <span class=\'q1\'>b</span>)', 'MAX');
+                $pl    = $PL    = $this->dfnText('LANG.level', 'PL');
 
                 // space out operators for better readability
                 $formula = preg_replace('/(\+|-|\*|\/)/', ' \1 ', $formula);
@@ -1083,14 +1128,14 @@ class SpellList extends DBTypeList
                         $this->scaling[$this->id] = true;
                 // Aura end
 
-                if ($stats)
+                if ($stats && $this->interactive >= self::INTERACTIVE_EMBEDDED)
                 {
                     $fmtStringMin = '<!--rtg%s-->%s&nbsp;<small>(%s)</small>';
                     $statId = $stats[0];                    // could be multiple ratings in theory, but not expected to be
                 }
                 /*
                     todo: export to and solve formulas in javascript e.g.: spell 10187 - ${$42213m1*8*$<mult>} with $mult = ${${$?s31678[${1.05}][${${$?s31677[${1.04}][${${$?s31676[${1.03}][${${$?s31675[${1.02}][${${$?s31674[${1.01}][${1}]}}]}}]}}]}}]}*${$?s12953[${1.06}][${${$?s12952[${1.04}][${${$?s11151[${1.02}][${1}]}}]}}]}}
-                    else if ($this->interactive && ($modStrMin || $modStrMax))
+                    else if ($this->interactive == self::INTERACTIVE_FULL && ($modStrMin || $modStrMax))
                     {
                         $this->scaling[$this->id] = true;
                         $fmtStringMin = $modStrMin.'%s';
@@ -1130,7 +1175,7 @@ class SpellList extends DBTypeList
                     eval("\$max = $max $op $oparg;");
                 }
 
-                if ($this->interactive && ($modStrMin || $modStrMax))
+                if ($this->interactive >= self::INTERACTIVE_EMBEDDED && ($modStrMin || $modStrMax))
                 {
                     $this->scaling[$this->id] = true;
 
@@ -1177,12 +1222,12 @@ class SpellList extends DBTypeList
                         $this->scaling[$this->id] = true;
                 // Aura end
 
-                if ($stats)
+                if ($stats && $this->interactive >= self::INTERACTIVE_EMBEDDED)
                 {
                     $fmtStringMin = '<!--rtg%s-->%s&nbsp;<small>(%s)</small>';
                     $statId = $stats[0];                    // could be multiple ratings in theory, but not expected to be
                 }
-                else if (($modStrMin || $modStrMax) && $this->interactive)
+                else if (($modStrMin || $modStrMax) && $this->interactive == self::INTERACTIVE_FULL)
                 {
                     $this->scaling[$this->id] = true;
                     $fmtStringMin = $modStrMin.'%s';
@@ -1346,7 +1391,7 @@ class SpellList extends DBTypeList
         return [$return, $fSuffix, $fStat];
     }
 
-    // should probably used only once to create ?_spell. come to think of it, it yields the same results every time.. it absolutely has to!
+    // should probably used only once to create ::spell. come to think of it, it yields the same results every time.. it absolutely has to!
     // although it seems to be pretty fast, even on those pesky test-spells with extra complex tooltips (Ron Test Spell X))
     public function parseText(string $type = 'description', int $level = MAX_LEVEL) : array
     {
@@ -1358,7 +1403,7 @@ class SpellList extends DBTypeList
             documentation .. sort of
             bracket use
                 ${}.x - formulas; .x is optional; x:[0-9] .. max-precision of a floatpoint-result; default: 0
-                $[]   - conditionals ... like $?condition[true][false]; alternative $?!(cond1|cond2)[true]$?cond3[elseTrue][false]; ?a40120: has aura 40120; ?s40120: knows spell 40120(?)
+                $[]   - conditionals ... like $?condition[true][false]; alternative $?!(cond1|cond2)[true]$?cond3[elseTrue][false]; ?a40120: has aura 40120; ?s40120: knows spell 40120(%s)
                 $<>   - variables
                 ()    - regular use for function-like calls
 
@@ -1435,8 +1480,8 @@ class SpellList extends DBTypeList
         $this->charLevel   = $level;
 
         // step -1: already handled?
-        if (isset($this->parsedText[$this->id][$type][Lang::getLocale()->value][$this->charLevel][(int)$this->interactive]))
-            return $this->parsedText[$this->id][$type][Lang::getLocale()->value][$this->charLevel][(int)$this->interactive];
+        if (isset($this->parsedText[$this->id][$type][Lang::getLocale()->value][$this->charLevel][$this->interactive]))
+            return $this->parsedText[$this->id][$type][Lang::getLocale()->value][$this->charLevel][$this->interactive];
 
         // step 0: get text
         $data = $this->getField($type, true);
@@ -1448,7 +1493,7 @@ class SpellList extends DBTypeList
         {
             if (empty($this->spellVars[$this->id]))
             {
-                $spellVars = DB::Aowow()->SelectCell('SELECT `vars` FROM ?_spellvariables WHERE `id` = ?d', $this->curTpl['spellDescriptionVariableId']);
+                $spellVars = DB::Aowow()->SelectCell('SELECT `vars` FROM ::spellvariables WHERE `id` = %i', $this->curTpl['spellDescriptionVariableId']);
                 $spellVars = explode("\n", $spellVars);
                 foreach ($spellVars as $sv)
                     if (preg_match('/\$(\w*\d*)=(.*)/i', trim($sv), $matches))
@@ -1542,7 +1587,7 @@ class SpellList extends DBTypeList
         $data = strtr($data, ["\r" => '', "\n" => '<br />']);
 
         // cache result
-        $this->parsedText[$this->id][$type][Lang::getLocale()->value][$this->charLevel][(int)$this->interactive] = [$data, $relSpells, $this->scaling[$this->id]];
+        $this->parsedText[$this->id][$type][Lang::getLocale()->value][$this->charLevel][$this->interactive] = [$data, $relSpells, $this->scaling[$this->id]];
 
         return [$data, $relSpells, $this->scaling[$this->id]];
     }
@@ -1588,10 +1633,8 @@ class SpellList extends DBTypeList
             }
             [$formOutVal, $formOutStr, $statId] = $this->resolveFormulaString($formOutStr, $formPrecision ?: ($topLevel ? 0 : 10));
 
-            if ($statId && Util::checkNumeric($formOutVal) && $this->interactive)
-                $resolved = sprintf($formOutStr, $statId, abs($formOutVal), sprintf(Util::$setRatingLevelString, $this->charLevel, $statId, abs($formOutVal), Util::setRatingLevel($this->charLevel, $statId, abs($formOutVal))));
-            else if ($statId && Util::checkNumeric($formOutVal))
-                $resolved = sprintf($formOutStr, $statId, abs($formOutVal), Util::setRatingLevel($this->charLevel, $statId, abs($formOutVal)));
+            if ($statId && Util::checkNumeric($formOutVal))
+                $resolved = sprintf($formOutStr, $statId, abs($formOutVal), Util::setRatingLevel($this->charLevel, $statId, abs($formOutVal), $this->interactive == self::INTERACTIVE_FULL));
             else
                 $resolved = sprintf($formOutStr, Util::checkNumeric($formOutVal) ? abs($formOutVal) : $formOutVal);
 
@@ -1628,10 +1671,8 @@ class SpellList extends DBTypeList
             $resolved = is_numeric($minPoints) ? abs($minPoints) : $minPoints;
             if (isset($fmtStringMin))
             {
-                if (isset($statId) && $this->interactive)
-                    $resolved = sprintf($fmtStringMin, $statId, abs($minPoints), sprintf(Util::$setRatingLevelString, $this->charLevel, $statId, abs($minPoints), Util::setRatingLevel($this->charLevel, $statId, abs($minPoints))));
-                else if (isset($statId))
-                    $resolved = sprintf($fmtStringMin, $statId, abs($minPoints), Util::setRatingLevel($this->charLevel, $statId, abs($minPoints)));
+                if (isset($statId))
+                    $resolved = sprintf($fmtStringMin, $statId, abs($minPoints), Util::setRatingLevel($this->charLevel, $statId, abs($minPoints), $this->interactive == self::INTERACTIVE_FULL));
                 else
                     $resolved = sprintf($fmtStringMin, $resolved);
             }
@@ -1766,7 +1807,7 @@ class SpellList extends DBTypeList
         return $data;
     }
 
-    public function renderBuff($level = MAX_LEVEL, $interactive = false, ?array &$buffSpells = []) : ?string
+    public function renderBuff(int $level = MAX_LEVEL, int $interactive = self::INTERACTIVE_EMBEDDED, ?array &$buffSpells = []) : ?string
     {
         $buffSpells = [];
 
@@ -1815,7 +1856,7 @@ class SpellList extends DBTypeList
         return $x;
     }
 
-    public function renderTooltip(?int $level = MAX_LEVEL, ?bool $interactive = false, ?array &$ttSpells = []) : ?string
+    public function renderTooltip(int $level = MAX_LEVEL, int $interactive = self::INTERACTIVE_EMBEDDED, ?array &$ttSpells = []) : ?string
     {
         $ttSpells = [];
 
@@ -1970,10 +2011,23 @@ class SpellList extends DBTypeList
         if ($xTmp)
             $x .= '<table><tr><td>'.implode('<br />', $xTmp).'</td></tr></table>';
 
-        $min = $this->scaling[$this->id] ? ($this->getField('baseLevel') ?: 1) : 1;
-        $max = $this->scaling[$this->id] ? ($this->getField('maxLevel') ?: MAX_LEVEL) : 1;
-        // scaling information - spellId:min:max:curr
-        $x .= '<!--?'.$this->id.':'.$min.':'.$max.':'.min($this->charLevel, $max).'-->';
+        // scaling information - spellId:min:max:curr[:scalingDistribution:ScalingFlags]
+        $scalingInfo = array(
+            $this->id,
+            $this->scaling[$this->id] ? ($this->getField('baseLevel') ?: 1) : 1,
+            $this->scaling[$this->id] ? ($this->getField('maxLevel') ?: MAX_LEVEL) : 1
+        );
+
+        if ($this->getField('attributes0') & SPELL_ATTR0_LEVEL_DAMAGE_CALCULATION)
+        {
+            $scalingInfo[] = $this->getField('spellLevel') ?: 1;
+            $scalingInfo[] = 1;                             // in 4.x+ proper scaling information; for us just to flag a npc spell as level damage scaling
+            $scalingInfo[] = 1;
+        }
+        else
+            $scalingInfo[] = min($this->charLevel, $scalingInfo[2]);
+
+        $x .= '<!--?'.implode(':', $scalingInfo).'-->';
 
         return $x;
     }
@@ -2529,7 +2583,7 @@ class SpellListFilter extends Filter
         'cr'    => [parent::V_RANGE,    [1, 116],                                          true ], // criteria ids
         'crs'   => [parent::V_LIST,     [parent::ENUM_NONE, parent::ENUM_ANY, [0, 99999]], true ], // criteria operators
         'crv'   => [parent::V_REGEX,    parent::PATTERN_CRV,                               true ], // criteria values - only printable chars, no delimiters
-        'na'    => [parent::V_REGEX,    parent::PATTERN_NAME,                              false], // name / text - only printable chars, no delimiter
+        'na'    => [parent::V_NAME,     false,                                             false], // name / text - only printable chars, no delimiter
         'ex'    => [parent::V_EQUAL,    'on',                                              false], // extended name search
         'ma'    => [parent::V_EQUAL,    1,                                                 false], // match any / all filter
         'minle' => [parent::V_RANGE,    [0, 99],                                           false], // spell level min
@@ -2553,10 +2607,10 @@ class SpellListFilter extends Filter
         if ($_v['na'])
         {
             if ($_v['ex'] == 'on')
-                if ($_ = $this->tokenizeString(['buff_loc'.Lang::getLocale()->value, 'description_loc'.Lang::getLocale()->value]))
+                if ($_ = $this->buildLikeLookup(['na' => 'buff_loc'.Lang::getLocale()->value, 'na' => 'description_loc'.Lang::getLocale()->value]))
                     $parts[] = $_;
 
-            if ($_ = $this->buildMatchLookup(['name_loc'.Lang::getLocale()->value]))
+            if ($_ = $this->buildMatchLookup(['na' => 'name_loc'.Lang::getLocale()->value]))
             {
                 if ($parts)
                     $parts[0][] = $_;
@@ -2583,7 +2637,7 @@ class SpellListFilter extends Filter
 
         // race
         if ($_v['ra'])
-            $parts[] = ['AND', [['reqRaceMask', ChrRace::MASK_ALL, '&'], ChrRace::MASK_ALL, '!'], ['reqRaceMask', $this->list2Mask([$_v['ra']]), '&']];
+            $parts[] = [DB::AND, [['reqRaceMask', ChrRace::MASK_ALL, '&'], ChrRace::MASK_ALL, '!'], ['reqRaceMask', $this->list2Mask([$_v['ra']]), '&']];
 
         // class [list]
         if ($_v['cl'])
@@ -2603,7 +2657,7 @@ class SpellListFilter extends Filter
 
         // mechanic
         if ($_v['me'])
-            $parts[] = ['OR', ['mechanic', $_v['me']], ['effect1Mechanic', $_v['me']], ['effect2Mechanic', $_v['me']], ['effect3Mechanic', $_v['me']]];
+            $parts[] = [DB::OR, ['mechanic', $_v['me']], ['effect1Mechanic', $_v['me']], ['effect2Mechanic', $_v['me']], ['effect3Mechanic', $_v['me']]];
 
         return $parts;
     }
@@ -2641,9 +2695,9 @@ class SpellListFilter extends Filter
         if (!Util::checkNumeric($crv, NUM_CAST_INT) || !$this->int2Op($crs))
             return null;
 
-        return ['OR',
-            ['AND', ['powerType', [POWER_RAGE, POWER_RUNIC_POWER]], ['powerCost', (10 * $crv), $crs]],
-            ['AND', ['powerType', [POWER_RAGE, POWER_RUNIC_POWER], '!'], ['powerCost', $crv, $crs]]
+        return [DB::OR,
+            [DB::AND, ['powerType', [POWER_RAGE, POWER_RUNIC_POWER]], ['powerCost', (10 * $crv), $crs]],
+            [DB::AND, ['powerType', [POWER_RAGE, POWER_RUNIC_POWER], '!'], ['powerCost', $crv, $crs]]
         ];
     }
 
@@ -2657,7 +2711,7 @@ class SpellListFilter extends Filter
             return ['src.src'.$_, null, '!'];
         else if ($_)                                        // any
         {
-            $foo = ['OR'];
+            $foo = [DB::OR];
             foreach (self::$enums[$cr] as $bar)
                 if (is_int($bar))
                     $foo[] = ['src.src'.$bar, null, '!'];
@@ -2676,9 +2730,9 @@ class SpellListFilter extends Filter
             return null;
 
         if ($crs)
-            return ['OR', ['reagent1', 0, '>'], ['reagent2', 0, '>'], ['reagent3', 0, '>'], ['reagent4', 0, '>'], ['reagent5', 0, '>'], ['reagent6', 0, '>'], ['reagent7', 0, '>'], ['reagent8', 0, '>']];
+            return [DB::OR, ['reagent1', 0, '>'], ['reagent2', 0, '>'], ['reagent3', 0, '>'], ['reagent4', 0, '>'], ['reagent5', 0, '>'], ['reagent6', 0, '>'], ['reagent7', 0, '>'], ['reagent8', 0, '>']];
         else
-            return ['AND', ['reagent1', 0], ['reagent2', 0], ['reagent3', 0], ['reagent4', 0], ['reagent5', 0], ['reagent6', 0], ['reagent7', 0], ['reagent8', 0]];
+            return [DB::AND, ['reagent1', 0], ['reagent2', 0], ['reagent3', 0], ['reagent4', 0], ['reagent5', 0], ['reagent6', 0], ['reagent7', 0], ['reagent8', 0]];
     }
 
     protected function cbAuraNames(int $cr, int $crs, string $crv) : ?array
@@ -2686,7 +2740,7 @@ class SpellListFilter extends Filter
         if (!$this->checkInput(parent::V_RANGE, [1, self::MAX_SPELL_AURA], $crs))
             return null;
 
-        return ['OR', ['effect1AuraId', $crs], ['effect2AuraId', $crs], ['effect3AuraId', $crs]];
+        return [DB::OR, ['effect1AuraId', $crs], ['effect2AuraId', $crs], ['effect3AuraId', $crs]];
     }
 
     protected function cbEffectNames(int $cr, int $crs, string $crv) : ?array
@@ -2694,7 +2748,7 @@ class SpellListFilter extends Filter
         if (!$this->checkInput(parent::V_RANGE, [1, self::MAX_SPELL_EFFECT], $crs))
             return null;
 
-        return ['OR', ['effect1Id', $crs], ['effect2Id', $crs], ['effect3Id', $crs]];
+        return [DB::OR, ['effect1Id', $crs], ['effect2Id', $crs], ['effect3Id', $crs]];
     }
 
     protected function cbInverseFlag(int $cr, int $crs, string $crv, string $field, int $flag) : ?array
@@ -2714,9 +2768,9 @@ class SpellListFilter extends Filter
             return null;
 
         if ($crs)
-            return ['AND', [[$field, $flag, '&'], 0], ['dispelType', SPELL_DAMAGE_CLASS_MAGIC]];
+            return [DB::AND, [[$field, $flag, '&'], 0], ['dispelType', SPELL_DAMAGE_CLASS_MAGIC]];
         else
-            return ['OR', [$field, $flag, '&'], ['dispelType', SPELL_DAMAGE_CLASS_MAGIC, '!']];
+            return [DB::OR, [$field, $flag, '&'], ['dispelType', SPELL_DAMAGE_CLASS_MAGIC, '!']];
     }
 
     protected function cbReqFaction(int $cr, int $crs, string $crv) : ?array
@@ -2726,11 +2780,11 @@ class SpellListFilter extends Filter
             // yes
             1 => ['reqRaceMask', 0, '!'],
             // alliance
-            2 => ['AND', [['reqRaceMask', ChrRace::MASK_HORDE, '&'], 0], ['reqRaceMask', ChrRace::MASK_ALLIANCE, '&']],
+            2 => [DB::AND, [['reqRaceMask', ChrRace::MASK_HORDE, '&'], 0], ['reqRaceMask', ChrRace::MASK_ALLIANCE, '&']],
             // horde
-            3 => ['AND', [['reqRaceMask', ChrRace::MASK_ALLIANCE, '&'], 0], ['reqRaceMask', ChrRace::MASK_HORDE, '&']],
+            3 => [DB::AND, [['reqRaceMask', ChrRace::MASK_ALLIANCE, '&'], 0], ['reqRaceMask', ChrRace::MASK_HORDE, '&']],
             // both
-            4 => ['AND', ['reqRaceMask', ChrRace::MASK_ALLIANCE, '&'], ['reqRaceMask', ChrRace::MASK_HORDE, '&']],
+            4 => [DB::AND, ['reqRaceMask', ChrRace::MASK_ALLIANCE, '&'], ['reqRaceMask', ChrRace::MASK_HORDE, '&']],
             // no
             5 => ['reqRaceMask', 0],
             default => null
@@ -2746,9 +2800,9 @@ class SpellListFilter extends Filter
         $field = $useInvType ? 'equippedItemInventoryTypeMask' : 'equippedItemSubClassMask';
 
         if ($crs)
-            return ['AND', ['equippedItemClass', ITEM_CLASS_WEAPON], [$field, $mask, '&']];
+            return [DB::AND, ['equippedItemClass', ITEM_CLASS_WEAPON], [$field, $mask, '&']];
         else
-            return ['OR', ['equippedItemClass', ITEM_CLASS_WEAPON, '!'], [[$field, $mask, '&'], 0]];
+            return [DB::OR, ['equippedItemClass', ITEM_CLASS_WEAPON, '!'], [[$field, $mask, '&'], 0]];
     }
 
     /* unused - for reference: attribute flag or cooldown time constraint */
@@ -2758,14 +2812,14 @@ class SpellListFilter extends Filter
             return null;
 
         if ($crs)
-            return  ['AND',
+            return  [DB::AND,
                         [['attributes4', SPELL_ATTR4_NOT_USABLE_IN_ARENA, '&'], 0],
-                        ['OR', ['recoveryTime', 10 * MINUTE * 1000, '<='], ['attributes4', SPELL_ATTR4_USABLE_IN_ARENA, '&']]
+                        [DB::OR, ['recoveryTime', 10 * MINUTE * 1000, '<='], ['attributes4', SPELL_ATTR4_USABLE_IN_ARENA, '&']]
                     ];
         else
-            return  ['OR',
+            return  [DB::OR,
                         ['attributes4', SPELL_ATTR4_NOT_USABLE_IN_ARENA, '&'],
-                        ['AND', ['recoveryTime', 10 * MINUTE * 1000, '>'], [['attributes4', SPELL_ATTR4_USABLE_IN_ARENA, '&'], 0]]
+                        [DB::AND, ['recoveryTime', 10 * MINUTE * 1000, '>'], [['attributes4', SPELL_ATTR4_USABLE_IN_ARENA, '&'], 0]]
                     ];
     }
 
@@ -2775,9 +2829,9 @@ class SpellListFilter extends Filter
             return null;
 
         if ($crs)                                           // match exact, not as flag
-            return ['AND', ['attributes1', SPELL_ATTR1_CHANNELED_1 | SPELL_ATTR1_CHANNELED_2 | SPELL_ATTR1_CHANNEL_TRACK_TARGET], ['effect1ImplicitTargetA', 21]];
+            return [DB::AND, ['attributes1', SPELL_ATTR1_CHANNELED_1 | SPELL_ATTR1_CHANNELED_2 | SPELL_ATTR1_CHANNEL_TRACK_TARGET], ['effect1ImplicitTargetA', 21]];
         else
-            return ['OR', ['attributes1', SPELL_ATTR1_CHANNELED_1 | SPELL_ATTR1_CHANNELED_2 | SPELL_ATTR1_CHANNEL_TRACK_TARGET, '!'], ['effect1ImplicitTargetA', 21, '!']];
+            return [DB::OR, ['attributes1', SPELL_ATTR1_CHANNELED_1 | SPELL_ATTR1_CHANNELED_2 | SPELL_ATTR1_CHANNEL_TRACK_TARGET, '!'], ['effect1ImplicitTargetA', 21, '!']];
     }
 
     protected function cbProficiency(int $cr, int $crs, string $crv) : ?array
@@ -2793,16 +2847,16 @@ class SpellListFilter extends Filter
             case 1:                                         // Weapons
                 foreach (Game::$skillLineMask[-3] as $bit => $_)
                     $skill2Mask |= (1 << $bit);
-                $skill1Ids = DB::Aowow()->selectCol('SELECT `id` FROM ?_skillline WHERE `typeCat` = 6');
+                $skill1Ids = DB::Aowow()->selectCol('SELECT `id` FROM ::skillline WHERE `typeCat` = 6');
                 break;
             case 2:                                         // Armor (Proficiencies + Specializations: so for us it's the same)
             case 3:                                         // Armor Proficiencies
-                $skill1Ids = DB::Aowow()->selectCol('SELECT `id` FROM ?_skillline WHERE `typeCat` = 8');
+                $skill1Ids = DB::Aowow()->selectCol('SELECT `id` FROM ::skillline WHERE `typeCat` = 8');
                 break;
             case 4:                                         // Armor Specializations
                 return [0];                                 // 4.x+ feature where using purely one type of armor increases your primary stat
             case 5:                                         // Languages
-                $skill1Ids = DB::Aowow()->selectCol('SELECT `id` FROM ?_skillline WHERE `typeCat` = 10');
+                $skill1Ids = DB::Aowow()->selectCol('SELECT `id` FROM ::skillline WHERE `typeCat` = 10');
                 break;
         }
 
@@ -2811,7 +2865,7 @@ class SpellListFilter extends Filter
 
         $cnd = ['skillLine1', $skill1Ids];
         if ($skill2Mask)
-            $cnd = ['OR', $cnd, ['AND', ['skillLine1', -3], ['skillLine2OrMask', $skill2Mask, '&']]];
+            $cnd = [DB::OR, $cnd, [DB::AND, ['skillLine1', -3], ['skillLine2OrMask', $skill2Mask, '&']]];
 
         return $cnd;
     }

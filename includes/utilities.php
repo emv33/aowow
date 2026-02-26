@@ -69,18 +69,6 @@ abstract class Util
         'clothChestArmor',              'leatherChestArmor',            'mailChestArmor',               'plateChestArmor'
     );
 
-    public static $weightScales             = array(
-        'agi',             'int',             'sta',          'spi',          'str',       'health',          'mana',         'healthrgn', 'manargn',
-        'armor',           'blockrtng',       'block',        'defrtng',      'dodgertng', 'parryrtng',       'resirtng',
-        'atkpwr',          'feratkpwr',       'armorpenrtng', 'critstrkrtng', 'exprtng',   'hastertng',       'hitrtng',      'splpen',
-        'splpwr',          'arcsplpwr',       'firsplpwr',    'frosplpwr',    'holsplpwr', 'natsplpwr',       'shasplpwr',
-        'dmg',             'mledps',          'rgddps',       'mledmgmin',    'rgddmgmin', 'mledmgmax',       'rgddmgmax',    'mlespeed',  'rgdspeed',
-        'arcres',          'firres',          'frores',       'holres',       'natres',    'shares',
-        'mleatkpwr',       'mlecritstrkrtng', 'mlehastertng', 'mlehitrtng',   'rgdatkpwr', 'rgdcritstrkrtng', 'rgdhastertng', 'rgdhitrtng',
-        'splcritstrkrtng', 'splhastertng',    'splhitrtng',   'spldmg',       'splheal',
-        'nsockets'
-    );
-
     public static $dateFormatInternal       = "Y/m/d H:i:s";
 
     public static $changeLevelString        = '<a href="javascript:;" onmousedown="return false" class="tip" style="color: white; cursor: pointer" onclick="$WH.g_staticTooltipLevelClick(this, null, 0)" onmouseover="$WH.Tooltip.showAtCursor(event, \'<span class=\\\'q2\\\'>\' + LANG.tooltip_changelevel + \'</span>\')" onmousemove="$WH.Tooltip.cursorUpdate(event)" onmouseout="$WH.Tooltip.hide()"><!--lvl-->%s</a>';
@@ -187,7 +175,7 @@ abstract class Util
             '/\$g\s*([^:;]*)\s*:\s*([^:;]*)\s*(:?[^:;]*);/ui',// directed gender-reference                      $g<male>:<female>:<refVariable>
             '/\$t([^;]+);/ui',                              // HK rank. $t<male>:<female>; (maybe male/female if pvp unranked? Gets replaced with current HK rank.)
             '/<([^\"=\/>]+\s[^\"=\/>]+)>/ui',               // emotes (workaround: at least one whitespace and never " or = between brackets)
-            '/\$(\d+)w/ui',                                 // worldState(?)-ref found on some pageTexts        $1234w
+            '/\$(\d+)w/ui',                                 // worldState(%d)-ref found on some pageTexts        $1234w
             '/\$c/i',                                       // class-ref
             '/\$r/i',                                       // race-ref
             '/\$n/i',                                       // name-ref
@@ -327,7 +315,7 @@ abstract class Util
     }
 
     // for item and spells
-    public static function setRatingLevel(int $level, int $statId, int $val) : string
+    public static function setRatingLevel(int $level, int $statId, int $val, bool $interactive = false) : string
     {
         if (in_array($statId, [Stat::DEFENSE_RTG, Stat::DODGE_RTG, Stat::PARRY_RTG, Stat::BLOCK_RTG, Stat::RESILIENCE_RTG]) && $level < 34)
             $level = 34;
@@ -353,7 +341,9 @@ abstract class Util
         if (!in_array($statId, [Stat::DEFENSE_RTG, Stat::EXPERTISE_RTG]))
             $result .= '%';
 
-        return Lang::item('ratingString', [$statId, $result, $level]);
+        $result = Lang::item('ratingString', [$statId, $result, $level]);
+
+        return $interactive ? sprintf(self::$setRatingLevelString, $level, $statId, $val, $result) : $result;
     }
 
     // default ucFirst doesn't convert UTF-8 chars (php 8.4 finally implemented this .. see ya in 2027)
@@ -627,8 +617,8 @@ abstract class Util
                 if (empty($miscData['id']) || empty($miscData['voterId']))
                     return false;
 
-                DB::Aowow()->query(                         // delete old votes the user has cast
-                    'DELETE FROM ?_account_reputation WHERE sourceA = ?d AND sourceB = ?d AND userId = ?d AND action IN (?a)',
+                DB::Aowow()->qry(                         // delete old votes the user has cast
+                    'DELETE FROM ::account_reputation WHERE sourceA = %i AND sourceB = %i AND userId = %i AND action IN %in',
                     $miscData['id'],
                     $miscData['voterId'],
                     $user,
@@ -672,13 +662,13 @@ abstract class Util
                 break;
         }
 
-        $x = array_merge($x, array(
+        $x += array(
             'userId' => $user,
             'action' => $action,
-            'date'   => !empty($miscData['date']) ? $miscData['date'] : time()
-        ));
+            'date'   => $miscData['date'] ?? time()
+        );
 
-        return DB::Aowow()->query('INSERT IGNORE INTO ?_account_reputation (?#) VALUES (?a)', array_keys($x), array_values($x));
+        return DB::Aowow()->qry('INSERT IGNORE INTO ::account_reputation %v', $x);
     }
 
     public static function toJSON($data, $forceFlags = 0)
@@ -697,43 +687,12 @@ abstract class Util
         return $json;
     }
 
-    public static function createSqlBatchInsert(array $data) : array
-    {
-        if (!count($data) || !is_array(reset($data)))
-            return [];
-
-        $nRows  = 100;
-        $nItems = count(reset($data));
-        $result = [];
-        $buff   = [];
-
-        foreach ($data as $d)
-        {
-            if (count($d) != $nItems)
-                return [];
-
-            $d = array_map(fn($x) => $x === null ? 'NULL' : DB::Aowow()->escape($x), $d);
-
-            $buff[] = implode(',', $d);
-
-            if (count($buff) >= $nRows)
-            {
-                $result[] = '('.implode('),(', $buff).')';
-                $buff = [];
-            }
-        }
-
-        if ($buff)
-            $result[] = '('.implode('),(', $buff).')';
-
-        return $result;
-    }
 
     /*****************/
     /* file handling */
     /*****************/
 
-    public static function writeFile($file, $content)
+    public static function writeFile(string $file, string $content) : bool
     {
         $success = false;
 
@@ -881,7 +840,7 @@ abstract class Util
     {
         // prepare score-lookup
         if (empty(self::$perfectGems))
-            self::$perfectGems = DB::World()->selectCol('SELECT perfectItemType FROM skill_perfect_item_template WHERE requiredSpecialization = ?d', 55534);
+            self::$perfectGems = DB::World()->selectCol('SELECT perfectItemType FROM skill_perfect_item_template WHERE requiredSpecialization = %i', 55534);
 
         // epic - WotLK - increased stats / profession specific (Dragon's Eyes)
         if ($profSpec)

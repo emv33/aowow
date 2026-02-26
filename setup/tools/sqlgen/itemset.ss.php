@@ -185,17 +185,26 @@ CLISetup::registerSetup("sql", new class extends SetupScript
         $data['contentGroup'] = reset($items)['note'];
     }
 
-    public function generate(array $ids = []) : bool
+    public function generate() : bool
     {
         // find events associated with holidayIds
-        if ($pairs = DB::World()->selectCol('SELECT `holiday` AS ARRAY_KEY, `eventEntry` FROM game_event WHERE `holiday` IN (?a)', array_values($this->setToHoliday)))
+        if ($pairs = DB::World()->selectCol('SELECT `holiday` AS ARRAY_KEY, `eventEntry` FROM game_event WHERE `holiday` IN %in', array_values($this->setToHoliday)))
             foreach ($this->setToHoliday as &$hId)
                 $hId = !empty($pairs[$hId]) ? $pairs[$hId] : 0;
 
-        DB::Aowow()->query('TRUNCATE TABLE ?_itemset');
+        DB::Aowow()->qry('TRUNCATE TABLE ::itemset');
 
         $virtualId = 0;
-        $sets      = DB::Aowow()->select('SELECT *, `id` AS ARRAY_KEY FROM dbc_itemset');
+        $sets      = DB::Aowow()->selectAssoc('SELECT *, `id` AS ARRAY_KEY FROM dbc_itemset');
+        $spells    = array_merge(
+            array_column($sets, 'spellId1'), array_column($sets, 'spellId2'), array_column($sets, 'spellId3'),
+            array_column($sets, 'spellId4'), array_column($sets, 'spellId5'), array_column($sets, 'spellId6'),
+            array_column($sets, 'spellId7'), array_column($sets, 'spellId8'), array_column($sets, 'spellId9')
+        );
+
+        $bonusSpells = new SpellList(array(['s.id', array_unique($spells)]), ['interactive' => SpellList::INTERACTIVE_NONE]);
+
+        $pieces = DB::World()->selectAssoc('SELECT `itemset` AS ARRAY_KEY, `entry` AS ARRAY_KEY2, `entry`, `name`, `class`, `subclass`, `Quality`, `AllowableClass`, `ItemLevel`, `RequiredLevel`, `itemset`, IF (`Flags` & %i, 1, 0) AS "heroic", IF(`InventoryType` = 15, 26, IF(`InventoryType` = 5, 20, `InventoryType`)) AS "slot" FROM item_template WHERE `itemset` > 0', ITEM_FLAG_HEROIC);
 
         foreach ($sets as $setId => $setData)
         {
@@ -210,25 +219,16 @@ CLISetup::registerSetup("sql", new class extends SetupScript
             if ($setData['reqSkillLevel'])
                 $row['skillLevel'] = $setData['reqSkillLevel'];
 
-
-            /********************/
-            /* calc statbonuses */
-            /********************/
-
-            $spells = [];
-
+            $j = 1;
             for ($i = 1; $i < 9; $i++)
-                if ($setData['spellId'.$i] > 0 && $setData['itemCount'.$i] > 0)
-                    $spells[$i] = [$setData['spellId'.$i], $setData['itemCount'.$i]];
+            {
+                if ($setData['spellId'.$i] <= 0 || $setData['itemCount'.$i] <= 0)
+                    continue;
 
-            $bonusSpells = new SpellList(array(['s.id', array_column($spells, 0)]));
-
-            $spells = array_pad($spells, 8, [0, 0]);
-
-            foreach (array_column($spells, 0) as $idx => $spellId)
-                $row['spell'.($idx+1)] = $spellId;
-            foreach (array_column($spells, 1) as $idx => $nItems)
-                $row['bonus'.($idx+1)] = $nItems;
+                $row['spell'.$j] = $setData['spellId'.$i];
+                $row['bonus'.$j] = $setData['itemCount'.$i];
+                $j++;
+            }
 
 
             /**************************/
@@ -243,24 +243,24 @@ CLISetup::registerSetup("sql", new class extends SetupScript
 
                 $row['name_loc'.$locId] = Util::localizedString($setData, 'name');
 
-                foreach ($bonusSpells->iterate() as $__)
+                for ($i = 1; $i < 9; $i++)
                 {
+                    if (!$setData['spellId'.$i] || !$bonusSpells->getEntry($setData['spellId'.$i]))
+                        continue;
+
                     if (!isset($descText[$locId]))
                         $descText[$locId] = '';
 
                     $descText[$locId] .= $bonusSpells->parseText()[0]."\n";
                 }
 
-                // strip rating blocks - e.g. <!--rtg19-->14&nbsp;<small>(<!--rtg%19-->0.30%&nbsp;@&nbsp;L<!--lvl-->80)</small>
-                $row['bonusText_loc'.$locId] = preg_replace('/<!--rtg\d+-->(\d+)&nbsp.*?<\/small>/i', '\1', $descText[$locId]);
+                $row['bonusText_loc'.$locId] = $descText[$locId];
             }
 
 
             /****************************************/
             /* determine type and reuse from pieces */
             /****************************************/
-
-            $pieces = DB::World()->select('SELECT `entry`, `name`, `class`, `subclass`, `Quality`, `AllowableClass`, `ItemLevel`, `RequiredLevel`, `itemset`, IF (`Flags` & ?d, 1, 0) AS "heroic", IF(`InventoryType` = 15, 26, IF(`InventoryType` = 5, 20, `InventoryType`)) AS "slot", `entry` AS ARRAY_KEY FROM item_template WHERE `itemset` = ?d', ITEM_FLAG_HEROIC, $setId);
 
             /*
                 possible cases:
@@ -269,17 +269,17 @@ CLISetup::registerSetup("sql", new class extends SetupScript
                 3) one itemset from one dbc entry (basic case). duplicate items per slot possible
             */
 
-            if (count($pieces) < 2)
+            if (count($pieces[$setId] ?? []) < 2)
             {
                 $row['cuFlags'] = CUSTOM_EXCLUDE_FOR_LISTVIEW;
-                DB::Aowow()->query('INSERT INTO ?_itemset (?#) VALUES (?a)', array_keys($row), array_values($row));
+                DB::Aowow()->qry('INSERT INTO ::itemset %v', $row);
                 CLI::write('[item set] '.str_pad('['.$setId.']', 7).CLI::bold($setData['name_loc0']).' has no associated items', CLI::LOG_INFO);
                 continue;
             }
 
             $sorted = [];
             // sort available items by slot, sort slot by itemID ASC
-            foreach ($pieces as $data)
+            foreach ($pieces[$setId] as $data)
             {
                 $data['note'] = $this->getContentGroup($data);
                 if (in_array($data['note'], [23, 25, 27, 29, 17, 19, 20, 22, 24, 26, 28, 30]))
@@ -294,7 +294,7 @@ CLISetup::registerSetup("sql", new class extends SetupScript
                 else if (in_array($data['slot'], [INVTYPE_WEAPON, INVTYPE_FINGER, INVTYPE_TRINKET]))
                     $sorted[$k][-$data['slot']] = $data;
                 // slot confict. If item is being sold, replace old item (imperfect solution :/)
-                else if (DB::World()->selectCell('SELECT SUM(`n`) FROM (SELECT COUNT(1) AS "n" FROM npc_vendor WHERE `item` = ?d UNION SELECT COUNT(1) AS "n" FROM game_event_npc_vendor WHERE `item` = ?d) x', $data['entry'], $data['entry']))
+                else if (DB::World()->selectCell('SELECT SUM(`n`) FROM (SELECT COUNT(1) AS "n" FROM npc_vendor WHERE `item` = %i UNION SELECT COUNT(1) AS "n" FROM game_event_npc_vendor WHERE `item` = %i) x', $data['entry'], $data['entry']))
                     $sorted[$k][$data['slot']] = $data;
             }
 
@@ -311,7 +311,7 @@ CLISetup::registerSetup("sql", new class extends SetupScript
                 if ($i++)
                     $vRow['id'] = --$virtualId;
 
-                DB::Aowow()->query('INSERT INTO ?_itemset (?#) VALUES (?a)', array_keys($vRow), array_values($vRow));
+                DB::Aowow()->qry('INSERT INTO ::itemset %v', $vRow);
             }
         }
 

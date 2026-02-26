@@ -116,6 +116,7 @@ abstract class Stat                                         // based on g_statTo
     public const FLAG_PROFILER    = 0x04;                   // stat used in profiler only
     public const FLAG_LVL_SCALING = 0x08;                   // rating effectivenes scales with level
     public const FLAG_FLOAT_VALUE = 0x10;                   // not an int
+    public const FLAG_NO_WEIGHT   = 0x20;                   // for item summary and filter .. basically any fi_filters.items of type: num thats not excluded by noweights: 1 is weightable
 
     public const IDX_JSON_STR      = 0;
     public const IDX_ITEM_MOD      = 1;                     // granted by items
@@ -123,7 +124,7 @@ abstract class Stat                                         // based on g_statTo
     public const IDX_FILTER_CR_ID  = 3;                     // also references listview cols
     public const IDX_FLAGS         = 4;
 
-    private static /* array */ $data = array(
+    private static array $data = array(
         self::HEALTH                => ['health',           ITEM_MOD_HEALTH,                   null,                  115, self::FLAG_ITEM],
         self::MANA                  => ['mana',             ITEM_MOD_MANA,                     null,                  116, self::FLAG_ITEM],
         self::AGILITY               => ['agi',              ITEM_MOD_AGILITY,                  null,                   21, self::FLAG_ITEM],
@@ -188,7 +189,7 @@ abstract class Stat                                         // based on g_statTo
         self::ARCANE_SPELL_POWER    => ['arcsplpwr',        null,                              null,                   52, self::FLAG_ITEM],
         // v not part of g_statToJson v
         self::WEAPON_DAMAGE         => ['dmg',              null,                              null,                 null, self::FLAG_SERVERSIDE | self::FLAG_FLOAT_VALUE],
-        self::WEAPON_DAMAGE_TYPE    => ['damagetype',       null,                              null,                   35, self::FLAG_SERVERSIDE],
+        self::WEAPON_DAMAGE_TYPE    => ['damagetype',       null,                              null,                   35, self::FLAG_SERVERSIDE | self::FLAG_NO_WEIGHT],
         self::WEAPON_DAMAGE_MIN     => ['dmgmin1',          null,                              null,                   33, self::FLAG_SERVERSIDE],
         self::WEAPON_DAMAGE_MAX     => ['dmgmax1',          null,                              null,                   34, self::FLAG_SERVERSIDE],
         self::WEAPON_SPEED          => ['speed',            null,                              null,                   36, self::FLAG_SERVERSIDE | self::FLAG_FLOAT_VALUE],
@@ -201,7 +202,7 @@ abstract class Stat                                         // based on g_statTo
         self::RANGED_DAMAGE_MAX     => ['rgddmgmax',        null,                              null,                  140, self::FLAG_SERVERSIDE],
         self::RANGED_SPEED          => ['rgdspeed',         null,                              null,                  141, self::FLAG_SERVERSIDE | self::FLAG_FLOAT_VALUE],
         self::RANGED_DPS            => ['rgddps',           null,                              null,                  138, self::FLAG_SERVERSIDE | self::FLAG_FLOAT_VALUE | self::FLAG_PROFILER],
-        self::EXTRA_SOCKETS         => ['nsockets',         null,                              null,                  100, self::FLAG_SERVERSIDE],
+        self::EXTRA_SOCKETS         => ['nsockets',         null,                              null,                  100, self::FLAG_SERVERSIDE | self::FLAG_NO_WEIGHT],
         self::ARMOR_BONUS           => ['armorbonus',       null,                              null,                  109, self::FLAG_SERVERSIDE],
         self::MELEE_ATTACK_POWER    => ['mleatkpwr',        null,                              null,                   37, self::FLAG_SERVERSIDE | self::FLAG_PROFILER],
         // v Profiler only v
@@ -246,6 +247,16 @@ abstract class Stat                                         // based on g_statTo
             return false;
 
         return !(self::$data[$stat][self::IDX_FLAGS] & self::FLAG_LVL_SCALING);
+    }
+
+    public static function getWeightJson(string|int $jsonOrCriteriaId) : string
+    {
+        if (is_numeric($jsonOrCriteriaId))
+            $row = array_find(self::$data, fn($x) => $x[self::IDX_FILTER_CR_ID] == $jsonOrCriteriaId);
+        else
+            $row = array_find(self::$data, fn($x) => $x[self::IDX_JSON_STR] == $jsonOrCriteriaId);
+
+        return $row && $row[self::IDX_FILTER_CR_ID] && !($row[self::IDX_FLAGS] & self::FLAG_NO_WEIGHT) ? $row[self::IDX_JSON_STR] : '';
     }
 
     public static function getRatingPctFactor(int $stat) : float
@@ -315,22 +326,27 @@ abstract class Stat                                         // based on g_statTo
         return $x;
     }
 
-    public static function getIndexFrom(int $idx, string $match) : int
+    public static function getIndexFrom(int $idx, string $search) : int
     {
-        $i = array_search($match, array_column(self::$data, $idx));
-        if ($i === false)
-            return 0;
-
-        return array_keys(self::$data)[$i];
+        return array_find_key(self::$data, fn($x) => $x[$idx] == $search) ?: 0;
     }
 }
 
 class StatsContainer implements \Countable
 {
-    private $store = [];
+    private array $store = [];
 
-    private $relSpells       = [];
-    private $relEnchantments = [];
+    private array $relSpells       = [];
+    private array $relEnchantments = [];
+
+    private static array $combinedSpellStats = array (
+        Stat::ATTACK_POWER => [Stat::RANGED_ATTACK_POWER, Stat::MELEE_ATTACK_POWER],
+        Stat::SPELL_POWER  => [Stat::DAMAGE_SPELL_POWER,  Stat::HEALING_SPELL_POWER],
+        // combat ratings below could be merged like this, but easier to handle as they are already in the same bitmask of the same spell effect
+        // Stat::HIT_RTG        => [Stat::MELEE_HIT_RTG, Stat::RANGED_HIT_RTG, Stat::SPELL_HIT_RTG],
+        // Stat::CRIT_RTG       => [Stat::MELEE_CRIT_TAKEN_RTG, Stat::RANGED_CRIT_RTG, Stat::SPELL_CRIT_RTG],
+        // Stat::RESILIENCE_RTG => [Stat::MELEE_CRIT_RTG, Stat::RANGED_CRIT_TAKEN_RTG, Stat::SPELL_CRIT_TAKEN_RTG]
+    );
 
     public function __construct(array $relSpells = [], array $relEnchantments = [])
     {
@@ -408,8 +424,6 @@ class StatsContainer implements \Countable
         if ($onlyFoodBuff && !($spell['attributes2'] & SPELL_ATTR2_FOOD_BUFF))
             return $this;
 
-        // if spells grant an equal, non-zero amount of SPELL_DAMAGE and SPELL_HEALING, combine them to SPELL_POWER
-        // this probably does not affect enchantments
         $tmpStore = [];
 
         for ($i = 1; $i <= 3; $i++)
@@ -431,11 +445,20 @@ class StatsContainer implements \Countable
                     Util::arraySumByKey($tmpStore, [$idx => $amt]);
         }
 
-        if (!empty($tmpStore[Stat::HEALING_SPELL_POWER]) && !empty($tmpStore[Stat::DAMAGE_SPELL_POWER]) && $tmpStore[Stat::HEALING_SPELL_POWER] == $tmpStore[Stat::DAMAGE_SPELL_POWER])
+        foreach (self::$combinedSpellStats as $combined => $stats)
         {
-            Util::arraySumByKey($tmpStore, [Stat::SPELL_POWER => $tmpStore[Stat::HEALING_SPELL_POWER]]);
-            unset($tmpStore[Stat::HEALING_SPELL_POWER]);
-            unset($tmpStore[Stat::DAMAGE_SPELL_POWER]);
+            for ($i = 0; $i < count($stats); $i++)
+            {
+                if (empty($tmpStore[$stats[$i]]))
+                    continue 2;
+
+                if ($i && $tmpStore[$stats[$i]] != $tmpStore[$stats[$i - 1]])
+                    continue 2;
+            }
+
+            Util::arraySumByKey($tmpStore, [$combined => $tmpStore[$stats[0]]]);
+            foreach ($stats as $stat)
+                unset($tmpStore[$stat]);
         }
 
         Util::arraySumByKey($this->store, $tmpStore);
@@ -467,7 +490,7 @@ class StatsContainer implements \Countable
 
     public function fromDB(int $type, int $typeId, int $fieldFlags = Stat::FLAG_NONE) : self
     {
-        foreach (DB::Aowow()->selectRow('SELECT (?#) FROM ?_item_stats WHERE `type` = ?d AND `typeId` = ?d', Stat::getJsonStringsFor($fieldFlags ?: (Stat::FLAG_ITEM | Stat::FLAG_SERVERSIDE)), $type, $typeId) as $key => $amt)
+        foreach (DB::Aowow()->selectRow('SELECT (%n) FROM ::item_stats WHERE `type` = %i AND `typeId` = %i', Stat::getJsonStringsFor($fieldFlags ?: (Stat::FLAG_ITEM | Stat::FLAG_SERVERSIDE)), $type, $typeId) as $key => $amt)
         {
             if ($amt === null)
                 continue;
@@ -579,7 +602,6 @@ class StatsContainer implements \Countable
         if (($mask & $critMask) == $critMask)
             return [Stat::CRIT_RTG];                        // generic crit rating
 
-
         $takentMask = (1 << CR_CRIT_TAKEN_MELEE) | (1 << CR_CRIT_TAKEN_RANGED) | (1 << CR_CRIT_TAKEN_SPELL);
         if (($mask & $takentMask) == $takentMask)
             return [Stat::RESILIENCE_RTG];                  // resilience
@@ -682,7 +704,7 @@ class StatsContainer implements \Countable
             case SPELL_AURA_MOD_POWER_REGEN:                // mp5
                 return [Stat::MANA_REGENERATION];
             case SPELL_AURA_MOD_ATTACK_POWER:
-                return [Stat::ATTACK_POWER/*, Stat::RANGED_ATTACK_POWER*/];
+                return [Stat::MELEE_ATTACK_POWER];
             case SPELL_AURA_MOD_RANGED_ATTACK_POWER:
                 return [Stat::RANGED_ATTACK_POWER];
             case SPELL_AURA_MOD_SHIELD_BLOCKVALUE:

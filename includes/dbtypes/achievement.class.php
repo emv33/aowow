@@ -12,14 +12,14 @@ class AchievementList extends DBTypeList
 
     public static int    $type      = Type::ACHIEVEMENT;
     public static string $brickFile = 'achievement';
-    public static string $dataTable = '?_achievement';
+    public static string $dataTable = '::achievement';
     public        array  $criteria  = [];
 
-    protected string $queryBase = 'SELECT `a`.*, `a`.`id` AS ARRAY_KEY FROM ?_achievement a';
+    protected string $queryBase = 'SELECT `a`.*, `a`.`id` AS ARRAY_KEY FROM ::achievement a';
     protected array  $queryOpts = array(
                         'a'  => [['ic'], 'o' => 'orderInGroup ASC'],
-                        'ic' => ['j' => ['?_icons ic ON ic.id = a.iconId', true], 's' => ', ic.name AS iconString'],
-                        'ac' => ['j' => ['?_achievementcriteria AS `ac` ON `ac`.`refAchievementId` = `a`.`id`', true], 'g' => '`a`.`id`']
+                        'ic' => ['j' => ['::icons ic ON ic.id = a.iconId', true], 's' => ', ic.name AS iconString'],
+                        'ac' => ['j' => ['::achievementcriteria AS `ac` ON `ac`.`refAchievementId` = `a`.`id`', true], 'g' => '`a`.`id`']
                     );
 
     public function __construct(array $conditions = [], array $miscData = [])
@@ -30,7 +30,7 @@ class AchievementList extends DBTypeList
             return;
 
         // post processing
-        $rewards = DB::World()->select(
+        $rewards = DB::World()->selectAssoc(
            'SELECT    ar.`ID` AS ARRAY_KEY, ar.`TitleA`, ar.`TitleH`, ar.`ItemID`, ar.`Sender` AS "sender", ar.`MailTemplateID`,
                       ar.`Subject` AS "subject_loc0", IFNULL(arl2.`Subject`, "") AS "subject_loc2", IFNULL(arl3.`Subject`, "") AS "subject_loc3", IFNULL(arl4.`Subject`, "") AS "subject_loc4", IFNULL(arl6.`Subject`, "") AS "subject_loc6", IFNULL(arl8.`Subject`, "") AS "subject_loc8",
                       ar.`Body`    AS "text_loc0",    IFNULL(arl2.`Body`,    "") AS "text_loc2",    IFNULL(arl3.`Body`,    "") AS "text_loc3",    IFNULL(arl4.`Body`,    "") AS "text_loc4",    IFNULL(arl6.`Body`,    "") AS "text_loc6",    IFNULL(arl8.`Body`,    "") AS "text_loc8"
@@ -40,7 +40,7 @@ class AchievementList extends DBTypeList
             LEFT JOIN achievement_reward_locale arl4 ON arl4.`ID` = ar.`ID` AND arl4.`Locale` = "zhCN"
             LEFT JOIN achievement_reward_locale arl6 ON arl6.`ID` = ar.`ID` AND arl6.`Locale` = "esES"
             LEFT JOIN achievement_reward_locale arl8 ON arl8.`ID` = ar.`ID` AND arl8.`Locale` = "ruRU"
-            WHERE     ar.`ID` IN (?a)',
+            WHERE     ar.`ID` IN %in',
             $this->getFoundIDs()
         );
 
@@ -63,7 +63,7 @@ class AchievementList extends DBTypeList
                         // $_curTpl['rewards'][] = [Type::ITEM, $loot['id']];
 
                     // lets just assume for now, that mailRewards for achievements do not contain references
-                    $mailRew = DB::World()->selectCol('SELECT `Item` FROM mail_loot_template WHERE `Reference` <= 0 AND `entry` = ?d', $rewards[$_id]['MailTemplateID']);
+                    $mailRew = DB::World()->selectCol('SELECT `Item` FROM mail_loot_template WHERE `Reference` <= 0 AND `entry` = %i', $rewards[$_id]['MailTemplateID']);
                     foreach ($mailRew AS $mr)
                         $_curTpl['rewards'][] = [Type::ITEM, $mr];
                 }
@@ -140,7 +140,7 @@ class AchievementList extends DBTypeList
         if (isset($this->criteria[$this->id]))
             return $this->criteria[$this->id];
 
-        $result = DB::Aowow()->Select('SELECT * FROM ?_achievementcriteria WHERE `refAchievementId` = ?d ORDER BY `order` ASC', $this->curTpl['refAchievement'] ?: $this->id);
+        $result = DB::Aowow()->selectAssoc('SELECT * FROM ::achievementcriteria WHERE `refAchievementId` = %i ORDER BY `order` ASC', $this->curTpl['refAchievement'] ?: $this->id);
         if (!$result)
             return [];
 
@@ -310,7 +310,7 @@ class AchievementListFilter extends Filter
         'cr'    => [parent::V_RANGE, [2, 18],                                                             true ], // criteria ids
         'crs'   => [parent::V_LIST,  [parent::ENUM_NONE, parent::ENUM_ANY, [0, 99999]],                   true ], // criteria operators
         'crv'   => [parent::V_REGEX, parent::PATTERN_CRV,                                                 true ], // criteria values - only printable chars, no delimiters
-        'na'    => [parent::V_REGEX, parent::PATTERN_NAME,                                                false], // name / description - only printable chars, no delimiter
+        'na'    => [parent::V_NAME,  false,                                                               false], // name / description - only printable chars, no delimiter
         'ex'    => [parent::V_EQUAL, 'on',                                                                false], // extended name search
         'ma'    => [parent::V_EQUAL, 1,                                                                   false], // match any / all filter
         'si'    => [parent::V_LIST,  [SIDE_ALLIANCE, SIDE_HORDE, SIDE_BOTH, -SIDE_ALLIANCE, -SIDE_HORDE], false], // side
@@ -328,9 +328,9 @@ class AchievementListFilter extends Filter
         {
             $_ = [];
             if ($_v['ex'] == 'on')
-                $_ = $this->tokenizeString(['name_loc'.Lang::getLocale()->value, 'reward_loc'.Lang::getLocale()->value, 'description_loc'.Lang::getLocale()->value]);
+                $_ = $this->buildLikeLookup(['na' => 'name_loc'.Lang::getLocale()->value, 'na' => 'reward_loc'.Lang::getLocale()->value, 'na' => 'description_loc'.Lang::getLocale()->value]);
             else
-                $_ = $this->tokenizeString(['name_loc'.Lang::getLocale()->value]);
+                $_ = $this->buildLikeLookup(['na' => 'name_loc'.Lang::getLocale()->value]);
 
             if ($_)
                 $parts[] = $_;
@@ -381,7 +381,7 @@ class AchievementListFilter extends Filter
     protected function cbSeries(int $cr, int $crs, string $crv, int $seriesFlag) : ?array
     {
         if ($this->int2Bool($crs))
-            return $crs ? ['AND', ['chainId', 0, '!'], ['cuFlags', $seriesFlag, '&']] : ['AND', ['chainId', 0, '!'], [['cuFlags', $seriesFlag, '&'], 0]];
+            return $crs ? [DB::AND, ['chainId', 0, '!'], ['cuFlags', $seriesFlag, '&']] : [DB::AND, ['chainId', 0, '!'], [['cuFlags', $seriesFlag, '&'], 0]];
 
         return null;
     }

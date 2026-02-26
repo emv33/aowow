@@ -80,7 +80,7 @@ class Search
     private array $included    = [];
     private array $excluded    = [];
     private array $fulltext    = [];
-    private array $cndBase     = ['AND'];
+    private array $cndBase     = [DB::AND];
     private bool  $idSearch    = false;
 
     public array $invalid = [];
@@ -112,40 +112,20 @@ class Search
 
         foreach (explode(' ', $this->query) as $raw)
         {
-            // ivalid chars for both LIKE and MATCH
-            $clean = str_replace(['\\', '%'], '', $raw);
-
-            if ($clean === '')
-                continue;
-
-            $ex = ($clean[0] == '-');
-            if ($ex)
+            if ([$like, $fulltext, $ex] = Filter::transformToken($raw, $allowShort))
             {
-                $clean = mb_substr($clean, 1);
-                $raw   = mb_substr($raw, 1);
-            }
+                $this->{$ex ? 'excluded' : 'included'}[] = $like;
 
-            if (mb_strlen($clean) < 3 && !$allowShort)
-            {
-                $this->invalid[] = $raw;
-                continue;
-            }
-
-            $this->{$ex ? 'excluded' : 'included'}[] = str_replace('_', '\\_', $clean);
-
-            // note: a fulltext search purely with exclude tokens will return no result
-            if (($tokens = trim(preg_replace(Filter::PATTERN_FT, ' ', $clean))) !== '')
-            {
-                foreach (array_filter(explode(' ', $tokens)) as $t)
+                // note: a fulltext search purely from exclude tokens will return no result
+                foreach ($fulltext as $ft)
                 {
                     // cant have trailing/leading dashes. FT confuses them for additional modifiers and dies with a syntax error
                     // would be an issue for all modifiers, but Filter::PATTERN_FT only allows for - at this point
-                    $t = preg_replace('/^-+|-+$/', '', $t);
-
-                    if ($allowShort || mb_strlen($t) > 2)
-                        $this->fulltext[] = ($ex ? '-' : '+') . $t . '*';
+                    $this->fulltext[] = ($ex ? '-' : '+') . preg_replace('/^-+|-+$/', '', $ft) . '*';
                 }
             }
+            else
+                $this->invalid[] = $raw;
         }
     }
 
@@ -165,15 +145,12 @@ class Search
         foreach ($fields as $f)
         {
             $sub = [];
-            foreach ($this->included as $i)
-                $sub[] = [$f, '%'.$i.'%'];
-
-            foreach ($this->excluded as $x)
-                $sub[] = [$f, '%'.$x.'%', '!'];
+            $sub = array_merge($sub, array_map(fn($x) => [$f, $x, 'LIKE'], $this->included));
+            $sub = array_merge($sub, array_map(fn($x) => [$f, $x, 'NOT LIKE'], $this->excluded));
 
             // single cnd?
             if (count($sub) > 1)
-                array_unshift($sub, 'AND');
+                array_unshift($sub, DB::AND);
             else
                 $sub = $sub[0];
 
@@ -182,7 +159,7 @@ class Search
 
         // single cnd?
         if (count($qry) > 1)
-            array_unshift($qry, 'OR');
+            array_unshift($qry, DB::OR);
         else
             $qry = $qry[0];
 
@@ -197,21 +174,22 @@ class Search
         if (Lang::getLocale()->isLogographic() && !Cfg::get('LOGOGRAPHIC_FT_SEARCH'))
             return $this->createLikeLookup($fields);
 
-        if (!$this->fulltext)
-            return [];
-
         // default to name-field
         if (!$fields)
             $fields[] = 'name_loc'.Lang::getLocale()->value;
 
         $qry = [];
-        foreach ($fields as $f)
-            $qry[] = [$f, $this->fulltext, 'MATCH'];
+        if ($this->fulltext)
+            $qry = array_map(fn($x) => [$x, $this->fulltext, 'MATCH'], $fields);
+
+        $strBak = trim($this->query);
+        if (mb_strlen($strBak) > 2 || Lang::getLocale()->isLogographic())
+            $qry = array_merge($qry, array_map(fn($x) => [$x, $strBak], $fields));
 
         // single cnd?
         if (count($qry) > 1)
-            array_unshift($qry, 'OR');
-        else
+            array_unshift($qry, DB::OR);
+        else if (count($qry) == 1)
             $qry = $qry[0];
 
         return $qry;
@@ -371,9 +349,9 @@ class Search
     {
         $cnd     = array_merge($this->cndBase, array(
             array(
-                'OR',
+                DB::OR,
                 $this->createLikeLookup(['h.name_loc'.Lang::getLocale()->value]),
-                ['AND', $this->createLikeLookup(['e.description']), ['e.holidayId', 0]]
+                [DB::AND, $this->createLikeLookup(['e.description']), ['e.holidayId', 0]]
             )
         ));
         $wEvents = new WorldEventList($cnd, ['calcTotal' => true]);
@@ -1481,7 +1459,7 @@ class Search
         $cnd  = array_merge($this->cndBase, array(
             ['s.typeCat', -8, '!'],
             [
-                'OR',
+                DB::OR,
                 ['s.typeCat', [0, -9]],
                 ['s.cuFlags', SPELL_CU_TRIGGERED, '&'],
                 ['s.attributes0', 0x80, '&']

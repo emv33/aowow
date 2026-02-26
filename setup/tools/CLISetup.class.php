@@ -651,10 +651,10 @@ class CLISetup
             return false;
         }
 
-        if (DB::Aowow()->selectCell('SHOW TABLES LIKE ?', 'dbc_'.$name) && DB::Aowow()->selectCell('SELECT count(1) FROM ?#', 'dbc_'.$name))
+        if (DB::Aowow()->selectCell('SHOW TABLES LIKE %s', 'dbc_'.$name) && DB::Aowow()->selectCell('SELECT count(1) FROM %n', 'dbc_'.$name))
             return true;
 
-        $dbc = new DBC($name, ['temporary' => self::getOpt('delete')]);
+        $dbc = new DBCReader($name, ['temporary' => self::getOpt('delete')]);
         if ($dbc->error)
         {
             CLI::write('CLISetup::loadDBC() - required DBC '.$name.'.dbc not found!', CLI::LOG_ERROR);
