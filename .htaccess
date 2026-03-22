@@ -5,7 +5,7 @@
     RewriteRule .* - [F,L]
 
     RewriteCond %{REQUEST_METHOD} ^POST$
-    RewriteCond %{QUERY_STRING} !(^|&)filter [NC]
+    RewriteCond %{QUERY_STRING} !(^|&)(filter|search)= [NC]
     RewriteRule .* - [F,L]
 
     RewriteCond %{QUERY_STRING} (^|&)(admin|user)= [NC]
