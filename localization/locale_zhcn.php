@@ -62,6 +62,8 @@ $lang = array(
         'no'            => "无",
         'any'           => "任意",
         'all'           => "全部",
+        'required'      => '[Required]：%s',
+        'disallowed'    => '[Disallowed]：%s',
 
         // filter
         'extSearch'     => "扩展搜索",
@@ -652,7 +654,7 @@ $lang = array(
             SmartEvent::EVENT_TIMED_EVENT_TRIGGERED   => ['Timed event #[b]%1$d[/b] is triggered', ''],
 /* 60*/     SmartEvent::EVENT_UPDATE                  => ['(%11$s)?After %11$s:Instantly;', 'Repeat every %s'],
             SmartEvent::EVENT_LINK                    => ['After Event %11$s', ''],
-            SmartEvent::EVENT_GOSSIP_SELECT           => ['Selecting Gossip Option:[br](%11$s)?[span class=q1]%11$s[/span]:Menu #[b]%1$d[/b] - Option #[b]%2$d[/b];', ''],
+            SmartEvent::EVENT_GOSSIP_SELECT           => ['Selecting Gossip Option:[br](%11$s)?[span class="%12$s"]%11$s[/span]:Menu #[b]%1$d[/b] - Option #[b]%2$d[/b];', ''],
             SmartEvent::EVENT_JUST_CREATED            => ['On being spawned for the first time', ''],
             SmartEvent::EVENT_GOSSIP_HELLO            => ['Opening Gossip', '(%1$d)?onGossipHello:;(%2$d)?onReportUse:;'],
             SmartEvent::EVENT_FOLLOW_COMPLETED        => ['Finished following', ''],
@@ -1441,6 +1443,10 @@ $lang = array(
         'sharable'      => "可共享的",
         'notSharable'   => "不可共享的",
         'repeatable'    => "可重复的",
+        'breadcrumbFor'     => "[Breadcrumb For]",
+        'breadcrumbForDesc' => "[This quest is an optional introduction (breadcrumb) to the next quest. If either this quest or the target quest is picked up or completed, the other becomes unavailable.]",
+        'breadcrumbQ'       => "[Breadcrumbs]",
+        'breadcrumbQDesc'   => "[Optional lead-in quests for this quest. Picking up either this quest or a breadcrumb quest makes all breadcrumb quests unavailable.]",
         'reqQ'          => "要求",
         'reqQDesc'      => "要完成这个任务，你必须完成所有这些任务",
         'reqOneQ'       => "需要其中之一",
@@ -1563,7 +1569,7 @@ $lang = array(
         'notFound'      => "这个技能不存在。",
         'cat'           => array(
             -6 => "伙伴",         -5 => "坐骑",             -4 => "种族特性",      5 => "属性",          6 => "武器技能",       7 => "职业技能",        8 => "护甲精通",
-             9 => "辅助技能",   10 => "语言",          11 => "专业"
+             9 => "辅助技能",   10 => "语言",          11 => "专业",             12 => "不显示"
         )
     ),
     'currency' => array(
@@ -1675,6 +1681,8 @@ $lang = array(
         '_seeMore'      => "[See more]",
         '_rankRange'    => "排名:&nbsp;%d&nbsp;-&nbsp;%d",
         '_showXmore'    => "[Show %d More]",
+        'casterAura'    => "[Caster Aura]",
+        'targetAura'    => "[Target Aura]",
 
         'normal'        => "普通",
         'special'       => "特殊",
@@ -2218,7 +2226,7 @@ $lang = array(
         'ratingString'  => '<!--rtg%%%1$d-->%2$s&nbsp;@&nbsp;Lvl<!--lvl-->%3$d',
         'heroic'        => "英雄级别",
         'startQuest'    => "该物品将触发一个任务",
-        'bagSlotString' => "%d格%s",
+        'containerSlots'=> "%d格%s",
         'fap'           => "在猎豹、熊、巨熊和枭兽形态下的攻击强度",
         'durability'    => "耐久度 %d / %d",
         'realTime'      => "实时",
@@ -2267,6 +2275,7 @@ $lang = array(
         'unique'        => ["唯一",   "唯一（%d）", "唯一：%s（%d）"   ],
         'uniqueEquipped'=> ["装备唯一", null,     "装备唯一：%s （%d）"],
         'speed'         => "速度",
+        'glyphType'     => [null, "大型雕文", "小型雕文"],
         'dps'           => "（每秒伤害%.1f）",
         'vendorLoc'     => "[Vendor Locations]",
         'purchasedIn'   => "[This item can be purchased in]",
@@ -2323,11 +2332,6 @@ $lang = array(
             "账号绑定",                                     "拾取后绑定",                                                "装备后绑定",
             "使用后绑定",                                    "任务物品",                                                 "任务物品"
         ),
-        "bagFamily"     => array(
-            "容器",                   "箭袋",               "弹药袋",                  "灵魂袋",                          "制皮材料包",
-            "铭文包",                  "草药袋",              "附魔材料袋",                "工程学材料袋",                       null, /*Key*/
-            "宝石袋",                  "矿石袋"
-        ),
         'inventoryType' => array(
             null,                   "头部",               "颈部",                   "肩部",                           "衬衣",
             "胸部",                   "腰部",               "腿部",                   "脚",                            "手腕",
@@ -2336,22 +2340,25 @@ $lang = array(
             null, /*Robe*/          "主手",               "副手",                   "副手物品",                         "弹药",
             "投掷",                   null, /*Ranged2*/   "箭袋",                   "圣物"
         ),
-        'armorSubClass' => array(
-            "其它",                   "布甲",               "皮甲",                   "锁甲",                           "板甲",
-            null,                   "盾牌",               "圣契",                   "神像",                           "图腾",
-            "魔印"
+        'subClass'      => array(
+            ITEM_CLASS_CONSUMABLE => ["消耗品", "药水", "药剂", "合剂", "卷轴", "食物和饮料", "物品强化", "绷带", "其它"],
+            ITEM_CLASS_CONTAINER  => ["容器", "灵魂袋", "草药袋", "附魔材料袋", "工程学材料袋", "宝石袋", "矿石袋", "制皮材料包", "铭文包"],
+            ITEM_CLASS_WEAPON     => ["斧", "斧", "弓", "枪械", "锤", "锤", "长柄武器", "剑", "剑", "Obsolete", "法杖", "异种武器", "异种武器", "拳套", "其它", "匕首", "投掷武器", "矛", "弩", "魔杖", "鱼竿"],
+            ITEM_CLASS_GEM        => ["红色", "蓝色", "黄色", "紫色", "绿色", "橙色", "多彩", "简易", "棱彩"],
+            ITEM_CLASS_ARMOR      => ["其它", "布甲", "皮甲", "锁甲", "板甲", "小圆盾", "盾牌", "圣契", "神像", "图腾", "魔印"],
+            ITEM_CLASS_REAGENT    => ["材料"],
+            ITEM_CLASS_AMMUNITION => ["无(魔杖)", "矢", "箭", "子弹", "投掷武器"],
+            ITEM_CLASS_TRADEGOOD  => ["商品", "零件", "爆炸物", "装置", "珠宝加工", "布料", "皮革", "金属和矿石", "肉类", "草药", "元素", "其它", "附魔", "原料", "护甲强化", "武器强化"],
+            ITEM_CLASS_GENERIC    => ["Generic(OBSOLETE)"],
+            ITEM_CLASS_RECIPE     => ["书籍", "制皮", "裁缝", "工程学", "锻造", "烹饪", "炼金术", "急救", "附魔", "钓鱼", "珠宝加工", "铭文"],
+            ITEM_CLASS_MONEY      => ["Money(OBSOLETE)"],
+            ITEM_CLASS_QUIVER     => ["箭袋", "箭袋", "箭袋", "弹药袋"],
+            ITEM_CLASS_QUEST      => ["任务"],
+            ITEM_CLASS_KEY        => ["钥匙", "开锁工具"],
+            ITEM_CLASS_PERMANENT  => ["永久"],
+            ITEM_CLASS_MISC       => ["垃圾", "材料", "宠物", "节日", "其它", "坐骑"],
+            ITEM_CLASS_GLYPH      => [null, "战士", "圣骑士", "猎人", "潜行者", "牧师", "死亡骑士", "萨满祭司", "法师", "术士", null, "德鲁伊"]
         ),
-        'weaponSubClass'=> array(
-            "斧",                    "斧",                "弓",                    "枪械",                           "锤",
-            "锤",                    "长柄武器",             "剑",                    "剑",                            null,
-            "法杖",                   null,               null,                   "拳套",                           "其它",
-            "匕首",                   "投掷武器",             null,                   "弩",                            "魔杖",
-            "鱼竿"
-        ),
-        'projectileSubClass' => array(
-            null,                   null,               "箭",                   "子弹",                         null
-        ),
-        'elixirType'    => [null, "战斗", "守护"],
         'cat'           => array(                           // ordered by content first, then alphabeticaly
              2 => array("武器", []),                          // filled with self::$spell['weaponSubClass'] on load
              4 => array("护甲", array(

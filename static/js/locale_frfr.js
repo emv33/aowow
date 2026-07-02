@@ -957,7 +957,17 @@ var mn_database = [
 var mn_guides = [
     [1, "Classes", '?guides=1'],
     [6, "Economie et Argent", '?guides=6'],
-    [3, "Évènements mondiaux", '?guides=3'],
+    [3, "Évènements mondiaux", '?guides=3', [
+        ["lunar-festival","Fête lunaire","?guide=lunar-festival"],
+        ["love-is-in-the-air","De l'amour dans l'air","?guide=love-is-in-the-air"],
+        ["noblegarden","Jardin des nobles","?guide=noblegarden"],
+        ["childrens-week","Semaine des enfants","?guide=childrens-week"],
+        ["midsummer-fire-festival","Fête du Feu du solstice d'été","?guide=midsummer-fire-festival"],
+        ["brewfest","Voile d'hiver","?guide=brewfest"],
+        ["hallows-end","Sanssaint","?guide=hallows-end"],
+        ["pilgrims-bounty","Bienfaits du pèlerin","?guide=pilgrims-bounty"],
+        ["winter-veil","Voile d'hiver","?guide=winter-veil"]
+    ]],
     [7, "Hauts faits", '?guides=7'],
     [4, "Nouveaux Joueurs & Montée en niveau", '?guides=4'],
     [2, "Métiers", '?guides=2'],
@@ -1957,7 +1967,8 @@ var g_skill_categories = {
        8: 'Armures utilisables',
        9: 'Compétences secondaires',
       10: 'Langues',
-      11: 'Métiers'
+      11: 'Métiers',
+      12: 'Non affiché'
 };
 
 var g_zones = {
@@ -3440,30 +3451,30 @@ var LANG = {
     removefromfavorites: "Retirer des favoris",
 
     types: {
-          1: ["PNJ",               "PNJ" ,              "PNJs",                "PNJs"],
-          2: ["Entité",            "entité",            "Entités",             "entités"],
-          3: ["Objet",              "objet",            "Objets",              "objets"],
-          4: ["Ensemble d'objets", "ensemble d'objets", "Ensembles d'objets",  "ensembles d'objets"],
-          5: ["Quête",             "quête",             "Quêtes",              "quêtes"],
-          6: ["Sort",              "sort",              "Sorts",               "sorts"],
-          7: ["Zone",              "zone",              "Zones",               "zones"],
-          8: ["Faction",           "faction",           "Factions",            "factions"],
-          9: ["Familier",          "familier",          "Familiers",           "familiers"],
-         10: ["Haut fait",         "haut fait",         "Hauts faits",         "hauts faits"],
-         11: ["Titre",             "titre",             "Titres",              "titres"],
-         12: ["Événement mondial", "évènement mondial", "Évènements mondiaux", "évènements mondiaux"],
-         13: ["Classe",            "classe",            "Classes",             "classes"],
-         14: ["Race",              "race",              "Races",               "races"],
-         15: ["Compétence",        "compétence",        "Compétences",         "compétences"],
-         16: ["Statistique",       "statistique",       "Statistiques",        "statistiques"],
-         17: ["Monnaies",          "monnaie",           "Monnaies",            "monnaies"],
-         19: ["Son",               "Son",               "Sons",                "Sons"],
-         29: ["Icône",             "icône",             "Icônes",              "icônes"],
-        300: ["Guide",             "guide",             "Guides",              "guides"],
-        501: ["Emote",             "emote",             "Emotes",              "emotes"],
-        502: ["Enchantement",      "enchantement",      "Enchantements",       "enchantements"],
-        503: ["Areatrigger",       "areatrigger",       "Areatriggers",        "areatriggers"],
-        504: ["Mail",              "mail",              "Mails",               "mails"]
+          1: ["PNJ",                  "PNJ" ,                 "PNJs",                  "PNJs"],
+          2: ["Entité",               "entité",               "Entités",               "entités"],
+          3: ["Objet",                "objet",                "Objets",                "objets"],
+          4: ["Ensemble d'objets",    "ensemble d'objets",    "Ensembles d'objets",    "ensembles d'objets"],
+          5: ["Quête",                "quête",                "Quêtes",                "quêtes"],
+          6: ["Sort",                 "sort",                 "Sorts",                 "sorts"],
+          7: ["Zone",                 "zone",                 "Zones",                 "zones"],
+          8: ["Faction",              "faction",              "Factions",              "factions"],
+          9: ["Familier de chasseur", "familier de chasseur", "Familiers de chasseur", "familiers de chasseur"],
+         10: ["Haut fait",            "haut fait",            "Hauts faits",           "hauts faits"],
+         11: ["Titre",                "titre",                "Titres",                "titres"],
+         12: ["Événement mondial",    "évènement mondial",    "Évènements mondiaux",   "évènements mondiaux"],
+         13: ["Classe",               "classe",               "Classes",               "classes"],
+         14: ["Race",                 "race",                 "Races",                 "races"],
+         15: ["Compétence",           "compétence",           "Compétences",           "compétences"],
+         16: ["Statistique",          "statistique",          "Statistiques",          "statistiques"],
+         17: ["Monnaies",             "monnaie",              "Monnaies",              "monnaies"],
+         19: ["Son",                  "Son",                  "Sons",                  "Sons"],
+         29: ["Icône",                "icône",                "Icônes",                "icônes"],
+        300: ["Guide",                "guide",                "Guides",                "guides"],
+        501: ["Emote",                "emote",                "Emotes",                "emotes"],
+        502: ["Enchantement",         "enchantement",         "Enchantements",         "enchantements"],
+        503: ["Areatrigger",          "areatrigger",          "Areatriggers",          "areatriggers"],
+        504: ["Mail",                 "mail",                 "Mails",                 "mails"]
     },
 
     timeunitssg: ["année", "mois", "semaine", "jour", "heure", "minute", "seconde"],
@@ -3964,7 +3975,18 @@ var LANG = {
                             [21,'0x00100000'],                      [22,'0x00200000'],                      [23,'0x00400000'],                      [24,'0x00800000'],                      [25,'0x01000000'],
                             [26,'0x02000000'],                      [27,'0x04000000'],                      [28,'0x08000000'],                      [29,'0x10000000'],                      [30,'0x20000000'],
                             [31,'0x40000000'],                      [32,'0x80000000']
-                       ]
+                        ],
+        itemvisuals:    [                                   // aowow - custom
+                            [2,   'BlueGlow Low'],                  [62,  'BlueGlow Med'],                  [1,   'BlueGlow High'],                 [3,   'BlueFlame Low'],                 [50,  'RedGlow Low'],
+                            [121, 'RedGlow High'],                  [45,  'RedFlame Low'],                  [48,  'YellowGlow Low'],                [122, 'YellowGlow High'],               [147, 'YellowFlame Low'],
+                            [123, 'WhiteGlow Low'],                 [124, 'WhiteGlow High'],                [144, 'WhiteFlame Low'],                [125, 'GreenGlow Low'],                 [126, 'GreenGlow High'],
+                            [145, 'GreenFlame Low'],                [127, 'PurpleGlow Low'],                [141, 'PurpleGlow High'],               [146, 'PurpleFlame Low'],               [142, 'BlackGlow Low'],
+                            [143, 'BlackGlow High'],                [148, 'BlackFlame Low'],                [42,  'SkullBalls'],                    [46,  'PoisonDrip'],                    [47,  'Sparkle A'],
+                            [51,  'Shaman Fire'],                   [52,  'Shaman Frost'],                  [81,  'Shaman Rock'],                   [101, 'Shaman Wind'],                   [182, 'MongooseGlow High'],
+                            [183, 'SavageryGlow High'],             [184, 'SoulfrostGlow High'],            [185, 'SunfireGlow High'],              [186, 'BattlemasterGlow High'],         [187, 'SpellSurgeGlow High'],
+                            [193, 'ExecutionerGlow High'],          [194, 'DisintigrateGlow High'],         [158, 'Fire Blue PreCast Uber Hand'],   [177, 'Holy Precast Low Hand'],         [195, 'IcyEnchant High'],
+                            [207, 'FrozenRuneWeapon State']
+                        ]
     },
 
     fiitems: {
@@ -4056,6 +4078,8 @@ var LANG = {
         rewardedbyquestin:       "Récompense d'une quête dans...",
         soldbynpc:               "Vendu par le PNJ #...",
         soldbyvendor:            "Vendu par un marchand",
+        itemvisual:              "Visual Effect",           // aowow - custom
+        spellvisual:             "Visual Spell Effect #...", // aowow - custom
 
         sepcommunity:            "Communauté",
         hascomments:             "A des commentaires",
@@ -4223,6 +4247,13 @@ var LANG = {
         effecttype:                 "Type d'effet",
         scalingap:                  "S'équilibre avec la puissance d'attaque",
         scalingsp:                  "S'équilibre avec la puissance des sorts",
+        duration_stc:               "Durée (secondes)",
+        gcdcategory_stc:            "Catégorie GCD",
+        givesResourceType_stc:      "[Gives resource type]",
+        inMyFavorites_stc:          "Dans mes favoris",
+        maximumRange_stc:           "Portée maximale",
+        minimumRange_stc:           "Portée minimale",
+        modifiesSpell_filter:       "Modifie le sort #…",
 
         sepattributes:              "Attributs",
         combatcastable:             "Utilisable en combat",
@@ -4396,6 +4427,7 @@ var LANG = {
         id:             "ID",
         hascondition:   "[Requires a combination of gems]",
         requiresprof:   "Requiert un métier",
+        itemvisual:     "Visual Effect",                    // aowow - custom
 
         sepcommunity:   "Communauté",
         hascomments:    "A des commentaires",

@@ -1008,7 +1008,17 @@ var mn_guides = [
     [2, "专业", '?guides=2'],
     [5, "地下城与团队副本", '?guides=5'],
     [8, "华丽收藏", '?guides=8'],
-    [3, "世界事件", '?guides=3'],
+    [3, "世界事件", '?guides=3', [
+        ["lunar-festival","春节","?guide=lunar-festival"],
+        ["love-is-in-the-air","情人节","?guide=love-is-in-the-air"],
+        ["noblegarden","复活节","?guide=noblegarden"],
+        ["childrens-week","儿童周","?guide=childrens-week"],
+        ["midsummer-fire-festival","仲夏火焰节","?guide=midsummer-fire-festival"],
+        ["brewfest","美酒节","?guide=brewfest"],
+        ["hallows-end","万圣节","?guide=hallows-end"],
+        ["pilgrims-bounty","感恩节","?guide=pilgrims-bounty"],
+        ["winter-veil","冬幕节","?guide=winter-veil"]
+    ]],
     [9, "杂项", '?guides=9']
 ];
 
@@ -2005,6 +2015,7 @@ var g_skill_categories = {
        9: "辅助技能",
       10: "语言",
       11: "专业",
+      12: '不显示'
 };
 
 var g_zones = {
@@ -4005,7 +4016,18 @@ var LANG = {
                             [21,'0x00100000'],                      [22,'0x00200000'],                      [23,'0x00400000'],                      [24,'0x00800000'],                      [25,'0x01000000'],
                             [26,'0x02000000'],                      [27,'0x04000000'],                      [28,'0x08000000'],                      [29,'0x10000000'],                      [30,'0x20000000'],
                             [31,'0x40000000'],                      [32,'0x80000000']
-                       ]
+                        ],
+        itemvisuals:    [                                   // aowow - custom
+                            [2,   'BlueGlow Low'],                  [62,  'BlueGlow Med'],                  [1,   'BlueGlow High'],                 [3,   'BlueFlame Low'],                 [50,  'RedGlow Low'],
+                            [121, 'RedGlow High'],                  [45,  'RedFlame Low'],                  [48,  'YellowGlow Low'],                [122, 'YellowGlow High'],               [147, 'YellowFlame Low'],
+                            [123, 'WhiteGlow Low'],                 [124, 'WhiteGlow High'],                [144, 'WhiteFlame Low'],                [125, 'GreenGlow Low'],                 [126, 'GreenGlow High'],
+                            [145, 'GreenFlame Low'],                [127, 'PurpleGlow Low'],                [141, 'PurpleGlow High'],               [146, 'PurpleFlame Low'],               [142, 'BlackGlow Low'],
+                            [143, 'BlackGlow High'],                [148, 'BlackFlame Low'],                [42,  'SkullBalls'],                    [46,  'PoisonDrip'],                    [47,  'Sparkle A'],
+                            [51,  'Shaman Fire'],                   [52,  'Shaman Frost'],                  [81,  'Shaman Rock'],                   [101, 'Shaman Wind'],                   [182, 'MongooseGlow High'],
+                            [183, 'SavageryGlow High'],             [184, 'SoulfrostGlow High'],            [185, 'SunfireGlow High'],              [186, 'BattlemasterGlow High'],         [187, 'SpellSurgeGlow High'],
+                            [193, 'ExecutionerGlow High'],          [194, 'DisintigrateGlow High'],         [158, 'Fire Blue PreCast Uber Hand'],   [177, 'Holy Precast Low Hand'],         [195, 'IcyEnchant High'],
+                            [207, 'FrozenRuneWeapon State']
+                        ]
     },
 
     fiitems: {
@@ -4097,6 +4119,8 @@ var LANG = {
         rewardedbyquestin:       "奖励任务发生于…",
         soldbynpc:               "由NPC #... 出售",
         soldbyvendor:            "商人出售",
+        itemvisual:              "Visual Effect",           // aowow - custom
+        spellvisual:             "Visual Spell Effect #...", // aowow - custom
 
         sepcommunity:            "社区",
         hascomments:             "有评论",
@@ -4264,6 +4288,13 @@ var LANG = {
         effecttype:                 "效果类型",
         scalingap:                  "与攻击伤害成比例",
         scalingsp:                  "与法术伤害成比例",
+        duration_stc:               "持续时间（数秒）",
+        gcdcategory_stc:            "GCD目录",
+        givesResourceType_stc:      "[Gives resource type]",
+        inMyFavorites_stc:          "在我的收藏中",
+        maximumRange_stc:           "最大范围",
+        minimumRange_stc:           "最小范围",
+        modifiesSpell_filter:       "修改法术 #…",
 
         sepattributes:              "属性",
         combatcastable:             "可在战斗中施法",
@@ -4437,6 +4468,7 @@ var LANG = {
         id:             "ID",
         hascondition:   "需要宝石组合",
         requiresprof:   "需要专业",
+        itemvisual:     "Visual Effect",                    // aowow - custom
 
         sepcommunity:   "社区",
         hascomments:    "有评论",

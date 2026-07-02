@@ -40,15 +40,14 @@ trait TrProfilerFilter
 
 abstract class Filter
 {
-    private static  $wCards = ['*' => '%', '?' => '_'];
-
     public const CR_BOOLEAN   = 1;
     public const CR_FLAG      = 2;
     public const CR_NUMERIC   = 3;
     public const CR_STRING    = 4;
-    public const CR_ENUM      = 5;
-    public const CR_STAFFFLAG = 6;
-    public const CR_CALLBACK  = 7;
+    public const CR_NUMSTRING = 5;
+    public const CR_ENUM      = 6;
+    public const CR_STAFFFLAG = 7;
+    public const CR_CALLBACK  = 8;
     public const CR_NYI_PH    = 999;
 
     public const V_EQUAL      = 8;
@@ -91,6 +90,12 @@ abstract class Filter
     protected const ENUM_CLASSS        = array( null,     1,     2,     3,     4,     5,     6,     7,     8,     9,  null,    11,  true, false);
     protected const ENUM_RACE          = array( null,     1,     2,     3,     4,     5,     6,     7,     8,  null,    10,    11,  true, false);
     protected const ENUM_PROFESSION    = array( null,   171,   164,   185,   333,   202,   129,   755,   165,   186,   197,  true, false,   356,   182,   773);
+    protected const ENUM_ITEM_VISUAL   = array(             // ItemVisualEffect.dbc/ids pointing to sensible models
+                                                            // Enchantment
+                                                   1,     2,     3,    42,    45,    46,    47,    48,    50,    51,    52,    62,    81,   101,   121,   122,   123,   124,   125,   126,
+                                                 127,   141,   142,   143,   144,   145,   146,   147,   148,   182,   183,   184,   185,   186,   187,   193,   194,
+                                                            // Spell
+                                                 158,   177,   195,   207);
 
     public bool  $error        = false;
     public bool  $shouldReload = false;                     // erroneous params have been corrected. Build GET string and reload
@@ -114,6 +119,7 @@ abstract class Filter
         [self::CR_FLAG,      <string:colName>, <int:testBit>,   <bool:matchAny>]       # default param2: matchExact
         [self::CR_NUMERIC,   <string:colName>, <int:NUM_FLAGS>, <bool:addExtraCol>]
         [self::CR_STRING,    <string:colName>, <int:STR_FLAGS>, <string:fulltextColName]
+        [self::CR_NUMSTRING, <string:colName>, <int:NUM_FLAGS>, null]                  # input is string but input value expected to be numeric
         [self::CR_ENUM,      <string:colName>, <bool:ANY_NONE>, <bool:isEnumVal>]      # param3 ? crv is val in enum : key in enum
         [self::CR_STAFFFLAG, <string:colName>, null,            null]
         [self::CR_CALLBACK,  <string:fnName>,  <mixed:param1>,  <mixed:param2>]
@@ -431,6 +437,8 @@ abstract class Filter
             {
                 case self::CR_NUMERIC:
                     $_ = $_crs[$i];
+                case self::CR_NUMSTRING:
+                    $_ ??= 3;
                     if (Util::checkNumeric($_crv[$i], $param1) && $this->int2Op($_))
                         continue 2;
                     break;
@@ -590,7 +598,8 @@ abstract class Filter
         if ($string === '')
             return null;
 
-        // invalid chars for both LIKE and MATCH
+        // \ % - invalid chars for both LIKE and MATCH
+        // otherwise escaped by \Dibi
         $str = str_replace(['\\', '%'], '', $string);
 
         if ($neg = ($str[0] === '-'))
@@ -608,11 +617,9 @@ abstract class Filter
                 $ft[] = implode('', $tok);
         }
 
-        // escape manually entered _; entering % should be prohibited
-        // then replace search wildcards with sql wildcards
-        $lk = strtr(str_replace('_', '\\_', $str), self::$wCards);
+        $ft ??= [];
 
-        return [$lk, $ft, $neg];
+        return [$str, $ft, $neg];
     }
 
     protected function tokenizeString(string $field, string $string, bool $exact = false, bool $allowShort = false) : bool
@@ -852,6 +859,7 @@ abstract class Filter
 
         $result = match ($crType)
         {
+            self::CR_NUMSTRING => $this->genericNumeric($colOrFn, $crv, 3, $param1),
             self::CR_NUMERIC   => $this->genericNumeric($colOrFn, $crv, $crs, $param1),
             self::CR_FLAG      => $this->genericBooleanFlags($colOrFn, $param1, $crs, $param2),
             self::CR_STAFFFLAG => $this->genericBooleanFlags($colOrFn, (1 << ($crs - 1)), true),

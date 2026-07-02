@@ -1008,7 +1008,17 @@ var mn_guides = [
     [2, "Professions", '?guides=2'],
     [5, "Raid & Boss Fights", '?guides=5'],
     [8, "Vanity Items, Pets & Mounts", '?guides=8'],
-    [3, "World Events", '?guides=3'],
+    [3, "World Events", '?guides=3', [
+        ["lunar-festival","Lunar Festival","?guide=lunar-festival"],
+        ["love-is-in-the-air","Love is in the Air","?guide=love-is-in-the-air"],
+        ["noblegarden","Noblegarden","?guide=noblegarden"],
+        ["childrens-week","Childrens Week","?guide=childrens-week"],
+        ["midsummer-fire-festival","Midsummer Fire Festival","?guide=midsummer-fire-festival"],
+        ["brewfest","Brewfest","?guide=brewfest"],
+        ["hallows-end","Hallow's End","?guide=hallows-end"],
+        ["pilgrims-bounty","Pilgrim's Bounty","?guide=pilgrims-bounty"],
+        ["winter-veil","Feast of Winter Veil","?guide=winter-veil"]
+    ]],
     [9, "Other", '?guides=9']
 ];
 
@@ -2005,7 +2015,8 @@ var g_skill_categories = {
        8: 'Armor Proficiencies',
        9: 'Secondary Skills',
       10: 'Languages',
-      11: 'Professions'
+      11: 'Professions',
+      12: 'Not Displayed'
 };
 
 var g_zones = {
@@ -3496,7 +3507,7 @@ var LANG = {
           6: ["Spell",       "spell",        "Spells",       "spells"],
           7: ["Zone",        "zone",         "Zones",        "zones"],
           8: ["Faction",     "faction",      "Factions",     "factions"],
-          9: ["Pet",         "pet",          "Pets",         "pets"],
+          9: ["Hunter Pet",  "hunter pet",   "Hunter Pets",  "hunter pets"],
          10: ["Achievement", "achievement",  "Achievements", "achievements"],
          11: ["Title",       "title",        "Titles",       "titles"],
          12: ["World Event", "world event",  "World Events", "world events"],
@@ -4008,6 +4019,17 @@ var LANG = {
                             [21,'0x00100000'],                      [22,'0x00200000'],                      [23,'0x00400000'],                      [24,'0x00800000'],                      [25,'0x01000000'],
                             [26,'0x02000000'],                      [27,'0x04000000'],                      [28,'0x08000000'],                      [29,'0x10000000'],                      [30,'0x20000000'],
                             [31,'0x40000000'],                      [32,'0x80000000']
+                        ],
+        itemvisuals:    [                                   // aowow - custom
+                            [2,   'BlueGlow Low'],                  [62,  'BlueGlow Med'],                  [1,   'BlueGlow High'],                 [3,   'BlueFlame Low'],                 [50,  'RedGlow Low'],
+                            [121, 'RedGlow High'],                  [45,  'RedFlame Low'],                  [48,  'YellowGlow Low'],                [122, 'YellowGlow High'],               [147, 'YellowFlame Low'],
+                            [123, 'WhiteGlow Low'],                 [124, 'WhiteGlow High'],                [144, 'WhiteFlame Low'],                [125, 'GreenGlow Low'],                 [126, 'GreenGlow High'],
+                            [145, 'GreenFlame Low'],                [127, 'PurpleGlow Low'],                [141, 'PurpleGlow High'],               [146, 'PurpleFlame Low'],               [142, 'BlackGlow Low'],
+                            [143, 'BlackGlow High'],                [148, 'BlackFlame Low'],                [42,  'SkullBalls'],                    [46,  'PoisonDrip'],                    [47,  'Sparkle A'],
+                            [51,  'Shaman Fire'],                   [52,  'Shaman Frost'],                  [81,  'Shaman Rock'],                   [101, 'Shaman Wind'],                   [182, 'MongooseGlow High'],
+                            [183, 'SavageryGlow High'],             [184, 'SoulfrostGlow High'],            [185, 'SunfireGlow High'],              [186, 'BattlemasterGlow High'],         [187, 'SpellSurgeGlow High'],
+                            [193, 'ExecutionerGlow High'],          [194, 'DisintigrateGlow High'],         [158, 'Fire Blue PreCast Uber Hand'],   [177, 'Holy Precast Low Hand'],         [195, 'IcyEnchant High'],
+                            [207, 'FrozenRuneWeapon State']
                         ]
     },
 
@@ -4100,6 +4122,8 @@ var LANG = {
         rewardedbyquestin:       "Rewarded by a quest in...",
         soldbynpc:               "Sold by NPC #...",
         soldbyvendor:            "Sold by a vendor",
+        itemvisual:              "Visual Effect",           // aowow - custom
+        spellvisual:             "Visual Spell Effect #...", // aowow - custom
 
         sepcommunity:            "Community",
         hascomments:             "Has comments",
@@ -4267,6 +4291,13 @@ var LANG = {
         effecttype:                 "Effect type",
         scalingap:                  "Scales with attack power",
         scalingsp:                  "Scales with spell power",
+        duration_stc:               "Duration (seconds)",
+        gcdcategory_stc:            "GCD category",
+        givesResourceType_stc:      "Gives resource type",
+        inMyFavorites_stc:          "In my favorites",
+        maximumRange_stc:           "Maximum range",
+        minimumRange_stc:           "Minimum range",
+        modifiesSpell_filter:       "Modifies spell #…",
 
         sepattributes:              "Attributes",
         combatcastable:             "Castable in combat",
@@ -4440,6 +4471,7 @@ var LANG = {
         id:             "ID",
         hascondition:   "Requires a combination of gems",
         requiresprof:   "Requires a profession",
+        itemvisual:     "Visual Effect",                    // aowow - custom
 
         sepcommunity:   "Community",
         hascomments:    "Has comments",

@@ -958,7 +958,17 @@ var mn_guides = [
     [1, "Clases", '?guides=1'],
     [5, "Combates de Bandas y Jefes", '?guides=5'],
     [6, "Economía y Dinero", '?guides=6'],
-    [3, "Eventos del mundo", '?guides=3'],
+    [3, "Eventos del mundo", '?guides=3', [
+        ["lunar-festival","Festival Lunar","?guide=lunar-festival"],
+        ["love-is-in-the-air","Amor en el aire","?guide=love-is-in-the-air"],
+        ["noblegarden","Jardín Noble","?guide=noblegarden"],
+        ["childrens-week","Los Niños","?guide=childrens-week"],
+        ["midsummer-fire-festival","Festival de Fuego del Solsticio de Verano","?guide=midsummer-fire-festival"],
+        ["brewfest","El festín del Festival de Invierno","?guide=brewfest"],
+        ["hallows-end","Halloween","?guide=hallows-end"],
+        ["pilgrims-bounty","Generosidad","?guide=pilgrims-bounty"],
+        ["winter-veil","Festival de Invierno","?guide=winter-veil"],
+    ]],
     [7, "Logros", '?guides=7'],
     [4, "Nuevos Jugadores y Leveling", '?guides=4'],
     [8, "Objetos de vanidad, Mascotas y Monturas", '?guides=8'],
@@ -1957,7 +1967,8 @@ var g_skill_categories = {
        8: 'Armaduras disponibles',
        9: 'Habilidades secundarias',
       10: 'Idiomas',
-      11: 'Profesiones'
+      11: 'Profesiones',
+      12: 'No se muestra'
 };
 
 var g_zones = {
@@ -3447,7 +3458,7 @@ var LANG = {
           6: ["Hechizo",             "hechizo",              "Hechizos",             "hechizos"],
           7: ["Zona",                "zona",                 "Zonas",                "zonas"],
           8: ["Facción",             "facción",              "Facciones",            "facciones"],
-          9: ["Mascota",             "mascota",              "Mascotas",             "mascotas"],
+          9: ["Mascota de cazador",  "mascota de cazador",   "Mascotas de cazador",  "mascotas de cazador"],
          10: ["Logro",               "logro",                "Logros",               "logros"],
          11: ["Título",              "título",               "Títulos",              "títulos"],
          12: ["Suceso mundial",      "evento del mundo",     "Eventos del mundo",    "eventos del mundo"],
@@ -3964,7 +3975,18 @@ var LANG = {
                             [21,'0x00100000'],                      [22,'0x00200000'],                      [23,'0x00400000'],                      [24,'0x00800000'],                      [25,'0x01000000'],
                             [26,'0x02000000'],                      [27,'0x04000000'],                      [28,'0x08000000'],                      [29,'0x10000000'],                      [30,'0x20000000'],
                             [31,'0x40000000'],                      [32,'0x80000000']
-                       ]
+                        ],
+        itemvisuals:    [                                   // aowow - custom
+                            [2,   'BlueGlow Low'],                  [62,  'BlueGlow Med'],                  [1,   'BlueGlow High'],                 [3,   'BlueFlame Low'],                 [50,  'RedGlow Low'],
+                            [121, 'RedGlow High'],                  [45,  'RedFlame Low'],                  [48,  'YellowGlow Low'],                [122, 'YellowGlow High'],               [147, 'YellowFlame Low'],
+                            [123, 'WhiteGlow Low'],                 [124, 'WhiteGlow High'],                [144, 'WhiteFlame Low'],                [125, 'GreenGlow Low'],                 [126, 'GreenGlow High'],
+                            [145, 'GreenFlame Low'],                [127, 'PurpleGlow Low'],                [141, 'PurpleGlow High'],               [146, 'PurpleFlame Low'],               [142, 'BlackGlow Low'],
+                            [143, 'BlackGlow High'],                [148, 'BlackFlame Low'],                [42,  'SkullBalls'],                    [46,  'PoisonDrip'],                    [47,  'Sparkle A'],
+                            [51,  'Shaman Fire'],                   [52,  'Shaman Frost'],                  [81,  'Shaman Rock'],                   [101, 'Shaman Wind'],                   [182, 'MongooseGlow High'],
+                            [183, 'SavageryGlow High'],             [184, 'SoulfrostGlow High'],            [185, 'SunfireGlow High'],              [186, 'BattlemasterGlow High'],         [187, 'SpellSurgeGlow High'],
+                            [193, 'ExecutionerGlow High'],          [194, 'DisintigrateGlow High'],         [158, 'Fire Blue PreCast Uber Hand'],   [177, 'Holy Precast Low Hand'],         [195, 'IcyEnchant High'],
+                            [207, 'FrozenRuneWeapon State']
+                        ]
     },
 
     fiitems: {
@@ -4056,6 +4078,8 @@ var LANG = {
         rewardedbyquestin:       "Recompensa de mision en...",
         soldbynpc:               "Vendido por PNJ #...",
         soldbyvendor:            "Vendido por vendedores",
+        itemvisual:              "Visual Effect",           // aowow - custom
+        spellvisual:             "Visual Spell Effect #...", // aowow - custom
 
         sepcommunity:            "Comunidad",
         hascomments:             "Tiene comentarios",
@@ -4223,6 +4247,13 @@ var LANG = {
         effecttype:                 "Tipo de efecto",
         scalingap:                  "Escala con Poder de Ataque",
         scalingsp:                  "Escala con Poder con Hechizos",
+        duration_stc:               "Duración (segundos)",
+        gcdcategory_stc:            "Categoría GCD",
+        givesResourceType_stc:      "Proporciona Recurso de Tipo",
+        inMyFavorites_stc:          "En mis favoritos",
+        maximumRange_stc:           "Rango máximo",
+        minimumRange_stc:           "Rango mínimo",
+        modifiesSpell_filter:       "Modifica hechizo #…",
 
         sepattributes:              "Atributos",
         combatcastable:             "Utilizable en combate",
@@ -4396,6 +4427,7 @@ var LANG = {
         id:             "ID",
         hascondition:   "Requiere una combinación de gemas",
         requiresprof:   "Requiere una profesión",
+        itemvisual:     "Visual Effect",                    // aowow - custom
 
         sepcommunity:   "Comunidad",
         hascomments:    "Tiene comentarios",

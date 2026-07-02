@@ -10,12 +10,6 @@ class SpellBaseResponse extends TemplateResponse implements ICache
 {
     use TrDetailPage, TrCache;
 
-    private const MOD_AURAS = [SPELL_AURA_ADD_FLAT_MODIFIER,      SPELL_AURA_ADD_PCT_MODIFIER,                 SPELL_AURA_NO_REAGENT_USE,
-                               SPELL_AURA_ABILITY_PERIODIC_CRIT,  SPELL_AURA_MOD_TARGET_ABILITY_ABSORB_SCHOOL, SPELL_AURA_ABILITY_IGNORE_AURASTATE,
-                               SPELL_AURA_ALLOW_ONLY_ABILITY,     SPELL_AURA_IGNORE_MELEE_RESET,               SPELL_AURA_ABILITY_CONSUME_NO_AMMO,
-                               SPELL_AURA_MOD_IGNORE_SHAPESHIFT,  SPELL_AURA_PERIODIC_HASTE,                   SPELL_AURA_OVERRIDE_CLASS_SCRIPTS,
-                               SPELL_AURA_MOD_DAMAGE_FROM_CASTER, SPELL_AURA_ADD_TARGET_TRIGGER,               SPELL_AURA_IGNORE_COMBAT_RESULT,     /* SPELL_AURA_DUMMY ? */];
-
     protected  int    $cacheType   = CACHE_TYPE_DETAIL_PAGE;
 
     protected  string $template    = 'spell';
@@ -43,6 +37,8 @@ class SpellBaseResponse extends TemplateResponse implements ICache
     public  string $stances    = '';
     public  string $cooldown   = '';
     public  string $duration   = '';
+    public ?array  $casterAura = null;
+    public ?array  $targetAura = null;
     public  array  $tooltip    = [];
 
     private SpellList $subject;
@@ -86,6 +82,7 @@ class SpellBaseResponse extends TemplateResponse implements ICache
         // returns self or firstRank
         if ($fr = DB::World()->selectCell('SELECT `first_spell_id` FROM spell_ranks WHERE `spell_id` = %i', $this->typeId))
             $this->firstRank = $fr;
+     /* >firstRank is used exclusively to query world db tables. So this expensive else-branch is probably obsolete
         else
             $this->firstRank = DB::Aowow()->selectCell(
                'SELECT      IF(s1.`RankNo` <> 1 AND s2.`id`, s2.`id`, s1.`id`)
@@ -93,11 +90,12 @@ class SpellBaseResponse extends TemplateResponse implements ICache
                 LEFT JOIN   ::spell s2
                     ON      s1.`SpellFamilyId`     = s2.`SpelLFamilyId`     AND s1.`SpellFamilyFlags1` = s2.`SpelLFamilyFlags1` AND
                             s1.`SpellFamilyFlags2` = s2.`SpellFamilyFlags2` AND s1.`SpellFamilyFlags3` = s2.`SpellFamilyFlags3` AND
-                            s1.`name_loc0` = s2.`name_loc0`                 AND s2.`RankNo` = 1
+                            s2.`RankNo`            = 1                      AND IFNULL(NULLIF(s1.name_loc%i, ""), s1.`name_loc0`) = IFNULL(NULLIF(s2.name_loc%i, ""), s2.`name_loc0`)
                 WHERE       s1.`id` = %i',
+                Lang::getLocale()->value, Lang::getLocale()->value,
                 $this->typeId
             );
-
+     */
         $this->h1 = Util::htmlEscape($this->subject->getField('name', true));
 
         $this->gPageInfo += array(
@@ -271,6 +269,27 @@ class SpellBaseResponse extends TemplateResponse implements ICache
         if (($_ = $this->subject->getField('duration')) && $_ > 0)
             $this->duration = DateTime::formatTimeElapsedFloat($_);
 
+        $auraState = array(
+            $this->subject->getField('casterAuraSpell'),
+            $this->subject->getField('casterAuraSpellNot'),
+            $this->subject->getField('targetAuraSpell'),
+            $this->subject->getField('targetAuraSpellNot')
+        );
+        if ($_ = array_filter($auraState))
+        {
+            $stateData = DB::Aowow()->selectAssoc('SELECT s.id AS ARRAY_KEY, IFNULL(i.`name`, %s) AS "icon", s.name_loc0, s.name_loc2, s.name_loc3, s.name_loc4, s.name_loc6, s.name_loc8 FROM ::spell s LEFT JOIN ::icons i ON s.iconId = i.id WHERE s.id IN %in', DEFAULT_ICON, $_);
+
+            foreach ($_ as $idx => $spellId)
+            {
+                if (empty($stateData[$spellId]))
+                    trigger_error('Spell #'.$this->typeId.' has nonexistent spell #'.$spellId.' as aura state'.($idx % 2 ? ' not' : ''), E_USER_WARNING);
+                else if ($idx < 2)
+                    $this->casterAura[$idx % 2] = [$spellId, $stateData[$spellId]['icon'], Util::localizedString($stateData[$spellId], 'name')];
+                else
+                    $this->targetAura[$idx % 2] = [$spellId, $stateData[$spellId]['icon'], Util::localizedString($stateData[$spellId], 'name')];
+            }
+        }
+
 
         /**************/
         /* Extra Tabs */
@@ -320,7 +339,7 @@ class SpellBaseResponse extends TemplateResponse implements ICache
 
         for ($i = 1; $i < 4; $i++)
         {
-            if (!in_array($this->subject->getField('effect'.$i.'AuraId'), self::MOD_AURAS))
+            if (!in_array($this->subject->getField('effect'.$i.'AuraId'), SpellList::MOD_AURAS))
                 continue;
 
             $m1 = $this->subject->getField('effect'.$i.'SpellClassMaskA');
@@ -410,7 +429,7 @@ class SpellBaseResponse extends TemplateResponse implements ICache
 
             $sub[] = array(
                 DB::AND,
-                ['s.effect'.$i.'AuraId', self::MOD_AURAS],
+                ['s.effect'.$i.'AuraId', SpellList::MOD_AURAS],
                 [
                     DB::OR,
                     ['s.effect'.$i.'SpellClassMaskA', $m1, '&'],
@@ -847,7 +866,7 @@ class SpellBaseResponse extends TemplateResponse implements ICache
                 'name' => '$LANG.tab_triggeredby'
             ), SpellList::$brickFile));
 
-            $this->extendGlobalData($trigger->getJSGlobals(GLOBALINFO_SELF));
+            $this->extendGlobalData($trigger->getJSGlobals(GLOBALINFO_SELF | GLOBALINFO_RELATED));
         }
 
         // tab: used by - creature

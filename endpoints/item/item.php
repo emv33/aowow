@@ -48,7 +48,7 @@ class ItemBaseResponse extends TemplateResponse implements ICache
         $jsg = $this->subject->getJSGlobals(GLOBALINFO_EXTRA | GLOBALINFO_SELF, $extra);
         $this->extendGlobalData($jsg, $extra);
 
-        $this->h1 = Lang::unescapeUISequences($this->subject->getField('name', true), Lang::FMT_HTML);
+        $this->h1 = UIText::unescapeUISequences($this->subject->getField('name', true), Lang::FMT_HTML);
 
         $this->gPageInfo += array(
             'type'   => $this->type,
@@ -77,7 +77,7 @@ class ItemBaseResponse extends TemplateResponse implements ICache
         /* Page Title */
         /**************/
 
-        array_unshift($this->title, Lang::unescapeUISequences($this->subject->getField('name', true), Lang::FMT_RAW), Util::ucFirst(Lang::game('item')));
+        array_unshift($this->title, UIText::unescapeUISequences($this->subject->getField('name', true), Lang::FMT_RAW), Util::ucFirst(Lang::game('item')));
 
 
         /***********/
@@ -349,12 +349,12 @@ class ItemBaseResponse extends TemplateResponse implements ICache
             BUTTON_WOWHEAD => true,
             BUTTON_VIEW3D  => $this->subject->isDisplayable() ? ['displayId' => $_displayId, 'slot' => $_slot, 'type' => Type::ITEM, 'typeId' => $this->typeId] : false,
             BUTTON_COMPARE => $canBeWeighted,
-            BUTTON_EQUIP   => in_array($_class, [ITEM_CLASS_WEAPON, ITEM_CLASS_ARMOR]),
+            BUTTON_EQUIP   => in_array($_class, [ITEM_CLASS_WEAPON, ITEM_CLASS_ARMOR]) && User::getCharacters(),
             BUTTON_UPGRADE => $canBeWeighted ? ['class' => $_class, 'slot' => $_slot] : false,
             BUTTON_LINKS   => array(
                 'linkColor' => 'ff'.Game::$rarityColorStings[$this->subject->getField('quality')],
                 'linkId'    => 'item:'.$this->typeId.':0:0:0:0:0:0:0:0',
-                'linkName'  => Lang::unescapeUISequences($this->subject->getField('name', true), Lang::FMT_RAW),
+                'linkName'  => UIText::unescapeUISequences($this->subject->getField('name', true), Lang::FMT_RAW),
                 'type'      => $this->type,
                 'typeId'    => $this->typeId
             )

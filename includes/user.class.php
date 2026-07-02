@@ -564,8 +564,6 @@ class User
         $gUser['superCommentVotes'] = self::canSupervote();
         $gUser['downvoteRep']       = Cfg::get('REP_REQ_DOWNVOTE');
         $gUser['upvoteRep']         = Cfg::get('REP_REQ_UPVOTE');
-        $gUser['characters']        = self::getCharacters();
-        $gUser['completion']        = self::getCompletion();
         $gUser['excludegroups']     = self::$excludeGroups;
 
         if (self::$debug)
@@ -582,6 +580,9 @@ class User
         if ($_ = self::getProfilerExclusions())
             $gUser = array_merge($gUser, $_);
 
+        if ($_ = self::getCharacters())
+            $gUser['characters'] = $_;
+
         if ($_ = self::getProfiles())
             $gUser['profiles'] = $_;
 
@@ -593,6 +594,9 @@ class User
 
         if ($_ = self::getCookies())
             $gUser['cookies'] = $_;
+
+        if ($_ = self::getCompletion())
+            $gUser['completion'] = $_;
 
         return $gUser;
     }
@@ -735,13 +739,13 @@ class User
 
         $completion = [];
 
-        $x = DB::Aowow()->selectAssoc('SELECT `id` AS ARRAY_KEY, `questId` AS ARRAY_KEY2, `questId` FROM ::profiler_completion_quests WHERE `id` IN %in', $ids);
+        $x = DB::Aowow()->selectCol('SELECT `id` AS ARRAY_KEY, `questId` AS ARRAY_KEY2, `questId` FROM ::profiler_completion_quests WHERE `id` IN %in', $ids);
         $completion[Type::QUEST] = $x ? array_map(array_values(...), $x) : [];
 
-        $x = DB::Aowow()->selectAssoc('SELECT `id` AS ARRAY_KEY, `achievementId` AS ARRAY_KEY2, `achievementId` FROM ::profiler_completion_achievements WHERE `id` IN %in', $ids);
+        $x = DB::Aowow()->selectCol('SELECT `id` AS ARRAY_KEY, `achievementId` AS ARRAY_KEY2, `achievementId` FROM ::profiler_completion_achievements WHERE `id` IN %in', $ids);
         $completion[Type::ACHIEVEMENT] = $x ? array_map(array_values(...), $x) : [];
 
-        $x = DB::Aowow()->selectAssoc('SELECT `id` AS ARRAY_KEY, `titleId` AS ARRAY_KEY2, `titleId` FROM ::profiler_completion_titles WHERE `id` IN %in', $ids);
+        $x = DB::Aowow()->selectCol('SELECT `id` AS ARRAY_KEY, `titleId` AS ARRAY_KEY2, `titleId` FROM ::profiler_completion_titles WHERE `id` IN %in', $ids);
         $completion[Type::TITLE] = $x ? array_map(array_values(...), $x) : [];
 
         $completion[Type::ITEM] = [];
@@ -780,16 +784,22 @@ class User
         if (!Cfg::get('PROFILER_ENABLE'))
             return false;
 
+        if (!self::isLoggedIn())
+            return false;
+
         if (self::$profiles === null)
         {
-            $ap = DB::Aowow()->selectCol('SELECT `profileId` FROM ::account_profiles WHERE `accountId` = %i', self::$id);
+            $ap = DB::Aowow()->selectCol('SELECT `profileId` AS ARRAY_KEY, extraFlags FROM ::account_profiles WHERE `accountId` = %i', self::$id);
 
             // the old approach [DB::OR, ['user', self::$id], ['ap.accountId', self::$id]] caused keys to not get used
-            $conditions = $ap ? [[DB::OR, ['user', self::$id], ['id', $ap]]] : [['user', self::$id]];
+            $conditions = $ap ? [[DB::OR, ['user', self::$id], ['id', array_keys($ap)]]] : [['user', self::$id]];
             if (!self::isInGroup(U_GROUP_ADMIN | U_GROUP_BUREAU))
                 $conditions[] = ['deleted', 0];
 
             self::$profiles = (new LocalProfileList($conditions));
+
+            foreach (self::$profiles->iterate() as &$itr)
+                $itr['cuFlags'] |= $ap[$itr['id']] ?? 0;
         }
 
         return !!self::$profiles->getFoundIDs();

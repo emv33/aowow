@@ -62,6 +62,8 @@ $lang = array(
         'no'            => "Nein",
         'any'           => "Beliebig",
         'all'           => "Alle",
+        'required'      => 'Benötigt: %s',
+        'disallowed'    => 'Nicht zulässig: %s',
 
         // filter
         'extSearch'     => "Erweiterte Suche",
@@ -652,7 +654,7 @@ $lang = array(
             SmartEvent::EVENT_TIMED_EVENT_TRIGGERED   => ['Geplanted Ereignis #[b]%1$d[/b] löst aus', ''],
 /* 60*/     SmartEvent::EVENT_UPDATE                  => ['(%11$s)?Nach %11$s:Sofort;', 'Wiederhole alle %s'],
             SmartEvent::EVENT_LINK                    => ['Nach Ereignis %11$s', ''],
-            SmartEvent::EVENT_GOSSIP_SELECT           => ['Wähle Gossip:[br](%11$s)?[span class=q1]%11$s[/span]:Menü #[b]%1$d[/b] - Option #[b]%2$d[/b];', ''],
+            SmartEvent::EVENT_GOSSIP_SELECT           => ['Wähle Gossip:[br](%11$s)?[span class="%12$s"]%11$s[/span]:Menü #[b]%1$d[/b] - Option #[b]%2$d[/b];', ''],
             SmartEvent::EVENT_JUST_CREATED            => ['Beim ersten Erscheinen in der Welt', ''],
             SmartEvent::EVENT_GOSSIP_HELLO            => ['Öffne Gossip', '(%1$d)?onGossipHello:;(%2$d)?onReportUse:;'],
             SmartEvent::EVENT_FOLLOW_COMPLETED        => ['Ist fertig mit folgen', ''],
@@ -1441,6 +1443,10 @@ $lang = array(
         'sharable'      => "Teilbar",
         'notSharable'   => "Nicht teilbar",
         'repeatable'    => "Wiederholbar",
+        'breadcrumbFor'     => "Breadcrumb für",
+        'breadcrumbForDesc' => "Dieses Quest ist eine optionale Überleitung (Breadcrumb) zum nachfolgenden Quest. Mit Annahme oder Abschluss eines Breadcrumb-Quest oder deren Ziel-Quest werden alle anderen Breadcrumb-Quests nicht mehr verfügbar.",
+        'breadcrumbQ'       => "Breadcrumbs",
+        'breadcrumbQDesc'   => "Optionale Überleitungen (Breadcrumb) zu diesem Quest. Mit Annahme oder Abschluss eines Breadcrumb-Quest oder deren Ziel-Quest werden alle Breadcrumb-Quests nicht mehr verfügbar.",
         'reqQ'          => "Benötigt",
         'reqQDesc'      => "Um diese Quest zu erhalten, müsst ihr alle der nachfolgenden Quests abschließen",
         'reqOneQ'       => "Benötigt eins von",
@@ -1563,7 +1569,7 @@ $lang = array(
         'notFound'      => "Diese Fertigkeit existiert nicht.",
         'cat'           => array(
             -6 => "Haustiere",          -5 => "Reittiere",          -4 => "Völkerfertigkeiten", 5 => "Attribute",           6 => "Waffenfertigkeiten",  7 => "Klassenfertigkeiten", 8 => "Rüstungssachverstand",
-             9 => "Nebenberufe",        10 => "Sprachen",           11 => "Berufe"
+             9 => "Nebenberufe",        10 => "Sprachen",           11 => "Berufe",            12 => "Nicht angezeigt"
         )
     ),
     'currency' => array(
@@ -1675,6 +1681,8 @@ $lang = array(
         '_seeMore'      => "Mehr anzeigen",
         '_rankRange'    => "Rang:&nbsp;%d&nbsp;-&nbsp;%d",
         '_showXmore'    => "Zeige %d weitere",
+        'casterAura'    => "Aura auf Zauberer",
+        'targetAura'    => "Aura auf Ziel",
 
         'normal'        => "Normal",
         'special'       => "Besonders",
@@ -2218,7 +2226,7 @@ $lang = array(
         'ratingString'  => '<!--rtg%%%1$d-->%2$s&nbsp;@&nbsp;Lvl<!--lvl-->%3$d',
         'heroic'        => "Heroisch",
         'startQuest'    => "Dieser Gegenstand startet eine Quest",
-        'bagSlotString' => '%1$d Platz %2$s',
+        'containerSlots'=> '%1$d Platz %2$s',
         'fap'           => "Angriffskraft in Tiergestalt",
         'durability'    => 'Haltbarkeit %1$d / %2$d',
         'realTime'      => "Realzeit",
@@ -2267,6 +2275,7 @@ $lang = array(
         'unique'        => ["Einzigartig",          "Limitiert (%d)", "Einzigartig: %s (%d)"         ],
         'uniqueEquipped'=> ["Einzigartig anlegbar", null,             "Einzigartig angelegt: %s (%d)"],
         'speed'         => "Tempo",
+        'glyphType'     => [null, "Erhebliche Glyphe", "Geringe Glyphe"],
         'dps'           => "(%.1f Schaden pro Sekunde)",
         'vendorLoc'     => "Händlerstandpunkte",
         'purchasedIn'   => "Dieser Gegenstand kann gekauft werden in",
@@ -2336,22 +2345,25 @@ $lang = array(
             null, /*Robe*/          "Waffenhand",       "Schildhand",           "In der Schildhand geführt",    "Projektil",
             "Wurfwaffe",            null, /*Ranged2*/   "Köcher",               "Relikt"
         ),
-        'armorSubClass' => array(
-            "Sonstiges",            "Stoff",            "Leder",                "Schwere Rüstung",              "Platte",
-            null,                   "Schild",           "Buchband",             "Götze",                        "Totem",
-            "Sigel"
+        'subClass'      => array(
+            ITEM_CLASS_CONSUMABLE => ["Verbrauchbar", "Trank", "Elixier", "Fläschchen", "Rolle", "Speis & Trank", "Gegenstandsverbesserung", "Verband", "Sonstige"],
+            ITEM_CLASS_CONTAINER  => ["Behälter", "Seelentasche", "Kräutertasche", "Verzauberertasche", "Ingenieurstasche", "Edelsteintasche", "Bergbautasche", "Lederertasche", "Schreibertasche"],
+            ITEM_CLASS_WEAPON     => ["Axt", "Axt", "Bogen", "Schusswaffe", "Streitkolben", "Streitkolben", "Stangenwaffe", "Schwert", "Schwert", "Überflüssig", "Stab", "Exotika", "Exotika", "Faustwaffe", "Verschiedenes", "Dolch", "Wurfwaffe", "Speer", "Armbrust", "Zauberstab", "Angelrute"],
+            ITEM_CLASS_GEM        => ["Rot", "Blau", "Gelb", "Violett", "Grün", "Orange", "Meta", "Einfach", "Prismatisch"],
+            ITEM_CLASS_ARMOR      => ["Verschiedenes", "Stoff", "Leder", "Schwere Rüstung", "Platte", "Rundschild(OBSOLETE)", "Schild", "Buchbände", "Götze", "Totems", "Siegel"],
+            ITEM_CLASS_REAGENT    => ["Reagenz"],
+            ITEM_CLASS_AMMUNITION => ["Zauberstab(OBSOLETE)", "Bolzen(OBSOLETE)", "Pfeil", "Kugel", "Wurfwaffen (ÜBERFLÜSSIG)"],
+            ITEM_CLASS_TRADEGOOD  => ["Handwerkswaren", "Teile", "Sprengstoff", "Geräte", "Juwelenschleifen", "Stoff", "Leder", "Metall & Stein", "Fleisch", "Kräuter", "Elementar", "Sonstige", "Verzauberkunst", "Materialien", "Rüstungsverzauberung", "Waffenverzauberung"],
+            ITEM_CLASS_GENERIC    => ["Generic(OBSOLETE)"],
+            ITEM_CLASS_RECIPE     => ["Buch", "Lederverarbeitung", "Schneiderei", "Ingenieurskunst", "Schmiedekunst", "Kochkunst", "Alchemie", "Erste Hilfe", "Verzauberkunst", "Angeln", "Juwelenschleifen", "Inschrift"],
+            ITEM_CLASS_MONEY      => ["Money(OBSOLETE)"],
+            ITEM_CLASS_QUIVER     => ["Quiver(OBSOLETE)", "Quiver(OBSOLETE)", "Köcher", "Munitionsbeutel"],
+            ITEM_CLASS_QUEST      => ["Quest"],
+            ITEM_CLASS_KEY        => ["Schlüssel", "Nachschlüssel"],
+            ITEM_CLASS_PERMANENT  => ["Dauerhaft"],
+            ITEM_CLASS_MISC       => ["Plunder", "Reagenz", "Haustier", "Festtag", "Sonstige", "Reittier"],
+            ITEM_CLASS_GLYPH      => [null, "Krieger", "Paladin", "Jäger", "Schurke", "Priester", "Todesritter", "Schamane", "Magier", "Hexenmeister", null, "Druide"]
         ),
-        'weaponSubClass' => array(
-            "Axt",                  "Axt",              "Bogen",                "Schusswaffe",                  "Streitkolben",
-            "Streitkolben",         "Stangenwaffe",     "Schwert",              "Schwert",                      null,
-            "Stab",                 null,               null,                   "Faustwaffe",                   "Diverse",
-            "Dolche",               "Wurfwaffe",        null,                   "Armbrust",                     "Zauberstab",
-            "Angelrute"
-        ),
-        'projectileSubClass' => array(
-            null,                   null,               "Pfeil",                "Kugel",                         null
-        ),
-        'elixirType'    => [null, "Kampf", "Wächter"],
         'cat'           => array(
              2 => array("Waffen", []),                      // filled with self::$spell['weaponSubClass'] on load
              4 => array("Rüstung", array(

@@ -62,6 +62,8 @@ $lang = array(
         'no'            => "No",
         'any'           => "Cualquiera",
         'all'           => "Todo",
+        'required'      => 'Requerido: %s',
+        'disallowed'    => 'No permitido: %s',
 
         // filter
         'extSearch'     => "Extender búsqueda",
@@ -328,7 +330,7 @@ $lang = array(
         'zones'         => "Zonas",
         'faction'       => "facción",
         'factions'      => "Facciones",
-        'pet'           => "Mascota",
+        'pet'           => "Mascota de cazador",
         'pets'          => "Mascotas de cazador",
         'achievement'   => "logro",
         'achievements'  => "Logros",
@@ -652,7 +654,7 @@ $lang = array(
             SmartEvent::EVENT_TIMED_EVENT_TRIGGERED   => ['Evento temporizado #[b]%1$d[/b] activado', ''],
 /* 60*/     SmartEvent::EVENT_UPDATE                  => ['(%11$s)?Después de %11$s:Instantáneamente;', 'Repetir cada %s'],
             SmartEvent::EVENT_LINK                    => ['Después del Evento %11$s', ''],
-            SmartEvent::EVENT_GOSSIP_SELECT           => ['Seleccionando opción de charla:[br](%11$s)?[span class=q1]%11$s[/span]:Menú #[b]%1$d[/b] - Opción #[b]%2$d[/b];', ''],
+            SmartEvent::EVENT_GOSSIP_SELECT           => ['Seleccionando opción de charla:[br](%11$s)?[span class="%12$s"]%11$s[/span]:Menú #[b]%1$d[/b] - Opción #[b]%2$d[/b];', ''],
             SmartEvent::EVENT_JUST_CREATED            => ['Al ser invocado por primera vez', ''],
             SmartEvent::EVENT_GOSSIP_HELLO            => ['Abriendo charla', '(%1$d)?onGossipHello:;(%2$d)?onReportUse:;'],
             SmartEvent::EVENT_FOLLOW_COMPLETED        => ['Siguió hasta el final', ''],
@@ -1441,6 +1443,10 @@ $lang = array(
         'sharable'      => "Compartible",
         'notSharable'   => "No se puede compartir",
         'repeatable'    => "Repetible",
+        'breadcrumbFor'     => "[Breadcrumb For]",
+        'breadcrumbForDesc' => "[This quest is an optional introduction (breadcrumb) to the next quest. If either this quest or the target quest is picked up or completed, the other becomes unavailable.]",
+        'breadcrumbQ'       => "[Breadcrumbs]",
+        'breadcrumbQDesc'   => "[Optional lead-in quests for this quest. Picking up either this quest or a breadcrumb quest makes all breadcrumb quests unavailable.]",
         'reqQ'          => "Requiere",
         'reqQDesc'      => "Para aceptar esta misión, debes completar esta(s) mision(es)",
         'reqOneQ'       => "Requiere una de",
@@ -1563,7 +1569,7 @@ $lang = array(
         'notFound'      => "Esta habilidad no existe.",
         'cat'           => array(
             -6 => "Compañeros",         -5 => "Monturas",           -4 => "Habilidades de raza", 5 => "Atributos",          6 => "Habilidades con armas", 7 => "Habilidades de clase", 8 => "Armaduras disponibles",
-             9 => "Habilidades secundarias", 10 => "Idiomas",       11 => "Profesiones"
+             9 => "Habilidades secundarias", 10 => "Idiomas",       11 => "Profesiones",        12 => "No se muestra"
         )
     ),
     'currency' => array(
@@ -1675,6 +1681,8 @@ $lang = array(
         '_seeMore'      => "Más información",
         '_rankRange'    => "Rango:&nbsp;%d&nbsp;-&nbsp;%d",
         '_showXmore'    => "Mostrar %d más",
+        'casterAura'    => "Aura del lanzador",
+        'targetAura'    => "Aura del objetivo",
 
         'normal'        => "Normal",
         'special'       => "Especial",
@@ -2218,7 +2226,7 @@ $lang = array(
         'ratingString'  => '<!--rtg%%%1$d-->%2$s&nbsp;@&nbsp;L<!--lvl-->%3$d',
         'heroic'        => "Heroico",
         'startQuest'    => "Este objeto inicia una misión",
-        'bagSlotString' => '%2$s de %1$d casillas',
+        'containerSlots'=> '%2$s de %1$d casillas',
         'fap'           => "poder de ataque feral",
         'durability'    => "Durabilidad %d / %d",
         'realTime'      => "tiempo real",
@@ -2267,6 +2275,7 @@ $lang = array(
         'unique'        => ["Único",          "Único (%d)", "Único: %s (%d)"         ],
         'uniqueEquipped'=> ["Único-Equipado", null,         "Único-Equipado: %s (%d)"],
         'speed'         => "Veloc.",
+        'glyphType'     => [null, "Glifo sublime", "Glifo menor"],
         'dps'           => "(%.1f daño por segundo)",
         'vendorLoc'     => "Ubicación de Vendedores",
         'purchasedIn'   => "Este objeto se puede comprar en",
@@ -2323,11 +2332,6 @@ $lang = array(
             "Se liga a la cuenta",                      "Se liga al recogerlo",                                     "Se liga al equiparlo",
             "Se liga al usarlo",                        "Objeto de misión",                                         "Objeto de misión"
         ),
-        'bagFamily'     => array(
-            "Bolsa",                "Carcaj",           "Bolsa de municiones",      "Bolsa de almas",               "Bolsa de peletería",
-            "Bolsa de inscripción", "Bolsa de hierbas", "Bolsa de encantamiento",   "Bolsa de ingeniería",          null, /*Llave*/
-            "Bolsa de gemas",       "Bolsa de minería"
-        ),
         'inventoryType' => array(
             null,                   "Cabeza",           "Cuello",                   "Hombro",                       "Camisa",
             "Pecho",                "Cintura",          "Piernas",                  "Pies",                         "Muñeca",
@@ -2336,22 +2340,25 @@ $lang = array(
             null, /*Robe*/          "Mano derecha",     "Mano izquierda",           "Sostener con la mano izquierda", "Proyectiles",
             "Arrojadiza",           null, /*Ranged2*/   "Carcaj",                   "Reliquia"
         ),
-        'armorSubClass' => array(
-            "Misceláneo",           "Tela",             "Cuero",                    "Malla",                        "Placas",
-            null,                   "Escudo",           "Tratado",                  "Ídolo",                        "Tótem",
-            "Sigilo"
+        'subClass'      => array(
+            ITEM_CLASS_CONSUMABLE => ["Consumible", "Poción", "Elixir", "Frasco", "Pergamino", "Comida y bebida", "Mejora de objetos", "Venda", "Otros"],
+            ITEM_CLASS_CONTAINER  => ["Bolsa", "Bolsa de almas", "Bolsa de hierbas", "Bolsa de encantamiento", "Bolsa de ingeniería", "Bolsa de gemas", "Bolsa de minería", "Bolsa de peletería", "Bolsa de inscripción"],
+            ITEM_CLASS_WEAPON     => ["Hacha", "Hacha", "Arco", "Arma de fuego", "Maza", "Maza", "Arma de asta", "Espada", "Espada", "Obsoleto", "Bastón", "Arma exótica", "Arma exótica", "Arma de puño", "Miscelánea", "Daga", "Arma arrojadiza", "Lanza", "Ballesta", "Varita", "Caña de pescar"],
+            ITEM_CLASS_GEM        => ["Rojo", "Azul", "Amarillo", "Morado", "Verde", "Naranja", "Meta", "Simple", "Centelleante"],
+            ITEM_CLASS_ARMOR      => ["Miscelánea", "Tela", "Cuero", "Malla", "Placas", "Rodela (OBSOLETO)", "Escudo", "Tratado", "Ídolo", "Tótem", "Sigilo"],
+            ITEM_CLASS_REAGENT    => ["Componente"],
+            ITEM_CLASS_AMMUNITION => ["Varita (OBSOLETO)", "Rayo (OBSOLETO)", "Flecha", "Bala", "Arma arrojadiza (OBSOLETO)"],
+            ITEM_CLASS_TRADEGOOD  => ["Objetos comerciables", "Piezas", "Explosivos", "Instrumentos", "Joyería", "Tela", "Cuero", "Metal y piedra", "Carne", "Hierbas", "Elemental", "Otros", "Encantamiento", "Materiales", "Encantamiento de armaduras", "Encantamiento de armas"],
+            ITEM_CLASS_GENERIC    => ["Genérico (OBSOLETO)"],
+            ITEM_CLASS_RECIPE     => ["Libro", "Peletería", "Sastrería", "Ingeniería", "Herrería", "Cocina", "Alquimia", "Primeros auxilios", "Encantamiento", "Pesca", "Joyería", "Inscripción"],
+            ITEM_CLASS_MONEY      => ["Dinero (OBSOLETO)"],
+            ITEM_CLASS_QUIVER     => ["Carcaj (OBSOLETO)", "Carcaj (OBSOLETO)", "Carcaj", "Bolsa de munición"],
+            ITEM_CLASS_QUEST      => ["Misión"],
+            ITEM_CLASS_KEY        => ["Llave", "Ganzúa"],
+            ITEM_CLASS_PERMANENT  => ["Permanente"],
+            ITEM_CLASS_MISC       => ["Chatarra", "Componente", "Mascota", "Vacaciones", "Otros", "Montura"],
+            ITEM_CLASS_GLYPH      => [null, "Guerrero", "Paladín", "Cazador", "Pícaro", "Sacerdote", "Caballero de la Muerte", "Chamán", "Mago", "Brujo", null, "Druida"]
         ),
-        'weaponSubClass' => array(
-            "Hacha",                "Hacha",            "Arco",                     "Arma de fuego",                "Maza",
-            "Maza",                 "Arma de asta",     "Espada",                   "Espada",                       null,
-            "Bastón",               null,               null,                       "Arma de puño",                 "Misceláneo",
-            "Daga",                 "Arrojadizas",      null,                       "Ballesta",                     "Varita",
-            "Caña de pescar"
-        ),
-        'projectileSubClass' => array(
-            null,                   null,               "Flecha",                   "Bala",                         null
-        ),
-        'elixirType'    => [null, "Batalla", "Guardián"],
         'cat'           => array(
              2 => array("Armas", []),                       // filled with self::$spell['weaponSubClass'] on load
              4 => array("Armadura", array(

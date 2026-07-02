@@ -33,6 +33,7 @@ class ItemList extends DBTypeList
                         'is'  => ['j' => ['::item_stats `is`  ON `is`.`type` = 3 AND `is`.`typeId` = `i`.`id`', true], 's' => ', `is`.*'],
                         's'   => ['j' => ['::spell      `s`   ON `s`.`effect1CreateItemId` = `i`.`id`', true], 'g' => 'i.`id`'],
                         'e'   => ['j' => ['::events     `e`   ON `e`.`id` = `i`.`eventId`', true], 's' => ', e.`holidayId`'],
+                        'iv'  => ['j' => ['::itemvisuals `iv` ON `iv`.`id` = `i`.`itemVisualId`']],
                         'src' => ['j' => ['::source     `src` ON `src`.`type` = 3 AND `src`.`typeId` = `i`.`id`', true], 's' => ', `moreType`, `moreTypeId`, `moreZoneId`, `moreMask`, `src1`, `src2`, `src3`, `src4`, `src5`, `src6`, `src7`, `src8`, `src9`, `src10`, `src11`, `src12`, `src13`, `src14`, `src15`, `src16`, `src17`, `src18`, `src19`, `src20`, `src21`, `src22`, `src23`, `src24`']
                     );
 
@@ -311,7 +312,7 @@ class ItemList extends DBTypeList
                 $data[$this->id][$k] = $v;
 
             // json vs listview quirk
-            $data[$this->id]['name'] = $data[$this->id]['quality'].Lang::unescapeUISequences($this->getField('name', true), Lang::FMT_RAW);
+            $data[$this->id]['name'] = $data[$this->id]['quality'].UIText::unescapeUISequences($this->getField('name', true), Lang::FMT_RAW);
             unset($data[$this->id]['quality']);
 
             if (!empty($this->relEnchant) && $this->curTpl['randomEnchant'])
@@ -470,7 +471,7 @@ class ItemList extends DBTypeList
             if ($addMask & GLOBALINFO_SELF)
             {
                 $data[Type::ITEM][$id] = array(
-                    'name'    => Lang::unescapeUISequences($this->getField('name', true), Lang::FMT_RAW),
+                    'name'    => UIText::unescapeUISequences($this->getField('name', true), Lang::FMT_RAW),
                     'quality' => $this->curTpl['quality'],
                     'icon'    => $this->curTpl['iconString']
                 );
@@ -519,12 +520,12 @@ class ItemList extends DBTypeList
         if ($this->error)
             return null;
 
-        $_name         = Lang::unescapeUISequences($this->getField('name', true), Lang::FMT_HTML);
+        $_name         = UIText::unescapeUISequences($this->getField('name', true), Lang::FMT_HTML);
         $_reqLvl       = $this->curTpl['requiredLevel'];
         $_quality      = $this->curTpl['quality'];
         $_flags        = $this->curTpl['flags'];
-        $_class        = $this->curTpl['class'];
-        $_subClass     = $this->curTpl['subClass'];
+        $_class        = $this->curTpl['classBak'];         // we are trying to render an in-game tooltip look alike
+        $_subClass     = $this->curTpl['subClassBak'];      // so use original class/subclass data
         $_slot         = $this->curTpl['slot'];
         $causesScaling = false;
 
@@ -621,33 +622,26 @@ class ItemList extends DBTypeList
         if ($this->curTpl['startQuest'])
             $x .= '<br /><a class="q1" href="?quest='.$this->curTpl['startQuest'].'">'.Lang::item('startQuest').'</a>';
 
-        // containerType (slotCount)
-        if ($this->curTpl['slots'] > 0)
-        {
-            $fam = $this->curTpl['bagFamily'] ? log($this->curTpl['bagFamily'], 2) + 1 : 0;
-            $x .= '<br />'.Lang::item('bagSlotString', [$this->curTpl['slots'], Lang::item('bagFamily', $fam)]);
-        }
+        // class + subclass
+        $itemclass = [];
+        if ($_slot)                                         // yes, slot can occur on random items and is then also displayed
+            $itemclass[] = Lang::item('inventoryType', $_slot);
 
-        if (in_array($_class, [ITEM_CLASS_ARMOR, ITEM_CLASS_WEAPON, ITEM_CLASS_AMMUNITION]))
-        {
-            $x .= '<table width="100%"><tr>';
+        // subclass (should be based solely on (ItemSubclass.dbc/displayFlags & 0x1) == 0, but functionally results in this block)
+        if ($_class == ITEM_CLASS_ARMOR && !in_array($_subClass, [ITEM_SUBCLASS_MISC_ARMOR, ITEM_SUBCLASS_BUCKLER]))
+            $itemclass[] = '<!--asc'.$_subClass.'-->'.Lang::item('subClass', $_class, $_subClass);
+        else if (($_class == ITEM_CLASS_CONTAINER || $_class == ITEM_CLASS_QUIVER) && $this->curTpl['slots'] > 0) // invType ins not displayed for containers for some reason
+            $itemclass[0] = Lang::item('containerSlots', [$this->curTpl['slots'], Lang::item('subClass', $_class, $_subClass)]);
+        else if (($_class == ITEM_CLASS_WEAPON     && !in_array($_subClass, [ITEM_SUBCLASS_OBSOLETE, ITEM_SUBCLASS_1H_EXOTIC, ITEM_SUBCLASS_2H_EXOTIC, ITEM_SUBCLASS_MISC_WEAPON])) ||
+                 ($_class == ITEM_CLASS_AMMUNITION && !in_array($_subClass, [0])) || // wand (obsolete)
+                 ($_class == ITEM_CLASS_QUIVER     && !in_array($_subClass, [0, 1]))) // quiver (obsolete) + quiver (obsolete)
+              /* ($_class == ITEM_CLASS_GLYPH)) flags demand subclass is shown but in-game they are missing..? */
+            $itemclass[] = Lang::item('subClass', $_class, $_subClass);
 
-            // Class
-            if ($_slot)
-                $x .= '<td>'.Lang::item('inventoryType', $_slot).'</td>';
-
-            // Subclass
-            if ($_class == ITEM_CLASS_ARMOR && $_subClass > 0)
-                $x .= '<th><!--asc'.$_subClass.'-->'.Lang::item('armorSubClass', $_subClass).'</th>';
-            else if ($_class == ITEM_CLASS_WEAPON)
-                $x .= '<th>'.Lang::item('weaponSubClass', $_subClass).'</th>';
-            else if ($_class == ITEM_CLASS_AMMUNITION)
-                $x .= '<th>'.Lang::item('projectileSubClass', $_subClass).'</th>';
-
-            $x .= '</tr></table>';
-        }
-        else if ($_slot && $_class != ITEM_CLASS_CONTAINER) // yes, slot can occur on random items and is then also displayed <_< .. excluding Bags >_>
-            $x .= '<br />'.Lang::item('inventoryType', $_slot).'<br />';
+        if (count($itemclass) == 2)
+            $x .= '<table width="100%"><tr><td>'.$itemclass[0].'</td><th>'.$itemclass[1].'</th></tr></table>';
+        else if (count($itemclass) == 1)
+            $x .= '<br />'.$itemclass[0].'<br />';
         else
             $x .= '<br />';
 
@@ -867,6 +861,10 @@ class ItemList extends DBTypeList
             $x .= Lang::formatTime(abs($dur) * 1000, 'item', 'duration').$rt."<br />";
         }
 
+        // glyph type
+        if ($_class == ITEM_CLASS_GLYPH && ($gt = $this->curTpl['subSubClass']))
+            $x .= '<span class="q9">'.Lang::item('glyphType', $gt).'</span><br />';
+
         // required classes
         $jsg = [];
         if ($classes = Lang::getClassString($this->curTpl['requiredClass'], $jsg))
@@ -888,8 +886,8 @@ class ItemList extends DBTypeList
         }
 
         // required honorRank (not used anymore)
-        if ($rhr = $this->curTpl['requiredHonorRank'])
-            $x .= Lang::game('requires', [implode(' / ', Lang::game('pvpRank', $rhr))]).'<br />';
+        if (($rhr = $this->curTpl['requiredHonorRank']) && is_array($pvpRank = Lang::game('pvpRank', $rhr)))
+            $x .= Lang::game('requires', [implode(' / ', $pvpRank)]).'<br />';
 
         // required CityRank..?
         // what the f..
@@ -1153,7 +1151,7 @@ class ItemList extends DBTypeList
 
         // funny, yellow text at the bottom, omit if we have a recipe
         if ($this->curTpl['description_loc0'] && !$this->canTeachSpell())
-            $xMisc[] = '<span class="q">"'.Util::parseHtmlText($this->getField('description', true), false).'"</span>';
+            $xMisc[] = '<span class="q">"'.UIText::format($this->getField('description', true), Lang::FMT_HTML).'"</span>';
 
         // readable
         if ($this->curTpl['pageTextId'])
@@ -1162,11 +1160,14 @@ class ItemList extends DBTypeList
         // charges
         for ($i = 1; $i < 6; $i++)
         {
-            if (in_array($this->curTpl['spellTrigger'.$i], [SPELL_TRIGGER_USE, SPELL_TRIGGER_SOULSTONE, SPELL_TRIGGER_USE_NODELAY, SPELL_TRIGGER_LEARN]) && $this->curTpl['spellCharges'.$i])
-            {
-                $xMisc[] = '<span class="q1">'.Lang::item('charges', [abs($this->curTpl['spellCharges'.$i])]).'</span>';
-                break;
-            }
+            if (!in_array($this->curTpl['spellTrigger'.$i], [SPELL_TRIGGER_USE, SPELL_TRIGGER_SOULSTONE, SPELL_TRIGGER_USE_NODELAY, SPELL_TRIGGER_LEARN]))
+                continue;
+
+            if (($ch = abs($this->curTpl['spellCharges'.$i])) <= 1)
+                continue;
+
+            $xMisc[] = '<span class="q1">'.Lang::item('charges', [$ch]).'</span>';
+            break;
         }
 
         // list required reagents
@@ -1818,7 +1819,8 @@ class ItemListFilter extends Filter
             10 => SRC_EVENT,
             11 => SRC_ACHIEVEMENT,
             12 => SRC_FISHING
-        )
+        ),
+        200 => parent::ENUM_ITEM_VISUAL
     );
 
     protected static array $genericFilter = array(
@@ -1978,6 +1980,8 @@ class ItemListFilter extends Filter
         172 => [parent::CR_CALLBACK,  'cbObtainedBy',           SRC_ACHIEVEMENT,         null              ], // rewardedbyachievement [yn]
         176 => [parent::CR_STAFFFLAG, 'flags'                                                              ], // flags
         177 => [parent::CR_STAFFFLAG, 'flagsExtra'                                                         ], // flags2
+        200 => [parent::CR_CALLBACK,  'cbHasItemVisual',        null,                    null              ]  // itemvisual [enum] (custom)
+     // 201 => [parent::CR_CALLBACK,  'cbHasSpellVisual',       null,                    null              ]  // spellvisual [str] (custom) - unused for now, looks like it's really only shooting/throwing animations for ranged weapons
     );
 
     protected static array $inputFields   = array(
@@ -1985,7 +1989,7 @@ class ItemListFilter extends Filter
         'wtv'   => [parent::V_RANGE,    [1, 999],                                                            true ], // weight values
         'jc'    => [parent::V_LIST,     [1],                                                                 false], // use jewelcrafter gems for weight calculation
         'gm'    => [parent::V_LIST,     [2, 3, 4],                                                           false], // gem rarity for weight calculation
-        'cr'    => [parent::V_RANGE,    [1, 177],                                                            true ], // criteria ids
+        'cr'    => [parent::V_LIST,     [[1, 177], 200],                                                     true ], // criteria ids
         'crs'   => [parent::V_LIST,     [parent::ENUM_NONE, parent::ENUM_ANY, [0, 99999]],                   true ], // criteria operators
         'crv'   => [parent::V_REGEX,    parent::PATTERN_CRV,                                                 true ], // criteria values - only printable chars, no delimiters
         'upg'   => [parent::V_REGEX,    '/[^\d:]/ui',                                                        true ], // upgrade item ids
@@ -2112,8 +2116,8 @@ class ItemListFilter extends Filter
                 [
                     DB::OR,
                     ['class', [ITEM_CLASS_WEAPON, ITEM_CLASS_ARMOR], '!'],
-                    [DB::AND, ['class', ITEM_CLASS_WEAPON], ['subclassbak', $this->ubFilter[$_v['ub']][ITEM_CLASS_WEAPON]]],
-                    [DB::AND, ['class', ITEM_CLASS_ARMOR],  ['subclassbak', $this->ubFilter[$_v['ub']][ITEM_CLASS_ARMOR]]]
+                    [DB::AND, ['class', ITEM_CLASS_WEAPON], ['subClassBak', $this->ubFilter[$_v['ub']][ITEM_CLASS_WEAPON]]],
+                    [DB::AND, ['class', ITEM_CLASS_ARMOR],  ['subClassBak', $this->ubFilter[$_v['ub']][ITEM_CLASS_ARMOR]]]
                 ]
             );
         }
@@ -2245,7 +2249,10 @@ class ItemListFilter extends Filter
         }
 
         // only enhance search results if enchantment by name is unique (implies only one enchantment per item is available)
-        if (count(array_unique(array_column($randIds, 'name_loc0'))) == 1)
+        if (count(array_unique(array_column($randIds, 'name_loc'. Lang::getLocale()->value))) == 1 && reset($randIds)['name_loc'.Lang::getLocale()->value])
+            $this->extraOpts['relEnchant'] = $tplIds;
+        // try EN fallback
+        else if (count(array_unique(array_column($randIds, 'name_loc0'))) == 1)
             $this->extraOpts['relEnchant'] = $tplIds;
 
         if ($tplIds)
@@ -2451,6 +2458,21 @@ class ItemListFilter extends Filter
     {
         if ($this->int2Bool($crs))
             return ['src.src'.$field, null, $crs ? '!' : null];
+
+        return null;
+    }
+
+    protected function cbHasItemVisual(int $cr, int $crs, string $crv) : ?array
+    {
+        if (!Util::checkNumeric($crs, NUM_CAST_INT))
+            return null;
+
+        if (in_array($crs, self::$enums[$cr]))              // limit to weapons, as other items have visuals assigned, that will not be displayed by client
+            return [DB::AND, ['class', ITEM_CLASS_WEAPON], [DB::OR, ['iv.visualEffectId1', $crs], ['iv.visualEffectId2', $crs], ['iv.visualEffectId3', $crs], ['iv.visualEffectId4', $crs], ['iv.visualEffectId5', $crs]]];
+        else if ($crs == parent::ENUM_ANY)
+            return [DB::AND, ['class', ITEM_CLASS_WEAPON], ['itemVisualId', 0, '!']];
+        else if ($crs == parent::ENUM_NONE)
+            return [DB::AND, ['class', ITEM_CLASS_WEAPON], ['itemVisualId', 0]];
 
         return null;
     }

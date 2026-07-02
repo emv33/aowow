@@ -62,6 +62,8 @@ $lang = array(
         'no'            => "Нет",
         'any'           => "Любой",                         // Any[one] of X => "Любой из"
         'all'           => "Все",
+        'required'      => '[Required]: %s',
+        'disallowed'    => '[Disallowed]: %s',
 
         // filter
         'extSearch'     => "Расширенный поиск",
@@ -328,7 +330,7 @@ $lang = array(
         'zones'         => "Местности",
         'faction'       => "фракция",
         'factions'      => "Фракции",
-        'pet'           => "Питомец",
+        'pet'           => "Питомец охотника",
         'pets'          => "Питомцы охотников",
         'achievement'   => "достижение",
         'achievements'  => "Достижения",
@@ -652,7 +654,7 @@ $lang = array(
             SmartEvent::EVENT_TIMED_EVENT_TRIGGERED   => ['Timed event #[b]%1$d[/b] is triggered', ''],
 /* 60*/     SmartEvent::EVENT_UPDATE                  => ['(%11$s)?After %11$s:Instantly;', 'Repeat every %s'],
             SmartEvent::EVENT_LINK                    => ['After Event %11$s', ''],
-            SmartEvent::EVENT_GOSSIP_SELECT           => ['Selecting Gossip Option:[br](%11$s)?[span class=q1]%11$s[/span]:Menu #[b]%1$d[/b] - Option #[b]%2$d[/b];', ''],
+            SmartEvent::EVENT_GOSSIP_SELECT           => ['Selecting Gossip Option:[br](%11$s)?[span class="%12$s"]%11$s[/span]:Menu #[b]%1$d[/b] - Option #[b]%2$d[/b];', ''],
             SmartEvent::EVENT_JUST_CREATED            => ['On being spawned for the first time', ''],
             SmartEvent::EVENT_GOSSIP_HELLO            => ['Opening Gossip', '(%1$d)?onGossipHello:;(%2$d)?onReportUse:;'],
             SmartEvent::EVENT_FOLLOW_COMPLETED        => ['Finished following', ''],
@@ -1441,6 +1443,10 @@ $lang = array(
         'sharable'      => "Раздается",
         'notSharable'   => "Не раздается",
         'repeatable'    => "Повторяемый",
+        'breadcrumbFor'     => "[Breadcrumb For]",
+        'breadcrumbForDesc' => "[This quest is an optional introduction (breadcrumb) to the next quest. If either this quest or the target quest is picked up or completed, the other becomes unavailable.]",
+        'breadcrumbQ'       => "[Breadcrumbs]",
+        'breadcrumbQDesc'   => "[Optional lead-in quests for this quest. Picking up either this quest or a breadcrumb quest makes all breadcrumb quests unavailable.]",
         'reqQ'          => "Требует",
         'reqQDesc'      => "Чтобы получить это задание, вы должны завершить все указанные задания",
         'reqOneQ'       => "Требуется Один из",
@@ -1563,7 +1569,7 @@ $lang = array(
         'notFound'      => "Этот навык не существует.",
         'cat'           => array(
             -6 => "Спутники",           -5 => "Транспорт",          -4 => "Классовые навыки",   5 => "Характеристики",      6 => "Оружейные навыки",    7 => "Классовые навыки",    8 => "Доспехи",
-             9 => "Вторичные навыки",   10 => "Языки",              11 => "Профессии"
+             9 => "Вторичные навыки",   10 => "Языки",              11 => "Профессии",         12 => "Не отображается"
         )
     ),
     'currency' => array(
@@ -1675,6 +1681,8 @@ $lang = array(
         '_seeMore'      => "[See more]",
         '_rankRange'    => "Ранг:&nbsp;%d&nbsp;-&nbsp;%d",
         '_showXmore'    => "Показать на %d больше",
+        'casterAura'    => "[Caster Aura]",
+        'targetAura'    => "[Target Aura]",
 
         'normal'        => "Обычный",
         'special'       => "Особый",
@@ -2218,7 +2226,7 @@ $lang = array(
         'ratingString'  => '<!--rtg%%%1$d-->%2$s&nbsp;на&nbsp;<!--lvl-->%3$d&nbsp;ур.',
         'heroic'        => "Героический",
         'startQuest'    => "Этот предмет позволяет получить задание.",
-        'bagSlotString' => '%2$s (%1$d |4ячейка:ячейки:ячеек;)',
+        'containerSlots'=> '%2$s (%1$d |4ячейка:ячейки:ячеек;)',
         'fap'           => "Сила атаки зверя",
         'durability'    => "Прочность: %d / %d",
         'realTime'      => "реальное время",
@@ -2267,6 +2275,7 @@ $lang = array(
         'unique'        => ["Уникальный",                   "Уникальный (%d)",  "Уникальный: %s (%d)"                       ],
         'uniqueEquipped'=> ["Уникальный использующийся",    null,               "Уникальный использующийся предмет: %s (%d)"],
         'speed'         => "Скорость",
+        'glyphType'     => [null, "Большой символ", "Малый символ"],
         'dps'           => "(%.1f ед. урона в секунду)",
         'vendorLoc'     => "Расположение торговца",
         'purchasedIn'   => "Этот предмет приобретается в",
@@ -2324,11 +2333,6 @@ $lang = array(
             "Привязано к учетной записи",               "Становится персональным при получении",                "Становится персональным при надевании",
             "Становится персональным при использовании","Предмет, необходимый для задания",                     "Предмет, необходимый для задания"
         ),
-        "bagFamily"     => array(
-            "Сумка",                "Колчан",           "Подсумок",             "Сумка душ",                    "Сумка кожевника",
-            "Сумка начертателя",    "Сумка травника",   "Сумка зачаровывателя", "Сумка инженера",               null, /*Ключ*/
-            "Сумка ювелира",        "Сумка шахтера"
-        ),
         'inventoryType' => array(
             null,                   "Голова",           "Шея",                  "Плечи",                        "Рубашка",
             "Грудь",                "Пояс",             "Ноги",                 "Ступни",                       "Запястья",
@@ -2337,22 +2341,25 @@ $lang = array(
             null, /*Грудь*/         "Правая рука",      "Левая рука",           "Левая рука",                   "Боеприпасы",
             "Метательное",          null, /*Спина*/     "Колчан",               "Реликвия"
         ),
-        'armorSubClass' => array(
-            "Разное",               "Ткань",            "Кожа",                 "Кольчуга",                     "Латы",
-            null,                   "Щит",              "Манускрипт",           "Идол",                         "Тотем",
-            "Печать"
+        'subClass'      => array(
+            ITEM_CLASS_CONSUMABLE => ["Расходуемые", "Зелья", "Эликсиры", "Настойки", "Свитки", "Еда и напитки", "Улучшения", "Бинты", "Другое"],
+            ITEM_CLASS_CONTAINER  => ["Сумка", "Сумка душ", "Сумка травника", "Сумка зачаровывателя", "Сумка инженера", "Сумка ювелира", "Сумка шахтера", "Сумка кожевника", "Сумка начертателя"],
+            ITEM_CLASS_WEAPON     => ["Топор", "Топор", "Лук", "Огнестрельное", "Дробящее", "Дробящее", "Древковое", "Меч", "Меч", "Устаревшие", "Посох", "Экзотическое", "Экзотическое", "Кистевое", "Разное", "Кинжал", "Метательное", "Копье", "Арбалет", "Жезл", "Удочка"],
+            ITEM_CLASS_GEM        => ["Красные", "Синие", "Желтые", "Фиолетовые", "Зеленые", "Оранжевые", "Особые", "Простые", "Радужные"],
+            ITEM_CLASS_ARMOR      => ["Разное", "Ткань", "Кожа", "Кольчуга", "Латы", "Кулачный щит(НЕ ИСП.)_", "Щит", "Манускрипт", "Идол", "Тотем", "Печати"],
+            ITEM_CLASS_REAGENT    => ["Реагент"],
+            ITEM_CLASS_AMMUNITION => ["Жезл(НЕ ИСП.)", "Болт(НЕ ИСП.)", "Стрелы", "Пули", "Метательное(НЕ ИСП.)"],
+            ITEM_CLASS_TRADEGOOD  => ["Хозяйственные товары", "Детали", "Взрывчатка", "Устройства", "Ювелирное дело", "Ткань", "Кожа", "Металл и камень", "Мясо", "Трава", "Стихии", "Другое", "Наложение чар", "Материалы", "Чары для доспехов", "Чары для оружия"],
+            ITEM_CLASS_GENERIC    => ["Стандартный(НЕ ИСП.)"],
+            ITEM_CLASS_RECIPE     => ["Книга", "Кожевничество", "Портняжное дело", "Инженерное дело", "Кузнечное дело", "Кулинария", "Алхимия", "Первая помощь", "Наложение чар", "Рыбная ловля", "Ювелирное дело", "Начертание"],
+            ITEM_CLASS_MONEY      => ["Деньги (НЕ ИСП.)"],
+            ITEM_CLASS_QUIVER     => ["Колчан(НЕ ИСП.)", "Колчан(НЕ ИСП.)", "Колчан", "Подсумок"],
+            ITEM_CLASS_QUEST      => ["Задания"],
+            ITEM_CLASS_KEY        => ["Ключ", "Отмычка"],
+            ITEM_CLASS_PERMANENT  => ["Постоянные"],
+            ITEM_CLASS_MISC       => ["Хлам", "Реагенты", "Питомцы", "Праздничные предметы", "Другое", "Верховые животные"],
+            ITEM_CLASS_GLYPH      => [null, "Воин", "Паладин", "Охотник", "Разбойник", "Жрец", "Рыцарь смерти", "Шаман", "Маг", "Чернокнижник", null, "Друид"]
         ),
-        'weaponSubClass' => array(
-            "топор",                "топор",            "Лук",                  "Огнестрельное",                "дробящее",
-            "дробящее",             "Древковое",        "меч",                  "меч",                          null,
-            "Посох",                null,               null,                   "Кистевое оружие",              "Разное",
-            "Кинжал",               "Метательное",      null,                   "Арбалет",                      "Жезл",
-            "Удочка"
-        ),
-        'projectileSubClass' => array(
-            null,                   null,               "Стрелы",               "Пули",                         null
-        ),
-        'elixirType'    => [null, "Бой", "Охранный"],
         'cat'           => array(                           // should be ordered by content first, then alphabeticaly
              2 => array("Оружие", []),                      // filled with self::$spell['weaponSubClass'] on load
              4 => array("Броня", array(
