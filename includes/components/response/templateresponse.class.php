@@ -318,8 +318,8 @@ class TemplateResponse extends BaseResponse
         if ($extra)
         {
             $namedExtra = [];
-            foreach ($extra as $typeId => $data)
-                foreach ($data as $k => $v)
+            foreach ($extra as $typeId => $extraData)
+                foreach ($extraData as $k => $v)
                     $namedExtra[$typeId][$k.'_'.Lang::getLocale()->json()] = $v;
 
             $this->jsGlobals[$type][2] = $namedExtra;
@@ -393,7 +393,7 @@ class TemplateResponse extends BaseResponse
             );
 
             $str = ['name_loc' . Lang::getLocale()->value => '[span]'.implode("[br]", $messages).'[/span]'];
-            $text = new LocString($str, callback: Util::defStatic(...));
+            $text = new LocString($str, formatter: Util::defStatic(...));
             $style = 'color: #'.($colors[$logLevel][1] ?? 'fff').'; font-weight: bold; font-size: 14px; padding-left: 40px; background-image: url('.Cfg::get('STATIC_URL').'/images/announcements/warn-small.png); background-size: 15px 15px; background-position: 12px center; border: dashed 2px #'.($colors[$logLevel][0] ?? 'fff').';';
 
             $announcements[] = new Announcement(-$i, 'internal error', $text, style: $style);
@@ -463,9 +463,6 @@ class TemplateResponse extends BaseResponse
             $this->extendGlobalData($jsg);
 
         $this->gPageInfo['editAccess'] = $article['editAccess'];
-
-        if (method_exists($this, 'postArticle'))        // e.g. update variables in article
-            $this->postArticle($this->article['text']);
     }
 
     private function addCommunityContent() : void
