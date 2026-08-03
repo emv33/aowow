@@ -28,7 +28,7 @@ class LootByItem extends Loot
     public const /* int */ ACHIEVEMENT_REWARD = 17;
 
     private array  $chanceMods    = [];
-    private array  $listviewTabs  = array(                  // order here determines tab order on page
+    private array  $listviewTabs  = array(
     //  [fileName, tabData, tabName, tabId, extraCols, hiddenCols, visibleCols]
         self::NPC_DROPPED        => [Type::NPC,         [], '$LANG.tab_droppedby',        'dropped-by',              [], [], []],
         self::QUEST_REWARD       => [Type::QUEST,       [], '$LANG.tab_rewardfrom',       'reward-from-quest',       [], [], []],
@@ -313,23 +313,21 @@ class LootByItem extends Loot
 
         $srcData = $npc->getListviewData();
         $this->storeJSGlobals($npc->getJSGlobals(GLOBALINFO_SELF | GLOBALINFO_RELATED));
-        [, &$data, , , &$extraCols, ,] = $this->listviewTabs[$tabId];
 
         foreach ($npc->iterate() as $__)
         {
             if ($tabId == self::NPC_SKINNED)
-            {
-                if ($npc->isMineable())
-                    $tabId = self::NPC_MINED;
-                else if ($npc->isGatherable())
-                    $tabId = self::NPC_GATHERED;
-                else if ($npc->isSalvageable())
-                    $tabId = self::NPC_SALVAGED;
-            }
+                $tabRef = match(true)
+                {
+                    $npc->isMineable()    => self::NPC_MINED,
+                    $npc->isGatherable()  => self::NPC_GATHERED,
+                    $npc->isSalvageable() => self::NPC_SALVAGED,
+                    default               => self::NPC_SKINNED
+                };
 
-            $p = $npc->getField('parentId');
+            [, &$data, , , &$extraCols, ,] = $this->listviewTabs[$tabRef ?? $tabId];
 
-            $data[]      = array_merge($parentData[$p] ?? $srcData[$npc->id], $result[$npc->getField($dbField)]);
+            $data[]      = array_merge($parentData[$npc->getField('parentId')] ?? $srcData[$npc->id], $result[$npc->getField($dbField)]);
             $extraCols[] = '$Listview.extraCols.percent';
         }
 
