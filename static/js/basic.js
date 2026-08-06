@@ -2173,7 +2173,8 @@ $WH.Tooltip = {
         $WH.Tooltip.prepare();
 
         if (icon) {
-            $WH.Tooltip.icon.style.backgroundImage = 'url(' + g_staticUrl + '/images/wow/icons/medium/' + icon.toLowerCase() + '.jpg)';
+            $WH.Tooltip.icon.style.backgroundImage = 'url(' + Icon.url(icon, 1) + ')';
+            $WH.Tooltip.icon.style.backgroundImage = 'image-set(url(' + Icon.url(icon, 1) + ') 1x, url(' + Icon.url2x(icon, 1) + ') 2x)';
             $WH.Tooltip.icon.style.visibility      = 'visible';
         }
         else {

@@ -175,7 +175,7 @@ trait TrImageProcessor
     private const GEN_IDX_SRC_INFO  = 3;
     private const GEN_IDX_DEST_INFO = 4;
 
-    private const JPEG_QUALITY = 85;                        // 0: worst - 100: best
+    private const JPEG_QUALITY = 92;                        // 0: worst - 100: best
 
     private function checkSourceDirs() : bool
     {

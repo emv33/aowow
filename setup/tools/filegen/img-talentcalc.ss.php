@@ -29,6 +29,9 @@ CLISetup::registerSetup("build", new class extends SetupScript
         ['-BottomLeft', '-BottomRight']
     );
 
+    // TILEORDER is a fixed 2x2 grid of native 256px source tiles - 512px per dimension is the hard ceiling on assemblable resolution
+    private const NATIVE_TILE_CEILING = 512;
+
     // src, resourcePath, localized, [tileOrder], [[dest, destW, destH]]
     private $genSteps = array(
         ['TalentFrame/', null, false, self::TILEORDER,  self::DEST_DIRS]
@@ -91,7 +94,12 @@ CLISetup::registerSetup("build", new class extends SetupScript
                 continue;
             }
 
-            $im = $this->assembleImage($realPath.'/'.$tt['textureFile'], $tileOrder, 256 + 44, 256 + 75);
+            // generate at up to 2x the CSS display size, capped at the native tile ceiling, so retina
+            // screens get a sharper image (displayed at $size via CSS background-size) without ever upscaling
+            $genW = min(self::NATIVE_TILE_CEILING, $size[0] * 2);
+            $genH = min(self::NATIVE_TILE_CEILING, $size[1] * 2);
+
+            $im = $this->assembleImage($realPath.'/'.$tt['textureFile'], $tileOrder, $genW, $genH);
             if (!$im)
             {
                 CLI::write(' - could not assemble file '.$tt['textureFile'], CLI::LOG_ERROR);
@@ -99,7 +107,7 @@ CLISetup::registerSetup("build", new class extends SetupScript
                 continue;
             }
 
-            if (!$this->writeImageFile($im, $outFile, $size[0], $size[1]))
+            if (!$this->writeImageFile($im, $outFile, $genW, $genH))
                 $this->success = false;
         }
 

@@ -2866,7 +2866,7 @@ Listview.extraCols = {
                 var a = $WH.ce('a');
                 a.href = '?achievement=' + item.achievement;
                 a.className = 'icontiny tinyspecial';
-                a.style.backgroundImage = 'url(' + g_staticUrl + '/images/wow/icons/tiny/' + g_achievements[item.achievement].icon.toLowerCase() + '.gif)';
+                Icon.setTinyBg(a, g_achievements[item.achievement].icon);
                 a.style.whiteSpace = 'nowrap';
 
                 $WH.st(a, g_achievements[item.achievement]['name_' + Locale.getName()]);
@@ -3604,7 +3604,7 @@ Listview.funcBox = {
 
                         a.href = '?item=' + id;
                         a.className = 'q' + item.quality + ' icontiny tinyspecial';
-                        a.style.backgroundImage = 'url(' + g_staticUrl + '/images/wow/icons/tiny/' + item.icon.toLowerCase() + '.gif)';
+                        Icon.setTinyBg(a, item.icon);
                         a.style.whiteSpace = 'nowrap';
 
                         $WH.st(a, item['name_' + Locale.getName()]);
@@ -4833,7 +4833,7 @@ Listview.funcBox = {
                 _ = $WH.ce('a');
                 _.href = '?item=' + itemId;
                 _.className = 'moneyitem';
-                _.style.backgroundImage = 'url(' + g_staticUrl + '/images/wow/icons/tiny/' + icon.toLowerCase() + '.gif)';
+                Icon.setTinyBg(_, icon);
                 $WH.ae(_, $WH.ct(count));
                 $WH.ae(d, _);
             }
@@ -4886,7 +4886,7 @@ Listview.funcBox = {
                 else                                        // tokens
                 {
                     _.className = 'icontinyr tip q1';
-                    _.style.backgroundImage = 'url(' + g_staticUrl + '/images/wow/icons/tiny/' + icon[0].toLowerCase() + '.gif)';
+                    Icon.setTinyBg(_, icon[0]);
                     _.onmouseover = Listview.funcBox.moneyCurrencyOver.bind(_, currencyId, count);
                     $WH.ae(_, $WH.ct($WH.number_format(count)));
                 }

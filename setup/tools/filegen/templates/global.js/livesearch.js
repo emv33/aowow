@@ -173,7 +173,8 @@ var LiveSearch = new function()
             if ((type == 3 || type == 6 || type == 9 || type == 10 || type == 13 || type == 14 || type == 15 || type == 17) && param1)
             {
                 div.className += ' live-search-icon';
-                div.style.backgroundImage = 'url(' + g_staticUrl + '/images/wow/icons/small/' + param1.toLowerCase() + '.jpg)';
+                div.style.backgroundImage = 'url(' + Icon.url(param1, 0) + ')';
+                div.style.backgroundImage = 'image-set(url(' + Icon.url(param1, 0) + ') 1x, url(' + Icon.url2x(param1, 0) + ') 2x)';
             }
             else if ((type == 5 || type == 11) && param1 >= 1 && param1 <= 2)
             {

@@ -29,9 +29,9 @@ CLISetup::registerSetup("build", new class extends SetupScript
     protected $setupAfter     = [['icons'], []];
 
     private const ICON_DIRS = array(
-        ['static/images/wow/icons/large/',  'jpg',  0, ICON_SIZE_LARGE,  4],
-        ['static/images/wow/icons/medium/', 'jpg',  0, ICON_SIZE_MEDIUM, 4],
-        ['static/images/wow/icons/small/',  'jpg',  0, ICON_SIZE_SMALL,  4],
+        ['static/images/wow/icons/large/',  'png',  0, ICON_SIZE_LARGE,  4],
+        ['static/images/wow/icons/medium/', 'png',  0, ICON_SIZE_MEDIUM, 4],
+        ['static/images/wow/icons/small/',  'png',  0, ICON_SIZE_SMALL,  4],
         ['static/images/wow/icons/tiny/',   'gif',  0, ICON_SIZE_TINY,   4]
     );
 
@@ -132,6 +132,24 @@ CLISetup::registerSetup("build", new class extends SetupScript
 
         // fix genSteps 10 [holoday icons] - img src size is 90px
         array_walk($this->genSteps[10][self::GEN_IDX_DEST_INFO], function(&$x) { $x[2] = 90; });
+
+        // add @2x retina companions for every icon-tier output (dest under static/images/wow/icons/)
+        // srcSize/borderOffset are source-pixel crop parameters and stay unchanged - only destSize doubles
+        foreach ($this->genSteps as $idx => $_)
+        {
+            $expanded = [];
+            foreach ($this->genSteps[$idx][self::GEN_IDX_DEST_INFO] as $row)
+            {
+                $row = array_pad($row, 6, '');
+                $expanded[] = $row;
+
+                [$dest, $ext, $srcSize, $destSize, $borderOffset] = $row;
+                if (str_starts_with($dest, 'static/images/wow/icons/'))
+                    $expanded[] = [$dest, $ext, $srcSize, $destSize * 2, $borderOffset, '@2x'];
+            }
+
+            $this->genSteps[$idx][self::GEN_IDX_DEST_INFO] = $expanded;
+        }
     }
 
     public function generate() : bool
@@ -211,7 +229,7 @@ CLISetup::registerSetup("build", new class extends SetupScript
 
                 $nFiles = count($outInfo) * ($tileSize ? array_sum(array_map('count', $this->cuNames[$i])) : count($files));
 
-                foreach ($outInfo as [$dest, $ext, $srcSize, $destSize, $borderOffset])
+                foreach ($outInfo as [$dest, $ext, $srcSize, $destSize, $borderOffset, $suffix])
                 {
                     if ($tileSize)
                     {
@@ -220,7 +238,7 @@ CLISetup::registerSetup("build", new class extends SetupScript
                             foreach ($row as $x => $name)
                             {
                                 $j++;
-                                $outFile = CLI::nicePath(($isIcon ? $this->fixIconName($name) : $name).'.'.$ext, $dest);
+                                $outFile = CLI::nicePath(($isIcon ? $this->fixIconName($name) : $name).$suffix.'.'.$ext, $dest);
 
                                 $this->status = ' - '.str_pad($j.'/'.$nFiles, 12).str_pad('('.number_format($j * 100 / $nFiles, 2).'%)', 9);
 
@@ -293,7 +311,7 @@ CLISetup::registerSetup("build", new class extends SetupScript
                     {
                         $j++;
                         $this->status = ' - '.str_pad($j.'/'.$nFiles, 12).str_pad('('.number_format($j * 100 / $nFiles, 2).'%)', 9);
-                        $outFile = CLI::nicePath(($isIcon ? $this->fixIconName($img) : $img).'.'.$ext, $dest);
+                        $outFile = CLI::nicePath(($isIcon ? $this->fixIconName($img) : $img).$suffix.'.'.$ext, $dest);
 
                         if (!CLISetup::getOpt('force') && file_exists($outFile))
                         {

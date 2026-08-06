@@ -202,6 +202,10 @@ a.talentcalc-button-summary {
     background-image:url(../images/TalentCalc/icon-medium-hilite.png);
 }
 
+.iconmedium.icon-disabled ins {
+    filter:grayscale(1);
+}
+
 .talentcalc-arrow-anchor {
     position:relative;
     z-index:30;

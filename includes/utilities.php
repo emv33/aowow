@@ -222,6 +222,34 @@ abstract class Util
         ));
     }
 
+    public static function iconExt(string $size) : string
+    {
+        return $size == 'tiny' ? 'gif' : 'png';
+    }
+
+    // full <style> text for an icon background: 1x fallback, then image-set() upgrade for retina screens
+    // unsupported browsers ignore the invalid second declaration and keep the 1x fallback
+    public static function iconBg(string $name, string $size = 'tiny') : string
+    {
+        $ext  = self::iconExt($size);
+        $name = strtolower($name);
+        $url  = Cfg::get('STATIC_URL').'/images/wow/icons/'.$size.'/'.$name.'.'.$ext;
+        $url2 = Cfg::get('STATIC_URL').'/images/wow/icons/'.$size.'/'.$name.'@2x.'.$ext;
+
+        return 'background-image:url('.$url.');background-image:image-set(url('.$url.') 1x, url('.$url2.') 2x)';
+    }
+
+    // value for an <img srcset="..."> attribute
+    public static function iconSrcset(string $name, string $size = 'tiny') : string
+    {
+        $ext  = self::iconExt($size);
+        $name = strtolower($name);
+        $url  = Cfg::get('STATIC_URL').'/images/wow/icons/'.$size.'/'.$name.'.'.$ext;
+        $url2 = Cfg::get('STATIC_URL').'/images/wow/icons/'.$size.'/'.$name.'@2x.'.$ext;
+
+        return $url.' 1x, '.$url2.' 2x';
+    }
+
     // default back to enUS if localization unavailable
     public static function localizedString(array $data, string $field, bool $silent = false) : string
     {

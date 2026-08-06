@@ -782,7 +782,7 @@ Listview.templates = {
 
                                 if (sm.icon) {
                                     a.className += ' icontiny tinyspecial';
-                                    a.style.backgroundImage = 'url("' + g_staticUrl + '/images/wow/icons/tiny/' + sm.icon.toLowerCase() + '.gif")';
+                                    Icon.setTinyBg(a, sm.icon);
                                 }
 
                                 $WH.ae(a, $WH.ct(sm.n));
@@ -1326,7 +1326,7 @@ Listview.templates = {
 
                     if (npc.hasQuests != null) {
                         a.className += " icontiny tinyspecial";
-                        a.style.backgroundImage = "url(" + g_staticUrl + "/images/wow/icons/tiny/quest_start.gif)";
+                        Icon.setTinyBg(a, 'quest_start');
                     }
 
                     if (g_user.roles & U_GROUP_PREMIUM_PERMISSIONS)
@@ -1567,7 +1567,7 @@ Listview.templates = {
 
                     if (object.hasQuests != null) {
                         a.className += " icontiny tinyspecial";
-                        a.style.backgroundImage = "url(" + g_staticUrl + "/images/wow/icons/tiny/quest_start.gif)";
+                        Icon.setTinyBg(a, 'quest_start');
                     }
 
                     if (g_user.roles & U_GROUP_PREMIUM_PERMISSIONS)
@@ -2809,7 +2809,7 @@ Listview.templates = {
                         var classId = classes[0];
 
                         var text = $WH.ce('a');
-                        text.style.backgroundImage = 'url("' + g_staticUrl + '/images/wow/icons/tiny/class_' + g_file_classes[classId] + '.gif")';
+                        Icon.setTinyBg(text, 'class_' + g_file_classes[classId]);
                         text.className = 'icontiny tinyspecial c' + classId;
                         text.href = '?class=' + classId;
                         $WH.ae(text, $WH.ct(g_chr_classes[classId]));
@@ -3034,7 +3034,7 @@ Listview.templates = {
 
                                 if (sm.icon) {
                                     a.className += ' icontiny tinyspecial';
-                                    a.style.backgroundImage = 'url("' + g_staticUrl + '/images/wow/icons/tiny/' + sm.icon.toLowerCase() + '.gif")';
+                                    Icon.setTinyBg(a, sm.icon);
                                 }
 
                                 $WH.ae(a, $WH.ct(sm.n));
@@ -3408,7 +3408,7 @@ Listview.templates = {
                     else {
                         var item = g_spells[Math.abs(trigger)];
                         a.className = 'icontiny tinyspecial';
-                        a.style.backgroundImage = 'url(' + g_staticUrl + '/images/wow/icons/tiny/' + item['icon'] + '.gif)';
+                        Icon.setTinyBg(a, item['icon']);
                         $WH.st(a, item['name_' + Locale.getName()]);
                     }
                     $WH.ae(td, a);
@@ -3513,7 +3513,7 @@ Listview.templates = {
                     else {
                         var item = g_spells[Math.abs(effect)];
                         a.className = 'icontiny tinyspecial';
-                        a.style.backgroundImage = 'url(' + g_staticUrl + '/images/wow/icons/tiny/' + item['icon'] + '.gif)';
+                        Icon.setTinyBg(a, item['icon']);
                         $WH.st(a, item['name_' + Locale.getName()]);
                     }
                     $WH.ae(td, a);
@@ -5925,7 +5925,7 @@ Listview.templates = {
                                 var a = $WH.ce('a');
                                 a.href = '?item=' + itemrewards[i];
                                 a.className = 'q' + item.quality + ' icontiny tinyspecial';
-                                a.style.backgroundImage = 'url(' + g_staticUrl + '/images/wow/icons/tiny/' + item.icon.toLowerCase() + '.gif)';
+                                Icon.setTinyBg(a, item.icon);
                                 $WH.ae(a, $WH.ct(item['name_' + Locale.getName()]));
                                 var span = $WH.ce('span');
                                 $WH.ae(span, a);
@@ -5943,7 +5943,7 @@ Listview.templates = {
                                 var a = $WH.ce('a');
                                 a.href = '?spell=' + spellrewards[i];
                                 a.className = 'q8 icontiny tinyspecial';
-                                a.style.backgroundImage = 'url(' + g_staticUrl + '/images/wow/icons/tiny/' + item.icon.toLowerCase() + '.gif)';
+                                Icon.setTinyBg(a, item.icon);
                                 $WH.ae(a, $WH.ct(item['name_' + Locale.getName()]));
                                 var span = $WH.ce('span');
                                 $WH.ae(span, a);
@@ -6264,7 +6264,7 @@ Listview.templates = {
                                     }
                                     if (sm.t == 5) { // Quests
                                         a.className += ' icontiny tinyspecial';
-                                        a.style.backgroundImage = 'url(' + g_staticUrl + '/images/wow/icons/tiny/quest_start.gif)';
+                                        Icon.setTinyBg(a, 'quest_start');
                                     }
 
                                     $WH.ae(a, $WH.ct(sm.n));
@@ -6622,7 +6622,7 @@ Listview.templates = {
 
                     a.className = 'icontiny tinyspecial tip q1';
                     // aowow - a.style.backgroundImage = 'url(' + g_staticUrl + '/images/wow/icons/tiny/' + specData.icon.toLowerCase() + '.gif)';
-                    a.style.backgroundImage = 'url(' + g_staticUrl + '/images/wow/icons/tiny/' + (g_file_specs[profile.classs][specData.id - 1] ?? g_file_specs[specData.id]) + '.gif)';
+                    Icon.setTinyBg(a, g_file_specs[profile.classs][specData.id - 1] ?? g_file_specs[specData.id]);
                     a.rel = 'np';
                     a.href = this.getItemLink(profile) + '#talents';
                     g_addTooltip(a, specData.name);

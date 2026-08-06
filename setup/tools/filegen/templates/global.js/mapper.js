@@ -457,19 +457,22 @@ Mapper.prototype = {
                     if (types.start && types.end)
                     {
 						entry.addClass('icontiny');
-						entry.css('background-image', 'url(' + g_staticUrl + '/images/wow/icons/tiny/quest_startend.gif)');
+						entry.css('background-image', 'url(' + Icon.tinyUrl('quest_startend') + ')');
+						entry.css('background-image', 'image-set(url(' + Icon.tinyUrl('quest_startend') + ') 1x, url(' + Icon.tinyUrl2x('quest_startend') + ') 2x)');
 						entry.css('padding-left', '20px');
                     }
                     else if (types.start)
                     {
 						entry.addClass('icontiny');
-						entry.css('background-image', 'url(' + g_staticUrl + '/images/wow/icons/tiny/quest_start.gif)');
+						entry.css('background-image', 'url(' + Icon.tinyUrl('quest_start') + ')');
+						entry.css('background-image', 'image-set(url(' + Icon.tinyUrl('quest_start') + ') 1x, url(' + Icon.tinyUrl2x('quest_start') + ') 2x)');
 						entry.css('padding-left', '14px');
                     }
                     else if (types.end)
                     {
 						entry.addClass('icontiny');
-						entry.css('background-image', 'url(' + g_staticUrl + '/images/wow/icons/tiny/quest_end.gif)');
+						entry.css('background-image', 'url(' + Icon.tinyUrl('quest_end') + ')');
+						entry.css('background-image', 'image-set(url(' + Icon.tinyUrl('quest_end') + ') 1x, url(' + Icon.tinyUrl2x('quest_end') + ') 2x)');
 						entry.css('padding-left', '16px');
                     }
                 }

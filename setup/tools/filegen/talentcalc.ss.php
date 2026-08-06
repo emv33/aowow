@@ -139,8 +139,7 @@ CLISetup::registerSetup("build", new class extends SetupScript
                 //  'f' => []                                                       // [petFamilyIds] (can be omitted)
                 );
 
-                if ($classMask)
-                    $talent['iconname'] = $talents[$talentIdx]['iconString'];
+                $talent['iconname'] = $talents[$talentIdx]['iconString'];
 
                 for ($itr = 0; $itr <= ($talent['m'] - 1); $itr++)
                 {

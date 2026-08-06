@@ -249,7 +249,7 @@ final class UIText
                 switch ($fmt)
                 {
                     case Lang::FMT_HTML:
-                        return '<span class="icontiny" style="background-image: url('.Cfg::get('STATIC_URL').'/images/wow/icons/tiny/'.Util::lower($iconName).'.gif)">';
+                        return '<span class="icontiny" style="'.Util::iconBg($iconName).'">';
                     case Lang::FMT_MARKUP:
                         return '[icon name='.Util::lower($iconName).']';
                     case Lang::FMT_RAW:

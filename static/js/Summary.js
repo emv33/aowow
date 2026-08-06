@@ -3688,7 +3688,7 @@ Summary.groupOver = function(group, e) {
             buff += '<tr>';
             buff += '<td style="text-align: right">x' + count[itemId] + '</td>';
             buff += '<td><div class="indent q' + g_items[itemId].quality + '">';
-            buff += '<span class="icontiny" style="background: url(' + g_staticUrl + '/images/wow/icons/tiny/' + g_items[itemId].icon.toLowerCase() + '.gif) left center no-repeat">' + g_items[itemId]['name_' + Locale.getName()] + '</span>';
+            buff += '<span class="icontiny" style="' + Icon.tinyBg(g_items[itemId].icon) + ';background-position:left center;background-repeat:no-repeat">' + g_items[itemId]['name_' + Locale.getName()] + '</span>';
             buff += '</div></td>';
             buff += '<td><div class="indent q1"><small><em>' + LANG.level + ' ' + g_items[itemId].jsonequip.level + '</em></small></div></td>';
             buff += '</tr>';
@@ -3768,7 +3768,7 @@ Summary.socketOver = function(gems, e) {
             buff += '<tr>';
             buff += '<td style="text-align: right"><div class="gem' + g_gems[i].colors + '">x' + gems[i] + '</div></td>';
             buff += '<td><div class="indent q' + g_gems[i].quality + '">';
-            buff += '<span class="icontiny" style="background: url(' + g_staticUrl + '/images/wow/icons/tiny/' + g_gems[i].icon.toLowerCase() + '.gif) left center no-repeat">' + g_gems[i].name + '</span>';
+            buff += '<span class="icontiny" style="' + Icon.tinyBg(g_gems[i].icon) + ';background-position:left center;background-repeat:no-repeat">' + g_gems[i].name + '</span>';
             buff += '</div></td>';
             buff += '<td><div class="indent q1"><small><em>' + g_gems[i].enchantment + '</em></small></div></td>';
             buff += '</tr>';

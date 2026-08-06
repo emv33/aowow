@@ -1,6 +1,7 @@
 var Icon = {
     sizes:  ['small', 'medium', 'large'],
     sizes2: [18, 36, 56],
+    ext:    ['png', 'png', 'png'],
     sizeIds: {
         small:  0,
         medium: 1,
@@ -125,6 +126,46 @@ var Icon = {
         return buff;
     },
 
+    url: function(name, size)
+    {
+        return g_staticUrl + '/images/wow/icons/' + Icon.sizes[size] + '/' + name.toLowerCase() + '.' + Icon.ext[size];
+    },
+
+    url2x: function(name, size)
+    {
+        return g_staticUrl + '/images/wow/icons/' + Icon.sizes[size] + '/' + name.toLowerCase() + '@2x.' + Icon.ext[size];
+    },
+
+    // tiny icons (15px) don't go through create()/setTexture() - they're built as raw <img>/background-image strings throughout markup/listview code
+    tinyUrl: function(name)
+    {
+        return g_staticUrl + '/images/wow/icons/tiny/' + name.toLowerCase() + '.gif';
+    },
+
+    tinyUrl2x: function(name)
+    {
+        return g_staticUrl + '/images/wow/icons/tiny/' + name.toLowerCase() + '@2x.gif';
+    },
+
+    // CSS text for an inline style="" attribute: 1x fallback, then image-set() upgrade
+    tinyBg: function(name)
+    {
+        return 'background-image:url(' + Icon.tinyUrl(name) + ');background-image:image-set(url(' + Icon.tinyUrl(name) + ') 1x, url(' + Icon.tinyUrl2x(name) + ') 2x)';
+    },
+
+    // value for an <img srcset="..."> attribute
+    tinySrcset: function(name)
+    {
+        return Icon.tinyUrl(name) + ' 1x, ' + Icon.tinyUrl2x(name) + ' 2x';
+    },
+
+    // sets el.style.backgroundImage to a tiny icon, 1x fallback then image-set() upgrade
+    setTinyBg: function(el, name)
+    {
+        el.style.backgroundImage = 'url(' + Icon.tinyUrl(name) + ')';
+        el.style.backgroundImage = 'image-set(url(' + Icon.tinyUrl(name) + ') 1x, url(' + Icon.tinyUrl2x(name) + ') 2x)';
+    },
+
     setTexture: function(icon, size, name)
     {
         if (!name)
@@ -133,10 +174,16 @@ var Icon = {
         var _ = icon.firstChild.style;
 
         if (name.indexOf('/') != -1 || name.indexOf('?') != -1)
+        {
+            delete icon.firstChild.dataset.iconName;
             _.backgroundImage = 'url(' + name + ')';
+        }
         else
         {
-            _.backgroundImage = 'url(' + g_staticUrl + '/images/wow/icons/' + Icon.sizes[size] + '/' + name.toLowerCase() + '.jpg)';
+            icon.firstChild.dataset.iconName = name.toLowerCase();
+            // 1x fallback first, then upgrade to image-set() - browsers that don't support it ignore the invalid reassignment and keep the fallback
+            _.backgroundImage = 'url(' + Icon.url(name, size) + ')';
+            _.backgroundImage = 'image-set(url(' + Icon.url(name, size) + ') 1x, url(' + Icon.url2x(name, size) + ') 2x)';
         }
 
         Icon.moveTexture(icon, size, 0, 0);
@@ -191,20 +238,8 @@ var Icon = {
 
     showIconName: function(x)
     {
-        if (x.firstChild)
-        {
-            var _ = x.firstChild.style;
-
-            if (_.backgroundImage.length && (_.backgroundImage.indexOf(g_staticUrl) >= 4 || g_staticUrl == ''))
-            {
-                var
-                    start = _.backgroundImage.lastIndexOf('/'),
-                    end   = _.backgroundImage.indexOf('.jpg');
-
-                if (start != -1 && end != -1)
-                    Icon.displayIcon(_.backgroundImage.substring(start + 1, end));
-            }
-        }
+        if (x.firstChild && x.firstChild.dataset.iconName)
+            Icon.displayIcon(x.firstChild.dataset.iconName);
     },
 
     onClick: function()
@@ -353,7 +388,7 @@ var Icon = {
                 {
                     if (button == 'arrow')
                     {
-                        var win = window.open(g_staticUrl + '/images/wow/icons/large/' + data.icon.toLowerCase() + '.jpg', '_blank');
+                        var win = window.open(g_staticUrl + '/images/wow/icons/large/' + data.icon.toLowerCase() + '.png', '_blank');
                         win.focus();
                         return false;
                     }

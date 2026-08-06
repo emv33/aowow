@@ -1195,22 +1195,21 @@ function TalentCalc() {
 
             var
                 tds = $WH.gE(d, 'td'),
-                iconBg,
                 afterUrl = '?' + _versionBuild;
 
             if (_mode == MODE_PET) {
                 d.style.backgroundImage = 'url(' + g_staticUrl + '/images/wow/hunterpettalents/bg_' + (c[0].i + 1) + '.jpg' + afterUrl + ')';
-                iconBg = g_staticUrl + '/images/wow/hunterpettalents/icons_' + (c[0].i + 1) + '.jpg' + afterUrl
+                d.style.backgroundSize = '244px 364px';
             }
             else {
                 d.style.backgroundImage = 'url(' + g_staticUrl + '/images/wow/talents/backgrounds/' + g_file_classes[classId] + '_' + (tree + 1) + '.jpg' + afterUrl + ')';
-                iconBg = g_staticUrl + '/images/wow/talents/icons/' + g_file_classes[classId] + '_' + (tree + 1) + '.jpg' + afterUrl;
+                d.style.backgroundSize = '204px 554px';
             }
 
             for (var i = c[tree].t.length - 1; i >= 0; --i) {
                 var
                     talent = c[tree].t[i],
-                    icon = Icon.create(iconBg, 1, null, 'javascript:;'),
+                    icon = Icon.create(talent.iconname, 1, null, 'javascript:;'),
                     link = Icon.getLink(icon),
                     targetTd = tds[(talent.y * 4 + talent.x + 1) - 1];
 
@@ -2670,7 +2669,7 @@ function TalentCalc() {
                         talent.bubble.style.color = '#17FD17';
                     }
 
-                    Icon.moveTexture(talent.icon, 1, i, 0);
+                    talent.icon.classList.remove('icon-disabled');
                     talent.link.className = 'bubbly';
                     talent.bubble.style.visibility = 'visible';
 
@@ -2684,7 +2683,7 @@ function TalentCalc() {
                 }
                 else {
                     talent.border.style.backgroundPosition = '0 0';
-                    Icon.moveTexture(talent.icon, 1, i, 1);
+                    talent.icon.classList.add('icon-disabled');
                     talent.link.className = '';
                     talent.bubble.style.visibility = 'hidden';
 

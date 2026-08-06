@@ -149,7 +149,10 @@ var Menu = new function()
         else if(opt.tinyIcon)
         {
             $a.addClass('tinyicon');
-            $a.css('background-image', 'url(' + (opt.tinyIcon.indexOf('/') != -1 ? opt.tinyIcon : g_staticUrl + '/images/wow/icons/tiny/' + opt.tinyIcon.toLowerCase() + '.gif') + ')');
+            if (opt.tinyIcon.indexOf('/') != -1)
+                $a.css('background-image', 'url(' + opt.tinyIcon + ')');
+            else
+                Icon.setTinyBg($a[0], opt.tinyIcon);
         }
         else if(opt.icon)
         {
