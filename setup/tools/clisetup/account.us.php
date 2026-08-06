@@ -106,7 +106,7 @@ CLISetup::registerUtility(new class extends UtilityScript
             return false;
         }
 
-        if (DB::Aowow()->qry('REPLACE INTO ::account (`login`, `passHash`, `username`, `joindate`, `email`, `userGroups`, `userPerms`) VALUES (%s, %s, %s, UNIX_TIMESTAMP(), %s, %i, 1)',
+        if (DB::Aowow()->qry('REPLACE INTO ::account (`login`, `passHash`, `username`, `joindate`, `email`, `userGroups`, `userPerms`, `debug`) VALUES (%s, %s, %s, UNIX_TIMESTAMP(), %s, %i, 1, 1)',
             $name, User::hashCrypt($passw), $name, $email, U_GROUP_ADMIN))
         {
             $newId = DB::Aowow()->selectCell('SELECT `id` FROM ::account WHERE LOWER(`username`) = LOWER(%s)', $name);
