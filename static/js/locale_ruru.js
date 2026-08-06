@@ -64,13 +64,13 @@ var mn_classes = [
     [1,"Воин",,,{className:"c1",tinyIcon:"class_warrior"}]
 ];
 var mn_races = [
-    [,"Альянс",,,{tinyIcon:"side_alliance"}],
+    [,"Альянс",,,{tinyIcon:"side_alliance",tinyIconLegacy:true}],
     [11,"Дреней",,,{tinyIcon:"race_draenei_female"}],
     [3,"Дворф",,,{tinyIcon:"race_dwarf_female"}],
     [7,"Гном",,,{tinyIcon:"race_gnome_female"}],
     [1,"Человек",,,{tinyIcon:"race_human_female"}],
     [4,"Ночной эльф",,,{tinyIcon:"race_nightelf_female"}],
-    [,"Орда",,,{tinyIcon:"side_horde"}],
+    [,"Орда",,,{tinyIcon:"side_horde",tinyIconLegacy:true}],
     [10,"Эльф крови",,,{tinyIcon:"race_bloodelf_female"}],
     [2,"Орк",,,{tinyIcon:"race_orc_female"}],
     [6,"Таурен",,,{tinyIcon:"race_tauren_female"}],

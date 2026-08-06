@@ -64,13 +64,13 @@ var mn_classes = [
     [1,"Krieger",,,{className:"c1",tinyIcon:"class_warrior"}]
 ];
 var mn_races = [
-    [,"Allianz",,,{tinyIcon:"side_alliance"}],
+    [,"Allianz",,,{tinyIcon:"side_alliance",tinyIconLegacy:true}],
     [11,"Draenei",,,{tinyIcon:"race_draenei_female"}],
     [3,"Zwerg",,,{tinyIcon:"race_dwarf_female"}],
     [7,"Gnom",,,{tinyIcon:"race_gnome_female"}],
     [1,"Mensch",,,{tinyIcon:"race_human_female"}],
     [4,"Nachtelf",,,{tinyIcon:"race_nightelf_female"}],
-    [,"Horde",,,{tinyIcon:"side_horde"}],
+    [,"Horde",,,{tinyIcon:"side_horde",tinyIconLegacy:true}],
     [10,"Blutelf",,,{tinyIcon:"race_bloodelf_female"}],
     [2,"Orc",,,{tinyIcon:"race_orc_female"}],
     [6,"Tauren",,,{tinyIcon:"race_tauren_female"}],

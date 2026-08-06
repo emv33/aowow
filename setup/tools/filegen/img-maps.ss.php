@@ -43,11 +43,9 @@ CLISetup::registerSetup("build", new class extends SetupScript
 
     private const CONTINENTS = [0, 1, 530, 571];            // Map.dbc/id
 
+    // no resizing: store one native copy per map (MAP_W x MAP_H) and let CSS scale it for display
     private const DEST_DIRS = array(
-        ['static/images/wow/maps/%snormal/',   488, 325],
-        ['static/images/wow/maps/%soriginal/',   0,   0],   // 1002, 668
-        ['static/images/wow/maps/%ssmall/',    224, 149],
-        ['static/images/wow/maps/%szoom/',     772, 515]
+        ['static/images/wow/maps/%s',   0,   0]
     );
 
     private const TILEORDER = array(
@@ -619,9 +617,9 @@ CLISetup::registerSetup("build", new class extends SetupScript
                     if (!($this->modeMask & (self::M_MAPS | self::M_SUBZONES)))
                         continue;
 
-                    foreach (self::DEST_DIRS as $sizeIdx => [$path, $width, $height])
+                    foreach (self::DEST_DIRS as $sizeIdx => [$path, , ])
                     {
-                        $outPaths[$sizeIdx] = sprintf($path, strtolower($loc->json()).DIRECTORY_SEPARATOR) . $outFile . '.jpg';
+                        $outPaths[$sizeIdx] = sprintf($path, strtolower($loc->json()).DIRECTORY_SEPARATOR) . $outFile . '.png';
 
                         if (!CLISetup::getOpt('force') && file_exists($outPaths[$sizeIdx]))
                         {
@@ -631,7 +629,7 @@ CLISetup::registerSetup("build", new class extends SetupScript
                     }
 
                     // can't skip map creation if we are to generate subzones later. although they may already exist and get skipped anyway *shrug*
-                    if ($doSkip == 0xF && !($this->modeMask & self::M_SUBZONES))
+                    if ($doSkip == (1 << count(self::DEST_DIRS)) - 1 && !($this->modeMask & self::M_SUBZONES))
                         continue;
 
                     $resMap = $this->assembleImage($srcFile, self::TILEORDER, self::MAP_W, self::MAP_H);
@@ -648,15 +646,15 @@ CLISetup::registerSetup("build", new class extends SetupScript
                         imagedestroy($resOverlay);
                     }
 
-                    // create map
+                    // create map - stored at native resolution (MAP_W x MAP_H); the frontend scales it via CSS
                     if ($this->modeMask & self::M_MAPS)
                     {
-                        foreach (self::DEST_DIRS as $sizeIdx => [, $width, $height])
+                        foreach (array_keys(self::DEST_DIRS) as $sizeIdx)
                         {
                             if ($doSkip & (1 << $sizeIdx))
                                 continue;
 
-                            if (!$this->writeImageFile($resMap, $outPaths[$sizeIdx], $width ?: self::MAP_W, $height ?: self::MAP_H))
+                            if (!$this->writeImageFile($resMap, $outPaths[$sizeIdx], self::MAP_W, self::MAP_H))
                                 $this->success = false;
                         }
                     }
@@ -781,7 +779,7 @@ CLISetup::registerSetup("build", new class extends SetupScript
 
             foreach (self::DEST_DIRS as $sizeIdx => [$path, , ])
             {
-                $outFile[$sizeIdx] = sprintf($path, $loc->json() . DIRECTORY_SEPARATOR) . $row['areaTableId'].'.jpg';
+                $outFile[$sizeIdx] = sprintf($path, $loc->json() . DIRECTORY_SEPARATOR) . $row['areaTableId'].'.png';
                 if (!CLISetup::getOpt('force') && file_exists($outFile[$sizeIdx]))
                 {
                     CLI::write($this->status.' - file '.$outFile[$sizeIdx].' was already processed', CLI::LOG_BLANK, true, true);
@@ -789,19 +787,19 @@ CLISetup::registerSetup("build", new class extends SetupScript
                 }
             }
 
-            if ($doSkip == 0xF)
+            if ($doSkip == (1 << count(self::DEST_DIRS)) - 1)
                 continue;
 
             $subZone = imagecreatetruecolor(self::MAP_W, self::MAP_H);
             imagecopy($subZone, $resMap, 0, 0, 0, 0, imagesx($resMap), imagesy($resMap));
             imagecopy($subZone, $row['maskimage'], $row['x'], $row['y'], 0, 0, imagesx($row['maskimage']), imagesy($row['maskimage']));
 
-            foreach (self::DEST_DIRS as $sizeIdx => [, $width, $height])
+            foreach (array_keys(self::DEST_DIRS) as $sizeIdx)
             {
                 if ($doSkip & (1 << $sizeIdx))
                     continue;
 
-                if (!$this->writeImageFile($subZone, $outFile[$sizeIdx], $width ?: self::MAP_W, $height ?: self::MAP_H))
+                if (!$this->writeImageFile($subZone, $outFile[$sizeIdx], self::MAP_W, self::MAP_H))
                     $this->success = false;
             }
 

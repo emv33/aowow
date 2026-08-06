@@ -578,6 +578,7 @@ a.profiler-pets-button span {
     display: block;
     padding: 3px 0 3px 18px;
     background: no-repeat left center;
+    background-size: 15px 15px;
 }
 
 a.profiler-talents-button small,

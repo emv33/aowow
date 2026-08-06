@@ -153,7 +153,7 @@ if ($this->casterAura):
                         <td colspan="3">
 <?php
     echo Lang::concat($this->casterAura, callback: function($x, $neg) {
-        return Lang::main($neg ? 'disallowed' : 'required', ['<div style="display:inline-block; line-height: 2.0em;"><a href="?spell='.$x[0].'"><span class="iconsmall"><ins style="background-image: url('.$this->gStaticUrl.'/images/wow/icons/small/'.$x[1].'.jpg);"></ins><del></del></span>'.$x[2].'</a></div>']);
+        return Lang::main($neg ? 'disallowed' : 'required', ['<div style="display:inline-block; line-height: 2.0em;"><a href="?spell='.$x[0].'"><span class="iconsmall"><ins style="'.Util::iconBg($x[1]).'"></ins><del></del></span>'.$x[2].'</a></div>']);
     });
 ?>
                         </td>
@@ -168,7 +168,7 @@ if ($this->targetAura):
                         <td colspan="3">
 <?php
     echo Lang::concat($this->targetAura, callback: function($x, $neg) {
-        return Lang::main($neg ? 'disallowed' : 'required', ['<div style="display:inline-block; line-height: 2.0em;"><a href="?spell='.$x[0].'"><span class="iconsmall"><ins style="background-image: url('.$this->gStaticUrl.'/images/wow/icons/small/'.$x[1].'.jpg);"></ins><del></del></span>'.$x[2].'</a></div>']);
+        return Lang::main($neg ? 'disallowed' : 'required', ['<div style="display:inline-block; line-height: 2.0em;"><a href="?spell='.$x[0].'"><span class="iconsmall"><ins style="'.Util::iconBg($x[1]).'"></ins><del></del></span>'.$x[2].'</a></div>']);
     });
 ?>
                         </td>
@@ -239,7 +239,7 @@ $WH.aE(window,\'load\',function(){$WH.ge(\'spelleffectmarkup-'.$i.'\').innerHTML
         ['spellId' => $si, 'spellName' => $sn, 'item' => $it, 'icon' => $ic, 'chance' => $ch] = $e['perfectItem'];
 ?>
 
-                            <small><a href="?spell=<?=$si;?>" class="icontiny"><img src="<?=$this->gStaticUrl;?>/images/wow/icons/tiny/<?=$ic;?>.gif" align="absmiddle">
+                            <small><a href="?spell=<?=$si;?>" class="icontiny"><img src="<?=Util::iconUrl($ic);?>" width="15" height="15" align="absmiddle">
                                 <span class="tinyicontxt"><?=$sn;?></span></a><?=Lang::main('colon').' '.$ch.'%';?></small><table class="icontab">
                             <?=$it->renderContainer(0, $iconTabIdx, true); ?></table>
 

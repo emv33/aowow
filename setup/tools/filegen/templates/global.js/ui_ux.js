@@ -488,7 +488,7 @@ function g_getMoneyHtml(money, side, costItems, costCurrency, achievementPoints)
             var count  = costItems[i][1];
             var icon   = (g_items[itemId] && g_items[itemId].icon ? g_items[itemId].icon : 'inv_misc_questionmark');
 
-            html += '<a href="?item=' + itemId + '" class="moneyitem" style="background-image: url(' + g_staticUrl + '/images/wow/icons/tiny/' + icon.toLowerCase() + '.gif)">' + count + '</a>';
+            html += '<a href="?item=' + itemId + '" class="moneyitem" style="background-image: url(' + Icon.url(icon) + ')">' + count + '</a>';
         }
     }
 
@@ -514,7 +514,7 @@ function g_getMoneyHtml(money, side, costItems, costCurrency, achievementPoints)
             else if (currencyId == 104)                     // honor
                 html += '<a href="?currency=' + currencyId + '" class="money' + (side == 1 ? 'alliance' : 'horde') + ' tip" onmouseover="Listview.funcBox.moneyHonorOver(event)" onmousemove="$WH.Tooltip.cursorUpdate(event)" onmouseout="$WH.Tooltip.hide()">' + (side == 3 ? '<span class="moneyalliance">' : '') + $WH.number_format(count) + (side == 3 ? '</span>' : '') + '</a>';
             else                                            // tokens
-                html += '<a href="?currency=' + currencyId + '" class="icontinyr tip q1" onmouseover="Listview.funcBox.moneyCurrencyOver(' + currencyId + ', ' + count + ', event)" onmousemove="$WH.Tooltip.cursorUpdate(event)" onmouseout="$WH.Tooltip.hide()" style="background-image: url(' + g_staticUrl + '/images/wow/icons/tiny/' + icon[0].toLowerCase() + '.gif)">' +  count + '</a>';
+                html += '<a href="?currency=' + currencyId + '" class="icontinyr tip q1" onmouseover="Listview.funcBox.moneyCurrencyOver(' + currencyId + ', ' + count + ', event)" onmousemove="$WH.Tooltip.cursorUpdate(event)" onmouseout="$WH.Tooltip.hide()" style="background-image: url(' + Icon.url(icon[0]) + ')">' +  count + '</a>';
             // aowow: custom end
             // html += '<a href="?currency=' + currencyId + '" class="icontinyr tip q1" onmouseover="Listview.funcBox.moneyCurrencyOver(' + currencyId + ', ' + count + ', event)" onmousemove="$WH.Tooltip.cursorUpdate(event)" onmouseout="$WH.Tooltip.hide()" style="background-image: url(' + g_staticUrl + '/images/icons/tiny/' + icon[(side == 3 ? 1 : side - 1)].toLowerCase() + '.gif)">' + (side == 3 ? '<span class="icontinyr" style="background-image: url(' + g_staticUrl + '/images/icons/tiny/' + icon[0].toLowerCase() + '.gif)">' : '') + count + (side == 3 ? '</span>' : '') + '</a>';
         }

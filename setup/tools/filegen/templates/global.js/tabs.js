@@ -199,7 +199,7 @@ Tabs.prototype = {
             {
                 s = $WH.ce('span');
                 s.className = 'icontiny';
-                s.style.backgroundImage = 'url(' + g_staticUrl + '/images/wow/icons/tiny/' + tab.icon.toLowerCase() + '.gif)';
+                s.style.backgroundImage = 'url(' + Icon.url(tab.icon) + ')';
                 $WH.ae(d, s);
             }
 
@@ -226,7 +226,7 @@ Tabs.prototype = {
             {
                 s = $WH.ce('span');
                 s.className = 'icontiny';
-                s.style.backgroundImage = 'url(' + g_staticUrl + '/images/wow/icons/tiny/' + tab.icon.toLowerCase() + '.gif)';
+                s.style.backgroundImage = 'url(' + Icon.url(tab.icon) + ')';
                 $WH.ae(b, s);
             }
 

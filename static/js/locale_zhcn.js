@@ -64,13 +64,13 @@ var mn_classes = [
     [1,"战士",,,{className:"c1",tinyIcon:"class_warrior"}]
 ];
 var mn_races = [
-    [,"联盟",,,{tinyIcon:"side_alliance"}],
+    [,"联盟",,,{tinyIcon:"side_alliance",tinyIconLegacy:true}],
     [11,"德莱尼",,,{tinyIcon:"race_draenei_female"}],
     [3,"矮人",,,{tinyIcon:"race_dwarf_female"}],
     [7,"侏儒",,,{tinyIcon:"race_gnome_female"}],
     [1,"人类",,,{tinyIcon:"race_human_female"}],
     [4,"暗夜精灵",,,{tinyIcon:"race_nightelf_female"}],
-    [,"部落",,,{tinyIcon:"side_horde"}],
+    [,"部落",,,{tinyIcon:"side_horde",tinyIconLegacy:true}],
     [10,"血精灵",,,{tinyIcon:"race_bloodelf_female"}],
     [2,"兽人",,,{tinyIcon:"race_orc_female"}],
     [6,"牛头人",,,{tinyIcon:"race_tauren_female"}],

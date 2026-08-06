@@ -16,7 +16,7 @@ var Icon = {
         legendary: '-q5'
     },
     idLookupCache: {},
-    create: function(name, size, DELETEME, url, num, qty, noBorder, rel, span)
+    create: function(name, size, DELETEME, url, num, qty, noBorder, rel, span, legacy)
     {
         var
             icon  = $WH.ce(span ? 'span' : 'div'),
@@ -33,7 +33,7 @@ var Icon = {
         if (!noBorder)
             $WH.ae(icon, tile);
 
-        Icon.setTexture(icon, size, name);
+        Icon.setTexture(icon, size, name, legacy);
 
         if (url)
         {
@@ -125,7 +125,30 @@ var Icon = {
         return buff;
     },
 
-    setTexture: function(icon, size, name)
+    // hand-curated names never extracted from client data (character portraits, quest/side markers) - still
+    // stored per size tier under their original extension. callers that accept arbitrary/free-typed icon
+    // names (bbcode, debug tools) use this to decide what to pass as Icon.url()'s/Icon.create()'s legacy arg
+    isLegacy: function(name)
+    {
+        return /^(chr_|default_|quest_start|quest_end|side_alliance|side_horde)/.test(name.toLowerCase());
+    },
+
+    // icons are stored once at native resolution, regardless of display size - CSS scales them (see .iconsmall/.iconmedium/.iconlarge ins)
+    // pass legacy=true for the handful of hand-curated assets covered by Icon.isLegacy()
+    url: function(name, size, legacy)
+    {
+        name = name.toLowerCase();
+
+        if (legacy)
+        {
+            var tier = size == null ? 'tiny' : Icon.sizes[size];
+            return g_staticUrl + '/images/wow/icons/' + tier + '/' + name + '.' + (tier == 'tiny' ? 'gif' : 'jpg');
+        }
+
+        return g_staticUrl + '/images/wow/icons/' + name + '.png';
+    },
+
+    setTexture: function(icon, size, name, legacy)
     {
         if (!name)
             return;
@@ -133,10 +156,14 @@ var Icon = {
         var _ = icon.firstChild.style;
 
         if (name.indexOf('/') != -1 || name.indexOf('?') != -1)
+        {
+            delete icon.firstChild.dataset.iconName;
             _.backgroundImage = 'url(' + name + ')';
+        }
         else
         {
-            _.backgroundImage = 'url(' + g_staticUrl + '/images/wow/icons/' + Icon.sizes[size] + '/' + name.toLowerCase() + '.jpg)';
+            icon.firstChild.dataset.iconName = name.toLowerCase();
+            _.backgroundImage = 'url(' + Icon.url(name, size, legacy) + ')';
         }
 
         Icon.moveTexture(icon, size, 0, 0);
@@ -191,20 +218,8 @@ var Icon = {
 
     showIconName: function(x)
     {
-        if (x.firstChild)
-        {
-            var _ = x.firstChild.style;
-
-            if (_.backgroundImage.length && (_.backgroundImage.indexOf(g_staticUrl) >= 4 || g_staticUrl == ''))
-            {
-                var
-                    start = _.backgroundImage.lastIndexOf('/'),
-                    end   = _.backgroundImage.indexOf('.jpg');
-
-                if (start != -1 && end != -1)
-                    Icon.displayIcon(_.backgroundImage.substring(start + 1, end));
-            }
-        }
+        if (x.firstChild && x.firstChild.dataset.iconName)
+            Icon.displayIcon(x.firstChild.dataset.iconName);
     },
 
     onClick: function()
@@ -260,10 +275,10 @@ var Icon = {
                                     field.select();
                                 }, 10);
                                 $WH.ee(divIcon);
-                                $WH.ae(divIcon, Icon.create(field.value, 2));
+                                $WH.ae(divIcon, Icon.create(field.value, 2, null, null, null, null, null, null, null, Icon.isLegacy(field.value)));
                             };
 
-                            $WH.ae(divIcon, Icon.create(value, 2));
+                            $WH.ae(divIcon, Icon.create(value, 2, null, null, null, null, null, null, null, Icon.isLegacy(value)));
                             $WH.ae(wrapper, divIcon);
                             $WH.ae(wrapper, field);
                             $WH.ae(td, wrapper);
@@ -353,7 +368,7 @@ var Icon = {
                 {
                     if (button == 'arrow')
                     {
-                        var win = window.open(g_staticUrl + '/images/wow/icons/large/' + data.icon.toLowerCase() + '.jpg', '_blank');
+                        var win = window.open(Icon.url(data.icon, null, Icon.isLegacy(data.icon)), '_blank');
                         win.focus();
                         return false;
                     }

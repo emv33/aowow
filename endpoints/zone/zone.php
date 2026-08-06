@@ -260,7 +260,7 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
         }
 
         // see if we can actually display a map
-        $mapFilePath = 'static/images/wow/maps/%s/normal/%d%s.jpg';
+        $mapFilePath = 'static/images/wow/maps/%s/%d%s.png';
         $options     = array(
             [Lang::getLocale()->json(), ''],                // default case
             [Lang::getLocale()->json(), '-1'],              // try multifloor

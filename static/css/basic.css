@@ -23,7 +23,7 @@
 .wowhead-tooltip td th { padding: 0 0 0 4em; text-align: right; font-weight: normal; }
 .wowhead-tooltip td td { padding: 0; text-align: left; }
 
-.wowhead-tooltip p    { position: absolute; left: -44px; top: -1px; width: 44px; height: 44px; background: 4px 4px no-repeat; margin: 0; padding: 0; }
+.wowhead-tooltip p    { position: absolute; left: -44px; top: -1px; width: 44px; height: 44px; background: 4px 4px no-repeat; background-size: 36px 36px; margin: 0; padding: 0; }
 .wowhead-tooltip p div { width: 44px; height: 44px; background-image: url(../images/Icon/medium/border/default.png); }
 
 .wowhead-tooltip table.shrink b { font-size: 12px; line-height: 15px; }
@@ -34,7 +34,7 @@
 .wowhead-tooltip ins { color: #5DF644; text-decoration: none; border-bottom: 1px dotted; }
 .wowhead-tooltip del { color: #FF8040; text-decoration: none; border-bottom: 1px dotted; }
 
-.wowhead-tooltip span.icontiny { padding-left: 18px !important; background: left center no-repeat; }
+.wowhead-tooltip span.icontiny { padding-left: 18px !important; background: left center no-repeat; background-size: 15px 15px; }
 
 .wowhead-tooltip-powered {
     /* background: url(../images/powered.png) no-repeat; */
@@ -51,7 +51,7 @@
     color: white;
 }
 
-.moneyitem            { padding-right: 18px; }
+.moneyitem            { padding-right: 18px; background-size: 15px 15px; } /* icon set dynamically - stored at native resolution */
 .moneygold            { padding-right: 15px; background-image: url(../images/icons/money-gold.gif);       }
 .moneysilver          { padding-right: 15px; background-image: url(../images/icons/money-silver.gif);     }
 .moneycopper          { padding-right: 15px; background-image: url(../images/icons/money-copper.gif);     }

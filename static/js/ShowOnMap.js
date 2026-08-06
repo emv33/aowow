@@ -287,11 +287,11 @@ ShowOnMap.prototype.construct = function() {
             if (nHordeCoords > 0) {
                 var entry = [idx, LANG.som[idx] + $WH.sprintf(LANG.qty, nHordeCoords), this.showStuff.bind(this, hordeCoords, ['horde', idx], hordeLegend), null];
                 if (idx == 'quest') {
-                    entry.push({ tinyIcon: 'quest_start' });
+                    entry.push({ tinyIcon: 'quest_start', tinyIconLegacy: true });
 
                     if (nHordeDailyCoords > 0) {
                         hordeMenu.push(entry);
-                        entry = ['daily', LANG.som.daily + $WH.sprintf(LANG.qty, nHordeDailyCoords), this.showStuff.bind(this, hordeDailyCoords, ['horde', 'daily'], hordeLegend), null, { tinyIcon: 'quest_start_daily' }];
+                        entry = ['daily', LANG.som.daily + $WH.sprintf(LANG.qty, nHordeDailyCoords), this.showStuff.bind(this, hordeDailyCoords, ['horde', 'daily'], hordeLegend), null, { tinyIcon: 'quest_start_daily', tinyIconLegacy: true }];
                     }
                 }
                 hordeMenu.push(entry);
@@ -299,11 +299,11 @@ ShowOnMap.prototype.construct = function() {
             if (nAllianceCoords > 0) {
                 var entry = [idx, LANG.som[idx] + $WH.sprintf(LANG.qty, nAllianceCoords), this.showStuff.bind(this, allianceCoords, ['alliance', idx], allianceLegend), null];
                 if (idx == 'quest') {
-                    entry.push({ tinyIcon: 'quest_start' });
+                    entry.push({ tinyIcon: 'quest_start', tinyIconLegacy: true });
 
                     if (nAllianceDailyCoords > 0) {
                         allianceMenu.push(entry);
-                        entry = ['daily', LANG.som.daily + $WH.sprintf(LANG.qty, nAllianceDailyCoords), this.showStuff.bind(this, allianceDailyCoords, ['alliance', 'daily'], allianceLegend), null, { tinyIcon: 'quest_start_daily' }];
+                        entry = ['daily', LANG.som.daily + $WH.sprintf(LANG.qty, nAllianceDailyCoords), this.showStuff.bind(this, allianceDailyCoords, ['alliance', 'daily'], allianceLegend), null, { tinyIcon: 'quest_start_daily', tinyIconLegacy: true }];
                     }
                 }
                 allianceMenu.push(entry);
@@ -316,10 +316,10 @@ ShowOnMap.prototype.construct = function() {
     this._menu.sort(cmpFunc);
 
     if (hordeMenu.length > 0) {
-        this._menu.unshift(['horde', LANG.som.horde, '', hordeMenu, { tinyIcon: 'side_horde' }]);
+        this._menu.unshift(['horde', LANG.som.horde, '', hordeMenu, { tinyIcon: 'side_horde', tinyIconLegacy: true }]);
     }
     if (allianceMenu.length > 0) {
-        this._menu.unshift(['alliance', LANG.som.alliance, '', allianceMenu, { tinyIcon: 'side_alliance' }]);
+        this._menu.unshift(['alliance', LANG.som.alliance, '', allianceMenu, { tinyIcon: 'side_alliance', tinyIconLegacy: true }]);
     }
 
     var nothing = [-1, LANG.som_nothing, this.showStuff.bind(this, [], [-1], {})];

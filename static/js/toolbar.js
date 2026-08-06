@@ -154,8 +154,8 @@ function __AddToolbar(mode, ta, tbParent, mnParent) {
             //  [22, g_chr_races[22], g_insertTag.bind(null, ta, '[icon name=race_worgen_female]', '[/icon]'),   null, {tinyIcon: 'race_worgen_female'}]
             ]],
             [3, LANG.tab_factions, , [
-                [1, g_sides[1], g_insertTag.bind(null, ta, '[icon name=side_alliance]', '[/icon]'), null, {tinyIcon: 'side_alliance'}],
-                [2, g_sides[2], g_insertTag.bind(null, ta, '[icon name=side_horde]',    '[/icon]'), null, {tinyIcon: 'side_horde'}]
+                [1, g_sides[1], g_insertTag.bind(null, ta, '[icon name=side_alliance]', '[/icon]'), null, {tinyIcon: 'side_alliance', tinyIconLegacy: true}],
+                [2, g_sides[2], g_insertTag.bind(null, ta, '[icon name=side_horde]',    '[/icon]'), null, {tinyIcon: 'side_horde', tinyIconLegacy: true}]
             ]],
             [4, g_skill_categories[11], , [
                 [171, g_spell_skills[171], g_insertTag.bind(null, ta, '[icon name=trade_alchemy]', '[/icon]'),                null, {tinyIcon: 'trade_alchemy'}],

@@ -1310,7 +1310,7 @@ $lang = array(
         'slain'         => "slain",
         'reqNumCrt'     => 'Requires %1$d out of %2$d',
         'rfAvailable'   => "Available on realm: ",
-        '_transfer'     => 'This achievement will be converted to <a href="?achievement=%d" class="q%d icontiny tinyspecial" style="background-image: url(STATIC_URL/images/wow/icons/tiny/%s.gif)">%s</a> if you transfer to <span class="icon-%s">%s</span>.',
+        '_transfer'     => 'This achievement will be converted to <a href="?achievement=%d" class="q%d icontiny tinyspecial" style="background-image:url(STATIC_URL/images/wow/icons/%s.png)">%s</a> if you transfer to <span class="icon-%s">%s</span>.',
         'cat'           => array(
                 1 => "Statistics",                                                   21 => "Player vs. Player",
                81 => "Feats of Strength",                                            92 => "General",
@@ -1690,7 +1690,7 @@ $lang = array(
         '_inSlot'       => "in slot: ",
         '_collapseAll'  => "Collapse All",
         '_expandAll'    => "Expand All",
-        '_transfer'     => 'This spell will be converted to <a href="?spell=%d" class="q%d icontiny tinyspecial" style="background-image: url(STATIC_URL/images/wow/icons/tiny/%s.gif)">%s</a> if you transfer to <span class="icon-%s">%s</span>.',
+        '_transfer'     => 'This spell will be converted to <a href="?spell=%d" class="q%d icontiny tinyspecial" style="background-image:url(STATIC_URL/images/wow/icons/%s.png)">%s</a> if you transfer to <span class="icon-%s">%s</span>.',
         '_affected'     => "Affected Spells: ",
         '_seeMore'      => "See more",
         '_rankRange'    => "Rank:&nbsp;%d&nbsp;-&nbsp;%d",
@@ -2275,7 +2275,7 @@ $lang = array(
         'tool'          => "Tool: ",
         'cost'          => "Cost",                          // COSTS_LABEL
         'content'       => "Content",
-        '_transfer'     => 'This item will be converted to <a href="?item=%d" class="q%d icontiny tinyspecial" style="background-image: url(STATIC_URL/images/wow/icons/tiny/%s.gif)">%s</a> if you transfer to <span class="icon-%s">%s</span>.',
+        '_transfer'     => 'This item will be converted to <a href="?item=%d" class="q%d icontiny tinyspecial" style="background-image:url(STATIC_URL/images/wow/icons/%s.png)">%s</a> if you transfer to <span class="icon-%s">%s</span>.',
         '_unavailable'  => "This item is not available to players.",
         '_rndEnchants'  => "Random Enchantments",
         '_chance'       => "(%s%% chance)",

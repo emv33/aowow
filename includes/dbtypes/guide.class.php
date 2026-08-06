@@ -144,13 +144,13 @@ class GuideList extends DBTypeList
             if ($c = $this->getField('classId'))
             {
                 $n = Lang::game('cl', $c);
-                $specStr .= '&nbsp;&nbsp;–&nbsp;&nbsp;<span class="icontiny c'.$c.'" style="background-image: url('.Cfg::get('STATIC_URL').'/images/wow/icons/tiny/class_'.ChrClass::tryFrom($c)->json().'.gif)">%s</span>';
+                $specStr .= '&nbsp;&nbsp;–&nbsp;&nbsp;<span class="icontiny c'.$c.'" style="'.Util::iconBg('class_'.ChrClass::tryFrom($c)->json()).'">%s</span>';
 
                 if (($s = $this->getField('specId')) > -1)
                 {
                     $i = Game::$specIconStrings[$c][$s];
                     $n = '';
-                    $specStr .= '<span class="icontiny c'.$c.'" style="background-image: url('.Cfg::get('STATIC_URL').'/images/wow/icons/tiny/'.$i.'.gif)">'.Lang::game('classSpecs', $c, $s).'</span>';
+                    $specStr .= '<span class="icontiny c'.$c.'" style="'.Util::iconBg($i).'">'.Lang::game('classSpecs', $c, $s).'</span>';
                 }
 
                 $specStr = sprintf($specStr, $n);

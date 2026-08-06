@@ -2173,7 +2173,7 @@ $WH.Tooltip = {
         $WH.Tooltip.prepare();
 
         if (icon) {
-            $WH.Tooltip.icon.style.backgroundImage = 'url(' + g_staticUrl + '/images/wow/icons/medium/' + icon.toLowerCase() + '.jpg)';
+            $WH.Tooltip.icon.style.backgroundImage = 'url(' + Icon.url(icon) + ')';
             $WH.Tooltip.icon.style.visibility      = 'visible';
         }
         else {
@@ -2414,14 +2414,16 @@ $WH.g_getProfileIcon = function(raceId, classId, gender, level, icon, size) {
          5: {6:1,  8:1, 5:1, 4:1, 9:1, 1:1     }            // scourge
     };
 
+    // returns [iconName, legacy] - legacy icons are hand-curated portraits never extracted from client
+    // data, still stored per size tier under their original extension instead of the flat native-PNG layout
     if (icon) {
-        return isNaN(icon) ? icon : '?profile=avatar' + (size ? '&size=' + size : '') + '&id=' + icon + (size == 'tiny' ? '.gif' : '.jpg');
+        return [isNaN(icon) ? icon : '?profile=avatar' + (size ? '&size=' + size : '') + '&id=' + icon + (size == 'tiny' ? '.gif' : '.jpg'), false];
     }
 
     if (!g_file_races[raceId] || !g_file_classes[classId] || !g_file_genders[gender] ||
        !raceXclass[raceId] || !raceXclass[raceId][classId] || (classId == 6 && level < 55)) {
-        return 'inv_misc_questionmark';
+        return ['inv_misc_questionmark', false];
     }
 
-    return 'chr_' + g_file_races[raceId] + '_' + g_file_genders[gender] + '_' + g_file_classes[classId] + '0' + (level > 59 ? (Math.floor((level - 60) / 10) + 2) : 1);
+    return ['chr_' + g_file_races[raceId] + '_' + g_file_genders[gender] + '_' + g_file_classes[classId] + '0' + (level > 59 ? (Math.floor((level - 60) / 10) + 2) : 1), true];
 }

@@ -899,7 +899,7 @@ function Profiler() {
     }
 
     function _updateDefaultIcon() {
-        var icon = $WH.g_getProfileIcon(_profile.race, _profile.classs, _profile.gender, _profile.level, 0, 'large');
+        var [icon, legacy] = $WH.g_getProfileIcon(_profile.race, _profile.classs, _profile.gender, _profile.level, 0, 'large');
         // aowow - see profile=avatar endpoint for explanation
         // var icon = $WH.g_getProfileIcon(_profile.race, _profile.classs, _profile.gender, _profile.level, _profile.source, 'large');
 
@@ -908,6 +908,7 @@ function Profiler() {
         }
 
         _profile.defaulticon = (_profile.icon == icon);
+        _profile.iconLegacy  = _profile.defaulticon && legacy;
     }
 
     function _initHeader() {
@@ -1014,7 +1015,7 @@ function Profiler() {
         // Header
 
         // Icon
-        Icon.setTexture(_icoProfile, 2, _profile.icon);
+        Icon.setTexture(_icoProfile, 2, _profile.icon, _profile.iconLegacy);
 
         // Line 1
         $WH.ee(_divLine1);
@@ -1620,7 +1621,7 @@ function Profiler() {
             spSpec    = _divSpec.childNodes[1];
 
         // aowow - spSpec.style.backgroundImage = 'url(' + g_staticUrl + '/images/wow/icons/tiny/' + specData.icon.toLowerCase() + '.gif)';
-        spSpec.style.backgroundImage = 'url(' + g_staticUrl + '/images/wow/icons/tiny/' + (g_file_specs[_profile.classs][specData.id - 1] ?? g_file_specs[specData.id]) + '.gif)';
+        spSpec.style.backgroundImage = 'url(' + Icon.url(g_file_specs[_profile.classs][specData.id - 1] ?? g_file_specs[specData.id]) + ')';
         $WH.st(spSpec, (buildData.spent ? buildData.spent.join('/') : '0/0/0'));
 
         spSpec.onmouseover = function (e) {
@@ -2314,7 +2315,7 @@ function ProfilerTalents(_parent) {
 
             if (sp) {
                 // aowow - sp.style.backgroundImage = 'url(' + g_staticUrl + '/images/wow/icons/tiny/' + specData.icon.toLowerCase() + '.gif)';
-                sp.style.backgroundImage = 'url(' + g_staticUrl + '/images/wow/icons/tiny/' + (g_file_specs[_profile.classs][specData.id - 1] ?? g_file_specs[specData.id]) + '.gif)';
+                sp.style.backgroundImage = 'url(' + Icon.url(g_file_specs[_profile.classs][specData.id - 1] ?? g_file_specs[specData.id]) + ')';
 
                 $WH.ae(sp, $WH.ct(specData.name + ' '));
                 $WH.st(sm, '(' + _builds[build].spent.join('/') + ')');
@@ -8692,7 +8693,7 @@ Listview.templates.inventory = {
 
                             if (sm.t == 5) {
                                 a.className += ' icontinyl';
-                                a.style.backgroundImage = 'url(' + g_staticUrl + '/images/wow/icons/tiny/quest_start.gif)';
+                                a.style.backgroundImage = 'url(' + Icon.url('quest_start', null, true) + ')';
                             }
 
                             a.href = '?' + g_types[sm.t] + '=' + sm.ti;
@@ -8940,7 +8941,7 @@ Listview.templates.gallery = {
 
                     if (sm.t == 5) {
                         a.className += ' icontinyl';
-                        a.style.backgroundImage = 'url(' + g_staticUrl + '/images/wow/icons/tiny/quest_start.gif)';
+                        a.style.backgroundImage = 'url(' + Icon.url('quest_start', null, true) + ')';
                     }
 
                     a.href = '?' + g_types[sm.t] + '=' + sm.ti;
@@ -9980,7 +9981,7 @@ Dialog.templates.profileredit = {
                 g = this.getCheckedValue('gender'),
                 l = this.getSelectedValue('level');
 
-            this.setValue('icon', $WH.g_getProfileIcon(r, c, g, l));
+            this.setValue('icon', $WH.g_getProfileIcon(r, c, g, l)[0]);
         }
 
         this.btnPreview.onclick();

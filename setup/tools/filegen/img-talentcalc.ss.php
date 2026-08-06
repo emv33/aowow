@@ -74,16 +74,10 @@ CLISetup::registerSetup("build", new class extends SetupScript
             $sum++;
             $this->status = ' - '.str_pad($sum.'/'.$total, 8).str_pad('('.number_format($sum * 100 / $total, 2).'%)', 9);
 
-            if ($tt['creatureFamilyMask'])      // is PetCalc
-            {
-                $size = [244, 364];
-                $outFile = sprintf($outInfo[0][0].'bg_%d.jpg', log($tt['creatureFamilyMask'], 2) + 1);
-            }
-            else
-            {
-                $size = [204, 554];
-                $outFile = sprintf($outInfo[1][0].'%s_%d.jpg', strtolower($tt['fileString']), $tt['tabNumber'] + 1);
-            }
+            if ($tt['creatureFamilyMask'])      // is PetCalc - displayed at 244x364 via CSS
+                $outFile = sprintf($outInfo[0][0].'bg_%d.png', log($tt['creatureFamilyMask'], 2) + 1);
+            else                                 // displayed at 204x554 via CSS
+                $outFile = sprintf($outInfo[1][0].'%s_%d.png', strtolower($tt['fileString']), $tt['tabNumber'] + 1);
 
             if (!CLISetup::getOpt('force') && file_exists($outFile))
             {
@@ -91,6 +85,7 @@ CLISetup::registerSetup("build", new class extends SetupScript
                 continue;
             }
 
+            // no resizing: assemble at native tile resolution and let CSS scale it for display
             $im = $this->assembleImage($realPath.'/'.$tt['textureFile'], $tileOrder, 256 + 44, 256 + 75);
             if (!$im)
             {
@@ -99,7 +94,7 @@ CLISetup::registerSetup("build", new class extends SetupScript
                 continue;
             }
 
-            if (!$this->writeImageFile($im, $outFile, $size[0], $size[1]))
+            if (!$this->writeImageFile($im, $outFile, imagesx($im), imagesy($im)))
                 $this->success = false;
         }
 

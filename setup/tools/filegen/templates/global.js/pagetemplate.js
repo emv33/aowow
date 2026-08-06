@@ -202,12 +202,14 @@ var PageTemplate = new function()
                 lastKey = key;
             }
 
+            // aowow - see profile=avatar endpoint for explanation
+            var [tinyIcon, tinyIconLegacy] = $WH.g_getProfileIcon(character.race, character.classs, character.gender, character.level, 0, 'tiny');
+
             var menuItem = [character.id, character.name, g_getProfileUrl(character), null,
             {
                 className: (character.pinned ? 'icon-star-right ' : '') + 'c' + character.classs,
-             // tinyIcon: $WH.g_getProfileIcon(character.race, character.classs, character.gender, character.level, character.id, 'tiny')
-             // aowow - see profile=avatar endpoint for explanation
-                tinyIcon: $WH.g_getProfileIcon(character.race, character.classs, character.gender, character.level, 0, 'tiny')
+                tinyIcon: tinyIcon,
+                tinyIconLegacy: tinyIconLegacy
             }];
 
             submenu.push(menuItem);
@@ -228,10 +230,13 @@ var PageTemplate = new function()
 
         $.each(g_user.profiles, function(idx, profile)
         {
+            var [tinyIcon, tinyIconLegacy] = $WH.g_getProfileIcon(profile.race, profile.classs, profile.gender, profile.level, profile.icon, 'tiny');
+
             var menuItem = [profile.id, profile.name, g_getProfileUrl(profile), null,
             {
                 className: 'c' + profile.classs,
-                tinyIcon: $WH.g_getProfileIcon(profile.race, profile.classs, profile.gender, profile.level, profile.icon, 'tiny')
+                tinyIcon: tinyIcon,
+                tinyIconLegacy: tinyIconLegacy
             }];
 
             submenu.push(menuItem);
