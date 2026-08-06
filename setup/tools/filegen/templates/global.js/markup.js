@@ -229,7 +229,7 @@ var Markup = {
                 if (g_achievements[id] && g_achievements[id][nameCol])
                 {
                     var ach = g_achievements[id];
-                    return '<a href="' + url + '?achievement=' + id + '"' + (rel.length ? ' rel="' + rel.join('&') + '"' : '') + (!attr.icon ? ' class="icontiny"><img src="' + Icon.url(ach.icon) + '"' : '') + Markup._addGlobalAttributes(attr) + ' align="absmiddle" /> <span class="tinyicontxt">' + Markup._safeHtml(ach[nameCol]) + '</span></a>';
+                    return '<a href="' + url + '?achievement=' + id + '"' + (rel.length ? ' rel="' + rel.join('&') + '"' : '') + (!attr.icon ? ' class="icontiny"><img src="' + Icon.url(ach.icon) + '"' : '') + Markup._addGlobalAttributes(attr) + ' width="15" height="15" align="absmiddle" /> <span class="tinyicontxt">' + Markup._safeHtml(ach[nameCol]) + '</span></a>';
                 }
                 return '<a href="' + url + '?achievement=' + id + '"' + (rel.length ? ' rel="' + rel.join('&') + '"' : '') + Markup._addGlobalAttributes(attr) + '>' + (tempname ? tempname : ('(' + LANG.types[10][0] + ' #' + id + ')')) + '</a>';
             },
@@ -393,7 +393,7 @@ var Markup = {
                 if (g_classes[id] && g_classes[id][nameCol])
                 {
                     var cls = g_classes[id];
-                    return '<a href="' + url + '?class=' + id + '"' + (!attr.icon ? ' class="icontiny c' + id + '"><img src="' + Icon.url(g_classes.getIcon(id)) + '"' : '') + Markup._addGlobalAttributes(attr) + ' align="absmiddle" /> <span class="tinyicontxt">' + Markup._safeHtml(cls[nameCol]) + '</span></a>';
+                    return '<a href="' + url + '?class=' + id + '"' + (!attr.icon ? ' class="icontiny c' + id + '"><img src="' + Icon.url(g_classes.getIcon(id)) + '"' : '') + Markup._addGlobalAttributes(attr) + ' width="15" height="15" align="absmiddle" /> <span class="tinyicontxt">' + Markup._safeHtml(cls[nameCol]) + '</span></a>';
                 }
                 return '<a href="' + url + '?class=' + id + '" class="c' + id + '"' + Markup._addGlobalAttributes(attr) + '>(' + LANG.types[13][0] + ' #' + id + ')</a>';
             },
@@ -592,7 +592,7 @@ var Markup = {
                     if (attr.amount)
                         return '<a href="' + url + '?currency=' + id + '"' + (!attr.icon ? ' class="icontinyr tip q1" onmouseover="$WH.Tooltip.showAtCursor(event, \'' + Markup._safeHtml(curr[nameCol]) + '\', 0, 0, \'q1\');" onmousemove="$WH.Tooltip.cursorUpdate(event)" onmouseout="$WH.Tooltip.hide()" style="background-image:url(' + Icon.url(curr.icon[0]) + ')' : '') + Markup._addGlobalAttributes(attr) + '"> <span class="tinyicontxt">' + attr.amount.split(':').join(' - ') + '</span></a>';
                     else
-                        return '<a href="' + url + '?currency=' + id + '"' + (!attr.icon ? ' class="icontiny q1"><span><img src="' + Icon.url(curr.icon[0]) + '"' : '') + Markup._addGlobalAttributes(attr) + ' align="absmiddle" /> <span class="tinyicontxt">' + Markup._safeHtml(curr[nameCol]) + '</a>';
+                        return '<a href="' + url + '?currency=' + id + '"' + (!attr.icon ? ' class="icontiny q1"><span><img src="' + Icon.url(curr.icon[0]) + '"' : '') + Markup._addGlobalAttributes(attr) + ' width="15" height="15" align="absmiddle" /> <span class="tinyicontxt">' + Markup._safeHtml(curr[nameCol]) + '</a>';
                 }
 
                 return '<a href="' + url + '?currency=' + id + '"' + Markup._addGlobalAttributes(attr) + '>(' + LANG.types[17][0] + ' #' + id + ')</a>' + (attr.amount > 0 ? ' x' + attr.amount : '');
@@ -1148,7 +1148,7 @@ var Markup = {
                     if (hasName)
                     {
                         if (size == 'tiny')
-                            return '<a href="' + href + '"' + (rel.length ? ' rel="' + rel.join('&') + '"' : '') + (!attr.icon ? ' class="icontiny"><img src="' + Icon.url(icon.icon) + '" align="absmiddle"' : '') + Markup._addGlobalAttributes(attr) + '> ' + Markup._safeHtml(icon.name) + '</a>'
+                            return '<a href="' + href + '"' + (rel.length ? ' rel="' + rel.join('&') + '"' : '') + (!attr.icon ? ' class="icontiny"><img src="' + Icon.url(icon.icon) + '" width="15" height="15" align="absmiddle"' : '') + Markup._addGlobalAttributes(attr) + '> ' + Markup._safeHtml(icon.name) + '</a>'
                         else
                         {
                             var a = $WH.ce('a', { href: href });
@@ -1413,7 +1413,7 @@ var Markup = {
                 if (g_items[id] && g_items[id][nameCol])
                 {
                     var item = g_items[id];
-                    var str = '<a' + Markup._addGlobalAttributes(attr) + ' href="' + url + '?item=' + id + '" class="q' + item.quality + (!attr.icon ? ' icontiny"><img src="' + Icon.url(item.icon) + '"' : '') + ' align="absmiddle" /> <span class="tinyicontxt">';
+                    var str = '<a' + Markup._addGlobalAttributes(attr) + ' href="' + url + '?item=' + id + '" class="q' + item.quality + (!attr.icon ? ' icontiny"><img src="' + Icon.url(item.icon) + '"' : '') + ' width="15" height="15" align="absmiddle" /> <span class="tinyicontxt">';
                     str += Markup._safeHtml(item[nameCol]) + '</span></a>';
                     return str;
                 }
@@ -2103,7 +2103,7 @@ var Markup = {
                 if (g_quests[id] && g_quests[id][nameCol])
                 {
                     var quest = g_quests[id];
-                    return '<a href="' + url + '?quest=' + id + '"' + (!attr.icon ? ' class="icontiny"><img src="' + Icon.url(quest.daily ? 'quest_start_daily' : 'quest_start') + '"' : '') + Markup._addGlobalAttributes(attr) + ' align="absmiddle" /> <span class="tinyicontxt">' + Markup._safeHtml(quest[nameCol]) + '</span></a>';
+                    return '<a href="' + url + '?quest=' + id + '"' + (!attr.icon ? ' class="icontiny"><img src="' + Icon.url(quest.daily ? 'quest_start_daily' : 'quest_start') + '"' : '') + Markup._addGlobalAttributes(attr) + ' width="15" height="15" align="absmiddle" /> <span class="tinyicontxt">' + Markup._safeHtml(quest[nameCol]) + '</span></a>';
                 }
                 return '<a href="' + url + '?quest=' + id + '"' + Markup._addGlobalAttributes(attr) + '>(' + LANG.types[5][0] + ' #' + id + ')</a>';
             },
@@ -2270,7 +2270,7 @@ var Markup = {
                 if (g_races[id] && g_races[id][nameCol])
                 {
                     var race = g_races[id];
-                    return '<a href="' + url + '?race=' + id + '"' + (!attr.icon ? ' class="icontiny"><img src="' + Icon.url(g_races.getIcon(id, gender)) + '"' : '') + Markup._addGlobalAttributes(attr) + ' align="absmiddle" /> <span class="tinyicontxt">' + Markup._safeHtml(race[nameCol]) + '</span></a>';
+                    return '<a href="' + url + '?race=' + id + '"' + (!attr.icon ? ' class="icontiny"><img src="' + Icon.url(g_races.getIcon(id, gender)) + '"' : '') + Markup._addGlobalAttributes(attr) + ' width="15" height="15" align="absmiddle" /> <span class="tinyicontxt">' + Markup._safeHtml(race[nameCol]) + '</span></a>';
                 }
                 return '<a href="' + url + '?race=' + id + '"' + Markup._addGlobalAttributes(attr) + '>(' + LANG.types[14][0] + ' #' + id + ')</a>';
             },
@@ -2485,7 +2485,7 @@ var Markup = {
                 if (g_skills[id] && g_skills[id][nameCol])
                 {
                     var skill = g_skills[id];
-                    return '<a href="' + url + '?skill=' + id + '"' + (!attr.icon ? ' class="icontiny"><img src="' + Icon.url(g_skills.getIcon(id)) + '"' : '') + Markup._addGlobalAttributes(attr) + ' align="absmiddle" /> <span class="tinyicontxt">' + Markup._safeHtml(skill[nameCol]) + '</span></a>';
+                    return '<a href="' + url + '?skill=' + id + '"' + (!attr.icon ? ' class="icontiny"><img src="' + Icon.url(g_skills.getIcon(id)) + '"' : '') + Markup._addGlobalAttributes(attr) + ' width="15" height="15" align="absmiddle" /> <span class="tinyicontxt">' + Markup._safeHtml(skill[nameCol]) + '</span></a>';
                 }
                 return '<a href="' + url + '?skill=' + id + '"' + Markup._addGlobalAttributes(attr) + '>(' + LANG.types[15][0] + ' #' + id + ')</a>';
             },
@@ -2731,7 +2731,7 @@ var Markup = {
                 if (g_spells[id] && g_spells[id][nameCol])
                 {
                     var spell = g_spells[id];
-                    return '<a href="' + url + '?spell=' + id + '"' + (rel.length ? ' rel="' + rel.join('&') + '"' : '') + (!attr.icon ? ' class="icontiny"><img src="' + Icon.url(spell.icon) + '"' : '') + Markup._addGlobalAttributes(attr) + ' align="absmiddle" /> <span class="tinyicontxt">' + Markup._safeHtml(spell[nameCol]) + '</span></a>';
+                    return '<a href="' + url + '?spell=' + id + '"' + (rel.length ? ' rel="' + rel.join('&') + '"' : '') + (!attr.icon ? ' class="icontiny"><img src="' + Icon.url(spell.icon) + '"' : '') + Markup._addGlobalAttributes(attr) + ' width="15" height="15" align="absmiddle" /> <span class="tinyicontxt">' + Markup._safeHtml(spell[nameCol]) + '</span></a>';
                 }
 
                 return '<a href="' + url + '?spell=' + id + '"' + (rel.length ? ' rel="' + rel.join('&') + '"' : '') + '>' + (tempname ? tempname : ('(' + LANG.types[6][0] + ' #' + id + ')')) + '</a>';
@@ -2785,7 +2785,7 @@ var Markup = {
                 if (g_achievements[id] && g_achievements[id][nameCol])
                 {
                     var ach = g_achievements[id];
-                    return '<a href="' + url + '?achievement=' + id + '"' + (!attr.icon ? ' class="icontiny"><img src="' + Icon.url(ach.icon) + '"' : '') + Markup._addGlobalAttributes(attr) + ' align="absmiddle" /> <span class="tinyicontxt">' + Markup._safeHtml(ach[nameCol]) + '</span></a>';
+                    return '<a href="' + url + '?achievement=' + id + '"' + (!attr.icon ? ' class="icontiny"><img src="' + Icon.url(ach.icon) + '"' : '') + Markup._addGlobalAttributes(attr) + ' width="15" height="15" align="absmiddle" /> <span class="tinyicontxt">' + Markup._safeHtml(ach[nameCol]) + '</span></a>';
                 }
                 return '<a href="' + url + '?achievement=' + id + '"' + Markup._addGlobalAttributes(attr) + '>(' + LANG.types[10][0] + ' #' + id + ')</a>';
             },

@@ -356,10 +356,10 @@ Mapper.prototype = {
 
         var type = Locale.getName();
 
-        this.span.style.background = 'url(' + g_staticUrl + '/images/wow/maps/' + type + '/' + map + '.png)';
+        this.span.style.backgroundImage = 'url(' + g_staticUrl + '/images/wow/maps/' + type + '/' + map + '.png)';
 
         if (this.overlay)
-            this.overlaySpan.style.background = 'url(' + g_staticUrl + '/images/wow/maps/overlay/' + map + '.png)';
+            this.overlaySpan.style.backgroundImage = 'url(' + g_staticUrl + '/images/wow/maps/overlay/' + map + '.png)';
 
         if (this.sZoneLink)
         {

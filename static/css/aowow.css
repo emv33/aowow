@@ -976,9 +976,10 @@ span.iconblizzard {
     background-repeat: no-repeat;
 }
 
-.iconsmall    del { width: 26px; height: 26px; background-image: url(../images/Icon/small/border/default.png);  }
-.iconmedium   del { width: 44px; height: 44px; background-image: url(../images/Icon/medium/border/default.png); }
-.iconlarge    del { width: 68px; height: 68px; background-image: url(../images/Icon/large/border/default.png);  }
+/* single native-size border art (see images/Icon/border/); scale down to fit each tier's box */
+.iconsmall    del { width: 26px; height: 26px; background-image: url(../images/Icon/border/default.png); background-size: 26px 26px; }
+.iconmedium   del { width: 44px; height: 44px; background-image: url(../images/Icon/border/default.png); background-size: 44px 44px; }
+.iconlarge    del { width: 68px; height: 68px; background-image: url(../images/Icon/border/default.png);  }
 .iconblizzard del { width: 76px; height: 76px; background-image: url(../images/Icon/blizzard/border/default.png); }
 
 /* Overlay (e.g. animated sparkles) */
@@ -990,7 +991,7 @@ span.iconblizzard {
     background-repeat: no-repeat;
 }
 
-.iconsmall  var { width: 26px; height: 26px; }
+.iconsmall  var { width: 26px; height: 26px; background-size: 26px 26px; }
 .iconmedium var { width: 44px; height: 44px; }
 
 /* Clickable area (w/ hilite effect) */
@@ -1004,9 +1005,9 @@ span.iconblizzard {
     z-index: 20;
 }
 
-.iconsmall  a { width: 20px; height: 20px; background: url(../images/Icon/small/hilite/default.png)  no-repeat 20px 0; }
-.iconmedium a { width: 38px; height: 38px; background: url(../images/Icon/medium/hilite/default.png) no-repeat 38px 0; }
-.iconlarge  a { width: 62px; height: 62px; background: url(../images/Icon/large/hilite/default.png)  no-repeat 62px 0; }
+.iconsmall  a { width: 20px; height: 20px; background: url(../images/Icon/hilite/default.png) no-repeat 20px 0; background-size: 20px 20px; }
+.iconmedium a { width: 38px; height: 38px; background: url(../images/Icon/hilite/default.png) no-repeat 38px 0; background-size: 38px 38px; }
+.iconlarge  a { width: 62px; height: 62px; background: url(../images/Icon/hilite/default.png) no-repeat 62px 0; }
 
 .iconsmall a:hover,
 .iconmedium a:hover,
@@ -1023,7 +1024,9 @@ span.iconblizzard {
 .iconsmall-socket-red-empty       ins,
 .iconsmall-socket-blue-empty      ins,
 .iconsmall-socket-prismatic-empty ins {
-    background-image: url(../images/Icon/small/socket/background.jpg);
+    /* single native-size sprite (see images/Icon/socket/); scaled down (offsets below are already relative to this scaled size) */
+    background-image: url(../images/Icon/socket/background.jpg);
+    background-size: 90px 18px;
 }
 
 .iconsmall-socket-meta-empty      ins { background-position: 0     0; }
@@ -1037,7 +1040,7 @@ span.iconblizzard {
 .iconmedium-socket-red-empty       ins,
 .iconmedium-socket-blue-empty      ins,
 .iconmedium-socket-prismatic-empty ins {
-    background-image: url(../images/Icon/medium/socket/background.jpg);
+    background-image: url(../images/Icon/socket/background.jpg);
 }
 
 .iconmedium-socket-meta-empty      ins { background-position: 0      0; }
@@ -1046,46 +1049,46 @@ span.iconblizzard {
 .iconmedium-socket-blue-empty      ins { background-position: -108px 0; }
 .iconmedium-socket-prismatic-empty ins { background-position: -144px 0; }
 
-.iconsmall-socket-meta            del { background-image: url(../images/Icon/small/socket/meta1.png);      }
-.iconsmall-socket-meta-empty      del { background-image: url(../images/Icon/small/socket/meta0.png);      }
-.iconsmall-socket-red             del { background-image: url(../images/Icon/small/socket/red1.png);       }
-.iconsmall-socket-red-empty       del { background-image: url(../images/Icon/small/socket/red0.png);       }
-.iconsmall-socket-yellow          del { background-image: url(../images/Icon/small/socket/yellow1.png);    }
-.iconsmall-socket-yellow-empty    del { background-image: url(../images/Icon/small/socket/yellow0.png);    }
-.iconsmall-socket-blue            del { background-image: url(../images/Icon/small/socket/blue1.png);      }
-.iconsmall-socket-blue-empty      del { background-image: url(../images/Icon/small/socket/blue0.png);      }
-.iconsmall-socket-prismatic       del { background-image: url(../images/Icon/small/socket/prismatic1.png); }
-.iconsmall-socket-prismatic-empty del { background-image: url(../images/Icon/small/socket/prismatic0.png); }
+.iconsmall-socket-meta            del { background-image: url(../images/Icon/socket/meta1.png);      }
+.iconsmall-socket-meta-empty      del { background-image: url(../images/Icon/socket/meta0.png);      }
+.iconsmall-socket-red             del { background-image: url(../images/Icon/socket/red1.png);       }
+.iconsmall-socket-red-empty       del { background-image: url(../images/Icon/socket/red0.png);       }
+.iconsmall-socket-yellow          del { background-image: url(../images/Icon/socket/yellow1.png);    }
+.iconsmall-socket-yellow-empty    del { background-image: url(../images/Icon/socket/yellow0.png);    }
+.iconsmall-socket-blue            del { background-image: url(../images/Icon/socket/blue1.png);      }
+.iconsmall-socket-blue-empty      del { background-image: url(../images/Icon/socket/blue0.png);      }
+.iconsmall-socket-prismatic       del { background-image: url(../images/Icon/socket/prismatic1.png); }
+.iconsmall-socket-prismatic-empty del { background-image: url(../images/Icon/socket/prismatic0.png); }
 
-.iconmedium-socket-meta            del { background-image: url(../images/Icon/medium/socket/meta1.png);      }
-.iconmedium-socket-meta-empty      del { background-image: url(../images/Icon/medium/socket/meta0.png);      }
-.iconmedium-socket-red             del { background-image: url(../images/Icon/medium/socket/red1.png);       }
-.iconmedium-socket-red-empty       del { background-image: url(../images/Icon/medium/socket/red0.png);       }
-.iconmedium-socket-yellow          del { background-image: url(../images/Icon/medium/socket/yellow1.png);    }
-.iconmedium-socket-yellow-empty    del { background-image: url(../images/Icon/medium/socket/yellow0.png);    }
-.iconmedium-socket-blue            del { background-image: url(../images/Icon/medium/socket/blue1.png);      }
-.iconmedium-socket-blue-empty      del { background-image: url(../images/Icon/medium/socket/blue0.png);      }
-.iconmedium-socket-prismatic       del { background-image: url(../images/Icon/medium/socket/prismatic1.png); }
-.iconmedium-socket-prismatic-empty del { background-image: url(../images/Icon/medium/socket/prismatic0.png); }
+.iconmedium-socket-meta            del { background-image: url(../images/Icon/socket/meta1.png);      }
+.iconmedium-socket-meta-empty      del { background-image: url(../images/Icon/socket/meta0.png);      }
+.iconmedium-socket-red             del { background-image: url(../images/Icon/socket/red1.png);       }
+.iconmedium-socket-red-empty       del { background-image: url(../images/Icon/socket/red0.png);       }
+.iconmedium-socket-yellow          del { background-image: url(../images/Icon/socket/yellow1.png);    }
+.iconmedium-socket-yellow-empty    del { background-image: url(../images/Icon/socket/yellow0.png);    }
+.iconmedium-socket-blue            del { background-image: url(../images/Icon/socket/blue1.png);      }
+.iconmedium-socket-blue-empty      del { background-image: url(../images/Icon/socket/blue0.png);      }
+.iconmedium-socket-prismatic       del { background-image: url(../images/Icon/socket/prismatic1.png); }
+.iconmedium-socket-prismatic-empty del { background-image: url(../images/Icon/socket/prismatic0.png); }
 
-.iconsmall-socket-meta      var { background-image: url(../images/Icon/small/socket/anim-meta.gif);      }
-.iconsmall-socket-yellow    var { background-image: url(../images/Icon/small/socket/anim-yellow.gif);    }
-.iconsmall-socket-red       var { background-image: url(../images/Icon/small/socket/anim-red.gif);       }
-.iconsmall-socket-blue      var { background-image: url(../images/Icon/small/socket/anim-blue.gif);      }
-.iconsmall-socket-prismatic var { background-image: url(../images/Icon/small/socket/anim-prismatic.gif); }
+.iconsmall-socket-meta      var { background-image: url(../images/Icon/socket/anim-meta.gif);      }
+.iconsmall-socket-yellow    var { background-image: url(../images/Icon/socket/anim-yellow.gif);    }
+.iconsmall-socket-red       var { background-image: url(../images/Icon/socket/anim-red.gif);       }
+.iconsmall-socket-blue      var { background-image: url(../images/Icon/socket/anim-blue.gif);      }
+.iconsmall-socket-prismatic var { background-image: url(../images/Icon/socket/anim-prismatic.gif); }
 
-.iconmedium-socket-meta      var { background-image: url(../images/Icon/medium/socket/anim-meta.gif);      }
-.iconmedium-socket-yellow    var { background-image: url(../images/Icon/medium/socket/anim-yellow.gif);    }
-.iconmedium-socket-red       var { background-image: url(../images/Icon/medium/socket/anim-red.gif);       }
-.iconmedium-socket-blue      var { background-image: url(../images/Icon/medium/socket/anim-blue.gif);      }
-.iconmedium-socket-prismatic var { background-image: url(../images/Icon/medium/socket/anim-prismatic.gif); }
+.iconmedium-socket-meta      var { background-image: url(../images/Icon/socket/anim-meta.gif);      }
+.iconmedium-socket-yellow    var { background-image: url(../images/Icon/socket/anim-yellow.gif);    }
+.iconmedium-socket-red       var { background-image: url(../images/Icon/socket/anim-red.gif);       }
+.iconmedium-socket-blue      var { background-image: url(../images/Icon/socket/anim-blue.gif);      }
+.iconmedium-socket-prismatic var { background-image: url(../images/Icon/socket/anim-prismatic.gif); }
 
 .iconsmall-socket-meta a,
 .iconsmall-socket-red a,
 .iconsmall-socket-yellow a,
 .iconsmall-socket-blue a,
 .iconsmall-socket-prismatic a {
-    background-image: url(../images/Icon/small/hilite/socket1.png);
+    background-image: url(../images/Icon/hilite/socket1.png);
 }
 
 .iconsmall-socket-meta-empty      a,
@@ -1093,7 +1096,7 @@ span.iconblizzard {
 .iconsmall-socket-yellow-empty    a,
 .iconsmall-socket-blue-empty      a,
 .iconsmall-socket-prismatic-empty a {
-    background-image: url(../images/Icon/small/hilite/socket0.png);
+    background-image: url(../images/Icon/hilite/socket0.png);
 }
 
 .iconmedium-socket-meta      a,
@@ -1101,7 +1104,7 @@ span.iconblizzard {
 .iconmedium-socket-yellow    a,
 .iconmedium-socket-blue      a,
 .iconmedium-socket-prismatic a {
-    background-image: url(../images/Icon/medium/hilite/socket1.png);
+    background-image: url(../images/Icon/hilite/socket1.png);
 }
 
 .iconmedium-socket-meta-empty      a,
@@ -1109,7 +1112,7 @@ span.iconblizzard {
 .iconmedium-socket-yellow-empty    a,
 .iconmedium-socket-blue-empty      a,
 .iconmedium-socket-prismatic-empty a {
-    background-image: url(../images/Icon/medium/hilite/socket0.png);
+    background-image: url(../images/Icon/hilite/socket0.png);
 }
 
 /* TODO: Add hilite images for medium socket icons */
@@ -1136,18 +1139,18 @@ span.iconblizzard {
 /*******************/
 
 /* Premium */
-.iconsmall-premium  del { background-image: url(../images/Icon/small/border/premium.png);  }
-.iconmedium-premium del { background-image: url(../images/Icon/medium/border/premium.png); }
-.iconlarge-premium  del { background-image: url(../images/Icon/large/border/premium.png);  }
+.iconsmall-premium  del { background-image: url(../images/Icon/border/premium.png);  }
+.iconmedium-premium del { background-image: url(../images/Icon/border/premium.png); }
+.iconlarge-premium  del { background-image: url(../images/Icon/border/premium.png);  }
 
 /* Gold */
-.iconsmall-gold  del { background-image: url(../images/Icon/small/border/gold.png);      }
-.iconmedium-gold del { background-image: url(../images/Icon/medium/border/gold.png); }
-.iconlarge-gold  del { background-image: url(../images/Icon/large/border/gold.png);      }
+.iconsmall-gold  del { background-image: url(../images/Icon/border/gold.png);      }
+.iconmedium-gold del { background-image: url(../images/Icon/border/gold.png); }
+.iconlarge-gold  del { background-image: url(../images/Icon/border/gold.png);      }
 
 /* Gold (selected) */
-.iconmedium-gold-selected del { background-image: url(../images/Icon/medium/border/gold-selected.png); }
-.iconlarge-gold-selected  del { background-image: url(../images/Icon/large/border/gold-selected.png);  }
+.iconmedium-gold-selected del { background-image: url(../images/Icon/border/gold-selected.png); }
+.iconlarge-gold-selected  del { background-image: url(../images/Icon/border/gold-selected.png);  }
 
 .iconmedium-gold-selected a,
 .iconlarge-gold-selected a {
@@ -1155,10 +1158,11 @@ span.iconblizzard {
     cursor: default;
 }
 
-.iconsmall-red  del { background-image:url(../images/Icon/small/border/red.png);  }
-.iconmedium-red del { background-image:url(../images/Icon/medium/border/red.png); }
-.iconlarge-red  del { background-image:url(../images/Icon/large/border/red.png);  }
+.iconsmall-red  del { background-image:url(../images/Icon/border/red.png);  }
+.iconmedium-red del { background-image:url(../images/Icon/border/red.png); }
+.iconlarge-red  del { background-image:url(../images/Icon/border/red.png);  }
 
+/* premiumred not consolidated: large's asset has a taller (68x85) aspect, small/medium keep their own square art */
 .iconsmall-premiumred  del { background-image:url(../images/Icon/small/border/premiumred.png);  }
 .iconmedium-premiumred del { background-image:url(../images/Icon/medium/border/premiumred.png); }
 .iconlarge-premiumred  del {
@@ -1172,41 +1176,41 @@ span.iconblizzard {
 }
 
 /* Quality colors */
-.iconsmall-q0  del { background-image: url(../images/Icon/small/border/q0.png);  }
-.iconsmall-q1  del { background-image: url(../images/Icon/small/border/q1.png);  }
-.iconsmall-q2  del { background-image: url(../images/Icon/small/border/q2.png);  }
-.iconsmall-q3  del { background-image: url(../images/Icon/small/border/q3.png);  }
-.iconsmall-q4  del { background-image: url(../images/Icon/small/border/q4.png);  }
-.iconsmall-q5  del { background-image: url(../images/Icon/small/border/q5.png);  }
-.iconsmall-q6  del { background-image: url(../images/Icon/small/border/q6.png);  }
-.iconsmall-q7  del { background-image: url(../images/Icon/small/border/q7.png);  }
-.iconsmall-q8  del { background-image: url(../images/Icon/small/border/q8.png);  }
-.iconsmall-q9  del { background-image: url(../images/Icon/small/border/q9.png);  }
-.iconsmall-q10 del { background-image: url(../images/Icon/small/border/q10.png); }
+.iconsmall-q0  del { background-image: url(../images/Icon/border/q0.png);  }
+.iconsmall-q1  del { background-image: url(../images/Icon/border/q1.png);  }
+.iconsmall-q2  del { background-image: url(../images/Icon/border/q2.png);  }
+.iconsmall-q3  del { background-image: url(../images/Icon/border/q3.png);  }
+.iconsmall-q4  del { background-image: url(../images/Icon/border/q4.png);  }
+.iconsmall-q5  del { background-image: url(../images/Icon/border/q5.png);  }
+.iconsmall-q6  del { background-image: url(../images/Icon/border/q6.png);  }
+.iconsmall-q7  del { background-image: url(../images/Icon/border/q7.png);  }
+.iconsmall-q8  del { background-image: url(../images/Icon/border/q8.png);  }
+.iconsmall-q9  del { background-image: url(../images/Icon/border/q9.png);  }
+.iconsmall-q10 del { background-image: url(../images/Icon/border/q10.png); }
 
-.iconmedium-q0  del { background-image: url(../images/Icon/medium/border/q0.png);  }
-.iconmedium-q1  del { background-image: url(../images/Icon/medium/border/q1.png);  }
-.iconmedium-q2  del { background-image: url(../images/Icon/medium/border/q2.png);  }
-.iconmedium-q3  del { background-image: url(../images/Icon/medium/border/q3.png);  }
-.iconmedium-q4  del { background-image: url(../images/Icon/medium/border/q4.png);  }
-.iconmedium-q5  del { background-image: url(../images/Icon/medium/border/q5.png);  }
-.iconmedium-q6  del { background-image: url(../images/Icon/medium/border/q6.png);  }
-.iconmedium-q7  del { background-image: url(../images/Icon/medium/border/q7.png);  }
-.iconmedium-q8  del { background-image: url(../images/Icon/medium/border/q8.png);  }
-.iconmedium-q9  del { background-image: url(../images/Icon/medium/border/q9.png);  }
-.iconmedium-q10 del { background-image: url(../images/Icon/medium/border/q10.png); }
+.iconmedium-q0  del { background-image: url(../images/Icon/border/q0.png);  }
+.iconmedium-q1  del { background-image: url(../images/Icon/border/q1.png);  }
+.iconmedium-q2  del { background-image: url(../images/Icon/border/q2.png);  }
+.iconmedium-q3  del { background-image: url(../images/Icon/border/q3.png);  }
+.iconmedium-q4  del { background-image: url(../images/Icon/border/q4.png);  }
+.iconmedium-q5  del { background-image: url(../images/Icon/border/q5.png);  }
+.iconmedium-q6  del { background-image: url(../images/Icon/border/q6.png);  }
+.iconmedium-q7  del { background-image: url(../images/Icon/border/q7.png);  }
+.iconmedium-q8  del { background-image: url(../images/Icon/border/q8.png);  }
+.iconmedium-q9  del { background-image: url(../images/Icon/border/q9.png);  }
+.iconmedium-q10 del { background-image: url(../images/Icon/border/q10.png); }
 
-.iconlarge-q0  del { background-image: url(../images/Icon/large/border/q0.png);  }
-.iconlarge-q1  del { background-image: url(../images/Icon/large/border/q1.png);  }
-.iconlarge-q2  del { background-image: url(../images/Icon/large/border/q2.png);  }
-.iconlarge-q3  del { background-image: url(../images/Icon/large/border/q3.png);  }
-.iconlarge-q4  del { background-image: url(../images/Icon/large/border/q4.png);  }
-.iconlarge-q5  del { background-image: url(../images/Icon/large/border/q5.png);  }
-.iconlarge-q6  del { background-image: url(../images/Icon/large/border/q6.png);  }
-.iconlarge-q7  del { background-image: url(../images/Icon/large/border/q7.png);  }
-.iconlarge-q8  del { background-image: url(../images/Icon/large/border/q8.png);  }
-.iconlarge-q9  del { background-image: url(../images/Icon/large/border/q9.png);  }
-.iconlarge-q10 del { background-image: url(../images/Icon/large/border/q10.png); }
+.iconlarge-q0  del { background-image: url(../images/Icon/border/q0.png);  }
+.iconlarge-q1  del { background-image: url(../images/Icon/border/q1.png);  }
+.iconlarge-q2  del { background-image: url(../images/Icon/border/q2.png);  }
+.iconlarge-q3  del { background-image: url(../images/Icon/border/q3.png);  }
+.iconlarge-q4  del { background-image: url(../images/Icon/border/q4.png);  }
+.iconlarge-q5  del { background-image: url(../images/Icon/border/q5.png);  }
+.iconlarge-q6  del { background-image: url(../images/Icon/border/q6.png);  }
+.iconlarge-q7  del { background-image: url(../images/Icon/border/q7.png);  }
+.iconlarge-q8  del { background-image: url(../images/Icon/border/q8.png);  }
+.iconlarge-q9  del { background-image: url(../images/Icon/border/q9.png);  }
+.iconlarge-q10 del { background-image: url(../images/Icon/border/q10.png); }
 
 /****************/
 /* INLINE ICONS */
@@ -2158,9 +2162,10 @@ div.live-search-icon {
 }
 
 div.live-search-icon div {
-    background-image: url(../images/Icon/small/border/default.png);
+    background-image: url(../images/Icon/border/default.png);
     background-position: left center;
     background-repeat: no-repeat;
+    background-size: 26px 26px;
 }
 
 div.live-search-icon-boss {
@@ -2427,6 +2432,10 @@ z-index: 100000002;
     background-position: 4px center;
     background-repeat: no-repeat;
     padding-left: 24px;
+}
+
+.menu a.tinyicon {
+    background-size: 15px 15px;
 }
 
 .menu a.socket-meta, .menu a.socket-red, .menu a.socket-yellow, .menu a.socket-blue, .menu a.socket-prismatic, .menu a.socket-hydraulic, .menu a.socket-cogwheel {

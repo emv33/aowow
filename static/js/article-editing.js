@@ -6,9 +6,9 @@ $(document).ready(function () {
             return;
 
         if (iconStr.indexOf("http") == 0)
-            $("#iconPreview").append($("<img/>", { src: iconStr }));
+            $("#iconPreview").append($("<img/>", { src: iconStr, width: 56, height: 56 }));
         else
-            $("#iconPreview").append($("<img/>", { src: Icon.url(iconStr) }));
+            $("#iconPreview").append($("<img/>", { src: Icon.url(iconStr), width: 56, height: 56 }));
     });
 });
 

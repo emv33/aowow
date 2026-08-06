@@ -239,7 +239,7 @@ $WH.aE(window,\'load\',function(){$WH.ge(\'spelleffectmarkup-'.$i.'\').innerHTML
         ['spellId' => $si, 'spellName' => $sn, 'item' => $it, 'icon' => $ic, 'chance' => $ch] = $e['perfectItem'];
 ?>
 
-                            <small><a href="?spell=<?=$si;?>" class="icontiny"><img src="<?=Util::iconUrl($ic);?>" align="absmiddle">
+                            <small><a href="?spell=<?=$si;?>" class="icontiny"><img src="<?=Util::iconUrl($ic);?>" width="15" height="15" align="absmiddle">
                                 <span class="tinyicontxt"><?=$sn;?></span></a><?=Lang::main('colon').' '.$ch.'%';?></small><table class="icontab">
                             <?=$it->renderContainer(0, $iconTabIdx, true); ?></table>
 

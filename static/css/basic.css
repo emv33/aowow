@@ -23,8 +23,8 @@
 .wowhead-tooltip td th { padding: 0 0 0 4em; text-align: right; font-weight: normal; }
 .wowhead-tooltip td td { padding: 0; text-align: left; }
 
-.wowhead-tooltip p    { position: absolute; left: -44px; top: -1px; width: 44px; height: 44px; background: 4px 4px no-repeat; margin: 0; padding: 0; }
-.wowhead-tooltip p div { width: 44px; height: 44px; background-image: url(../images/Icon/medium/border/default.png); }
+.wowhead-tooltip p    { position: absolute; left: -44px; top: -1px; width: 44px; height: 44px; background: 4px 4px no-repeat; background-size: 36px 36px; margin: 0; padding: 0; }
+.wowhead-tooltip p div { width: 44px; height: 44px; background-image: url(../images/Icon/border/default.png); background-size: 44px 44px; }
 
 .wowhead-tooltip table.shrink b { font-size: 12px; line-height: 15px; }
 .wowhead-tooltip table.shrink td, .wowhead-tooltip table.shrink th { font-size: 10px; line-height: 14px; }
