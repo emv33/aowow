@@ -949,7 +949,7 @@ span.iconblizzard {
 .iconlarge    { width: 68px; height: 68px; }
 .iconblizzard { width: 76px; height: 76px; }
 
-/* Background image (e.g. inv_sword_17) */
+/* Background image (e.g. inv_sword_17) - icons are stored at native resolution (no per-size files), so scale to fit the box */
 .iconsmall    ins,
 .iconmedium   ins,
 .iconlarge    ins,
@@ -958,6 +958,7 @@ span.iconblizzard {
     position: absolute;
     z-index: 5;
     background-repeat: no-repeat;
+    background-size: 100% 100%;
 }
 
 .iconsmall  ins   { width: 18px; height: 18px; left: 4px; top: 4px; }
@@ -1211,11 +1212,12 @@ span.iconblizzard {
 /* INLINE ICONS */
 /****************/
 
-.icontiny  { background: left center no-repeat;  }
-.icontinyr { padding-right: 18px !important; background: right center no-repeat; }
-.icontinyl { padding-left:  18px !important; background: left  center no-repeat; }
+/* icons are stored at native resolution (no per-size files), so scale to fit the 15x15 tiny slot */
+.icontiny  { background: left center no-repeat; background-size: 15px 15px; }
+.icontinyr { padding-right: 18px !important; background: right center no-repeat; background-size: 15px 15px; }
+.icontinyl { padding-left:  18px !important; background: left  center no-repeat; background-size: 15px 15px; }
 a.icontiny { text-decoration: none; }
-span.icontiny, a.tinyspecial { padding-left:18px !important; background:left center no-repeat; }
+span.icontiny, a.tinyspecial { padding-left:18px !important; background:left center no-repeat; background-size: 15px 15px; }
 
 /*
 Icons
@@ -2152,6 +2154,7 @@ div.live-search-selected div {
 div.live-search-icon {
     background-position: 4px 3px;
     background-repeat: no-repeat;
+    background-size: 18px 18px; /* icon stored at native resolution */
 }
 
 div.live-search-icon div {

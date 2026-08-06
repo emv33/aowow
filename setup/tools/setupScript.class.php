@@ -175,8 +175,6 @@ trait TrImageProcessor
     private const GEN_IDX_SRC_INFO  = 3;
     private const GEN_IDX_DEST_INFO = 4;
 
-    private const JPEG_QUALITY = 85;                        // 0: worst - 100: best
-
     private function checkSourceDirs() : bool
     {
         $outTblLen  = 0;
@@ -293,36 +291,19 @@ trait TrImageProcessor
         return $result;
     }
 
+    // all setup image generators write PNG - no resizing tiers means no other format is needed anymore
     private function writeImageFile(\GdImage $src, string $outFile, array $srcDims, array $destDims) : bool
     {
-        $success = false;
-        $outRes  = imagecreatetruecolor($destDims['w'], $destDims['h']);
-        $ext     = substr($outFile, -3, 3);
+        $outRes = imagecreatetruecolor($destDims['w'], $destDims['h']);
 
         imagesavealpha($outRes, true);
-        if ($ext == 'png')
-        {
-            imagealphablending($outRes, false);
-            $transparentindex = imagecolorallocatealpha($outRes, 255, 255, 255, 127);
-            imagefill($outRes, 0, 0, $transparentindex);
-        }
+        imagealphablending($outRes, false);
+        $transparentindex = imagecolorallocatealpha($outRes, 255, 255, 255, 127);
+        imagefill($outRes, 0, 0, $transparentindex);
 
         imagecopyresampled($outRes, $src, $destDims['x'], $destDims['x'], $srcDims['x'], $srcDims['y'], $destDims['w'], $destDims['h'], $srcDims['w'], $srcDims['h']);
 
-        switch ($ext)
-        {
-            case 'jpg':
-                $success = imagejpeg($outRes, $outFile, self::JPEG_QUALITY);
-                break;
-            case 'gif':
-                $success = imagegif($outRes, $outFile);
-                break;
-            case 'png':
-                $success = imagepng($outRes, $outFile);
-                break;
-            default:
-                CLI::write('[img-proc] '.$this->status.' - unsupported file fromat: '.$ext, CLI::LOG_WARN);
-        }
+        $success = imagepng($outRes, $outFile);
 
         imagedestroy($outRes);
 

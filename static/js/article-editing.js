@@ -8,7 +8,7 @@ $(document).ready(function () {
         if (iconStr.indexOf("http") == 0)
             $("#iconPreview").append($("<img/>", { src: iconStr }));
         else
-            $("#iconPreview").append($("<img/>", { src: g_staticUrl + "/images/wow/icons/large/" + iconStr.toLowerCase() + ".jpg" }));
+            $("#iconPreview").append($("<img/>", { src: Icon.url(iconStr) }));
     });
 });
 

@@ -222,6 +222,17 @@ abstract class Util
         ));
     }
 
+    // icons are stored once at native resolution, regardless of display size - CSS scales them (see .iconsmall/.iconmedium/.iconlarge/.icontiny)
+    public static function iconUrl(string $name) : string
+    {
+        return Cfg::get('STATIC_URL').'/images/wow/icons/'.strtolower($name).'.png';
+    }
+
+    public static function iconBg(string $name) : string
+    {
+        return 'background-image:url('.self::iconUrl($name).')';
+    }
+
     // default back to enUS if localization unavailable
     public static function localizedString(array $data, string $field, bool $silent = false) : string
     {

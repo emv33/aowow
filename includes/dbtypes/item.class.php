@@ -814,7 +814,7 @@ class ItemList extends DBTypeList
 
             $col       = $pop ? 1 : 0;
             $hasMatch &= $pop ? (($gems[$pop]['colorMask'] & (1 << $colorId)) ? 1 : 0) : 0;
-            $icon      = $pop ? sprintf('style="background-image: url(%s/images/wow/icons/tiny/%s.gif)"', Cfg::get('STATIC_URL'), strtolower($gems[$pop]['iconString'])) : null;
+            $icon      = $pop ? sprintf('style="%s"', Util::iconBg($gems[$pop]['iconString'])) : null;
             $text      = $pop ? Util::localizedString($gems[$pop], 'name') : Lang::item('socket', $colorId);
 
             if ($interactive)
@@ -828,7 +828,7 @@ class ItemList extends DBTypeList
         {
             $pop  = array_pop($enhance['g']);
             $col  = $pop ? 1 : 0;
-            $icon = $pop ? sprintf('style="background-image: url(%s/images/wow/icons/tiny/%s.gif)"', Cfg::get('STATIC_URL'), strtolower($gems[$pop]['iconString'])) : null;
+            $icon = $pop ? sprintf('style="%s"', Util::iconBg($gems[$pop]['iconString'])) : null;
             $text = $pop ? Util::localizedString($gems[$pop], 'name') : Lang::item('socket', -1);
 
             if ($interactive)

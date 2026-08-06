@@ -1620,7 +1620,7 @@ function Profiler() {
             spSpec    = _divSpec.childNodes[1];
 
         // aowow - spSpec.style.backgroundImage = 'url(' + g_staticUrl + '/images/wow/icons/tiny/' + specData.icon.toLowerCase() + '.gif)';
-        spSpec.style.backgroundImage = 'url(' + g_staticUrl + '/images/wow/icons/tiny/' + (g_file_specs[_profile.classs][specData.id - 1] ?? g_file_specs[specData.id]) + '.gif)';
+        spSpec.style.backgroundImage = 'url(' + Icon.url(g_file_specs[_profile.classs][specData.id - 1] ?? g_file_specs[specData.id]) + ')';
         $WH.st(spSpec, (buildData.spent ? buildData.spent.join('/') : '0/0/0'));
 
         spSpec.onmouseover = function (e) {
@@ -2314,7 +2314,7 @@ function ProfilerTalents(_parent) {
 
             if (sp) {
                 // aowow - sp.style.backgroundImage = 'url(' + g_staticUrl + '/images/wow/icons/tiny/' + specData.icon.toLowerCase() + '.gif)';
-                sp.style.backgroundImage = 'url(' + g_staticUrl + '/images/wow/icons/tiny/' + (g_file_specs[_profile.classs][specData.id - 1] ?? g_file_specs[specData.id]) + '.gif)';
+                sp.style.backgroundImage = 'url(' + Icon.url(g_file_specs[_profile.classs][specData.id - 1] ?? g_file_specs[specData.id]) + ')';
 
                 $WH.ae(sp, $WH.ct(specData.name + ' '));
                 $WH.st(sm, '(' + _builds[build].spent.join('/') + ')');
@@ -8692,7 +8692,7 @@ Listview.templates.inventory = {
 
                             if (sm.t == 5) {
                                 a.className += ' icontinyl';
-                                a.style.backgroundImage = 'url(' + g_staticUrl + '/images/wow/icons/tiny/quest_start.gif)';
+                                a.style.backgroundImage = 'url(' + Icon.url('quest_start') + ')';
                             }
 
                             a.href = '?' + g_types[sm.t] + '=' + sm.ti;
@@ -8940,7 +8940,7 @@ Listview.templates.gallery = {
 
                     if (sm.t == 5) {
                         a.className += ' icontinyl';
-                        a.style.backgroundImage = 'url(' + g_staticUrl + '/images/wow/icons/tiny/quest_start.gif)';
+                        a.style.backgroundImage = 'url(' + Icon.url('quest_start') + ')';
                     }
 
                     a.href = '?' + g_types[sm.t] + '=' + sm.ti;

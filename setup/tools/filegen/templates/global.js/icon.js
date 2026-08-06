@@ -125,6 +125,12 @@ var Icon = {
         return buff;
     },
 
+    // icons are stored once at native resolution, regardless of display size - CSS scales them (see .iconsmall/.iconmedium/.iconlarge ins)
+    url: function(name)
+    {
+        return g_staticUrl + '/images/wow/icons/' + name.toLowerCase() + '.png';
+    },
+
     setTexture: function(icon, size, name)
     {
         if (!name)
@@ -133,10 +139,14 @@ var Icon = {
         var _ = icon.firstChild.style;
 
         if (name.indexOf('/') != -1 || name.indexOf('?') != -1)
+        {
+            delete icon.firstChild.dataset.iconName;
             _.backgroundImage = 'url(' + name + ')';
+        }
         else
         {
-            _.backgroundImage = 'url(' + g_staticUrl + '/images/wow/icons/' + Icon.sizes[size] + '/' + name.toLowerCase() + '.jpg)';
+            icon.firstChild.dataset.iconName = name.toLowerCase();
+            _.backgroundImage = 'url(' + Icon.url(name) + ')';
         }
 
         Icon.moveTexture(icon, size, 0, 0);
@@ -191,20 +201,8 @@ var Icon = {
 
     showIconName: function(x)
     {
-        if (x.firstChild)
-        {
-            var _ = x.firstChild.style;
-
-            if (_.backgroundImage.length && (_.backgroundImage.indexOf(g_staticUrl) >= 4 || g_staticUrl == ''))
-            {
-                var
-                    start = _.backgroundImage.lastIndexOf('/'),
-                    end   = _.backgroundImage.indexOf('.jpg');
-
-                if (start != -1 && end != -1)
-                    Icon.displayIcon(_.backgroundImage.substring(start + 1, end));
-            }
-        }
+        if (x.firstChild && x.firstChild.dataset.iconName)
+            Icon.displayIcon(x.firstChild.dataset.iconName);
     },
 
     onClick: function()
@@ -353,7 +351,7 @@ var Icon = {
                 {
                     if (button == 'arrow')
                     {
-                        var win = window.open(g_staticUrl + '/images/wow/icons/large/' + data.icon.toLowerCase() + '.jpg', '_blank');
+                        var win = window.open(Icon.url(data.icon), '_blank');
                         win.focus();
                         return false;
                     }

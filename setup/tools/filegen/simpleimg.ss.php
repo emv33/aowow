@@ -10,7 +10,7 @@ if (!CLI)
 
 
 // quest icons from GossipFrame have an alphaChannel that cannot be handled by this script
-// lfgFrame/lfgIcon-*.blp .. candidates for zonePage, but in general too detailed to scale them down from 128 to 56, 36, ect
+// lfgFrame/lfgIcon-*.blp .. candidates for zonePage
 // linked by lfgDungeons.dbc/28 ?
 
 CLISetup::registerSetup("build", new class extends SetupScript
@@ -18,7 +18,7 @@ CLISetup::registerSetup("build", new class extends SetupScript
     use TrImageProcessor;
 
     protected $info = array(
-        'simpleimg'      => [[   ], CLISetup::ARGV_PARAM,    'Converts and resizes BLP2 images smaller than 255x255 into required formats (mostly icons)'],
+        'simpleimg'      => [[   ], CLISetup::ARGV_PARAM,    'Converts BLP2 images smaller than 255x255 into PNG (mostly icons)'],
         'icons'          => [['1'], CLISetup::ARGV_OPTIONAL, 'Generate icons for spells, items, classes, races, ect.'],
         'glyphs'         => [['2'], CLISetup::ARGV_OPTIONAL, 'Generate decorative glyph symbols displayed on related item and spell pages.'],
         'pagetexts'      => [['3'], CLISetup::ARGV_OPTIONAL, 'Generate images contained in text on readable items and gameobjects.'],
@@ -28,28 +28,26 @@ CLISetup::registerSetup("build", new class extends SetupScript
     protected $dbcSourceFiles = ['holidays', 'spellicon', 'itemdisplayinfo'];
     protected $setupAfter     = [['icons'], []];
 
-    private const ICON_DIRS = array(
-        ['static/images/wow/icons/large/',  'jpg',  0, ICON_SIZE_LARGE,  4],
-        ['static/images/wow/icons/medium/', 'jpg',  0, ICON_SIZE_MEDIUM, 4],
-        ['static/images/wow/icons/small/',  'jpg',  0, ICON_SIZE_SMALL,  4],
-        ['static/images/wow/icons/tiny/',   'gif',  0, ICON_SIZE_TINY,   4]
+    // no resizing: store one native PNG per icon; the frontend picks a display size (large/medium/small/tiny) via CSS
+    private const ICON_DIR = array(
+        ['static/images/wow/icons/', 'png', 0, 4]
     );
 
     private $genSteps = array(
-      //       srcPath,           realPath, localized, [pattern, isIcon, tileSize],                             [[dest, ext, srcSize, destSize, borderOffset]]
-         0 => ['Icons/',                  null, false, ['.*\.(blp|png)$',                           true,   0], self::ICON_DIRS,                                                 ],
-         1 => ['Spellbook/',              null, false, ['UI-Glyph-Rune-?\d+.(blp|png)$',            false,  0], [['static/images/wow/Interface/Spellbook/',     'png', 0,  0, 0]]],
-         2 => ['PaperDoll/',              null, false, ['UI-(Backpack|PaperDoll)-.*\.(blp|png)$',   true,   0], self::ICON_DIRS,                                                 ],
-         3 => ['GLUES/CHARACTERCREATE/',  null, false, ['UI-CharacterCreate-Races\.(blp|png)',      true,  64], self::ICON_DIRS,                                                 ],
-         4 => ['GLUES/CHARACTERCREATE/',  null, false, ['UI-CharacterCreate-CLASSES\.(blp|png)',    true,  64], self::ICON_DIRS,                                                 ],
-         5 => ['GLUES/CHARACTERCREATE/',  null, false, ['UI-CharacterCreate-Factions\.(blp|png)',   true,  64], self::ICON_DIRS,                                                 ],
-      // 6 => ['Minimap/'               , null, false, ['OBJECTICONS.(BLP|png)',                    true,  32], [['static/images/wow/icons/tiny/',              'gif', 0, 16, 2]]],
-         7 => ['FlavorImages/',           null, false, ['.*\.(blp|png)$',                           false,  0], [['static/images/wow/Interface/FlavorImages/',  'png', 0,  0, 0]]],
-         8 => ['Pictures/',               null, false, ['.*\.(blp|png)$',                           false,  0], [['static/images/wow/Interface/Pictures/',      'png', 0,  0, 0]]],
-         9 => ['PvPRankBadges/',          null, false, ['.*\.(blp|png)$',                           false,  0], [['static/images/wow/Interface/PvPRankBadges/', 'png', 0,  0, 0]]],
-        10 => ['Calendar/Holidays/',      null, false, ['.*(start|[ayhs])\.(blp|png)$',             true,   0], self::ICON_DIRS,                                                 ],
-        11 => ['GLUES/LOADINGSCREENS/',   null, false, ['lo.*\.(blp|png)$',                         false,  0], [['cache/loadingscreens/',                      'png', 0,  0, 0]]],
-        12 => ['PVPFrame/',               null, false, ['PVP-(ArenaPoints|Currency).*\.(blp|png)$', true,   0], self::ICON_DIRS,                                                 ]
+      //       srcPath,           realPath, localized, [pattern, isIcon, tileSize],                             [[dest, ext, srcSize, borderOffset]]
+         0 => ['Icons/',                  null, false, ['.*\.(blp|png)$',                           true,   0], self::ICON_DIR,                                                  ],
+         1 => ['Spellbook/',              null, false, ['UI-Glyph-Rune-?\d+.(blp|png)$',            false,  0], [['static/images/wow/Interface/Spellbook/',     'png', 0, 0]]],
+         2 => ['PaperDoll/',              null, false, ['UI-(Backpack|PaperDoll)-.*\.(blp|png)$',   true,   0], self::ICON_DIR,                                                  ],
+         3 => ['GLUES/CHARACTERCREATE/',  null, false, ['UI-CharacterCreate-Races\.(blp|png)',      true,  64], self::ICON_DIR,                                                  ],
+         4 => ['GLUES/CHARACTERCREATE/',  null, false, ['UI-CharacterCreate-CLASSES\.(blp|png)',    true,  64], self::ICON_DIR,                                                  ],
+         5 => ['GLUES/CHARACTERCREATE/',  null, false, ['UI-CharacterCreate-Factions\.(blp|png)',   true,  64], self::ICON_DIR,                                                  ],
+      // 6 => ['Minimap/'               , null, false, ['OBJECTICONS.(BLP|png)',                    true,  32], [['static/images/wow/icons/',                   'png', 0, 2]]],
+         7 => ['FlavorImages/',           null, false, ['.*\.(blp|png)$',                           false,  0], [['static/images/wow/Interface/FlavorImages/',  'png', 0, 0]]],
+         8 => ['Pictures/',               null, false, ['.*\.(blp|png)$',                           false,  0], [['static/images/wow/Interface/Pictures/',      'png', 0, 0]]],
+         9 => ['PvPRankBadges/',          null, false, ['.*\.(blp|png)$',                           false,  0], [['static/images/wow/Interface/PvPRankBadges/', 'png', 0, 0]]],
+        10 => ['Calendar/Holidays/',      null, false, ['.*(start|[ayhs])\.(blp|png)$',             true,   0], self::ICON_DIR,                                                  ],
+        11 => ['GLUES/LOADINGSCREENS/',   null, false, ['lo.*\.(blp|png)$',                         false,  0], [['cache/loadingscreens/',                      'png', 0, 0]]],
+        12 => ['PVPFrame/',               null, false, ['PVP-(ArenaPoints|Currency).*\.(blp|png)$', true,   0], self::ICON_DIR,                                                  ]
     );
 
     // textures are composed of 64x64 icons
@@ -124,11 +122,8 @@ CLISetup::registerSetup("build", new class extends SetupScript
             foreach ($subDirs as $sd)
                 $this->requiredDirs[] = $sd[0];
 
-        // fix genSteps 2 [icons] - no tiny inventory backgrounds
-        $this->genSteps[2][self::GEN_IDX_DEST_INFO] = array_slice($this->genSteps[2][self::GEN_IDX_DEST_INFO], 0, 3);
-
         // fix genSteps 12 [pvp money icons] - smaller border offset for pvp currency icons
-        array_walk($this->genSteps[12][self::GEN_IDX_DEST_INFO], function(&$x) { $x[4] = 2; });
+        array_walk($this->genSteps[12][self::GEN_IDX_DEST_INFO], function(&$x) { $x[3] = 2; });
 
         // fix genSteps 10 [holoday icons] - img src size is 90px
         array_walk($this->genSteps[10][self::GEN_IDX_DEST_INFO], function(&$x) { $x[2] = 90; });
@@ -211,7 +206,7 @@ CLISetup::registerSetup("build", new class extends SetupScript
 
                 $nFiles = count($outInfo) * ($tileSize ? array_sum(array_map('count', $this->cuNames[$i])) : count($files));
 
-                foreach ($outInfo as [$dest, $ext, $srcSize, $destSize, $borderOffset])
+                foreach ($outInfo as [$dest, $ext, $srcSize, $borderOffset])
                 {
                     if ($tileSize)
                     {
@@ -256,8 +251,8 @@ CLISetup::registerSetup("build", new class extends SetupScript
                                 $to   = array(
                                     'x' => 0,
                                     'y' => 0,
-                                    'w' => $destSize,
-                                    'h' => $destSize
+                                    'w' => $from['w'],
+                                    'h' => $from['h']
                                 );
 
                                 if (!$this->writeImageFile($src, $outFile, $from, $to))
@@ -319,8 +314,8 @@ CLISetup::registerSetup("build", new class extends SetupScript
                         $to   = array(
                             'x' => 0,
                             'y' => 0,
-                            'w' => $destSize ?: imagesx($src),
-                            'h' => $destSize ?: imagesy($src)
+                            'w' => $from['w'],
+                            'h' => $from['h']
                         );
 
                         if (!$this->writeImageFile($src, $outFile, $from, $to))

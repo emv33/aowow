@@ -356,10 +356,10 @@ Mapper.prototype = {
 
         var type = Locale.getName();
 
-        this.span.style.background = 'url(' + g_staticUrl + '/images/wow/maps/' + type + '/' + Mapper.sizes[this.zoom][2] + '/' + map + '.jpg)';
+        this.span.style.background = 'url(' + g_staticUrl + '/images/wow/maps/' + type + '/' + map + '.png)';
 
         if (this.overlay)
-            this.overlaySpan.style.background = 'url(' + g_staticUrl + '/images/wow/maps/overlay/' + Mapper.sizes[this.zoom][2] + '/' + map + '.png)';
+            this.overlaySpan.style.background = 'url(' + g_staticUrl + '/images/wow/maps/overlay/' + map + '.png)';
 
         if (this.sZoneLink)
         {
@@ -457,19 +457,19 @@ Mapper.prototype = {
                     if (types.start && types.end)
                     {
 						entry.addClass('icontiny');
-						entry.css('background-image', 'url(' + g_staticUrl + '/images/wow/icons/tiny/quest_startend.gif)');
+						entry.css('background-image', 'url(' + Icon.url('quest_startend') + ')');
 						entry.css('padding-left', '20px');
                     }
                     else if (types.start)
                     {
 						entry.addClass('icontiny');
-						entry.css('background-image', 'url(' + g_staticUrl + '/images/wow/icons/tiny/quest_start.gif)');
+						entry.css('background-image', 'url(' + Icon.url('quest_start') + ')');
 						entry.css('padding-left', '14px');
                     }
                     else if (types.end)
                     {
 						entry.addClass('icontiny');
-						entry.css('background-image', 'url(' + g_staticUrl + '/images/wow/icons/tiny/quest_end.gif)');
+						entry.css('background-image', 'url(' + Icon.url('quest_end') + ')');
 						entry.css('padding-left', '16px');
                     }
                 }
@@ -951,8 +951,12 @@ Mapper.prototype = {
 
     updateMap: function(noScroll)
     {
-        this.parent.style.width  = this.span.style.width  = (this.tempWidth  ? this.tempWidth  : Mapper.sizes[this.zoom][0]) + 'px';
-        this.parent.style.height = this.span.style.height = (this.tempHeight ? this.tempHeight : Mapper.sizes[this.zoom][1]) + 'px';
+        var mapW = this.tempWidth  ? this.tempWidth  : Mapper.sizes[this.zoom][0];
+        var mapH = this.tempHeight ? this.tempHeight : Mapper.sizes[this.zoom][1];
+
+        this.parent.style.width  = this.span.style.width  = mapW + 'px';
+        this.parent.style.height = this.span.style.height = mapH + 'px';
+        this.span.style.backgroundSize = this.overlaySpan.style.backgroundSize = mapW + 'px ' + mapH + 'px';
         if (!this.editable)
             this.parent.style.cssFloat = this.parent.style.styleFloat = 'left';
 
