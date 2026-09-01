@@ -180,11 +180,48 @@ trait TrImageProcessor
     /** * @var array{string, string, bool, array, array{string, int, int}[]}[] $genSteps - {src, resourcePath, localized, [tileOrder], [[dest, destW, destH]]} */
     private array $genSteps = [];
 
+    /** verify this PHP build can actually emit every format the registered genSteps ask for */
+    private function checkOutputFormats() : bool
+    {
+        static $imgTypes = array(
+            'jpg'  => IMG_JPG,
+            'gif'  => IMG_GIF,
+            'png'  => IMG_PNG,
+            'webp' => IMG_WEBP
+        );
+
+        $success = true;
+
+        foreach ($this->genSteps as [, , , , $destInfo])
+        {
+            foreach ($destInfo as $dest)
+            {
+                // only the icon-style dest tuples carry an ext column; map tuples are [dest, w, h]
+                if (!is_string($dest[1] ?? null))
+                    continue;
+
+                $ext = strtolower($dest[1]);
+                if (!isset($imgTypes[$ext]) || (imagetypes() & $imgTypes[$ext]))
+                    continue;
+
+                CLI::write('[img-proc] ext-gd in this PHP build cannot write '.strtoupper($ext).' files', CLI::LOG_ERROR);
+                $success = false;
+            }
+        }
+
+        return $success;
+    }
+
     private function checkSourceDirs() : bool
     {
         $success    = true;
         $outTblLen  = 0;
         $foundCache = [];
+
+        // ext-gd can be built without libwebp, and composer cannot express that - fail here with a
+        // readable message rather than on the first imagewebp() call
+        if (!$this->checkOutputFormats())
+            return false;
 
         foreach ($this->genSteps as $i => [$subDir, $realPaths, $localized, , ])
         {
@@ -297,15 +334,15 @@ trait TrImageProcessor
         return $result;
     }
 
-    // aowow - custom: icon/map generators write a single native-resolution PNG and let CSS scale it;
+    // aowow - custom: icon/map generators write a single native-resolution image and let CSS scale it;
     // the format dispatch below is kept for the remaining non-icon steps that still emit jpg/gif
     private function writeImageFile(\GdImage $src, string $outFile, array $srcDims, array $destDims) : bool
     {
         $outRes  = imagecreatetruecolor($destDims['w'], $destDims['h']);
-        $ext     = substr($outFile, -3, 3);
+        $ext     = strtolower(pathinfo($outFile, PATHINFO_EXTENSION));
 
         imagesavealpha($outRes, true);
-        if ($ext == 'png')
+        if ($ext == 'png' || $ext == 'webp')            // formats that carry an alpha channel
         {
             imagealphablending($outRes, false);
             $transparentindex = imagecolorallocatealpha($outRes, 255, 255, 255, 127);
@@ -319,6 +356,8 @@ trait TrImageProcessor
             'jpg'   => imagejpeg($outRes, $outFile, self::JPEG_QUALITY),
             'gif'   => imagegif($outRes, $outFile),
             'png'   => imagepng($outRes, $outFile),
+            // IMG_WEBP_LOSSLESS is bit-exact: icons must not pick up generation loss
+            'webp'  => imagewebp($outRes, $outFile, IMG_WEBP_LOSSLESS),
             default => (fn() => !!CLI::write('[img-proc] '.$this->status.' - unsupported file fromat: '.$ext, CLI::LOG_WARN))()
         };
 

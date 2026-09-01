@@ -20,7 +20,7 @@ Also, this project is not meant to be used for commercial purposes of any kind!
 
 + Webserver running PHP ≥ 8.4 including extensions:
   + [SimpleXML](https://www.php.net/manual/en/book.simplexml.php)
-  + [GD](https://www.php.net/manual/en/book.image)
+  + [GD](https://www.php.net/manual/en/book.image) (must be built with WebP support; icons are generated as lossless WebP)
   + [MySQL Improved](https://www.php.net/manual/en/book.mysqli.php)
   + [Multibyte String](https://www.php.net/manual/en/book.mbstring.php)
   + [File Information](https://www.php.net/manual/en/book.fileinfo.php)

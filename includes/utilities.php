@@ -201,7 +201,7 @@ abstract class Util
     // icons are stored once at native resolution, regardless of display size - CSS scales them (see .iconsmall/.iconmedium/.iconlarge/.icontiny)
     public static function iconUrl(string $name) : string
     {
-        return Cfg::get('STATIC_URL').'/images/wow/icons/'.strtolower($name).'.png';
+        return Cfg::get('STATIC_URL').'/images/wow/icons/'.strtolower($name).'.webp';
     }
 
     public static function iconBg(string $name) : string

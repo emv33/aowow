@@ -145,7 +145,7 @@ var Icon = {
             return g_staticUrl + '/images/wow/icons/' + tier + '/' + name + '.' + (tier == 'tiny' ? 'gif' : 'jpg');
         }
 
-        return g_staticUrl + '/images/wow/icons/' + name + '.png';
+        return g_staticUrl + '/images/wow/icons/' + name + '.webp';
     },
 
     setTexture: function(icon, size, name, legacy)

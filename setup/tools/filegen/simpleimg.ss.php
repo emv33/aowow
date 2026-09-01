@@ -28,10 +28,11 @@ CLISetup::registerSetup("build", new class extends SetupScript
     protected array $dbcSourceFiles = ['holidays', 'spellicon', 'itemdisplayinfo'];
     protected array $setupAfter     = [['icons'], []];
 
-    // aowow - custom: no resizing tiers. store one native-resolution PNG per icon and let CSS pick the
-    // display size (large/medium/small/tiny), so the dest tuple carries no destSize column.
+    // aowow - custom: no resizing tiers. store one native-resolution icon and let CSS pick the display
+    // size (large/medium/small/tiny), so the dest tuple carries no destSize column.
+    // webp is written with IMG_WEBP_LOSSLESS - bit-exact, ~20-50% smaller than the equivalent PNG.
     private const array ICON_DIRS = array(
-        ['static/images/wow/icons/', 'png', 0, 4]
+        ['static/images/wow/icons/', 'webp', 0, 4]
     );
 
     private const array STEPS = array(
