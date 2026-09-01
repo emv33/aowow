@@ -21,7 +21,7 @@ class ItemsetsBaseResponse extends TemplateResponse implements ICache
  // protected  array  $dataLoader  = ['weight-presets'];    // was here since day 1, but was never accessed..?
     protected  array  $scripts     = [[SC_JS_FILE, 'js/filters.js']];
     protected  array  $expectedGET = array(
-        'filter' => ['filter' => FILTER_VALIDATE_REGEXP, 'options' => ['regexp' => Filter::PATTERN_PARAM]]
+        'filter' => ['filter' => FILTER_CALLBACK, 'options' => [self::class, 'sanitizeFilter']]
     );
 
     public function __construct(string $rawParam)
@@ -113,6 +113,22 @@ class ItemsetsBaseResponse extends TemplateResponse implements ICache
         // sort for dropdown-menus
         Lang::sort('itemset', 'notes', SORT_NATURAL);
         Lang::sort('game', 'cl');
+    }
+
+    protected function generateMetadata(bool $useArticle = true) : void
+    {
+        $keywords = [$this->h1];
+        if ($cl = $this->filter->values['cl'])
+            array_unshift($keywords, Lang::game('cl', $cl));
+
+        $this->metaTags[] = ['property' => 'og:title', 'content' => implode(' ', $keywords)];
+        $this->metaTags[] = ['property' => 'og:type',  'content' => 'website'];
+
+        array_unshift($this->metaTags, ['name' => 'keywords', 'content' => [...$keywords, ...Lang::meta('tags', 'generic')]]);
+
+        $this->buildBasicMetadata(Lang::meta('description', 'genList', [implode(' ', $keywords)]));
+
+        $this->buildLdJson();
     }
 }
 

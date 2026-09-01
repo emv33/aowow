@@ -2199,7 +2199,9 @@ var g_faction_categories = {
       67: 'Орда',
      891: 'Силы Альянса',
      892: 'Силы Орды',
-    1052: 'Экспедиция Орды'
+    1052: 'Экспедиция Орды',
+     948: 'Тестовая фракция 2',
+     949: 'Тестовая фракция 1'
 };
 
 var g_achievement_categories = {
@@ -4579,7 +4581,7 @@ var LANG = {
     pr_tip_quests:   "Предупреждение: <span class=\"tip\">Некоторые</span> задания не могут быть отслежены в игре.",
 
     pr_header_noname:    "Без имени",
-    pr_header_character: "<a href=\"?race=$4\">$2</a> <a href=\"?class=$5\" class=\"c$5\">$3</a> $1-го уровня",
+    pr_header_character: '<a href="?race=$4">$2</a> <a href="?class=$5" class="c$5">$3</a> $1-го уровня',
     pr_header_edit:      "Редактировать",
     pr_header_armory:    "Оружейная",
     pr_header_help:      "Справка",

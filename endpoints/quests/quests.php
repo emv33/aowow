@@ -10,7 +10,7 @@ class QuestsBaseResponse extends TemplateResponse implements ICache
 {
     use TrListPage, TrCache;
 
-    private const SUB_SUB_CAT = array(
+    private const array SUB_SUB_CAT = array(
         // Quest Hubs
         3679 => 3519,   4024 => 3537,   25   => 46,     1769 => 361,
         // Startzones: Horde
@@ -41,7 +41,7 @@ class QuestsBaseResponse extends TemplateResponse implements ICache
 
     protected  array  $scripts     = [[SC_JS_FILE, 'js/filters.js']];
     protected  array  $expectedGET = array(
-        'filter' => ['filter' => FILTER_VALIDATE_REGEXP, 'options' => ['regexp' => Filter::PATTERN_PARAM]]
+        'filter' => ['filter' => FILTER_CALLBACK, 'options' => [self::class, 'sanitizeFilter']]
     );
     protected  array  $validCats   = Game::QUEST_CLASSES;
 
@@ -108,10 +108,7 @@ class QuestsBaseResponse extends TemplateResponse implements ICache
         if (isset($this->category[1]))
             array_unshift($this->title, Lang::quest('cat', $this->category[0], $this->category[1]));
         else if (isset($this->category[0]))
-        {
-            $c0 = Lang::quest('cat', $this->category[0]);
-            array_unshift($this->title, is_array($c0) ? $c0[0] : $c0);
-        }
+            array_unshift($this->title, Lang::quest('cat', $this->category[0], 0));
 
 
         /****************/
@@ -150,6 +147,26 @@ class QuestsBaseResponse extends TemplateResponse implements ICache
         $this->lvTabs->addListviewTab(new Listview($tabData, QuestList::$brickFile));
 
         parent::generate();
+    }
+
+    protected function generateMetadata(bool $useArticle = true) : void
+    {
+        $keywords = [$this->h1];
+        if (isset($this->category[0]))
+            array_unshift($keywords, Lang::quest('cat', $this->category[0], 0));
+        if (isset($this->category[1]))
+            array_unshift($keywords, Lang::quest('cat', $this->category[0], $this->category[1]));
+
+        $title = $this->category ? implode(' ', [reset($keywords), $this->h1]) : $this->h1;
+
+        $this->metaTags[] = ['property' => 'og:title', 'content' => $title];
+        $this->metaTags[] = ['property' => 'og:type',  'content' => 'website'];
+
+        array_unshift($this->metaTags, ['name' => 'keywords', 'content' => [...$keywords, ...Lang::meta('tags', 'generic')]]);
+
+        $this->buildBasicMetadata(Lang::meta('description', 'genList', [$title]));
+
+        $this->buildLdJson();
     }
 }
 

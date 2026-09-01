@@ -20,7 +20,7 @@ class EnchantmentsBaseResponse extends TemplateResponse implements ICache
 
     protected  array  $scripts     = [[SC_JS_FILE, 'js/filters.js']];
     protected  array  $expectedGET = array(
-        'filter' => ['filter' => FILTER_VALIDATE_REGEXP, 'options' => ['regexp' => Filter::PATTERN_PARAM]]
+        'filter' => ['filter' => FILTER_CALLBACK, 'options' => [self::class, 'sanitizeFilter']]
     );
     protected  array  $validCats   = [1, 2, 3, 4, 5, 6, 7, 8];
 
@@ -128,6 +128,22 @@ class EnchantmentsBaseResponse extends TemplateResponse implements ICache
         $this->lvTabs->addListviewTab(new Listview($tabData, EnchantmentList::$brickFile, 'enchantment'));
 
         parent::generate();
+    }
+
+    protected function generateMetadata(bool $useArticle = true) : void
+    {
+        $tags = [$this->h1];
+        if (count($this->breadcrumb) == 3)
+            array_unshift($tags, reset($this->title));
+
+        $this->metaTags[] = ['property' => 'og:title', 'content' => implode(' ', $tags)];
+        $this->metaTags[] = ['property' => 'og:type',  'content' => 'website'];
+
+        array_unshift($this->metaTags, ['name' => 'keywords', 'content' => [...$tags, ...Lang::meta('tags', 'generic')]]);
+
+        $this->buildBasicMetadata(Lang::meta('description', 'genList', [implode(' ', $tags)]));
+
+        $this->buildLdJson();
     }
 }
 

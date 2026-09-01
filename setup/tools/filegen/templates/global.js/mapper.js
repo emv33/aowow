@@ -356,10 +356,14 @@ Mapper.prototype = {
 
         var type = Locale.getName();
 
+        // aowow - custom: maps are stored once at native resolution; updateMap() owns backgroundSize per
+        // zoom level, so assign backgroundImage only - the `background` shorthand would reset it
         this.span.style.backgroundImage = 'url(' + g_staticUrl + '/images/wow/maps/' + type + '/' + map + '.png)';
 
+        // overlays are hand-maintained static assets that still live per size tier - use the native
+        // one and let updateMap()'s backgroundSize scale it, same as the map itself
         if (this.overlay)
-            this.overlaySpan.style.backgroundImage = 'url(' + g_staticUrl + '/images/wow/maps/overlay/' + map + '.png)';
+            this.overlaySpan.style.backgroundImage = 'url(' + g_staticUrl + '/images/wow/maps/overlay/original/' + map + '.png)';
 
         if (this.sZoneLink)
         {

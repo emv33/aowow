@@ -30,10 +30,10 @@ if (!CLI)
 
 class DBCReader
 {
-    private const /* string */ INI_FILE_PATH   = 'setup/tools/dbc/%s.ini';
-    private const /* int    */ MAX_INSERT_ROWS = 500;
+    private const string INI_FILE_PATH   = 'setup/tools/dbc/%s.ini';
+    private const int    MAX_INSERT_ROWS = 500;
 
-    public  const /* string */ DEFAULT_WOW_BUILD = '12340';
+    public  const string DEFAULT_WOW_BUILD = '12340';
 
     private bool   $isGameTable = false;
     private bool   $isLocalized = false;
@@ -122,11 +122,8 @@ class DBCReader
         $this->isGameTable = array_values($this->format) == ['f'] && substr($this->file, 0, 2) == 'gt';
 
         $foundMask = 0x0;
-        foreach (Locale::cases() as $loc)
+        foreach (CLISetup::$locales as $loc)
         {
-            if (!in_array($loc, CLISetup::$locales))
-                continue;
-
             if ($foundMask & (1 << $loc->value))
                 continue;
 

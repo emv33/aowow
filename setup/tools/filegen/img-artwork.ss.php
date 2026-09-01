@@ -13,13 +13,13 @@ CLISetup::registerSetup("build", new class extends SetupScript
 {
     use TrComplexImage;
 
-    protected $info = array(
+    protected array $info = array(
         'img-artwork' => [[], CLISetup::ARGV_PARAM, 'Generate images from /glues/credits (not used on page)'],
     );
 
-    public $isOptional = true;
+    public bool $isOptional = true;
 
-    private const TILEORDER = array(
+    private const array TILEORDER = array(
         1 => [ [1] ],
         2 => [ [1],
                [2] ],
@@ -35,7 +35,7 @@ CLISetup::registerSetup("build", new class extends SetupScript
     );
 
     // src, resourcePath, localized, [tileOrder], [[dest, destW, destH]]
-    private $genSteps = array(
+    private const array STEPS = array(
         ['Glues/Credits/', null, false, self::TILEORDER, [['cache/Artworks/', 0, 0]]]
     );
 
@@ -43,6 +43,8 @@ CLISetup::registerSetup("build", new class extends SetupScript
     {
         $this->imgPath = CLISetup::$srcDir.$this->imgPath;
         $this->maxExecTime = ini_get('max_execution_time');
+
+        $this->genSteps = self::STEPS;
 
         foreach ($this->genSteps[0][self::GEN_IDX_DEST_INFO] as $dir)
             $this->requiredDirs[] = $dir[0];
@@ -63,12 +65,12 @@ CLISetup::registerSetup("build", new class extends SetupScript
 
         $sum       = 0;
         $imgGroups = [];
-        $files     = CLISetup::filesInPath('/'.str_replace('/', '\\/', $realPath).'/i', true);
+        $files     = CLISetup::filesInPath($realPath);
         $fileTpl   = $outInfo[0][0].'%s.png';
 
         foreach ($files as $f)
         {
-            if (preg_match('/([^\/]+)(\d).blp/i', $f, $m))
+            if (preg_match('/\b([^\/\\\\]+)(\d).blp/i', $f, $m))
             {
                 if (!$m[1] || !$m[2])
                     continue;
@@ -111,8 +113,7 @@ CLISetup::registerSetup("build", new class extends SetupScript
 
             $order = $tileOrder[$fmt];
 
-            $im = $this->assembleImage($realPath.'/'.$name, $order, count($order[0]) * 256, count($order) * 256);
-            if (!$im)
+            if (!($im = $this->assembleImage($realPath.'/'.$name, $order)))
             {
                 CLI::write(' - could not assemble file '.$name, CLI::LOG_ERROR);
                 $this->success = false;

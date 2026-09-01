@@ -20,7 +20,7 @@ class IconsBaseResponse extends TemplateResponse implements ICache
 
     protected  array  $scripts     = [[SC_JS_FILE, 'js/filters.js']];
     protected  array  $expectedGET = array(
-        'filter' => ['filter' => FILTER_VALIDATE_REGEXP, 'options' => ['regexp' => Filter::PATTERN_PARAM]]
+        'filter' => ['filter' => FILTER_CALLBACK, 'options' => [self::class, 'sanitizeFilter']]
     );
     protected  array  $validCats   = [0, 1, 2, 3];
 
@@ -108,6 +108,20 @@ class IconsBaseResponse extends TemplateResponse implements ICache
         $this->lvTabs->addListviewTab(new Listview($tabData, IconList::$brickFile));
 
         parent::generate();
+    }
+
+    protected function generateMetadata(bool $useArticle = true) : void
+    {
+        $this->metaTags[] = ['property' => 'og:title', 'content' => $this->h1];
+        $this->metaTags[] = ['property' => 'og:type',  'content' => 'website'];
+
+        $keywords = [$this->h1, $this->title[0]];
+
+        array_unshift($this->metaTags, ['name' => 'keywords', 'content' => [...$keywords, ...Lang::meta('tags', 'generic')]]);
+
+        $this->buildBasicMetadata(Lang::meta('description', 'genList', [end($keywords)]));
+
+        $this->buildLdJson();
     }
 }
 

@@ -82,20 +82,9 @@ class SpellBaseResponse extends TemplateResponse implements ICache
         // returns self or firstRank
         if ($fr = DB::World()->selectCell('SELECT `first_spell_id` FROM spell_ranks WHERE `spell_id` = %i', $this->typeId))
             $this->firstRank = $fr;
-     /* >firstRank is used exclusively to query world db tables. So this expensive else-branch is probably obsolete
         else
-            $this->firstRank = DB::Aowow()->selectCell(
-               'SELECT      IF(s1.`RankNo` <> 1 AND s2.`id`, s2.`id`, s1.`id`)
-                FROM        ::spell s1
-                LEFT JOIN   ::spell s2
-                    ON      s1.`SpellFamilyId`     = s2.`SpelLFamilyId`     AND s1.`SpellFamilyFlags1` = s2.`SpelLFamilyFlags1` AND
-                            s1.`SpellFamilyFlags2` = s2.`SpellFamilyFlags2` AND s1.`SpellFamilyFlags3` = s2.`SpellFamilyFlags3` AND
-                            s2.`RankNo`            = 1                      AND IFNULL(NULLIF(s1.name_loc%i, ""), s1.`name_loc0`) = IFNULL(NULLIF(s2.name_loc%i, ""), s2.`name_loc0`)
-                WHERE       s1.`id` = %i',
-                Lang::getLocale()->value, Lang::getLocale()->value,
-                $this->typeId
-            );
-     */
+            $this->firstRank = $this->typeId;
+
         $this->h1 = Util::htmlEscape($this->subject->getField('name', true));
 
         $this->gPageInfo += array(
@@ -981,7 +970,7 @@ class SpellBaseResponse extends TemplateResponse implements ICache
 
     private function tabExclusiveWith() : array
     {
-        if (!$this->firstRank || !DB::World()->selectCell('SELECT 1 FROM spell_group WHERE `spell_id` = %i', $this->firstRank))
+        if (!DB::World()->selectCell('SELECT 1 FROM spell_group WHERE `spell_id` = %i', $this->firstRank))
             return [];
 
         // unpack recursion
@@ -2989,6 +2978,42 @@ class SpellBaseResponse extends TemplateResponse implements ICache
                 $infobox[] = 'Script'.Lang::main('colon').$_;
 
         return $infobox;
+    }
+
+    protected function generateMetadata(bool $useArticle = true) : void
+    {
+        $this->metaTags[] = ['property' => 'og:title', 'content' => $this->h1];
+        $this->metaTags[] = ['property' => 'og:type',  'content' => 'article'];
+
+        $keywords = [$this->h1, Util::ucFirst(Lang::game('spell'))];
+
+        $c = array_slice($this->breadcrumb, 2);
+        if (isset($c[2]))
+        {
+            if (!in_array($c[0], [7, -2]))
+                $keywords[] = Lang::spell('cat', $c[0], 1, $c[1], 1, $c[2]);
+            else if ($_ = SkillList::getName($c[2]))
+                $keywords[] = $_;
+        }
+        if (isset($c[1]))
+        {
+            if (!in_array($c[0], [7, -2]))
+                $keywords[] = current((array)Lang::spell('cat', $c[0], 1, $c[1]));
+            else
+                $keywords[] = Lang::game('cl', $c[1]);
+        }
+        if (isset($c[0]))
+            $keywords[] = Lang::spell('cat', $c[0], 0);
+
+        $desc  = $this->subject->parseText('description', MAX_LEVEL, SpellList::INTERACTIVE_NONE)[0];
+        $desc .= ($desc ? ' ' : '').Lang::meta('description', 'genPage', [$this->h1, $keywords[2].' '.$keywords[1]]);
+
+        // parsedDescription. This is a Druid Glyph Item. A spell from World of Warcraft: Mists of Pandaria
+        array_unshift($this->metaTags, ['name' => 'keywords', 'content' => [...$keywords, ...Lang::meta('tags', 'generic')]]);
+
+        $this->buildBasicMetadata($desc, $this->subject->getField('iconString'));
+
+        $this->buildLdJson();
     }
 }
 

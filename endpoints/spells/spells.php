@@ -10,7 +10,7 @@ class SpellsBaseResponse extends TemplateResponse implements ICache
 {
     use TrListPage, TrCache;
 
-    private const SHORT_FILTER = array(
+    private const array SHORT_FILTER = array(
         SKILL_FIRST_AID      => [ 6,  7],
         SKILL_BLACKSMITHING  => [ 2,  4],
         SKILL_LEATHERWORKING => [ 8,  1],
@@ -35,7 +35,7 @@ class SpellsBaseResponse extends TemplateResponse implements ICache
 
     protected  array  $scripts     = [[SC_JS_FILE, 'js/filters.js']];
     protected  array  $expectedGET = array(
-        'filter' => ['filter' => FILTER_VALIDATE_REGEXP, 'options' => ['regexp' => Filter::PATTERN_PARAM]]
+        'filter' => ['filter' => FILTER_CALLBACK, 'options' => [self::class, 'sanitizeFilter']]
     );
     protected  array  $validCats   = array(
         -2  => array(                                       // Talents: Class => Skill
@@ -140,25 +140,22 @@ class SpellsBaseResponse extends TemplateResponse implements ICache
 
         $foo = [];
         $c = $this->category;                               // shothand
-        if (isset($c[2]) && $c[0] == 11)
-            array_unshift($foo, Lang::spell('cat', $c[0], $c[1], $c[2]));
-        else if (isset($c[1]))
+        if (count($c) >= 3 && !in_array($c[0], [7, -2]))
+            $foo[] = Lang::spell('cat', $c[0], 1, $c[1], 1, $c[2]);
+        if (count($c) >= 2)
         {
-            $_ = in_array($c[0], [-2, -13, 7]) ? Lang::game('cl') : Lang::spell('cat', $c[0]);
-            array_unshift($foo, is_array($_[$c[1]]) ? $_[$c[1]][0] : $_[$c[1]]);
+            if (in_array($c[0], [7, -2]))
+                $foo[] = Lang::game('cl', $c[1]);
+            else
+                $foo[] = current((array)Lang::spell('cat', $c[0], 1, $c[1]));
         }
-
-        if (isset($c[0]) && count($foo) < 2)
-        {
-            $_ = Lang::spell('cat', $c[0]);
-            array_unshift($foo, is_array($_) ? $_[0] : $_);
-        }
+        if (count($c) >= 1)
+            $foo[] = Lang::spell('cat', $c[0], 0);
 
         if (count($foo) < 2)
-            array_unshift($foo, $this->h1);
+            $foo[] = $this->h1;
 
-        foreach ($foo as $bar)
-            array_unshift($this->title, $bar);
+        array_unshift($this->title, ...$foo);
 
 
         /****************/
@@ -398,9 +395,7 @@ class SpellsBaseResponse extends TemplateResponse implements ICache
                             else if ($relItems)
                                 $txt = Lang::spell('relItems', 'recipes', [$relItems]);
 
-                            $note = Lang::spell('cat', $this->category[0], $this->category[1]);
-                            if (is_array($note))
-                                $note = $note[0];
+                            $note = Lang::spell('cat', $this->category[0], 1, $this->category[1], 0);
 
                             $tabData['note'] = Lang::spell('relItems', 'base', [$txt, $note]);
                             $tabData['sort'] = ['skill', 'name'];
@@ -496,6 +491,43 @@ class SpellsBaseResponse extends TemplateResponse implements ICache
         Lang::sort('game', 'cl');
         Lang::sort('game', 'sc');
         Lang::sort('game', 'me');
+    }
+
+    protected function generateMetadata(bool $useArticle = true) : void
+    {
+        $keywords = [];
+        $title    = [];
+        $c = $this->category;                               // shothand
+        if (isset($c[2]))
+        {
+            if (!in_array($c[0], [7, -2]))
+                $keywords[] = Lang::spell('cat', $c[0], 1, $c[1], 1, $c[2]);
+            else if ($_ = SkillList::getName($c[2]))
+                $keywords[] = $_;
+        }
+        if (isset($c[1]))
+        {
+            if (!in_array($c[0], [7, -2]))
+                $keywords[] = current((array)Lang::spell('cat', $c[0], 1, $c[1]));
+            else
+                $keywords[] = Lang::game('cl', $c[1]);
+        }
+        if (isset($c[0]))
+            $keywords[] = Lang::spell('cat', $c[0], 0);
+
+        if (count($keywords) > 1)
+            $title = [reset($keywords), end($keywords)];
+
+        $keywords[] = $this->h1;
+
+        $this->metaTags[] = ['property' => 'og:title', 'content' => implode(' ', $title ?: $keywords)];
+        $this->metaTags[] = ['property' => 'og:type',  'content' => 'website'];
+
+        array_unshift($this->metaTags, ['name' => 'keywords', 'content' => [...$keywords, ...Lang::meta('tags', 'generic')]]);
+
+        $this->buildBasicMetadata(Lang::meta('description', 'genList', [implode(' ', $title ?: $keywords)]));
+
+        $this->buildLdJson();
     }
 }
 

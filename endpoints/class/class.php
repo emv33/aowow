@@ -10,7 +10,7 @@ class ClassBaseResponse extends TemplateResponse implements ICache
 {
     use TrDetailPage, TrCache;
 
-    private const TC_CLASS_IDS = [null, 8, 3, 1, 5, 4, 9, 6, 2, 7, null, 0]; // see TalentCalc.js
+    private const array TC_CLASS_IDS = [null, 8, 3, 1, 5, 4, 9, 6, 2, 7, null, 0]; // see TalentCalc.js
 
     protected  int    $cacheType  = CACHE_TYPE_DETAIL_PAGE;
 
@@ -314,6 +314,18 @@ class ClassBaseResponse extends TemplateResponse implements ICache
         }
 
         parent::generate();
+    }
+
+    protected function generateMetadata(bool $useArticle = true) : void
+    {
+        $this->metaTags[] = ['property' => 'og:title', 'content' => $this->h1];
+        $this->metaTags[] = ['property' => 'og:type',  'content' => 'article'];
+
+        array_unshift($this->metaTags, ['name' => 'keywords', 'content' => [$this->h1, Util::ucFirst(Lang::game('class')), ...Lang::meta('tags', 'generic')]]);
+
+        $this->buildBasicMetadata(icon: $this->subject->getField('iconString'));
+
+        $this->buildLdJson();
     }
 }
 

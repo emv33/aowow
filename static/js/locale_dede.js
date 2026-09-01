@@ -323,7 +323,7 @@ var mn_objects = [
     [19, "Briefkästen"],
     [ 9, "Bücher"],
     [-4, "Erzadern"],
-    [ 6, "Fallen"]
+    [ 6, "Fallen"],
     [25, "Fischschwärme"],
     [-9, "Interaktive Objekte"],
     [-3, "Kräuter"],
@@ -2198,6 +2198,8 @@ var g_faction_categories = {
      891: 'Streitkräfte der Allianz',
      892: 'Streitkräfte der Horde',
      980: 'The Burning Crusade',
+     948: 'Test Faction 2',
+     949: 'Test Faction 1',
     1037: 'Vorposten der Allianz',
     1097: 'Wrath of the Lich King'
 };
@@ -4578,7 +4580,7 @@ var LANG = {
     pr_tip_quests:   'Hinweis: <span class="tip">Bestimmte</span> Quests werden von Blizzards API nicht gezählt.',
 
     pr_header_noname:    "Unbenannt",
-    pr_header_character: 'Stufe $1 <a href="?race=$4">$2</a> <a href="?class$5" class="c$5">$3</a>',
+    pr_header_character: 'Stufe $1 <a href="?race=$4">$2</a> <a href="?class=$5" class="c$5">$3</a>',
     pr_header_edit:      "Bearbeiten",
     pr_header_armory:    "Arsenal",
     pr_header_help:      "Hilfe",

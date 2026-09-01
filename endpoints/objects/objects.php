@@ -21,7 +21,7 @@ class ObjectsBaseResponse extends TemplateResponse implements ICache
     protected  array  $dataLoader  = ['zones'];
     protected  array  $scripts     = [[SC_JS_FILE, 'js/filters.js']];
     protected  array  $expectedGET = array(
-        'filter' => ['filter' => FILTER_VALIDATE_REGEXP, 'options' => ['regexp' => Filter::PATTERN_PARAM]]
+        'filter' => ['filter' => FILTER_CALLBACK, 'options' => [self::class, 'sanitizeFilter']]
     );
     protected  array  $validCats   = [-2, -3, -4, -5, -6, -9, 0, 3, 6, 9, 19, 25];
 
@@ -110,6 +110,22 @@ class ObjectsBaseResponse extends TemplateResponse implements ICache
         $this->lvTabs->addListviewTab(new Listview($tabData, GameObjectList::$brickFile));
 
         parent::generate();
+    }
+
+    protected function generateMetadata(bool $useArticle = true) : void
+    {
+        $keywords = [$this->h1];
+        if ($this->category && $this->category[0])          // dnd 'Other' catg
+            array_unshift($keywords, Lang::gameObject('cat', $this->category[0]));
+
+        $this->metaTags[] = ['property' => 'og:title', 'content' => reset($keywords)];
+        $this->metaTags[] = ['property' => 'og:type',  'content' => 'website'];
+
+        array_unshift($this->metaTags, ['name' => 'keywords', 'content' => [...$keywords, ...Lang::meta('tags', 'generic')]]);
+
+        $this->buildBasicMetadata(Lang::meta('description', 'genList', [reset($keywords)]));
+
+        $this->buildLdJson();
     }
 }
 

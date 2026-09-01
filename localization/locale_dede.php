@@ -18,6 +18,69 @@ $lang = array(
         'ab'            => ["J.",    "M.",     "W.",     "Tag",   "Std.",    "Min.",    "Sek.",     "Ms."]
     ),
     'lang' => ['Englisch', null, 'Französisch', 'Deutsch', 'Chinesisch', null, 'Spanisch', null, 'Russisch'],
+    'meta' => array(
+        'tags'          => array(
+            'generic' => ['World of Warcraft', 'Datenbank', 'Wrath of the Lich King', 'DB', 'WotLK', 'AoWoW', '3.3.5a'],
+            'error'   => ['404', 'Seite nicht gefunden'],
+            'home'    => ['Talentrechner', 'Begleiterrechner', 'Gegenstandsvergleichswerkzeug', 'Profiler'],
+            'maps'    => ['Karten', 'Gebiete', 'Markierungen'],
+            'compare' => ['Vergleichen', 'Gegenstände', 'Ausrüstungssets', 'Gewichtung von Werten']
+        ),
+        'description' => array(
+            'genList'     => 'Eine vollständige such- und filterbare Liste aller %s in World of Warcraft: Wrath of the Lich King.',
+            'genPage'     => '%s ist ein World of Warcraft %s.',
+            'error'       => 'Anscheinend konnte die angeforderte Seite nicht gefunden werden. Vielleicht sind einige Justierungen an der AO-815 Großkonfabulierungsmaschine notwendig...',
+            'home'        => 'Informationen, Hilfe, Tools und mehr rund um Quests, Gegenstände, Talente, Dungeons und Schlachtzüge in World of Warcraft: Wrath of the Lich King!',
+            'changelog'   => 'Ein Änderungsprotokoll der am "%s""-Guide vorgenommenen Änderungen.',
+            'npc'         => '%s ist ein %s NPC.',
+            'itemset'     => 'Ein Ausrüstungsset für %s, das %d Teile enthält.',
+            'pet'         => '%s ist eine Tierart von %s Begleitern in World of Warcraft. Sie ernähren sich gerne von %s.',
+            'quest'       => 'Ein%s%s Quest%s.',
+            'guild'       => '%s von %s ist eine %s-Gilde mit %d Mitgliedern.',
+            'arena-team'  => '%s von %s ist ein %dvs%3$d Arena-Team.',
+            'profile'     => 'World of Warcraft Profil von %s: Level %d %s %s von %s auf %s %s.'
+        ),
+        'inCategory'    => 'In der Kategorie %s.',
+        'eventEndsFmt'  => "'Endet am' d. MMMM 'um' HH:mm.", // intl
+        'iconUsedBy'    => '%s ist ein von %s verwendetes Icon.',
+        'iconUnused'    => '%s ist ein unbenutztes Icon.',
+        'setbonus'      => 'Besitzt Setboni bei %s Teilen.',
+        'npcFoundIn'    => 'Dieser NPC befindet sich in %s.',
+        'objFoundIn'    => '%s ist ein World of Warcraft Objekt, zu finden in %s.',
+        'foundInExt'    => "%d weiteren Gebieten",
+        'petTraitPref'  => '%s',
+        'questReward'   => 'Belohnungen: %s.',
+        'itemSourceMore'=> array(
+            SRC_DROP           => 'Geplündert von %s.',                                             SRC_QUEST       => 'Eine Questbelohnung von %s.',
+            SRC_VENDOR         => 'Verkauft von %s.',                                               SRC_ACHIEVEMENT => 'Eine Belohnung von Erfolg %s.',
+            SRC_DISENCHANTMENT => 'Entzaubert aus %s.',                                             SRC_FISHING     => 'Geangelt in %s.',
+            SRC_GATHERING      => 'Gesammelt von %s.',                                              SRC_MILLING     => 'Gemahlen aus %s.',
+            SRC_MINING         => 'Abgebaut von %s.',                                               SRC_PROSPECTING => 'Sondiert aus %s.',
+            SRC_PICKPOCKETING  => 'Aus Taschendiebstahl von %s.',                                   SRC_SALVAGING   => 'Geborgen von %s.',
+            SRC_SKINNING       => 'Gehäutet von %s.'
+        ),
+        'itemSource'    => ['Ist %s.', array(
+            SRC_CRAFTED        => 'hergestellt',                                                    SRC_DROP        => 'geplündert',
+            SRC_PVP            => 'erhalten durch PvP',                                             SRC_QUEST       => 'eine Questbelohnung',
+            SRC_VENDOR         => 'verkauft von NPCs',                                              SRC_REDEMPTION  => 'online eingelöst',
+            SRC_STARTER        => 'ein Starter-Gegenstand',                                         SRC_ACHIEVEMENT => 'eine Belohnung von einem Erfolg',
+            SRC_DISENCHANTMENT => 'entzaubert',                                                     SRC_FISHING     => 'geangelt',
+            SRC_GATHERING      => 'gesammelt',                                                      SRC_MILLING     => 'gemahlen',
+            SRC_MINING         => 'abgebaut',                                                       SRC_PROSPECTING => 'sondiert',
+            SRC_PICKPOCKETING  => 'aus Taschendiebstahl',                                           SRC_SALVAGING   => 'geborgen',
+            SRC_SKINNING       => 'gehäutet'
+        )],
+        'itemCatDesc' => array(
+            ITEM_CLASS_CONSUMABLE => '%s ist ein %s%s.',                                                                                // name, itemLevel?, itemType
+            ITEM_CLASS_CONTAINER  => '%1$s ist eine %3$s mit %2$d Plätzen.',                                                            // name, nSlots, bagType
+            ITEM_CLASS_WEAPON     => 'Diese %s %s hat eine Gegenstandsstufe von %d.',                                                   // quality, weaponType, itemLevel
+            ITEM_CLASS_GEM        => 'Dies ist ein %s%s %s Edelstein.',                                                                 // itemLevel?, quality, color
+            ITEM_CLASS_ARMOR      => 'Diese %s %s mit Gegenstandsstufe %d wird für %s benutzt.',                                        // quality, armorType, itemlevel, equipSlot
+            ITEM_CLASS_TRADEGOOD  => '%s ist eine Handwerksware.',                                                                      // name
+            ITEM_CLASS_KEY        => '%s ist ein Schlüssel; Er is an Euer Schlüsselbund gebunden.',                                     // name
+            ITEM_CLASS_GLYPH      => 'Dies ist eine %s %s-Glyphe. Sie wird im Auktionshaus verkauft, oder von Schreibern hergestellt.', // glyphType, class
+        )
+    ),
     'main' => array(
         'name'          => "Name",
         'link'          => "Link",
@@ -35,6 +98,7 @@ $lang = array(
         'players'       => "Spieler",
         'thePlayer'     => "Der Spieler",
         'quickFacts'    => "Kurzübersicht",
+        'comments'      => "Kommentare",
         'screenshots'   => "Screenshots",
         'videos'        => "Videos",
         'side'          => "Seite: ",
@@ -389,9 +453,14 @@ $lang = array(
         'valueDelim'    => " - ",                           // " bis "
         'target'        => "<Ziel>",
 
+        'copper'        => "%d Kupfer",                     // COPPER_AMOUNT
+        'silver'        => "%d Silber",                     // SILVER_AMOUNT
+        'gold'          => "%d Gold",                       // GOLD_AMOUNT
+
         'pvp'           => "PvP",
         'honorPoints'   => "Ehrenpunkte",
         'arenaPoints'   => "Arenapunkte",
+        'acvmtPoints'   => "Erfolgspunkte",
         'heroClass'     => "Heldenklasse",
         'resource'      => "Ressource: ",
         'resources'     => "Ressourcen: ",
@@ -424,8 +493,8 @@ $lang = array(
             "In-Game-Store"
         ),
         'pvpSources'    => array(
-             42 => "Arenasaison 1",          52 => "Arenasaison 2",          71 => "Arenasaison 3",          80 => "Arenasaison 4",         157 => "Arenasaison 5",
-            163 => "Arenasaison 6",         167 => "Arenasaison 7",         169 => "Arenasaison 8",         177 => "2009 Arena-Turnier"
+             42 => "Arenasaison 1",          62 => "Arenasaison 2",          71 => "Arenasaison 3",          80 => "Arenasaison 4",         157 => "Arenasaison 5",
+            167 => "Arenasaison 6",         169 => "Arenasaison 7",         177 => "Arenasaison 8",         163 => "2009 Arena-Turnier"
         ),
         'languages'     => array(
              1 => "Orcisch",                 2 => "Darnassisch",             3 => "Taurisch",                6 => "Zwergisch",               7 => "Gemeinsprache",           8 => "Dämonisch",
@@ -1200,6 +1269,7 @@ $lang = array(
         'worth'         => "Wert: %s",
         'unkPosition'   => "Der Aufenthaltsort dieses NPCs ist nicht bekannt.",
         'difficultyPH'  => 'Dieser NPC ist ein Platzhalter für einen anderen Modus von <a href="?npc=%1$d">%2$s</a>.',
+        'criteriaOf'    => "Dieser NPC ist ein Kriterium von %s.",
         'seat'          => "Sitz",
         'accessory'     => "Zusätze",
         'accessoryFor'  => "Dieser NPC ist Zusatz für Fahrzeug",
@@ -1564,7 +1634,7 @@ $lang = array(
                   495 => "Der heulende Fjord",            3537 => "Boreanische Tundra",            3711 => "Sholazarbecken",                4024 => "Kaltarra",                      4197 => "Tausendwintersee",
                  4395 => "Dalaran",                       4742 => "Hrothgars Landestelle"
             ),
-           -2 => "Nicht kategorisiert"
+           -2 => ["Nicht kategorisiert"]
         )
     ),
     'icon'  => array(
@@ -1636,10 +1706,10 @@ $lang = array(
         'customRewRate' => "Abweichende Belohnungsraten",
         '_transfer'     => 'Die Reputation mit dieser Fraktion wird mit dem für <a href="?faction=%d" class="q1">%s</a> vertauscht, wenn Ihr zur <span class="icon-%s">%s</span> wechselt.',
         'cat'           => array(
-            1118 => ["Classic", 469 => "Allianz", 169 => "Dampfdruckkartell", 67 => "Horde", 891 => "Streitkräfte der Allianz", 892 => "Streitkräfte der Horde"],
-            980  => ["The Burning Crusade", 936 => "Shattrath"],
-            1097 => ["Wrath of the Lich King", 1052 => "Expedition der Horde", 1117 => "Sholazarbecken", 1037 => "Vorposten der Allianz"],
-            0    => "Sonstige"
+            1118 => "Classic",                       469 => "Allianz",                   169 => "Dampfdruckkartell",          67 => "Horde",                    891 => "Streitkräfte der Allianz",      892 => "Streitkräfte der Horde",
+             980 => "The Burning Crusade",           936 => "Shattrath",
+            1097 => "Wrath of the Lich King",       1052 => "Expedition der Horde",     1117 => "Sholazarbecken",           1037 => "Vorposten der Allianz",
+               0 => "Sonstige",                      949 => "Test Faction 1",            948 => "Test Faction 2"
         )
     ),
     'itemset' => array(
@@ -1654,7 +1724,7 @@ $lang = array(
         '_tag'          => "Tag: ",
         'summary'       => "Zusammenfassung",
         'notes'         => array(
-            null,                                   "Dungeon-Set 1",                            "Dungeon-Set 2",                                "Tier 1 Raid-Set",
+            null,                                   "Dungeon-Set 1",                            "Dungeon-Set 2",                            "Tier 1 Raid-Set",
             "Tier 2 Raid-Set",                      "Tier 3 Raid-Set",                          "Level 60 PvP-Set (Rar)",                   "Level 60 PvP-Set (Rar,  alt)",
             "Level 60 PvP-Set (Episch)",            "Set der Ruinen von Ahn'Qiraj",             "Set des Tempels von Ahn'Qiraj",            "Set von Zul'Gurub",
             "Tier 4 Raid-Set",                      "Tier 5 Raid-Set",                          "Dungeon-Set 3",                            "Set des Arathibeckens",
@@ -1776,40 +1846,39 @@ $lang = array(
             'crafted' => '<a href="?items&filter=cr=86;crs=%s;crv=0">Hergestellte Gegenstände</a>'
         ),
         'cat'           => array(
-              7 => "Klassenfertigkeiten",
-            -13 => "Glyphen",
-            -11 => ["Sachverstand", 8 => "Rüstung", 6 => "Waffen", 10 => "Sprachen"],
-             -4 => "Völkerfertigkeiten",
-             -2 => "Talente",
-             -6 => "Haustiere",
-             -5 => ["Reittiere", 1 => "Reittiere", 2 => "Flugreittiere", 3 => "Verschiedene"],
-             -3 => array(
-                "Begleiterfertigkeiten",    782 => "Ghul",              270 => "Allgemein",             213 => "Aasvogel",                  210 => "Bär",                   763 => "Drachenfalke",          211 => "Eber",
+              7 => ["Klassenfertigkeiten"],
+            -13 => ["Glyphen", [null, "Krieger", "Paladin", "Jäger", "Schurke", "Priester", "Todesritter", "Schamane", "Magier", "Hexenmeister", null, "Druide"]],
+            -11 => ["Sachverstand", [8 => "Rüstung", 6 => "Waffen", 10 => "Sprachen"]],
+             -4 => ["Völkerfertigkeiten"],
+             -2 => ["Talente"],
+             -6 => ["Haustiere"],
+             -5 => ["Reittiere", [1 => "Reittiere", 2 => "Flugreittiere", 3 => "Verschiedene"]],
+             -3 => ["Begleiterfertigkeiten", array(
+                782 => "Ghul",              270 => "Allgemein",         213 => "Aasvogel",              210 => "Bär",                       763 => "Drachenfalke",          211 => "Eber",
                 767 => "Felshetzer",        653 => "Fledermaus",        788 => "Geisterbestie",         215 => "Gorilla",                   654 => "Hyäne",                 209 => "Katze",                 787 => "Kernhund",
                 214 => "Krebs",             212 => "Krokilisk",         775 => "Motte",                 764 => "Netherrochen",              217 => "Raptor",                655 => "Raubvogel",             786 => "Rhinozeros",
                 251 => "Schildkröte",       780 => "Schimäre",          768 => "Schlange",              783 => "Silithid",                  236 => "Skorpid",               766 => "Sphärenjäger",          203 => "Spinne",
                 765 => "Sporensegler",      781 => "Teufelssaurier",    218 => "Weitschreiter",         785 => "Wespe",                     656 => "Windnatter",            208 => "Wolf",                  784 => "Wurm",
                 204 => "Leerwandler",       205 => "Sukkubus",          189 => "Teufelsjäger",          761 => "Teufelswache",              188 => "Wichtel",
-            ),
-             -7 => ["Begleitertalente", 410 => "Gerissenheit", 411 => "Wildheit", 409 => "Hartnäckigkeit"],
-             11 => array(
-                "Berufe",
-                171 => "Alchemie",
-                164 => ["Schmiedekunst", 9788 => "Rüstungsschmied", 9787 => "Waffenschmied", 17041 => "Axtschmiedemeister", 17040 => "Hammerschmiedemeister", 17039 => "Schwertschmiedemeister"],
-                333 => "Verzauberkunst",
-                202 => ["Ingenieurskunst", 20219 => "Gnomeningenieurskunst", 20222 => "Gobliningenieurskunst"],
-                182 => "Kräuterkunde",
-                773 => "Inschriftenkunde",
-                755 => "Juwelenschleifen",
-                165 => ["Lederverarbeitung", 10656 => "Drachenschuppenlederverarbeitung", 10658 => "Elementarlederverarbeitung", 10660 => "Stammeslederverarbeitung"],
-                186 => "Bergbau",
-                393 => "Kürschnerei",
-                197 => ["Schneiderei", 26798 => "Mondstoffschneiderei", 26801 => "Schattenstoffschneiderei", 26797 => "Zauberfeuerschneiderei"],
-            ),
-              9 => ["Nebenberufe", 185 => "Kochkunst", 129 => "Erste Hilfe", 356 => "Angeln", 762 => "Reiten"],
-             -8 => "NPC-Fähigkeiten",
-             -9 => "GM-Fähigkeiten",
-              0 => "Nicht kategorisiert"
+            )],
+             -7 => ["Begleitertalente", [410 => "Gerissenheit", 411 => "Wildheit", 409 => "Hartnäckigkeit"]],
+             11 => ["Berufe", array(
+                171 => ["Alchemie"],
+                164 => ["Schmiedekunst", [9788 => "Rüstungsschmied", 9787 => "Waffenschmied", 17041 => "Axtschmiedemeister", 17040 => "Hammerschmiedemeister", 17039 => "Schwertschmiedemeister"]],
+                333 => ["Verzauberkunst"],
+                202 => ["Ingenieurskunst", [20219 => "Gnomeningenieurskunst", 20222 => "Gobliningenieurskunst"]],
+                182 => ["Kräuterkunde"],
+                773 => ["Inschriftenkunde"],
+                755 => ["Juwelenschleifen"],
+                165 => ["Lederverarbeitung", [10656 => "Drachenschuppenlederverarbeitung", 10658 => "Elementarlederverarbeitung", 10660 => "Stammeslederverarbeitung"]],
+                186 => ["Bergbau"],
+                393 => ["Kürschnerei"],
+                197 => ["Schneiderei", [26798 => "Mondstoffschneiderei", 26801 => "Schattenstoffschneiderei", 26797 => "Zauberfeuerschneiderei"]],
+            )],
+              9 => ["Nebenberufe", [185 => "Kochkunst", 129 => "Erste Hilfe", 356 => "Angeln", 762 => "Reiten"]],
+             -8 => ["NPC-Fähigkeiten"],
+             -9 => ["GM-Fähigkeiten"],
+              0 => ["Nicht kategorisiert"]
         ),
         'armorSubClass' => array(
             "Sonstiges",                            "Stoffrüstung",                         "Lederrüstung",                         "Schwere Rüstung",                      "Plattenrüstung",
@@ -2335,6 +2404,7 @@ $lang = array(
             ENCHANT_CONDITION_NOT_EQUAL_COMPARE  => "eine unterschiedliche Anzahl Edelsteine der Kategorien %s und %s",
             ENCHANT_CONDITION_NOT_EQUAL_VALUE    => "nicht genau %d |4Edelstein:Edelsteine; der Kategorie %s"
         ),
+        '_gemColors'    => ['roter', 'blauer', 'gelber', 'violetter', 'grüner', 'orangener', 'Meta', 'einfacher', 'prismatischer'],
         'reqRating'     => array(                           // ITEM_REQ_ARENA_RATING*
             "Benötigt eine persönliche Arenawertung und Teamwertung von %d.",
             "Benötigt eine persönliche und eine Teamwertung von %d|nin 3v3- oder 5v5-Turnieren",

@@ -52,7 +52,7 @@ trait TrCustomData
             }
             catch (\Exception $e)
             {
-                trigger_error('custom data for entry #'.$id.': '.$e->getMessage(), E_USER_ERROR);
+                trigger_error('custom data for entry #'.$id.': '.$e->getMessage(), E_USER_WARNING);
                 $ok = false;
             }
         }
@@ -151,11 +151,11 @@ trait TrTemplateFile
         }
     }
 
-    private function applyCfg($file) : ?string
+    private function applyCfg(string $file) : ?string
     {
         // replace constants
         if ($content = file_get_contents($file))
-            return Cfg::applyToString($content, $this->numFmt ?? true);
+            return Cfg::applyToString($content, $this->formatNumbers);
 
         CLI::write('[build] template file is not readable - '.CLI::bold($file), CLI::LOG_ERROR);
         $this->success = false;
@@ -165,18 +165,24 @@ trait TrTemplateFile
 
 trait TrImageProcessor
 {
-    private $imgPath     = '%sInterface/';
-    private $status      = '';
-    private $maxExecTime = 30;
+    private string $imgPath     = '%sInterface/';
+    private string $status      = '';
+    private int    $maxExecTime = 30;
 
-    private const GEN_IDX_SRC_PATH  = 0;
-    private const GEN_IDX_SRC_REAL  = 1;
-    private const GEN_IDX_LOCALE    = 2;
-    private const GEN_IDX_SRC_INFO  = 3;
-    private const GEN_IDX_DEST_INFO = 4;
+    private const int GEN_IDX_SRC_PATH  = 0;
+    private const int GEN_IDX_SRC_REAL  = 1;
+    private const int GEN_IDX_LOCALE    = 2;
+    private const int GEN_IDX_SRC_INFO  = 3;
+    private const int GEN_IDX_DEST_INFO = 4;
+
+    private const int JPEG_QUALITY = 85;                    // 0: worst - 100: best
+
+    /** * @var array{string, string, bool, array, array{string, int, int}[]}[] $genSteps - {src, resourcePath, localized, [tileOrder], [[dest, destW, destH]]} */
+    private array $genSteps = [];
 
     private function checkSourceDirs() : bool
     {
+        $success    = true;
         $outTblLen  = 0;
         $foundCache = [];
 
@@ -195,23 +201,18 @@ trait TrImageProcessor
             $outTblLen = max($outTblLen, strlen($subDir));
 
             $path = $this->imgPath.$subDir;
-            if ($p = CLISetup::filesInPathLocalized($path, $this->success, $localized))
+            if ($p = CLISetup::filesInPathLocalized($path, $success, $localized))
             {
                 $foundCache[$subDir] = $p;
                 $this->genSteps[$i][self::GEN_IDX_SRC_REAL] = $p;
             }
             else
-                $this->success = false;
+                $success = false;
         }
 
         $locList = [];
-        foreach (Locale::cases() as $loc)
-        {
-            if (!$loc->validate() || !in_array($loc, CLISetup::$locales))
-                continue;
-
+        foreach (CLISetup::$locales as $loc)
             $locList = array_merge($locList, $loc->gameDirs());
-        }
 
         CLI::write('[img-proc] required resources overview:', CLI::LOG_INFO);
 
@@ -226,7 +227,7 @@ trait TrImageProcessor
             if (!$realPaths)
             {
                 CLI::write(CLI::red('MISSING').' - '.str_pad($subDir, $outTblLen).' @ '.sprintf($this->imgPath, '['.implode('/ ', $locList).'/]').$subDir);
-                $this->success = false;
+                $success = false;
             }
             else if ($localized)
             {
@@ -260,12 +261,11 @@ trait TrImageProcessor
             if (!$localized && $realPaths)
                 $this->genSteps[$i][self::GEN_IDX_SRC_REAL] = reset($realPaths);
 
-        return $this->success;
+        return $success;
     }
 
-    // prefer manually converted PNG files (as the imagecreatefromblp-script has issues with some formats)
-    // alpha channel issues observed with locale deDE Hilsbrad and Elwynn - maps
-    // see: https://github.com/Kanma/BLPConverter
+    // NOTE: the feature to preferably load PNGs is still in place for compatibility reasons
+    // but should be obsolete by now.
     private function loadImageFile(string $path, ?bool &$noSrc = false) : ?\GdImage
     {
         $result = null;
@@ -275,7 +275,7 @@ trait TrImageProcessor
         $file = $path.'.png';
         if (CLISetup::fileExists($file))
         {
-            CLI::write('[img-proc] manually converted png file present for '.$file, CLI::LOG_INFO);
+            CLI::write('[img-proc] [DEPRECATED] manually converted png file '.$file.' used in place of blp.', CLI::LOG_WARN);
             $result = imagecreatefrompng($file);
         }
 
@@ -283,7 +283,13 @@ trait TrImageProcessor
         {
             $file = $path.'.blp';
             if (CLISetup::fileExists($file))
-                $result = imagecreatefromblp($file);
+            {
+                $blp = new BLP2File($file, true);
+                if ($blp->error)
+                    CLI::write($blp->error, CLI::LOG_ERROR);
+                else if (!($result = $blp->exportGD()))
+                    CLI::write($blp->error ?: 'UNK BLP2 ERROR', CLI::LOG_ERROR);
+            }
             else
                 $noSrc = true;
         }
@@ -291,21 +297,32 @@ trait TrImageProcessor
         return $result;
     }
 
-    // all setup image generators write PNG - no resizing tiers means no other format is needed anymore
+    // aowow - custom: icon/map generators write a single native-resolution PNG and let CSS scale it;
+    // the format dispatch below is kept for the remaining non-icon steps that still emit jpg/gif
     private function writeImageFile(\GdImage $src, string $outFile, array $srcDims, array $destDims) : bool
     {
-        $outRes = imagecreatetruecolor($destDims['w'], $destDims['h']);
+        $outRes  = imagecreatetruecolor($destDims['w'], $destDims['h']);
+        $ext     = substr($outFile, -3, 3);
 
         imagesavealpha($outRes, true);
-        imagealphablending($outRes, false);
-        $transparentindex = imagecolorallocatealpha($outRes, 255, 255, 255, 127);
-        imagefill($outRes, 0, 0, $transparentindex);
+        if ($ext == 'png')
+        {
+            imagealphablending($outRes, false);
+            $transparentindex = imagecolorallocatealpha($outRes, 255, 255, 255, 127);
+            imagefill($outRes, 0, 0, $transparentindex);
+        }
 
-        imagecopyresampled($outRes, $src, $destDims['x'], $destDims['x'], $srcDims['x'], $srcDims['y'], $destDims['w'], $destDims['h'], $srcDims['w'], $srcDims['h']);
+        imagecopyresampled($outRes, $src, $destDims['x'], $destDims['y'], $srcDims['x'], $srcDims['y'], $destDims['w'], $destDims['h'], $srcDims['w'], $srcDims['h']);
 
-        $success = imagepng($outRes, $outFile);
+        $success = match ($ext)
+        {
+            'jpg'   => imagejpeg($outRes, $outFile, self::JPEG_QUALITY),
+            'gif'   => imagegif($outRes, $outFile),
+            'png'   => imagepng($outRes, $outFile),
+            default => (fn() => !!CLI::write('[img-proc] '.$this->status.' - unsupported file fromat: '.$ext, CLI::LOG_WARN))()
+        };
 
-        imagedestroy($outRes);
+        unset($outRes);
 
         if ($success)
         {
@@ -361,37 +378,65 @@ trait TrComplexImage
         return $img;
     }
 
-    private function assembleImage(string $baseName, array $tileData, int $destW, int $destH) : ?\GdImage
+    private function assembleImage(string $baseName, array $tileData, int $forceW = 0, int $forceH = 0) : ?\GdImage
     {
-        $dest = imagecreatetruecolor($destW, $destH);
-        if (!$dest)
+        $sources = [];
+        $destW = $destH = 0;
+
+        foreach ($tileData as $y => $row)
+        {
+            foreach ($row as $x => $suffix)
+            {
+                $noSrcFile = false;
+                if (!($sources[$y][$x] = $this->loadImageFile($baseName.$suffix, $noSrcFile)))
+                {
+                    if ($noSrcFile)
+                        CLI::write('[img-proc-c] tile '.$baseName.$suffix.'.blp missing.', CLI::LOG_ERROR);
+
+                    return null;
+                }
+            }
+
+            if (!$forceW)
+                $destW = max($destW, array_reduce($sources[$y], fn($c, $gd) => $c += imagesx($gd), 0));
+        }
+
+        if (!$forceH)
+            for ($i = 0; $i < count($tileData[0]); $i++)
+                $destH = max($destH, array_reduce(array_column($sources, $i), fn($c, $gd) => $c += imagesy($gd), 0));
+
+        $destW = $forceW ?: $destW;
+        $destH = $forceH ?: $destH;
+
+        // init dest images
+        if (!$destW || !$destH || !($dest = imagecreatetruecolor($destW, $destH)))
             return null;
 
         imagesavealpha($dest, true);
         imagealphablending($dest, false);
 
-        $tileH = $destH;
+        imagefill($dest, 0, 0, imagecolorallocatealpha($dest, 255, 255, 255, 127));
+
+        // note: tiled images may not be divisible by 256 and fill the remaining tile space with transparent pixels
+        // in this case the $forceW/H is set and we shouldn't try to write empty pixels that are also outside of the $dest img
+
+        $w = $h = 0;
+        $remainH = $destH;
         foreach ($tileData as $y => $row)
         {
-            $tileW = $destW;
+            $remainW = $destW;
             foreach ($row as $x => $suffix)
             {
-                $src = $this->loadImageFile($baseName.$suffix, $noSrcFile);
-                if (!$src)
-                {
-                    if ($noSrcFile)
-                        CLI::write('[img-proc-c] tile '.$baseName.$suffix.'.blp missing.', CLI::LOG_ERROR);
+                $w = imagesx($sources[$y][$x]);
+                $h = imagesy($sources[$y][$x]);
 
-                    unset($dest);
-                    return null;
-                }
+                // we only ever expect the last tile of a col/row to not be 256px so having the start point a fixed multiple of 256 should be fine
+                imagecopyresampled($dest, $sources[$y][$x], 256 * $x, 256 * $y, 0, 0, min($w, $remainW), min($h, $remainH), min($w, $remainW), min($h, $remainH));
 
-                imagecopyresampled($dest, $src, 256 * $x, 256 * $y, 0, 0, min($tileW, 256), min($tileH, 256), min($tileW, 256), min($tileH, 256));
-                $tileW -= 256;
-
-                unset($src);
+                $remainW -= $w;
+                unset($sources[$y][$x]);
             }
-            $tileH -= 256;
+            $remainH -= $h;
         }
 
         return $dest;
@@ -401,27 +446,24 @@ trait TrComplexImage
 abstract class SetupScript
 {
     // FileGen
-    protected $requiredDirs       = [];
-    protected $fileTemplateDest   = [];
-    protected $fileTemplatePath   = 'setup/tools/filegen/templates/';
-    protected $fileTemplateSrc    = [];
+    protected array  $requiredDirs     = [];
+    protected array  $fileTemplateDest = [];
+    protected string $fileTemplatePath = 'setup/tools/filegen/templates/';
+    protected array  $fileTemplateSrc  = [];
+    protected bool   $formatNumbers    = true;              // when applying numeric value from config, format it or nah
 
-    // SQLGen
-    protected $result = '';
+    // FileGen + DataGen
+    protected array  $dbcSourceFiles   = [];                // relies on these dbc files. Read into db if related table is missing
+    protected array  $worldDependency  = [];                // query when this table changed (--sync command)
 
-    // FileGen + SQLGen
-    protected $dbcSourceFiles     = [];                     // relies on these dbc files. Read into db if related table is missing
-    protected $worldDependency    = [];                     // query when this table changed (--sync command)
+    protected array  $info             = [];                // arr: 0 => self, n => genSteps        cmd => [[arr<str>:optionalArgs], int:argFlags, str:description]
+    protected array  $setupAfter       = [[], []];          // [[sqlgen], [filegen]]                used to sort scripts that rely on each other being executed in the right order (script names are not necessarily the same as their table names)
 
-    protected $info               = [];                     // arr: 0 => self, n => genSteps        cmd => [[arr<str>:optionalArgs], int:argFlags, str:description]
-    protected $setupAfter         = [[], []];               // [[sqlgen], [filegen]]                used to sort scripts that rely on each other being executed in the right order (script names are not necessarily the same as their table names)
+    protected bool   $success          = true;
+    protected bool   $localized        = false;             // push locale directories onto $requiredDirs?
+    protected bool   $useGlobalStrings = false;             // uses data from interface/framexml/globalstrings.lua
 
-    protected $success            = true;
-    protected $localized          = false;                  // push locale directories onto $requiredDirs?
-    protected $useGlobalStrings   = false;                  // uses data from interface/framexml/globalstrings.lua
-
-    public $isOptional            = false;                  // not a part of the setup chain
-
+    public bool $isOptional = false;                        // not a part of the setup chain
 
     abstract public function generate() : bool;
 

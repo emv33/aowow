@@ -52,14 +52,13 @@ CLISetup::registerSetup("build", new class extends SetupScript
 {
     use TrTemplateFile;
 
-    protected $info = array(
+    protected array $info = array(
         'globaljs' => [[], CLISetup::ARGV_PARAM, 'Compiles the global javascript file (static/js/global.js).']
     );
 
-    protected $fileTemplateDest = ['static/js/global.js'];
-    protected $fileTemplateSrc  = ['global.js'];
-
-    private bool $numFmt = false;
+    protected array $fileTemplateDest = ['static/js/global.js'];
+    protected array $fileTemplateSrc  = ['global.js'];
+    protected bool  $formatNumbers    = false;
 
     private function locales() : string
     {

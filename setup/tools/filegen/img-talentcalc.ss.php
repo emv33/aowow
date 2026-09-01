@@ -13,24 +13,24 @@ CLISetup::registerSetup("build", new class extends SetupScript
 {
     use TrComplexImage;
 
-    protected $info = array(
+    protected array $info = array(
         'img-talentcalc' => [[], CLISetup::ARGV_PARAM, 'Generate backgrounds for the talent calculator.'],
     );
 
-    protected $dbcSourceFiles = ['talenttab', 'chrclasses'];
+    protected array $dbcSourceFiles = ['talenttab', 'chrclasses'];
 
-    private const DEST_DIRS = array(
+    private const array DEST_DIRS = array(
         ['static/images/wow/hunterpettalents/',    0, 0],
         ['static/images/wow/talents/backgrounds/', 0, 0]
     );
 
-    private const TILEORDER = array(
+    private const array TILEORDER = array(
         ['-TopLeft',    '-TopRight'],
         ['-BottomLeft', '-BottomRight']
     );
 
     // src, resourcePath, localized, [tileOrder], [[dest, destW, destH]]
-    private $genSteps = array(
+    private const array STEPS = array(
         ['TalentFrame/', null, false, self::TILEORDER,  self::DEST_DIRS]
     );
 
@@ -38,6 +38,8 @@ CLISetup::registerSetup("build", new class extends SetupScript
     {
         $this->imgPath = CLISetup::$srcDir.$this->imgPath;
         $this->maxExecTime = ini_get('max_execution_time');
+
+        $this->genSteps = self::STEPS;
 
         // init directories
         foreach (self::DEST_DIRS as $dir)
@@ -55,8 +57,7 @@ CLISetup::registerSetup("build", new class extends SetupScript
 
         sleep(2);
 
-        $tTabs = DB::Aowow()->selectAssoc('SELECT tt.`creatureFamilyMask`, tt.`textureFile`, tt.`tabNumber`, cc.`fileString` FROM dbc_talenttab tt LEFT JOIN dbc_chrclasses cc ON cc.`id` = IF(tt.`classMask`, LOG(2, tt.`classMask`) + 1, 0)');
-        if (!$tTabs)
+        if (!($tTabs = DB::Aowow()->selectAssoc('SELECT tt.`creatureFamilyMask`, tt.`textureFile`, tt.`tabNumber`, cc.`fileString` FROM dbc_talenttab tt LEFT JOIN dbc_chrclasses cc ON cc.`id` = IF(tt.`classMask`, LOG(2, tt.`classMask`) + 1, 0)')))
         {
             CLI::write(' - TalentTab.dbc or ChrClasses.dbc is empty...?', CLI::LOG_ERROR);
             $this->success = false;
@@ -76,7 +77,7 @@ CLISetup::registerSetup("build", new class extends SetupScript
 
             if ($tt['creatureFamilyMask'])      // is PetCalc - displayed at 244x364 via CSS
                 $outFile = sprintf($outInfo[0][0].'bg_%d.png', log($tt['creatureFamilyMask'], 2) + 1);
-            else                                 // displayed at 204x554 via CSS
+            else                                // displayed at 204x554 via CSS
                 $outFile = sprintf($outInfo[1][0].'%s_%d.png', strtolower($tt['fileString']), $tt['tabNumber'] + 1);
 
             if (!CLISetup::getOpt('force') && file_exists($outFile))
@@ -85,9 +86,8 @@ CLISetup::registerSetup("build", new class extends SetupScript
                 continue;
             }
 
-            // no resizing: assemble at native tile resolution and let CSS scale it for display
-            $im = $this->assembleImage($realPath.'/'.$tt['textureFile'], $tileOrder, 256 + 44, 256 + 75);
-            if (!$im)
+            // aowow - custom: assemble at native tile resolution and let CSS scale it for display
+            if (!($im = $this->assembleImage($realPath.'/'.$tt['textureFile'], $tileOrder, 256 + 44, 256 + 75)))
             {
                 CLI::write(' - could not assemble file '.$tt['textureFile'], CLI::LOG_ERROR);
                 $this->success = false;

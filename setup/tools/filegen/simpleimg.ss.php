@@ -17,7 +17,7 @@ CLISetup::registerSetup("build", new class extends SetupScript
 {
     use TrImageProcessor;
 
-    protected $info = array(
+    protected array $info = array(
         'simpleimg'      => [[   ], CLISetup::ARGV_PARAM,    'Converts BLP2 images smaller than 255x255 into PNG (mostly icons)'],
         'icons'          => [['1'], CLISetup::ARGV_OPTIONAL, 'Generate icons for spells, items, classes, races, ect.'],
         'glyphs'         => [['2'], CLISetup::ARGV_OPTIONAL, 'Generate decorative glyph symbols displayed on related item and spell pages.'],
@@ -25,34 +25,35 @@ CLISetup::registerSetup("build", new class extends SetupScript
         'loadingscreens' => [['4'], CLISetup::ARGV_OPTIONAL, 'Generate loading screen images (not used on page; skipped by default)']
     );
 
-    protected $dbcSourceFiles = ['holidays', 'spellicon', 'itemdisplayinfo'];
-    protected $setupAfter     = [['icons'], []];
+    protected array $dbcSourceFiles = ['holidays', 'spellicon', 'itemdisplayinfo'];
+    protected array $setupAfter     = [['icons'], []];
 
-    // no resizing: store one native PNG per icon; the frontend picks a display size (large/medium/small/tiny) via CSS
-    private const ICON_DIR = array(
+    // aowow - custom: no resizing tiers. store one native-resolution PNG per icon and let CSS pick the
+    // display size (large/medium/small/tiny), so the dest tuple carries no destSize column.
+    private const array ICON_DIRS = array(
         ['static/images/wow/icons/', 'png', 0, 4]
     );
 
-    private $genSteps = array(
+    private const array STEPS = array(
       //       srcPath,           realPath, localized, [pattern, isIcon, tileSize],                             [[dest, ext, srcSize, borderOffset]]
-         0 => ['Icons/',                  null, false, ['.*\.(blp|png)$',                           true,   0], self::ICON_DIR,                                                  ],
+         0 => ['Icons/',                  null, false, ['.*\.(blp|png)$',                           true,   0], self::ICON_DIRS,                                                 ],
          1 => ['Spellbook/',              null, false, ['UI-Glyph-Rune-?\d+.(blp|png)$',            false,  0], [['static/images/wow/Interface/Spellbook/',     'png', 0, 0]]],
-         2 => ['PaperDoll/',              null, false, ['UI-(Backpack|PaperDoll)-.*\.(blp|png)$',   true,   0], self::ICON_DIR,                                                  ],
-         3 => ['GLUES/CHARACTERCREATE/',  null, false, ['UI-CharacterCreate-Races\.(blp|png)',      true,  64], self::ICON_DIR,                                                  ],
-         4 => ['GLUES/CHARACTERCREATE/',  null, false, ['UI-CharacterCreate-CLASSES\.(blp|png)',    true,  64], self::ICON_DIR,                                                  ],
-         5 => ['GLUES/CHARACTERCREATE/',  null, false, ['UI-CharacterCreate-Factions\.(blp|png)',   true,  64], self::ICON_DIR,                                                  ],
+         2 => ['PaperDoll/',              null, false, ['UI-(Backpack|PaperDoll)-.*\.(blp|png)$',   true,   0], self::ICON_DIRS,                                                 ],
+         3 => ['GLUES/CHARACTERCREATE/',  null, false, ['UI-CharacterCreate-Races\.(blp|png)',      true,  64], self::ICON_DIRS,                                                 ],
+         4 => ['GLUES/CHARACTERCREATE/',  null, false, ['UI-CharacterCreate-CLASSES\.(blp|png)',    true,  64], self::ICON_DIRS,                                                 ],
+         5 => ['GLUES/CHARACTERCREATE/',  null, false, ['UI-CharacterCreate-Factions\.(blp|png)',   true,  64], self::ICON_DIRS,                                                 ],
       // 6 => ['Minimap/'               , null, false, ['OBJECTICONS.(BLP|png)',                    true,  32], [['static/images/wow/icons/',                   'png', 0, 2]]],
          7 => ['FlavorImages/',           null, false, ['.*\.(blp|png)$',                           false,  0], [['static/images/wow/Interface/FlavorImages/',  'png', 0, 0]]],
          8 => ['Pictures/',               null, false, ['.*\.(blp|png)$',                           false,  0], [['static/images/wow/Interface/Pictures/',      'png', 0, 0]]],
          9 => ['PvPRankBadges/',          null, false, ['.*\.(blp|png)$',                           false,  0], [['static/images/wow/Interface/PvPRankBadges/', 'png', 0, 0]]],
-        10 => ['Calendar/Holidays/',      null, false, ['.*(start|[ayhs])\.(blp|png)$',             true,   0], self::ICON_DIR,                                                  ],
+        10 => ['Calendar/Holidays/',      null, false, ['.*(start|[ayhs])\.(blp|png)$',             true,   0], self::ICON_DIRS,                                                 ],
         11 => ['GLUES/LOADINGSCREENS/',   null, false, ['lo.*\.(blp|png)$',                         false,  0], [['cache/loadingscreens/',                      'png', 0, 0]]],
-        12 => ['PVPFrame/',               null, false, ['PVP-(ArenaPoints|Currency).*\.(blp|png)$', true,   0], self::ICON_DIR,                                                  ]
+        12 => ['PVPFrame/',               null, false, ['PVP-(ArenaPoints|Currency).*\.(blp|png)$', true,   0], self::ICON_DIRS,                                                 ]
     );
 
     // textures are composed of 64x64 icons
     // numeric indexed arrays mimick the position on the texture
-    private $cuNames = array(
+    private array $cuNames = array(
         2 => array(
             'ui-paperdoll-slot-chest'         => 'inventoryslot_chest',
             'ui-backpack-emptyslot'           => 'inventoryslot_empty',
@@ -117,6 +118,8 @@ CLISetup::registerSetup("build", new class extends SetupScript
         $this->imgPath = CLISetup::$srcDir.$this->imgPath;
         $this->maxExecTime = ini_get('max_execution_time');
 
+        $this->genSteps = self::STEPS;
+
         // init directories to be checked when registered
         foreach (array_column($this->genSteps, self::GEN_IDX_DEST_INFO) as $subDirs)
             foreach ($subDirs as $sd)
@@ -157,6 +160,7 @@ CLISetup::registerSetup("build", new class extends SetupScript
         if (!$this->checkSourceDirs())
         {
             CLI::write('[simpleimg] one or more required directories are missing:', CLI::LOG_ERROR);
+            $this->success = false;
             return false;
         }
 
@@ -228,7 +232,7 @@ CLISetup::registerSetup("build", new class extends SetupScript
                                 if (!$src)
                                     $src = $this->loadImageFile($f, $noSrcFile);
 
-                                if (!$src)                  // error should be created by imagecreatefromblp
+                                if (!$src)                  // error should be created by BLP2File
                                 {
                                     if (!$noSrcFile)        // there are a couple of void file references in dbc, so this can't be a hard error.
                                         $this->success = false;
@@ -280,7 +284,7 @@ CLISetup::registerSetup("build", new class extends SetupScript
                                 $this->success = false;
                             }
 
-                            imagedestroy($dest);
+                            unset($dest);
                         }
                         */
                     }
@@ -297,7 +301,7 @@ CLISetup::registerSetup("build", new class extends SetupScript
                         }
 
                         $src = $this->loadImageFile($f, $noSrcFile);
-                        if (!$src)                          // error should be created by imagecreatefromblp
+                        if (!$src)                          // error should be created by BLP2File
                         {
                             if (!$noSrcFile)                // there are a couple of void file references in dbc, so this can't be a hard error.
                                 $this->success = false;

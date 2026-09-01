@@ -10,7 +10,7 @@ class RaceBaseResponse extends TemplateResponse implements ICache
 {
     use TrDetailPage, TrCache;
 
-    private const MOUNT_VENDORS = array(                    // race => [starter, argent tournament]
+    private const array MOUNT_VENDORS = array(              // race => [starter, argent tournament]
         null,           [384,   33307], [3362,  33553], [1261,  33310],
         [4730,  33653], [4731,  33555], [3685,  33556], [7955,  33650],
         [7952,  33554], null,           [16264, 33557], [17584, 33657]
@@ -290,6 +290,22 @@ class RaceBaseResponse extends TemplateResponse implements ICache
         }
 
         parent::generate();
+    }
+
+    protected function generateMetadata(bool $useArticle = true) : void
+    {
+        $this->metaTags[] = ['property' => 'og:title', 'content' => $this->h1];
+        $this->metaTags[] = ['property' => 'og:type',  'content' => 'article'];
+
+        $keywords = [$this->h1, Util::ucFirst(Lang::game('race'))];
+        if ($_ = $this->subject->getField('side'))
+            $keywords[] = Lang::game('si', $_);
+
+        array_unshift($this->metaTags, ['name' => 'keywords', 'content' => [...$keywords, ...Lang::meta('tags', 'generic')]]);
+
+        $this->buildBasicMetadata(icon: reset($this->headIcons) ?: '');
+
+        $this->buildLdJson();
     }
 }
 

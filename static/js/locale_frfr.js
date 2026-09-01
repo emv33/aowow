@@ -2194,6 +2194,8 @@ var g_faction_categories = {
      169: 'Cartel Gentepression',
     1118: 'Classique',
     1052: 'Expédition de la Horde',
+     948: 'Faction de test 2',
+     949: 'Faction de test 1',
      891: 'Forces de l\'Alliance',
      892: 'Forces de la Horde',
       67: 'Horde',
@@ -4578,7 +4580,7 @@ var LANG = {
     pr_tip_quests:   "Note: <span class=\"tip\">Certaines</span> quêtes ne sont pas retrouvables par les API de Blizzard.",
 
     pr_header_noname:    "Sans nom",
-    pr_header_character: "Niveau $1 <a href=\"?class=$4\">$2</a> <a href=\"?class=$5\" class=\"c$5\">$3</a>",
+    pr_header_character: 'Niveau $1 <a href="?race=$4">$2</a> <a href="?class=$5" class="c$5">$3</a>',
     pr_header_edit:      "Édition",
     pr_header_armory:    "Armurerie",
     pr_header_help:      "Aide",

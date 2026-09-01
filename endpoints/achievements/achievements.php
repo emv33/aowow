@@ -20,7 +20,7 @@ class AchievementsBaseResponse extends TemplateResponse implements ICache
 
     protected  array  $scripts     = [[SC_JS_FILE, 'js/filters.js']];
     protected  array  $expectedGET = array(
-        'filter' => ['filter' => FILTER_VALIDATE_REGEXP, 'options' => ['regexp' => Filter::PATTERN_PARAM]]
+        'filter' => ['filter' => FILTER_CALLBACK, 'options' => [self::class, 'sanitizeFilter']]
     );
     protected  array  $validCats   = array(
         92  => true,
@@ -167,6 +167,26 @@ class AchievementsBaseResponse extends TemplateResponse implements ICache
     {
         // sort for dropdown-menus in filter
         Lang::sort('game', 'si');
+    }
+
+    protected function generateMetadata(bool $useArticle = true) : void
+    {
+        $keywords = [Util::ucFirst(Lang::game('achievements'))];
+        if ($this->category && ($cat = Lang::achievement('cat', end($this->category))))
+        {
+            $this->metaTags[] = ['property' => 'og:title', 'content' => $cat];
+            $keywords[] = $cat;
+        }
+        else
+            $this->metaTags[] = ['property' => 'og:title', 'content' => $keywords[0]];
+
+        $this->metaTags[] = ['property' => 'og:type',  'content' => 'website'];
+
+        array_unshift($this->metaTags, ['name' => 'keywords', 'content' => [...$keywords, ...Lang::meta('tags', 'generic')]]);
+
+        $this->buildBasicMetadata(Lang::meta('description', 'genList', [$keywords[0]]));
+
+        $this->buildLdJson();
     }
 }
 

@@ -11,7 +11,7 @@ if (!defined('AOWOW_REVISION'))
 class PageTemplate
 {
 
-    private const GUIDE_RATING_TPL = "$(document).ready(function() { $('#guiderating').append(GetStars(%.10F, %s, %u, %u)); });\n";
+    private const string GUIDE_RATING_TPL = "$(document).ready(function() { $('#guiderating').append(GetStars(%.10F, %s, %u, %u)); });\n";
 
     private readonly \Aowow\Locale $locale;
 
@@ -91,9 +91,9 @@ class PageTemplate
 
     /* (optional) set pre-render hooks */
 
-    public function registerDisplayHook(string $var, callable $fn) : void
+    public function registerDisplayHook(string $var, callable $fn, mixed $extraParam = null) : void
     {
-        $this->displayHooks[$var][] = $fn;
+        $this->displayHooks[$var][] = [$fn, $extraParam];
     }
 
     private function getDisplayHooks(string $var) : array
@@ -107,7 +107,7 @@ class PageTemplate
     {
         if (!self::test('template/pages/', $this->template))
         {
-            trigger_error('Error: nonexistent template requested: template/pages/'.$this->template.'.tpl.php', E_USER_ERROR);
+            trigger_error('Error: nonexistent template requested: template/pages/'.$this->template.'.tpl.php', E_USER_WARNING);
             return false;
         }
 
@@ -152,7 +152,7 @@ class PageTemplate
 
         if (!self::test('bricks/', $file))
         {
-            trigger_error('Nonexistent template requested: template/bricks/'.$file, E_USER_ERROR);
+            trigger_error('Nonexistent template requested: template/bricks/'.$file, E_USER_WARNING);
             return;
         }
 
@@ -188,7 +188,7 @@ class PageTemplate
             return;
         }
 
-        trigger_error('Nonexistent template requested: template/localized/'.$_file, E_USER_ERROR);
+        trigger_error('Nonexistent template requested: template/localized/'.$_file, E_USER_WARNING);
     }
 
     private function localizedBrickIf(mixed $boolish, string $file, array $localVars = []) : void
@@ -257,6 +257,27 @@ class PageTemplate
 
         return $buff;
     }
+
+    private function renderMetaTags(int $lPad = 0) : string
+    {
+        $buff = '';
+        foreach ($this->metaTags as $mt)
+        {
+            $content = '';
+            foreach ($mt as $k => $v)
+            {
+                if (is_array($v))
+                    $v = implode(', ', $v);
+
+                $content .= sprintf(' %s="%s"', $k, Util::htmlEscape($v));
+            }
+
+            $buff .= str_repeat(' ', $lPad) . '<meta'.$content.'>'.PHP_EOL;
+        }
+
+        return $buff;
+    }
+
 
     // load jsGlobals
     private function renderGlobalVars(int $lpad = 0) : string
@@ -413,6 +434,26 @@ class PageTemplate
         }
 
         return $options;
+    }
+
+    public static function buildQuery(array $add = [], array $remove = [], ?string $host = null) : string
+    {
+        parse_str($_SERVER['QUERY_STRING'] ?? '', $queryVars);
+
+        foreach ($remove as $r)
+            unset($queryVars[$r]);
+
+        foreach ($add as $k => $v)
+            $queryVars[$k] = $v;
+
+        $host ??= Cfg::get('HOST_URL');
+
+        if (!$queryVars)
+            return $host;
+
+        // http_build_query uses unset values e.g.: "/?items="
+        array_walk($queryVars, fn(&$v, $k) => $v = $k . (strlen($v) ? '=' . $v : ''));
+        return $host.'/?'.implode('&', $queryVars);
     }
 
     // unordered stuff
@@ -573,8 +614,8 @@ class PageTemplate
             else
                 $this->pageData[$var] = $this->rawData[$var];
 
-            foreach ($hooks as $fn)
-                $fn($this, $this->pageData[$var]);
+            foreach ($hooks as [$fn, $extraParam])
+                $fn($this, $this->pageData[$var], $extraParam);
         }
 
         return $this->pageData[$var] ?? $this->rawData[$var];

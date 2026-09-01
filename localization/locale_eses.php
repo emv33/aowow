@@ -18,12 +18,76 @@ $lang = array(
         'ab'            => ["año",  "mes",   "sem",     "",     "h",     "min",     "seg",      "ms"]
     ),
     'lang' => ['inglés', null, 'francés', 'alemán', 'chino', null, 'español', null, 'ruso'],
+    'meta' => array(
+        'tags'          => array(
+            'generic' => ['World of Warcraft', 'Database', 'Wrath of the Lich King', 'DB', 'WotLK', 'AoWoW', '3.3.5a'],
+            'error'   => ['404', 'Página no encontrada'],
+            'home'    => ['Herramienta de comparación de objetos', 'Calculadora de talentos', 'Calculadora de mascotas', 'Perfiles'],
+            'maps'    => ['Mapas', 'Zonas', 'Marcadores'],
+            'compare' => ['Comparar', 'Objetos', 'Conjuntos de objetos', 'Ponderaciones de estadísticas']
+        ),
+        'description' => array(
+            'genList'     => 'Una lista completa donde puedes buscar y filtrar todo lo referente a World of Warcraft: Wrath of the Lich King.',
+            'genPage'     => '%s es un %s de World of Warcraft.',
+            'error'       => 'Parece que la página que buscas no pudo ser encontrada. Quizá un par de ajustes al Dispositivo de confabulación suprema AO-815...',
+            'home'        => '¡Información, ayuda, y herramientas para misiones, objetos, talentos, mazmorras, bandas y más de World of Warcraft!',
+            'changelog'   => '[A changelog of modifications made to the "%s" guide.]',
+            'npc'         => '%s un PNJ de %s.',
+            'itemset'     => 'Un conjunto de objetos para %s de %d piezas.',
+            'pet'         => '%s es una familia de mascotas %s en World of Warcraft. Les gusta comer %s.',
+            'quest'       => 'Una Misión%3$s de%2$s de%1$s.',
+            'guild'       => '[%s of %s is guild (%s) with %d members.]',
+            'arena-team'  => '[%s of %s is a %dv%3$d Arena Team.]',
+            'profile'     => 'Perfil de World of Warcraft para %s: Nivel %d %s %s en %s %s.'
+        ),
+        'inCategory'    => 'En la categoría %s.',
+        'eventEndsFmt'  => "'Termina el' d 'de' MMMM 'a las' HH:mm.", // "las" should be singular for 1:xx AM
+        'iconUsedBy'    => '%s es un icono usado en %s.',
+        'iconUnused'    => '%s es un icono no usado.',
+        'setbonus'      => 'Tiene bonificaciones de conjunto al reunir %s piezas.',
+        'npcFoundIn'    => 'Este PNJ se puede encontrar en %s.',
+        'objFoundIn'    => '%s es un objeto de World of Warcraft, que puede ser encontrado en %s.',
+        'foundInExt'    => "%d zonas adicionales",
+        'petTraitPref'  => 'de tipo %s',
+        'questReward'   => 'Otorga %s como recompensa.',
+        'itemSourceMore'=> array(
+            SRC_DROP           => 'Es obtenido de %s.',                                             SRC_QUEST       => 'Es una recompensa de misión de %s.',
+            SRC_VENDOR         => 'Es vendido por %s.',                                             SRC_ACHIEVEMENT => 'Es una recompensa de logro de %s.',
+            SRC_DISENCHANTMENT => 'Se desencanta de %s.',                                           SRC_FISHING     => 'Se pesca de %s.',
+            SRC_GATHERING      => 'Se recolecta de %s.',                                            SRC_MILLING     => 'Se muele de %s.',
+            SRC_MINING         => 'Se mina de %s.',                                                 SRC_PROSPECTING => 'Se prospecta de %s.',
+            SRC_PICKPOCKETING  => 'Se roba mediante hurto de %s.',                                  SRC_SALVAGING   => 'Se recupera de %s.',
+            SRC_SKINNING       => 'Se desuella de %s.'
+        ),
+        'itemSource'    => ['Es %s.', array(
+            SRC_CRAFTED        => 'fabricado',                                                      SRC_DROP        => 'botín',
+            SRC_PVP            => 'obtenido a través de JcJ',                                       SRC_QUEST       => 'una recompensa de misión',
+            SRC_VENDOR         => 'vendido por PNJs',                                               SRC_REDEMPTION  => 'obtenido online',
+            SRC_STARTER        => 'un objeto inicial',                                              SRC_ACHIEVEMENT => 'una recompensa de logro',
+            SRC_DISENCHANTMENT => 'desencantado',                                                   SRC_FISHING     => 'pescado',
+            SRC_GATHERING      => 'recolectado',                                                    SRC_MILLING     => 'molido',
+            SRC_MINING         => 'minado',                                                         SRC_PROSPECTING => 'prospectar',
+            SRC_PICKPOCKETING  => 'robado',                                                         SRC_SALVAGING   => 'rescatado',
+            SRC_SKINNING       => 'despellejado'
+        )],
+        'itemCatDesc' => array(
+            ITEM_CLASS_CONSUMABLE => '%s es un %3$s de%2$s.',                                                                    // name, itemLevel?, itemType
+            ITEM_CLASS_CONTAINER  => '%s es una %2$s con %1$d huecos.',                                                          // name, nSlots, bagType
+            ITEM_CLASS_WEAPON     => 'Es un %s %s con nivel de objeto %d.',                                                      // quality, weaponType, itemLevel
+            ITEM_CLASS_GEM        => 'Es un%s %s gema %s.',                                                                      // itemLevel?, quality, color
+            ITEM_CLASS_ARMOR      => 'Esta %s %s con nivel de objeto %d va en el hueco de "%s" slot.',                           // quality, armorType, itemlevel, equipSlot
+            ITEM_CLASS_AMMUNITION => '%s puede hacer %.1f daño por segundo.',                                                    // name, dps
+            ITEM_CLASS_TRADEGOOD  => '%s se usa para fabricar objetos.',                                                         // name
+            ITEM_CLASS_KEY        => '%s es una llave; va en tu llavero.',                                                       // name
+            ITEM_CLASS_GLYPH      => 'Es un glifo %s para %s. Se vende en la Casa de Subastas o es fabricado por inscriptores.', // glyphType, class
+        )
+    ),
     'main' => array(
         'name'          => "nombre",
         'link'          => "Enlace",
         'signIn'        => "Iniciar sesión / Registrarse",
         'jsError'       => "Por favor, asegúrese de que ha habilitado javascript.",
-        'language'      => "lengua",
+        'language'      => "Idioma",
         'feedback'      => "Feedback",
         'numSQL'        => "Número de consultas de SQL",
         'timeSQL'       => "El tiempo para las consultas de SQL",
@@ -36,7 +100,8 @@ $lang = array(
         'thePlayer'     => "El Jugador",
         'quickFacts'    => "Notas rápidas",
         'screenshots'   => "Capturas de pantalla",
-        'videos'        => "Videos",
+        'comments'      => "Comentarios",
+        'videos'        => "Vídeos",
         'side'          => "Lado: ",
         'related'       => "Información relacionada",
         'contribute'    => "Contribuir",
@@ -301,17 +366,17 @@ $lang = array(
         )
     ),
     'video' => array(
-        'submission'    => "Sugerencia de video",
+        'submission'    => "Sugerencia de vídeo",
         'thanks'        => array(
             'contrib' => "¡Muchísimas gracias por tu aportación!",
             'goBack'  => '<a href="?%s=%d">aquí vuelve</a> a la página de la que viniste.',
-            'note'    => "Nota: Tu video tiene que ser aprobado antes de que pueda aparecer en el sitio. Esto puede tomar hasta 72 horas."
+            'note'    => "Nota: Tu vídeo tiene que ser aprobado antes de que pueda aparecer en el sitio. Esto puede tomar hasta 72 horas."
         ),
         'error'         => array(
-            'isPrivate'   => "El video sugerido es privado.",
-            'noExist'     => "No se encontró ningún video en la URL proporcionada.",
+            'isPrivate'   => "El vídeo sugerido es privado.",
+            'noExist'     => "No se encontró ningún vídeo en la URL proporcionada.",
             'selectVI'    => "Por favor, introduce información válida del vídeo.", // message_novideo
-            'notAllowed'  => "¡No tienes permiso para sugerir videos!",
+            'notAllowed'  => "¡No tienes permiso para sugerir vídeos!",
         )
     ),
     'game' => array(
@@ -364,10 +429,10 @@ $lang = array(
         'emotes'        => "Emociones",
         'enchantment'   => "encantamiento",
         'enchantments'  => "Encantamientos",
-        'areatrigger'   => "areatrigger",
-        'areatriggers'  => "Areatrigger",
-        'mail'          => "mail",
-        'mails'         => "Mails",
+        'areatrigger'   => "disparador de área",
+        'areatriggers'  => "Disparadores de área",
+        'mail'          => "correo",
+        'mails'         => "Correos",
 
         'cooldown'      => "%s de reutilización",
         'difficulty'    => "Dificultad: ",
@@ -389,9 +454,14 @@ $lang = array(
         'valueDelim'    => " - ",
         'target'        => "<objetivo>",
 
+        'copper'        => "%d cobre",                      // COPPER_AMOUNT
+        'silver'        => "%d plata",                      // SILVER_AMOUNT
+        'gold'          => "%d oro",                        // GOLD_AMOUNT
+
         'pvp'           => "JcJ",
         'honorPoints'   => "Puntos de Honor",
         'arenaPoints'   => "Puntos de arena",
+        'acvmtPoints'   => "Puntos por logros",
         'heroClass'     => "Clase héroe",
         'resource'      => "Recurso: ",
         'resources'     => "Recursos: ",
@@ -424,8 +494,8 @@ $lang = array(
             "Tienda del juego"
         ),
         'pvpSources'    => array(
-             42 => "Temporada de arena 1",   52 => "Temporada de arena 2",   71 => "Temporada de arena 3",   80 => "Temporada de arena 4",  157 => "Temporada de arena 5",
-            163 => "Temporada de arena 6",  167 => "Temporada de arena 7",  169 => "Temporada de arena 8",  177 => "Torneo de arena 2009"
+             42 => "Temporada de arena 1",   62 => "Temporada de arena 2",   71 => "Temporada de arena 3",   80 => "Temporada de arena 4",  157 => "Temporada de arena 5",
+            167 => "Temporada de arena 6",  169 => "Temporada de arena 7",  177 => "Temporada de arena 8",  163 => "Torneo de arena 2009"
         ),
         'languages'     => array(
              1 => "Orco",                    2 => "Darnassiano",             3 => "Taurahe",                 6 => "Enánico",                 7 => "Lengua común",            8 => "Demoníaco",
@@ -438,7 +508,7 @@ $lang = array(
         'sc'            => ["Física", "Sagrado", "Fuego", "Naturaleza", "Escarcha", "Sombras", "Arcano"],
         'dt'            => [null, "Magia", "Maldición", "Enfermedad", "Veneno", "Sigilo", "Invisibilidad", "Magia, Maldición, Enfermedad, Veneno", "Hechizo (PNJ)", "Enfurecer"],
         'cl'            => [null, "Guerrero", "Paladín", "Cazador", "Pícaro", "Sacerdote", "Caballero de la Muerte", "Chamán", "Mago", "Brujo", null, "Druida"],
-        'ra'            => [-2 => "Horda", -1 => "Alianza", null, "Humano", "Orco", "Enano", "Elfo de la noche", "No-muerto", "Tauren", "Gnomo", "Trol  ", null, "Blood Elf", "Elfo de sangre"],
+        'ra'            => [-2 => "Horda", -1 => "Alianza", null, "Humano", "Orco", "Enano", "Elfo de la noche", "No-muerto", "Tauren", "Gnomo", "Trol" , null, "Elfo de sangre", "Draenei"],
         'rep'           => ["Odiado", "Hostil", "Adverso", "Neutral", "Amistoso", "Honorable", "Reverenciado", "Exaltado"],
         'st'            => array(
             "Defecto",                      "Forma felina",                 "Árbol de vida",                "Forma de viaje",               "Forma acuática",               "Forma de oso",
@@ -1160,7 +1230,7 @@ $lang = array(
         ),
         'type'          => array(                           // used for tooltip
              3 => "Contenedore",  6 => "", 9 => "Libro", 19 => "", 25 => "",
-            -5 => "Cofre", -3 => "Hierba", -4 => "Filóne de mineral", -2 => "Misión", -6 => "", -9 => ""
+            -5 => "Cofre", -3 => "Hierba", -4 => "Veta de minería", -2 => "Misión", -6 => "", -9 => ""
         ),
         'unkPosition'   => "No se conoce la ubicación de esta entidad.",
         'npcLootPH'     => 'El <b>%s</b> contiene el botín de la pelea contra <a href="?npc=%d">%s</a>. Aparece al morir.',
@@ -1200,6 +1270,7 @@ $lang = array(
         'worth'         => "Valor: %s",
         'unkPosition'   => "No se conoce la ubicación de este PNJ.",
         'difficultyPH'  => 'Este PNJ es un marcador de posición para un modo diferente de <a href="?npc=%1$d">%2$s</a>.',
+        'criteriaOf'    => "Este PNJ es criterio para %s.",
         'seat'          => "Asiento",
         'accessory'     => "Accesorio",
         'accessoryFor'  => "Esta criatura es un accesorio para vehículo",
@@ -1236,11 +1307,11 @@ $lang = array(
             "Alimaña",                  "Mecánico",                 "Sin especificar",          "Tótem",                    "Mascota mansa",            "Nube de gas"
         ),
         'npcFlags'      => array(
-            NPC_FLAG_GOSSIP         => 'Chismes',
+            NPC_FLAG_GOSSIP         => 'Diálogo',
             NPC_FLAG_QUEST_GIVER    => 'Dador de misiones',
-            NPC_FLAG_TRAINER        => 'Instructor',
-            NPC_FLAG_CLASS_TRAINER  => 'Instructor de clase',
-            NPC_PROFESSION_TRAINER  => 'Instructor de profesión',
+            NPC_FLAG_TRAINER        => 'Entrenador',
+            NPC_FLAG_CLASS_TRAINER  => 'Entrenador de clase',
+            NPC_PROFESSION_TRAINER  => 'Entrenador de profesión',
             NPC_FLAG_VENDOR         => 'Vendedor',
             NPC_FLAG_VENDOR_AMMO    => 'Vendedor de munición',
             NPC_FLAG_VENDOR_FOOD    => 'Vendedor de comida',
@@ -1304,7 +1375,7 @@ $lang = array(
         'criteria'      => "Requisitos",
         'points'        => "Puntos",
         'series'        => "Serie",
-        'criteriaType'  => "Criterium Type ID:",
+        'criteriaType'  => "ID de tipo de criterio:",
         'itemReward'    => "Recibirás",
         'titleReward'   => 'Deberías obtener el título "<a href="?title=%d">%s</a>"',
         'slain'         => "matado",
@@ -1564,7 +1635,7 @@ $lang = array(
                   495 => "Fiordo Aquilonal",              3537 => "Tundra Boreal",                 3711 => "Cuenca de Sholazar",            4024 => "Gelidar",                       4197 => "Conquista del Invierno",
                  4395 => "Dalaran",                       4742 => "Desembarco de Hrothgar"
             ),
-           -2 => "Sin categoría"
+           -2 => ["Sin categoría"]
         )
     ),
     'icon'  => array(
@@ -1636,10 +1707,10 @@ $lang = array(
         'customRewRate' => "Radio de recompenza personalizado",
         '_transfer'     => 'La reputación de esta facción sera convertida a <a href="?faction=%d" class="q1">%s</a> Si te transfieres a <span class="icon-%s">%s</span>.',
         'cat'           => array(
-            1118 => ["Clásicas", 469 => "Alianza", 169 => "Cártel Bonvapor", 67 => "Horda", 891 => "Fuerzas de la Alianza", 892 => "Fuerzas de la Horda"],
-            980  => ["The Burning Crusade", 936 => "Ciudad de Shattrath"],
-            1097 => ["Wrath of the Lich King", 1052 => "Expedición de la Horda", 1117 => "Cuenca de Sholazar", 1037 => "Vanguardia de la Alianza"],
-            0    => "Otros"
+            1118 => "Clásicas",                      469 => "Alianza",                   169 => "Cártel Bonvapor",            67 => "Horda",                    891 => "Fuerzas de la Alianza",         892 => "Fuerzas de la Horda",
+             980 => "The Burning Crusade",           936 => "Ciudad de Shattrath",
+            1097 => "Wrath of the Lich King",       1052 => "Expedición de la Horda",   1117 => "Cuenca de Sholazar",       1037 => "Vanguardia de la Alianza",
+               0 => "Otros",                         949 => "Facción de prueba 1",       948 => "Facción de prueba 2"
         )
     ),
     'itemset' => array(
@@ -1701,7 +1772,7 @@ $lang = array(
         'normal'        => "Normal",
         'special'       => "Especial",
 
-        'currentArea'   => '&lt;current area&gt;',
+        'currentArea'   => '&lt;área actual&gt;',
         'discovered'    => "Aprendido via descubrimiento",
         'ppm'           => "(%.1f procs por minuto)",
         'procChance'    => "Probabilidad de que accione: %.4g%%",
@@ -1776,40 +1847,39 @@ $lang = array(
             'crafted' => '<a href="?items&filter=cr=86;crs=%s;crv=0">objetos fabricados</a>'
         ),
         'cat'           => array(
-              7 => "Habilidades",
-            -13 => "Glifos",
-            -11 => ["Habilidades", 6 => "Armas", 8 => "Armadura", 10 => "Lenguas"],
-             -4 => "Habilidades de raza",
-             -2 => "Talentos",
-             -6 => "Compañeros",
-             -5 => ["Monturas", 1=> "Monturas terrestres", 2 => "Monturas voladoras", 3 => "Miscelánea"],
-             -3 => array(
-                "Habilidades de mascota",   782 => "Necrófago",         270 => "Genérico",              766 => "Acechador deformado",       203 => "Araña",                 655 => "Ave rapaz",             785 => "Avispa",
+              7 => ["Habilidades"],
+            -13 => ["Glifos", [null, "Guerrero", "Paladín", "Cazador", "Pícaro", "Sacerdote", "Caballero de la Muerte", "Chamán", "Mago", "Brujo", null, "Druida"]],
+            -11 => ["Habilidades", [6 => "Armas", 8 => "Armadura", 10 => "Lenguas"]],
+             -4 => ["Habilidades de raza"],
+             -2 => ["Talentos"],
+             -6 => ["Compañeros"],
+             -5 => ["Monturas", [1=> "Monturas terrestres", 2 => "Monturas voladoras", 3 => "Miscelánea"]],
+             -3 => ["Habilidades de mascota", array(
+                782 => "Necrófago",         270 => "Genérico",          766 => "Acechador deformado",   203 => "Araña",                     655 => "Ave rapaz",             785 => "Avispa",
                 788 => "Bestia espíritu",   787 => "Can del Núcleo",    214 => "Cangrejo",              213 => "Carroñero",                 212 => "Crocolisco",            781 => "Demosaurio",            767 => "Devastador",
                 763 => "Dracohalcón",       236 => "Escórpido",         765 => "Esporiélago",           209 => "Felino",                    215 => "Gorila",                784 => "Gusano",                654 => "Hiena",
                 211 => "Jabalí",            208 => "Lobo",              653 => "Murciélago",            210 => "Oso",                       775 => "Palomilla",             780 => "Quimera",               217 => "Raptor",
                 764 => "Raya abisal",       786 => "Rinoceronte",       768 => "Serpiente",             656 => "Serpiente alada",           783 => "Silítido",              251 => "Tortuga",               218 => "Zancaalta",
                 761 => "Guardia vil",       189 => "Manáfago",          188 => "Diablillo",             205 => "Súcubo",                    204 => "Abisario"
-            ),
-             -7 => ["Talentos de mascotas", 411 => "Astucia", 410 => "Ferocidad", 409 => "Tenacidad"],
-             11 => array(
-                "Profesiones",
-                171 => "Alquimia",
-                164 => ["Herrería", 9788 => "Forjador de armaduras", 9787 => "Forjador de armas", 17041 => "Maestro forjador de hachas", 17040 => "Maestro forjador de mazas", 17039 => "Maestro forjador de espadas"],
-                333 => "Encantamiento",
-                202 => ["Ingeniería", 20219 => "Ingeniero gnómico", 20222 => "Ingeniero goblin"],
-                182 => "Herboristería",
-                773 => "Inscripción",
-                755 => "Joyería",
-                165 => ["Peletería", 10656 => "Peletería de escamas de dragón", 10658 => "Peletería de elemental", 10660 => "Peletería de tribal"],
-                186 => "Minería",
-                393 => "Desollar",
-                197 => ["Sastrería", 26798 => "Sastería de tela lunar primigenia", 26801 => "Sastrería de tejido de sombras", 26797 => "Sastería de fuego de hechizo"],
-            ),
-              9 => ["Habilidades secundarias", 185 => "Cocina", 129 => "Primeros auxilios", 356 => "Pesca", 762 => "Equitación"],
-             -8 => "Habilidades de PNJ",
-             -9 => "Habilidades de MJ",
-              0 => "Sin categoría"
+            )],
+             -7 => ["Talentos de mascotas", [411 => "Astucia", 410 => "Ferocidad", 409 => "Tenacidad"]],
+             11 => ["Profesiones", array(
+                171 => ["Alquimia"],
+                164 => ["Herrería", [9788 => "Forjador de armaduras", 9787 => "Forjador de armas", 17041 => "Maestro forjador de hachas", 17040 => "Maestro forjador de mazas", 17039 => "Maestro forjador de espadas"]],
+                333 => ["Encantamiento"],
+                202 => ["Ingeniería", [20219 => "Ingeniero gnómico", 20222 => "Ingeniero goblin"]],
+                182 => ["Herboristería"],
+                773 => ["Inscripción"],
+                755 => ["Joyería"],
+                165 => ["Peletería", [10656 => "Peletería de escamas de dragón", 10658 => "Peletería de elemental", 10660 => "Peletería de tribal"]],
+                186 => ["Minería"],
+                393 => ["Desollar"],
+                197 => ["Sastrería", [26798 => "Sastería de tela lunar primigenia", 26801 => "Sastrería de tejido de sombras", 26797 => "Sastería de fuego de hechizo"]],
+            )],
+              9 => ["Habilidades secundarias", [185 => "Cocina", 129 => "Primeros auxilios", 356 => "Pesca", 762 => "Equitación"]],
+             -8 => ["Habilidades de PNJ"],
+             -9 => ["Habilidades de MJ"],
+              0 => ["Sin categoría"]
         ),
         'armorSubClass' => array(
             "Misceláneo",                           "Armaduras de tela",                    "Armaduras de cuero",                   "Armaduras de malla",                   "Armaduras de placas",
@@ -1856,8 +1926,8 @@ $lang = array(
             "Gahz'ridian (DND)",                    "Reventar",                             "Apertura JcJ",                         "Cierre JcJ",                           "Pescar",
             "Inscripción",                          "Abrir desde vehículo"
         ),
-        'stealthType'   => ["GENERAL", "TRAP"],
-        'invisibilityType' => ["General", "UNK-1", "UNK-2", "Trap", "UNK-4", "UNK-5", "Drunk", "UNK-7", "UNK-8", "UNK-9", "UNK-10", "UNK-11"],
+        'stealthType'   => ["GENERAL", "TRAMPA"],
+        'invisibilityType' => ["General", "UNK-1", "UNK-2", "Trampa", "UNK-4", "UNK-5", "Ebrio", "UNK-7", "UNK-8", "UNK-9", "UNK-10", "UNK-11"],
         'summonControl' => ["Sin control", "Guardián", "Mascota", "Embelesado", "Vehículo poseído", "Vehículo sin control"],
         'summonSlot'    => ["Mascota", "Tótem de Fuego", "Tótem de Tierra", "Tótem de Agua", "Tótem de Aire", "Mascota mansa", "Misión"],
         'unkEffect'     => 'Efecto desconocido (%1$d)',
@@ -2335,6 +2405,7 @@ $lang = array(
             ENCHANT_CONDITION_NOT_EQUAL_COMPARE  => "un número diferente de gemas %s y %s",
             ENCHANT_CONDITION_NOT_EQUAL_VALUE    => "cualquier número excepto %d %s |4gema:gemas;"
         ),
+        '_gemColors'    => ['rojas', 'azules', 'amarillas', 'moradas', 'verdes', 'naranjas', 'meta', 'simples', 'centelleantes'],
         'reqRating'     => array(                           // ITEM_REQ_ARENA_RATING*
             "Requiere un índice de arena personal y de equipo de %d",
             "Requiere un índice de arena personal y de equipo de %d|nen la rama de 3c3 o de 5c5",
