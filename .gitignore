@@ -19,6 +19,9 @@
 /static/wowsounds/*
 
 # extracted images
+# icons are generated flat at native resolution; the size tiers below only hold the
+# hand-curated assets that were never extracted from client data
+/static/images/wow/icons/*.webp
 /static/images/wow/icons/large/*
 /static/images/wow/icons/medium/*
 /static/images/wow/icons/small/*
