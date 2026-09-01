@@ -356,7 +356,9 @@ CLISetup::registerSetup("build", new class extends SetupScript
                         }
                     }
 
-                    if ($doSkip == array_reduce(array_keys(self::DEST_DIRS), fn($c, $x) => $c |= (1 << $x)))
+                    // can't skip map creation if we are to generate subzones later - buildSubZones()
+                    // needs $resMap and does its own per-file skip check
+                    if ($doSkip == array_reduce(array_keys(self::DEST_DIRS), fn($c, $x) => $c |= (1 << $x)) && !($this->modeMask & self::M_SUBZONES))
                         continue;
 
                     if (!($resMap = $this->assembleImage($file, self::TILEORDER, self::MAP_W, self::MAP_H)))
