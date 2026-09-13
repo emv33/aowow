@@ -960,11 +960,17 @@ class Search
         if (!$lookup)
             return null;
 
-        $cnd  = array_merge($this->cndBase, array(
-            [['flagsExtra', 0x80], 0],                      // exclude trigger creatures
-            [['cuFlags', NPC_CU_DIFFICULTY_DUMMY, '&'], 0], // exclude difficulty entries
-            $lookup
-        ));
+        $cnd = $this->cndBase;
+
+        // Exclude internal wow stuff [override for staff, as done for cuFlags in __construct()]
+        if (!User::isInGroup(U_GROUP_EMPLOYEE))
+        {
+            $cnd[] = [['flagsExtra', CREATURE_FLAG_EXTRA_TRIGGER], 0]; // exclude trigger creatures
+            $cnd[] = [['cuFlags', NPC_CU_DIFFICULTY_DUMMY, '&'], 0];   // exclude difficulty entries
+        }
+
+        $cnd[] = $lookup;
+
         $npcs = new CreatureList($cnd, ['calcTotal' => true]);
 
         $data = $npcs->getListviewData();
