@@ -471,7 +471,7 @@ class Conditions
             WHERE    %and
             ORDER BY `SourceTypeOrReferenceId`, `SourceEntry`, `SourceGroup`, `ElseGroup` ASC',
             $where
-        ));
+        ) ?? []);
 
         return $this;
     }
@@ -508,7 +508,7 @@ class Conditions
             GROUP BY `SourceTypeOrReferenceId`,`SourceGroup`,`SourceEntry`,`SourceId`,`ElseGroup`,`ConditionTypeOrReference`,`ConditionTarget`,`ConditionValue1`,`ConditionValue2`,`ConditionValue3`
             ORDER BY `SourceTypeOrReferenceId`, `SourceEntry`, `SourceGroup`, `ElseGroup` ASC',
             $lookups
-        ));
+        ) ?? []);
 
         return $this;
     }
