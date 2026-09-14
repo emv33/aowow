@@ -24,6 +24,13 @@ class XRef
         #xref-generic .grid tr { display: contents; }
     CSS;
 
+    // enum LinkedRespawnType - the name reads dependent_TO_master, so `guid` waits on `linkedGuid`
+    private const int CREATURE_TO_CREATURE = 0;
+    private const int CREATURE_TO_GO       = 1;
+    private const int GO_TO_GO             = 2;
+    private const int GO_TO_CREATURE       = 3;
+
+    private ?array $guids    = null;                        // spawns of this entity, looked up at most once
     private array $rows      = [];                          // [label, value]
     private array $jsGlobals = [];
 
@@ -115,17 +122,21 @@ class XRef
         $this->add(Lang::xRef('ridesOn'), $this->linksFor([Type::NPC => $ids]));
     }
 
+    /** every spawn of this creature or object, as both spawn tables below are keyed by guid */
+    private function ownGuids() : array
+    {
+        return $this->guids ??= array_map('intVal', ($this->type == Type::NPC
+            ? DB::World()->selectCol('SELECT `guid` FROM creature WHERE `id` = %i', $this->typeId)
+            : DB::World()->selectCol('SELECT `guid` FROM gameobject WHERE `id` = %i', $this->typeId)) ?: []);
+    }
+
     /** `spawn_group` - the groups this entity's spawns are part of; a group has no page to link to */
     private function spawnGroups() : void
     {
         if (($this->type != Type::NPC && $this->type != Type::OBJECT) || !self::hasTable('spawn_group'))
             return;
 
-        $guids = $this->type == Type::NPC
-               ? DB::World()->selectCol('SELECT `guid` FROM creature WHERE `id` = %i', $this->typeId)
-               : DB::World()->selectCol('SELECT `guid` FROM gameobject WHERE `id` = %i', $this->typeId);
-
-        if (!$guids)
+        if (!($guids = $this->ownGuids()))
             return;
 
         $rows = DB::World()->selectAssoc(
@@ -158,12 +169,56 @@ class XRef
         $this->add(Lang::xRef('equippedBy'), $this->linksFor([Type::NPC => $ids]));
     }
 
+    /**
+     * `linked_respawn` - spawns whose respawn is tied to another spawn's, read nowhere until now
+     *
+     * an instance ties its trash to the boss through this table, so a creature that only comes back
+     * once something else dies looked exactly like one on a plain timer
+     */
+    private function linkedRespawn() : void
+    {
+        if (($this->type != Type::NPC && $this->type != Type::OBJECT) || !self::hasTable('linked_respawn'))
+            return;
+
+        $isNPC = $this->type == Type::NPC;
+        $guids = $this->ownGuids();
+        if (!$guids)
+            return;
+
+        // which end of the link our own spawns sit on decides both the row filter and what the other end is
+        $waitsOn  = $isNPC ? [self::CREATURE_TO_CREATURE => Type::NPC, self::CREATURE_TO_GO => Type::OBJECT]
+                           : [self::GO_TO_GO => Type::OBJECT, self::GO_TO_CREATURE => Type::NPC];
+        $waitedOn = $isNPC ? [self::CREATURE_TO_CREATURE => Type::NPC, self::GO_TO_CREATURE => Type::OBJECT]
+                           : [self::CREATURE_TO_GO => Type::NPC, self::GO_TO_GO => Type::OBJECT];
+
+        foreach ([['linkedGuid', 'guid', $waitsOn, 'respawnsWith'], ['guid', 'linkedGuid', $waitedOn, 'respawnGates']] as [$take, $match, $types, $label])
+        {
+            $rows = DB::World()->selectAssoc(
+               'SELECT `'.$take.'` AS "guid", `linkType` FROM linked_respawn WHERE `'.$match.'` IN %in AND `linkType` IN %in',
+                $guids, array_keys($types)
+            ) ?: [];
+
+            $byGuid = [];
+            foreach ($rows as $r)
+                $byGuid[$types[(int)$r['linkType']]][] = (int)$r['guid'];
+
+            $byType = [];
+            foreach ($byGuid as $type => $ids)
+                $byType[$type] = $type == Type::NPC
+                               ? DB::World()->selectCol('SELECT `id` FROM creature WHERE `guid` IN %in', $ids)
+                               : DB::World()->selectCol('SELECT `id` FROM gameobject WHERE `guid` IN %in', $ids);
+
+            $this->add(Lang::xRef($label), $this->linksFor($byType));
+        }
+    }
+
     public function getMarkup() : ?Markup
     {
         $this->smartAI();
         $this->summonedBy();
         $this->ridesOn();
         $this->spawnGroups();
+        $this->linkedRespawn();
         $this->equippedBy();
 
         if (!$this->rows)

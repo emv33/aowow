@@ -1349,6 +1349,8 @@ $lang = array(
         'ridesOn'       => "Rides on",
         'spawnGroup'    => "Spawn groups",
         'unnamedGroup'  => 'Group #%1$d',
+        'respawnsWith'  => "Respawns with",
+        'respawnGates'  => "Controls respawn of",
         'equippedBy'    => "Equipped by"
     ),
     'spellOverride' => array(
