@@ -188,6 +188,27 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
             }
         }
 
+        // aowow - custom start: battleground bracket and dungeon finder bracket
+        // zones.ss.php reads BattlemasterList.dbc for `maxPlayers` and LFGDungeons.dbc for the
+        // queue level only; the brackets in both were never carried over
+        $mapId = $this->subject->getField('mapId');
+
+        if ($bg = self::getBattlemasterList($mapId))
+        {
+            if ($bg['minLevel'] || $bg['maxLevel'])
+                $infobox[] = Lang::zone('bgBracket').Lang::main('colon').$bg['minLevel'].' - '.$bg['maxLevel'];
+        }
+
+        if ($lfg = self::getLFGDungeon($mapId))
+        {
+            if ($lfg['levelMin'] || $lfg['levelMax'])
+                $infobox[] = Lang::zone('lfgBracket').Lang::main('colon').$lfg['levelMin'].' - '.$lfg['levelMax'];
+
+            if ($_ = Lang::zone('lfgTypes', $lfg['type']))
+                $infobox[] = Lang::zone('lfgType').Lang::main('colon').$_;
+        }
+        // aowow - custom end
+
         // id
         $infobox[] = Lang::zone('id') . $this->typeId;
 
@@ -566,6 +587,25 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
         /**************/
 
         $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"], 'tabsRelated', true);
+
+        // aowow - custom start: the NPCs that queue for this battleground
+        // `battlemaster_entry` is the only link between a creature and a bgTypeId and was read nowhere
+        if ($bg && ($bmIds = self::getBattlemastersFor($bg['id'])))
+        {
+            $bms = new CreatureList(array(['id', $bmIds]));
+            if (!$bms->error)
+            {
+                $this->extendGlobalData($bms->getJSGlobals());
+
+                $this->addDataLoader('zones');
+                $this->lvTabs->addListviewTab(new Listview(array(
+                    'data' => $bms->getListviewData(),
+                    'name' => Lang::zone('battlemasters'),
+                    'id'   => 'battlemasters'
+                ), CreatureList::$brickFile));
+            }
+        }
+        // aowow - custom end
 
         // tab: drops
         if (in_array($this->subject->getField('category'), [MAP_TYPE_DUNGEON, MAP_TYPE_RAID]))
@@ -980,6 +1020,49 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
 
         $this->buildLdJson();
     }
+
+    // aowow - custom start: BattlemasterList.dbc / LFGDungeons.dbc lookups
+    // both tables are written by the `zones` setup step and stay in the aowow DB unless setup ran
+    // with --delete, so every one of these guards the table before touching it
+
+    private static function hasTable(string $tbl) : bool
+    {
+        static $known = [];
+
+        return $known[$tbl] ??= (bool)DB::Aowow()->selectCell('SHOW TABLES LIKE %s', $tbl);
+    }
+
+    private static function getBattlemasterList(int $mapId) : ?array
+    {
+        if ($mapId <= 0 || !self::hasTable('dbc_battlemasterlist'))
+            return null;
+
+        $r = DB::Aowow()->selectRow('SELECT `id`, `minLevel`, `maxLevel`, `maxPlayers` FROM dbc_battlemasterlist WHERE `mapId` = %i AND `moreMapId` < 0 LIMIT 1', $mapId);
+
+        return $r ? array_map('intVal', $r) : null;
+    }
+
+    private static function getLFGDungeon(int $mapId) : ?array
+    {
+        if ($mapId <= 0 || !self::hasTable('dbc_lfgdungeons'))
+            return null;
+
+        // a map can hold several difficulties; the normal one carries the bracket players actually queue at
+        $r = DB::Aowow()->selectRow('SELECT `levelMin`, `levelMax`, `targetLevel`, `type`, `expansion` FROM dbc_lfgdungeons WHERE `mapId` = %i ORDER BY `difficulty` ASC LIMIT 1', $mapId);
+
+        return $r ? array_map('intVal', $r) : null;
+    }
+
+    private static function getBattlemastersFor(int $bgTypeId) : array
+    {
+        if ($bgTypeId <= 0 || !DB::World()->selectCell('SHOW TABLES LIKE %s', 'battlemaster_entry'))
+            return [];
+
+        $ids = DB::World()->selectCol('SELECT `entry` FROM battlemaster_entry WHERE `bg_template` = %i', $bgTypeId) ?: [];
+
+        return array_values(array_filter(array_map('intVal', $ids)));
+    }
+    // aowow - custom end
 }
 
 ?>

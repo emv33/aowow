@@ -1694,6 +1694,17 @@ $lang = array(
         'city'          => "城市",
         'territory'     => "领地：",
         'instanceType'  => "副本类型：",
+        'bgBracket'     => "Level bracket",
+        'lfgBracket'    => "Dungeon Finder bracket",
+        'lfgType'       => "Dungeon Finder type",
+        'lfgTypes'      => array(
+            1 => "Dungeon",
+            2 => "Raid",
+            4 => "Outdoor zone",
+            5 => "Heroic dungeon",
+            6 => "Random"
+        ),
+        'battlemasters' => "Battlemasters",
         'hcAvailable'   => "英雄模式可用&nbsp;(%d)",
         'numPlayers'    => '玩家人数：%1$s',
         'numPlayersVs'  => '玩家人数：%1$dv%1$d',

@@ -1694,6 +1694,17 @@ $lang = array(
         'city'          => "Ciudad",
         'territory'     => "Territorio: ",
         'instanceType'  => "Tipo de instancia: ",
+        'bgBracket'     => "Level bracket",
+        'lfgBracket'    => "Dungeon Finder bracket",
+        'lfgType'       => "Dungeon Finder type",
+        'lfgTypes'      => array(
+            1 => "Dungeon",
+            2 => "Raid",
+            4 => "Outdoor zone",
+            5 => "Heroic dungeon",
+            6 => "Random"
+        ),
+        'battlemasters' => "Battlemasters",
         'hcAvailable'   => "Modo heroico disponible&nbsp;(%di)",
         'numPlayers'    => 'Número de jugadores: %1$s',
         'numPlayersVs'  => 'Número de jugadores: %1$dc%1$d',
