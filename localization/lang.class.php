@@ -54,6 +54,7 @@ class Lang
     private static array $transport;
     private static array $startOutfit;
     private static array $spellOverride;
+    private static array $dataIntegrity;
 
     private static ?Locale $locale = null;
 

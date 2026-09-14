@@ -39,6 +39,7 @@ var mn_content = [
 
 var mn_dev = [
 //  [17, 'Cookies',                  '?admin=cookies',                        null,           {requiredAccess: U_GROUP_ADMIN | U_GROUP_DEV}],
+    [23, 'Data Integrity',           '?data-integrity',                       null,           {requiredAccess: 1726}],    // aowow - custom
     [21, 'PHP Information',          '?admin=phpinfo',                        null,           {requiredAccess: U_GROUP_ADMIN | U_GROUP_DEV}],
     [18, 'Site Configuration',       '?admin=siteconfig',                     null,           {requiredAccess: U_GROUP_ADMIN | U_GROUP_DEV}],
     [16, 'Weight Presets',           '?admin=weight-presets',                 null,           {requiredAccess: U_GROUP_ADMIN | U_GROUP_BUREAU | U_GROUP_DEV}],

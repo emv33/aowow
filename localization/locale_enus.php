@@ -1359,6 +1359,40 @@ $lang = array(
         ),
         'customAttr'    => "Custom attributes"
     ),
+    'dataIntegrity' => array(
+        'title'         => "Data integrity",
+        'intro'         => "World DB rows that point at something which is not there, and entities that cannot work as configured. Each check lists up to 25 examples.",
+        'clean'         => "nothing found",
+        'found'         => '%1$d found',
+        'andMore'       => '… and %1$d more',
+        'skipped'       => 'skipped: `%1$s` is not in this world DB',
+        'checks'        => array(
+            'vendorItem'          => ['name' => "Vendors selling items that do not exist",
+                                      'hint' => "npc_vendor.item has no row in item_template. The item silently vanishes from the vendor list."],
+            'lootItem'            => ['name' => "Creature loot referencing items that do not exist",
+                                      'hint' => "creature_loot_template.Item has no row in item_template. Reference rows are excluded."],
+            'creatureSpawn'       => ['name' => "Creature spawns without a template",
+                                      'hint' => "A row in `creature` whose id has no creature_template. The spawn never appears in world."],
+            'objectSpawn'         => ['name' => "Gameobject spawns without a template",
+                                      'hint' => "A row in `gameobject` whose id has no gameobject_template."],
+            'npcGossip'           => ['name' => "NPCs pointing at a gossip menu that does not exist",
+                                      'hint' => "creature_template.gossip_menu_id matches neither gossip_menu nor gossip_menu_option. The NPC opens an empty window."],
+            'gossipChain'         => ['name' => "Gossip options opening a menu that does not exist",
+                                      'hint' => "gossip_menu_option.ActionMenuID leads nowhere; the conversation dead-ends."],
+            'questEnder'          => ['name' => "Quests that can never be turned in",
+                                      'hint' => "No creature_questender and no gameobject_questender row. Note that scripted enders are legitimate and show up here too."],
+            'questRelationOrphan' => ['name' => "Quest enders for a quest that does not exist",
+                                      'hint' => "creature_questender.quest has no row in quest_template."],
+            'smartActionList'     => ['name' => "SmartAI calling a timed action list that does not exist",
+                                      'hint' => "SMART_ACTION_CALL_TIMED_ACTIONLIST names an entryorguid with no source_type 9 script. The action does nothing."],
+            'encounterCredit'     => ['name' => "Encounters credited to a creature that does not exist",
+                                      'hint' => "instance_encounters.creditEntry has no creature_template. The boss can never be marked as killed."],
+            'trainerOrphan'       => ['name' => "Trainer spells without a trainer",
+                                      'hint' => "trainer_spell.TrainerId has no row in `trainer`; the spells are never taught."],
+            'conditionGossip'     => ['name' => "Conditions on gossip options that do not exist",
+                                      'hint' => "A CONDITION_SOURCE_TYPE_GOSSIP_MENU_OPTION row whose menu/option pair is not in gossip_menu_option."]
+        )
+    ),
     'legacyScript' => array(
         'srcTypes'      => array(
             LegacyScript::SRC_EVENT       => "Event script #%d",
