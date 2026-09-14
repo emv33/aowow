@@ -1415,6 +1415,14 @@ $lang = array(
         'notFound'      => "这个区域触发器不存在。",
         'foundIn'       => "这个区域触发器可以在以下地区找到：",
         'unnamed'       => "[Unnamed areatrigger] #%d",
+        'type'          => "Type",
+        'id'            => "ID",
+        'isTavern'      => "Resting here sets your hearth timer",
+        'scriptName'    => "Script",
+        'teleportsTo'   => "Teleports to",
+        'destination'   => "Destination",
+        'map'           => 'Map [b]%1$d[/b]',
+        'reqItem'       => "Requires",
         'types'         => ['未使用', '酒馆', '传送门', '任务目标', 'Smart Trigger', '脚本']
     ),
     'gossip' => array(

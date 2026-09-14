@@ -1415,6 +1415,14 @@ $lang = array(
         'notFound'      => "This areatrigger doesn't exist.",
         'foundIn'       => "This areatrigger can be found in",
         'unnamed'       => "[Unnamed areatrigger] #%d",
+        'type'          => "Type",
+        'id'            => "ID",
+        'isTavern'      => "Resting here sets your hearth timer",
+        'scriptName'    => "Script",
+        'teleportsTo'   => "Teleports to",
+        'destination'   => "Destination",
+        'map'           => 'Map [b]%1$d[/b]',
+        'reqItem'       => "Requires",
         'types'         => ['Unused', 'Tavern', 'Teleporter', 'Quest Objective', 'Smart Trigger', 'Script']
     ),
     'gossip' => array(

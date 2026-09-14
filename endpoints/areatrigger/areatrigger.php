@@ -91,6 +91,45 @@ class AreatriggerBaseResponse extends TemplateResponse implements ICache
             }
         }
 
+        // aowow - custom start: infobox
+        // the `areatrigger` setup step reads areatrigger_tavern, areatrigger_scripts and
+        // areatrigger_teleport only to classify the trigger and name it - what those tables
+        // actually say was never shown
+        $infobox = [Lang::areatrigger('type').Lang::main('colon').Lang::areatrigger('types', $_type)];
+
+        if ($_type == AT_TYPE_TAVERN)
+            $infobox[] = '[span class=q2]'.Lang::areatrigger('isTavern').'[/span]';
+
+        if ($_ = self::getScriptName($this->typeId))
+            $infobox[] = Lang::areatrigger('scriptName').Lang::main('colon').'[small]'.$_.'[/small]';
+
+        if ($dest = self::getTeleportTarget($this->typeId))
+        {
+            if ($dest['areaId'])
+            {
+                $this->extendGlobalIds(Type::ZONE, $dest['areaId']);
+                $infobox[] = Lang::areatrigger('teleportsTo').Lang::main('colon').'[zone='.$dest['areaId'].']';
+            }
+            else
+                $infobox[] = Lang::areatrigger('teleportsTo').Lang::main('colon').Lang::areatrigger('map', [$dest['mapId']]);
+
+            $infobox[] = Lang::areatrigger('destination').Lang::main('colon').'[small class=q0]'.sprintf('%.1f, %.1f, %.1f', $dest['x'], $dest['y'], $dest['z']).'[/small]';
+
+            if ($dest['reqLevel'])
+                $infobox[] = Lang::main('_reqLevel').Lang::main('colon').$dest['reqLevel'];
+
+            if ($dest['reqItem'])
+            {
+                $this->extendGlobalIds(Type::ITEM, $dest['reqItem']);
+                $infobox[] = Lang::areatrigger('reqItem').Lang::main('colon').'[item='.$dest['reqItem'].']';
+            }
+        }
+
+        $infobox[] = Lang::areatrigger('id').Lang::main('colon').$this->typeId;
+
+        $this->infobox = new InfoboxMarkup($infobox, ['allow' => Markup::CLASS_STAFF, 'dbpage' => true], 'infobox-contents0');
+        // aowow - custom end
+
         $this->redButtons = array(
             BUTTON_LINKS   => false,
             BUTTON_WOWHEAD => false
@@ -136,6 +175,59 @@ class AreatriggerBaseResponse extends TemplateResponse implements ICache
 
         parent::generate();
     }
+
+    // aowow - custom start: lookups for the infobox above
+
+    private static function hasTable(string $tbl) : bool
+    {
+        static $known = [];
+
+        return $known[$tbl] ??= (bool)DB::World()->selectCell('SHOW TABLES LIKE %s', $tbl);
+    }
+
+    private static function getScriptName(int $id) : string
+    {
+        if (!self::hasTable('areatrigger_scripts'))
+            return '';
+
+        return (string)DB::World()->selectCell('SELECT `ScriptName` FROM areatrigger_scripts WHERE `entry` = %i', $id);
+    }
+
+    /** the requirement columns moved out of areatrigger_teleport at some point; try both spellings */
+    private static function getTeleportTarget(int $id) : ?array
+    {
+        if (!self::hasTable('areatrigger_teleport'))
+            return null;
+
+        $r = DB::World()->selectRow(
+           'SELECT `target_map` AS "mapId", `target_position_x` AS "x", `target_position_y` AS "y", `target_position_z` AS "z",
+                   `required_level` AS "reqLevel", `required_item` AS "reqItem"
+            FROM   areatrigger_teleport WHERE `ID` = %i', $id
+        );
+
+        if ($r === null)
+            $r = DB::World()->selectRow(
+               'SELECT `target_map` AS "mapId", `target_position_x` AS "x", `target_position_y` AS "y", `target_position_z` AS "z",
+                       0 AS "reqLevel", 0 AS "reqItem"
+                FROM   areatrigger_teleport WHERE `ID` = %i', $id
+            );
+
+        if (!$r)
+            return null;
+
+        $mapId = (int)$r['mapId'];
+
+        return array(
+            'mapId'    => $mapId,
+            'areaId'   => (int)DB::Aowow()->selectCell('SELECT `id` FROM ::zones WHERE `mapId` = %i AND `parentArea` = 0 AND (`cuFlags` & %i) = 0 LIMIT 1', $mapId, CUSTOM_EXCLUDE_FOR_LISTVIEW),
+            'x'        => (float)$r['x'],
+            'y'        => (float)$r['y'],
+            'z'        => (float)$r['z'],
+            'reqLevel' => (int)$r['reqLevel'],
+            'reqItem'  => (int)$r['reqItem']
+        );
+    }
+    // aowow - custom end
 }
 
 ?>

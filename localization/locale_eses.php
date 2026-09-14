@@ -1415,6 +1415,14 @@ $lang = array(
         'notFound'      => "Este activador de área no existe.",
         'foundIn'       => "Este activador de área se puede encontrar en",
         'unnamed'       => "[Unnamed areatrigger] #%d",
+        'type'          => "Type",
+        'id'            => "ID",
+        'isTavern'      => "Resting here sets your hearth timer",
+        'scriptName'    => "Script",
+        'teleportsTo'   => "Teleports to",
+        'destination'   => "Destination",
+        'map'           => 'Map [b]%1$d[/b]',
+        'reqItem'       => "Requires",
         'types'         => ['Sin usar', 'Taberna', 'Teletransportador', 'Objetivo de misión', 'Activador inteligente', 'Script']
     ),
     'gossip' => array(
