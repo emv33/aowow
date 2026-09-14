@@ -61,21 +61,27 @@ class StartOutfit
      * is why none of the playercreateinfo_* tables mention them. `acquireMethod` 2 marks a row as
      * granted when the skill line is learned - i.e. at character creation.
      *
-     * Both masks gate every row: a 0 means "any", and a row carrying both (the class specific
-     * variants of Arcane Torrent, Blood Fury and Command) must satisfy both or it leaks into the
-     * wrong race.
+     * A row must name this class or this race positively. Treating a 0 mask as "any" on both at once
+     * matches every character alive, which is how every pet ability - both masks 0 - ends up in a
+     * warlock's spellbook. A 0 on one mask alone is still "any", so racials (no class mask) and
+     * class spells (no race mask) both survive, while the class specific variants of Arcane Torrent,
+     * Blood Fury and Command - which carry both - are held to both.
      */
     private function learnedSpells(int $race, int $class) : array
     {
         if (!self::hasTable('dbc_skilllineability', true))
             return [];
 
+        $classBit = 1 << ($class - 1);
+        $raceBit  = 1 << ($race  - 1);
+
         $ids = DB::Aowow()->selectCol(
            'SELECT `spellId` FROM dbc_skilllineability
             WHERE  `acquireMethod` = %i
+              AND  ((`reqClassMask` & %i) OR (`reqRaceMask` & %i))
               AND  (`reqClassMask` = 0 OR (`reqClassMask` & %i))
               AND  (`reqRaceMask`  = 0 OR (`reqRaceMask`  & %i))',
-            self::ACQUIRE_ON_SKILL_LEARN, 1 << ($class - 1), 1 << ($race - 1)
+            self::ACQUIRE_ON_SKILL_LEARN, $classBit, $raceBit, $classBit, $raceBit
         ) ?: [];
 
         return $this->hideForPlayers(array_values(array_unique(array_filter(array_map('intVal', $ids)))));
