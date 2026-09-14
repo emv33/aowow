@@ -1563,7 +1563,11 @@ class QuestBaseResponse extends TemplateResponse implements ICache
             else
                 $where = Lang::quest('poiMap', [$p['mapId']]);
 
-            $rows .= '[tr][td]'.Lang::quest('poiObjective', [$p['objective'] + 1]).'[/td][td]'.$where.
+            // objIndex counts the quest log's objective lines from zero; -1 is not an objective at
+            // all, it is the marker the client draws on the turn-in once the quest is complete
+            $label = $p['objective'] < 0 ? Lang::quest('poiTurnIn') : Lang::quest('poiObjective', [$p['objective'] + 1]);
+
+            $rows .= '[tr][td]'.$label.'[/td][td]'.$where.
                      '[/td][td][small class=q0]'.Lang::quest('poiPoints', [count($p['points'])]).'[/small][/td][/tr]';
         }
 

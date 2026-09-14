@@ -1846,6 +1846,7 @@ $lang = array(
     'quest' => array(
         'poiTitle'      => "Objective markers",
         'poiObjective'  => 'Objective %1$d',
+        'poiTurnIn'     => "Quest completion",
         'poiPoints'     => '%1$d point(s)',
         'poiMap'        => 'Map [b]%1$d[/b]',
         'id'            => "Quest-ID: ",
