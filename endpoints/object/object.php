@@ -364,6 +364,20 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
         }
         // aowow - custom end
 
+        // aowow - custom start: legacy script engine
+        // the eventId an object fires lives in a type dependent `data<n>` column and drives `event_scripts`
+        if (User::isInGroup(U_GROUP_STAFF))
+        {
+            $lsSources = [];
+            foreach (LegacyScript::getEventIdsForObject($this->typeId) as $eventId)
+                $lsSources[] = [LegacyScript::SRC_EVENT, $eventId];
+
+            $lsJSG = [];
+            $this->legacyScript = LegacyScript::buildMarkupFor($lsSources, 'lscript-object-'.$this->typeId, $lsJSG);
+            $this->extendGlobalData($lsJSG);
+        }
+        // aowow - custom end
+
         $this->redButtons  = array(
             BUTTON_WOWHEAD => true,
             BUTTON_LINKS   => ['type' => $this->type, 'typeId' => $this->typeId],

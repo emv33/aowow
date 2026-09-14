@@ -108,6 +108,8 @@ $this->brick('markup', ['markup' => $this->smartAI]);
 
 $this->brick('markup', ['markup' => $this->gossip]);   // aowow - custom
 
+$this->brick('markup', ['markup' => $this->legacyScript]);   // aowow - custom
+
 ?>
 
                 <h2 class="clear"><?=Lang::main('related'); ?></h2>

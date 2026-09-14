@@ -217,6 +217,8 @@ if ($this->transfer):
 endif;
 ?>
 
+<?php $this->brick('markup', ['markup' => $this->legacyScript]);   // aowow - custom ?>
+
                 <h2 class="clear"><?=Lang::main('related'); ?></h2>
             </div>
 

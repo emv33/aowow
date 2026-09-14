@@ -15,6 +15,7 @@ trait TrDetailPage
     public ?string        $transfer      = null;            // faction transfer equivalent data
     public ?Markup        $smartAI       = null;
     public ?Markup        $gossip        = null;            // aowow - custom: gossip menus attached to this NPC/object
+    public ?Markup        $legacyScript  = null;            // aowow - custom: pre-SmartAI script engine rows for this entity
     public ?array         $map           = null;
     public  array         $headIcons     = [];
 

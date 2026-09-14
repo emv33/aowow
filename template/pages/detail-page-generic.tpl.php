@@ -48,6 +48,8 @@
 
     $this->brick('markup', ['markup' => $this->gossip]);   // aowow - custom
 
+    $this->brick('markup', ['markup' => $this->legacyScript]);   // aowow - custom
+
 if ($this->zoneMusic):
 ?>
 

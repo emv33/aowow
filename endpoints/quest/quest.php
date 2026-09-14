@@ -901,6 +901,19 @@ class QuestBaseResponse extends TemplateResponse implements ICache
         $this->end           = $endText;
         $this->suggestedPl   = $this->subject->getField('suggestedPlayers');
         $this->unavailable   = $_flags & QUEST_FLAG_UNAVAILABLE || $this->subject->getField('cuFlags') & CUSTOM_EXCLUDE_FOR_LISTVIEW;
+        // aowow - custom start: legacy script engine
+        // not every core still ships these two; LegacyScript checks before querying
+        if (User::isInGroup(U_GROUP_STAFF))
+        {
+            $lsJSG = [];
+            $this->legacyScript = LegacyScript::buildMarkupFor(array(
+                [LegacyScript::SRC_QUEST_START, $this->typeId],
+                [LegacyScript::SRC_QUEST_END,   $this->typeId]
+            ), 'lscript-quest-'.$this->typeId, $lsJSG);
+            $this->extendGlobalData($lsJSG);
+        }
+        // aowow - custom end
+
         $this->redButtons    = array(
             BUTTON_WOWHEAD => true,
             BUTTON_LINKS   => array(

@@ -96,6 +96,9 @@ spl_autoload_register(function (string $class) : void
         case __NAMESPACE__.'\Gossip':
             require_once 'includes/components/Gossip/Gossip.class.php';
             break;
+        case __NAMESPACE__.'\LegacyScript':
+            require_once 'includes/components/LegacyScript/LegacyScript.class.php';
+            break;
     }
 });
 

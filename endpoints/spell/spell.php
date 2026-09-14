@@ -130,6 +130,21 @@ class SpellBaseResponse extends TemplateResponse implements ICache
         }
 
 
+        // aowow - custom start: legacy script engine
+        // `spell_scripts` is keyed by spell id; `event_scripts` by the event a SPELL_EFFECT_SEND_EVENT effect sends
+        if (User::isInGroup(U_GROUP_STAFF))
+        {
+            $lsSources = [[LegacyScript::SRC_SPELL, $this->typeId]];
+            foreach (LegacyScript::getEventIdsForSpell($this->typeId) as $eventId)
+                $lsSources[] = [LegacyScript::SRC_EVENT, $eventId];
+
+            $lsJSG = [];
+            $this->legacyScript = LegacyScript::buildMarkupFor($lsSources, 'lscript-spell-'.$this->typeId, $lsJSG);
+            $this->extendGlobalData($lsJSG);
+        }
+        // aowow - custom end
+
+
         /***************/
         /* Red Buttons */
         /***************/

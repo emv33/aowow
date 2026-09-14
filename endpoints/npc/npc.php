@@ -365,6 +365,20 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         }
         // aowow - custom end
 
+        // aowow - custom start: legacy script engine
+        // `waypoint_scripts` rows are reached through the `action` column of the path this creature walks
+        if (User::isInGroup(U_GROUP_STAFF))
+        {
+            $lsSources = [[LegacyScript::SRC_ESCORT_PATH, $this->typeId]];
+            foreach (LegacyScript::getWaypointScriptIdsForNPC($this->typeId) as $scriptId)
+                $lsSources[] = [LegacyScript::SRC_WAYPOINT, $scriptId];
+
+            $lsJSG = [];
+            $this->legacyScript = LegacyScript::buildMarkupFor($lsSources, 'lscript-npc-'.$this->typeId, $lsJSG);
+            $this->extendGlobalData($lsJSG);
+        }
+        // aowow - custom end
+
         // consider pooled spawns
         $this->quotes       = $this->getQuotes();
         $this->reputation   = $this->getOnKillRep($_altIds, $mapType);
