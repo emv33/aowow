@@ -93,6 +93,9 @@ spl_autoload_register(function (string $class) : void
         case __NAMESPACE__.'\Conditions':
             require_once 'includes/components/Conditions/Conditions.class.php';
             break;
+        case __NAMESPACE__.'\Gossip':
+            require_once 'includes/components/Gossip/Gossip.class.php';
+            break;
     }
 });
 

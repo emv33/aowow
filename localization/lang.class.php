@@ -46,6 +46,7 @@ class Lang
     private static array $guide;
     private static array $emote;
     private static array $enchantment;
+    private static array $gossip;
 
     private static ?Locale $locale = null;
 

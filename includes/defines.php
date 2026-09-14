@@ -600,6 +600,46 @@ define('LOCK_PROPERTY_FOOTLOCKER',          1);
 define('LOCK_PROPERTY_HERBALISM',           2);
 define('LOCK_PROPERTY_MINING',              3);
 
+// aowow - custom start: GameObject types; only the two that carry a gossip menu are referenced so far,
+// the rest is listed so the `data<n>` juggling in setup/tools/sqlgen/objects.ss.php stays readable
+define('GO_TYPE_DOOR',                       0);
+define('GO_TYPE_BUTTON',                     1);
+define('GO_TYPE_QUESTGIVER',                 2);            // data3  - gossipID
+define('GO_TYPE_CHEST',                      3);
+define('GO_TYPE_BINDER',                     4);
+define('GO_TYPE_GENERIC',                    5);
+define('GO_TYPE_TRAP',                       6);
+define('GO_TYPE_CHAIR',                      7);
+define('GO_TYPE_SPELL_FOCUS',                8);
+define('GO_TYPE_TEXT',                       9);
+define('GO_TYPE_GOOBER',                    10);            // data19 - gossipID
+define('GO_TYPE_TRANSPORT',                 11);
+define('GO_TYPE_AREADAMAGE',                12);
+define('GO_TYPE_CAMERA',                    13);
+define('GO_TYPE_MAP_OBJECT',                14);
+define('GO_TYPE_MO_TRANSPORT',              15);
+define('GO_TYPE_DUEL_ARBITER',              16);
+define('GO_TYPE_FISHINGNODE',               17);
+define('GO_TYPE_RITUAL',                    18);
+define('GO_TYPE_MAILBOX',                   19);
+define('GO_TYPE_DO_NOT_USE',                20);
+define('GO_TYPE_GUARDPOST',                 21);
+define('GO_TYPE_SPELLCASTER',               22);
+define('GO_TYPE_MEETINGSTONE',              23);
+define('GO_TYPE_FLAGSTAND',                 24);
+define('GO_TYPE_FISHINGHOLE',               25);
+define('GO_TYPE_FLAGDROP',                  26);
+define('GO_TYPE_MINI_GAME',                 27);
+define('GO_TYPE_DO_NOT_USE_2',              28);
+define('GO_TYPE_CAPTURE_POINT',             29);
+define('GO_TYPE_AURA_GENERATOR',            30);
+define('GO_TYPE_DUNGEON_DIFFICULTY',        31);
+define('GO_TYPE_BARBER_CHAIR',              32);
+define('GO_TYPE_DESTRUCTIBLE_BUILDING',     33);
+define('GO_TYPE_GUILD_BANK',                34);
+define('GO_TYPE_TRAPDOOR',                  35);
+// aowow - custom end
+
 // FactionFlags
 define('FACTION_FLAG_VISIBLE',          0x01);
 define('FACTION_FLAG_AT_WAR',           0x02);
@@ -691,6 +731,46 @@ define('NPC_FLAG_GUILD_BANK',               0x00800000);
 define('NPC_FLAG_SPELLCLICK',               0x01000000);
 define('NPC_FLAG_MAILBOX',                  0x04000000);
 define('NPC_FLAG_VALIDATE',                 0x05FFFFF3);
+
+// aowow - custom start: gossip menus (TrinityCore `gossip_menu`, `gossip_menu_option`, `npc_text`)
+define('GOSSIP_OPTION_NONE',                 0);            // UNIT_NPC_FLAG_NONE
+define('GOSSIP_OPTION_GOSSIP',               1);            // UNIT_NPC_FLAG_GOSSIP
+define('GOSSIP_OPTION_QUESTGIVER',           2);            // UNIT_NPC_FLAG_QUESTGIVER
+define('GOSSIP_OPTION_VENDOR',               3);            // UNIT_NPC_FLAG_VENDOR
+define('GOSSIP_OPTION_TAXIVENDOR',           4);            // UNIT_NPC_FLAG_TAXIVENDOR
+define('GOSSIP_OPTION_TRAINER',              5);            // UNIT_NPC_FLAG_TRAINER
+define('GOSSIP_OPTION_SPIRITHEALER',         6);            // UNIT_NPC_FLAG_SPIRITHEALER
+define('GOSSIP_OPTION_SPIRITGUIDE',          7);            // UNIT_NPC_FLAG_SPIRITGUIDE
+define('GOSSIP_OPTION_INNKEEPER',            8);            // UNIT_NPC_FLAG_INNKEEPER
+define('GOSSIP_OPTION_BANKER',               9);            // UNIT_NPC_FLAG_BANKER
+define('GOSSIP_OPTION_PETITIONER',          10);            // UNIT_NPC_FLAG_PETITIONER
+define('GOSSIP_OPTION_TABARDDESIGNER',      11);            // UNIT_NPC_FLAG_TABARDDESIGNER
+define('GOSSIP_OPTION_BATTLEFIELD',         12);            // UNIT_NPC_FLAG_BATTLEMASTER
+define('GOSSIP_OPTION_AUCTIONEER',          13);            // UNIT_NPC_FLAG_AUCTIONEER
+define('GOSSIP_OPTION_STABLEPET',           14);            // UNIT_NPC_FLAG_STABLE
+define('GOSSIP_OPTION_ARMORER',             15);            // UNIT_NPC_FLAG_ARMORER
+define('GOSSIP_OPTION_UNLEARNTALENTS',      16);            // UNIT_NPC_FLAG_TRAINER (bonus talent reset)
+define('GOSSIP_OPTION_UNLEARNPETTALENTS',   17);            // UNIT_NPC_FLAG_TRAINER (bonus pet talent reset)
+define('GOSSIP_OPTION_LEARNDUALSPEC',       18);            // UNIT_NPC_FLAG_TRAINER (dual talent specialization)
+define('GOSSIP_OPTION_OUTDOORPVP',          19);            // added by code (option only added if player is in outdoor pvp area)
+define('GOSSIP_OPTION_MAX',                 20);
+
+define('GOSSIP_ICON_CHAT',                   0);            // white chat bubble
+define('GOSSIP_ICON_VENDOR',                 1);            // brown bag
+define('GOSSIP_ICON_TAXI',                   2);            // flightmarker (paperplane)
+define('GOSSIP_ICON_TRAINER',                3);            // brown book
+define('GOSSIP_ICON_INTERACT_1',             4);            // golden/red-ish interaction wheel
+define('GOSSIP_ICON_INTERACT_2',             5);            // golden interaction wheel
+define('GOSSIP_ICON_MONEY_BAG',              6);            // brown bag with gold coin
+define('GOSSIP_ICON_TALK',                   7);            // white chat bubble with "..."
+define('GOSSIP_ICON_TABARD',                 8);            // white tabard
+define('GOSSIP_ICON_BATTLE',                 9);            // two crossed swords
+define('GOSSIP_ICON_DOT',                   10);            // yellow dot; not in the 3.3.5 client
+define('GOSSIP_ICON_MAX',                   20);            // 11 - 19 are duplicates of GOSSIP_ICON_CHAT; 14, 15 are NULL in the client
+
+define('GOSSIP_TEXT_EMOTE_COUNT',            3);            // emote/delay pairs per npc_text entry
+define('GOSSIP_TEXT_SLOT_COUNT',             8);            // text variants per npc_text entry
+// aowow - custom end
 
 define('CREATURE_FLAG_EXTRA_INSTANCE_BIND',                   0x00000001);    // creature kill binds instance to killer and killer's group
 define('CREATURE_FLAG_EXTRA_CIVILIAN',                        0x00000002);    // creature does not aggro (ignore faction/reputation hostility)

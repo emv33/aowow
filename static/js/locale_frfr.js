@@ -955,7 +955,8 @@ var mn_database = [
     [31, "Icônes", "?icons", mn_icons],
     [19,"Sons","?sounds", mn_sounds],
     [102, 'Areatrigger', '?areatriggers', mn_areatrigger, {requiredAccess: 1726}],    // aowow - custom
-    [103, 'Mails', '?mails']                                // aowow - custom
+    [103, 'Mails', '?mails'],                               // aowow - custom
+    [104, 'Gossip', '?gossips', null, {requiredAccess: 1726}]    // aowow - custom
 ];
 
 var mn_guides = [
@@ -2484,8 +2485,8 @@ var g_condition_sources = {
     11: [['player', null],       'If the conditions are met, [item=$2] can be gathered from [npc=$1].'],
     12: [['player', null],       'If the conditions are met, casting [spell=$1] may also create [item=$2].'],
     13: [['target', 'caster'],   'Only a $T%:spell%; matching the conditions can be affected by [spell=$2].'],
-    14: [['player', 'entity'],   'Display Gossip text #$2 from menu #$1, if the conditions on the $T%:%; are met.'],
-    15: [['player', 'entity'],   'Display Gossip option #$2 from menu #$1, if the conditions on the $T%:%; are met.'],
+    14: [['player', 'entity'],   'Display Gossip text #$2 from [url=?gossip=$1]menu #$1[/url], if the conditions on the $T%:%; are met.'],
+    15: [['player', 'entity'],   'Display Gossip option #$2 from [url=?gossip=$1]menu #$1[/url], if the conditions on the $T%:%; are met.'],
     16: [['player', 'creature'], '[npc=$2] can be used as a vehicle, if $Tthe %s:its; conditions are met.'],
     17: [['caster', 'target'],   '[spell=$2] can only be cast, if the $Tspell%s:%s; conditions are met.'],
     18: [['player', 'creature'], 'If the $T%s:%s; conditions are met, [npc=$1] casts [spell=$2] if clicked on.'],
@@ -4457,6 +4458,13 @@ var LANG = {
         id:         "ID",
         foundin:    "Se trouve dans..."
     },
+    figossip: {
+        sepgeneral: "General",
+        id:         "ID",
+        textid:     "Text ID"
+    },
+    gossip_options:  "Options",
+    gossip_openedby: "Opened by",
     // end aowow custom
 
     pr_notice:     'Première fois? Ne soyez pas gêné! Visitez notre <a href="?help=profiler" target="_blank">page d\'aide</a>! &nbsp; <small class="q0"><a href="javascript:;">close</a></small>',

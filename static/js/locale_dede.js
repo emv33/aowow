@@ -955,7 +955,8 @@ var mn_database = [
     [19,"Klänge","?sounds",mn_sounds],
     [31, "Icons", "?icons", mn_icons],
     [102, 'Areatrigger', '?areatriggers', mn_areatrigger, {requiredAccess: 1726}],    // aowow - custom
-    [103, 'Briefe', '?mails']                               // aowow - custom
+    [103, 'Briefe', '?mails'],                              // aowow - custom
+    [104, 'Gossip', '?gossips', null, {requiredAccess: 1726}]    // aowow - custom
 ];
 
 var mn_guides = [
@@ -2484,8 +2485,8 @@ var g_condition_sources = {
     11: [['Spieler', null],       'Wenn die Bedingung erfüllt ist kann [item=$2] von [npc=$1] gesammelt werden.'],
     12: [['Spieler', null],       'Wenn die Bedingung erfüllt ist kann beim Wirken von [spell=$1] zusätzlich [item=$2] erzeugt werden.'],
     13: [['Ziel', 'Zauberer'],    'Nur ein $T% welches:% welcher; die Bedingung erfüllt, kann von [spell=$2] betroffen sein.'],
-    14: [['Spieler', 'Entität'],  'Zeige Dialogtext #$2 aus Menu #$1, wenn $Tder %:die %; die Bedingung erfüllt.'],
-    15: [['Spieler', 'Entität'],  'Zeige Dialogoption #$2 aus Menu #$1, wenn $Tder %:die %; die Bedingung erfüllt.'],
+    14: [['Spieler', 'Entität'],  'Zeige Dialogtext #$2 aus [url=?gossip=$1]Menu #$1[/url], wenn $Tder %:die %; die Bedingung erfüllt.'],
+    15: [['Spieler', 'Entität'],  'Zeige Dialogoption #$2 aus [url=?gossip=$1]Menu #$1[/url], wenn $Tder %:die %; die Bedingung erfüllt.'],
     16: [['Spieler', 'Kreatur'],  '[npc=$2] kann als Fahrzeug benutzt werden, wenn $Tder %:es; die Bedingung erfüllt.'],
     17: [['Zauberer', 'Ziel'],    '[spell=$2] kann nur dann gewirkt werden, wenn $Tder %:das %; die Bedingung erfüllt.'],
     18: [['Spieler', 'Kreatur'],  'Wenn $Tdie %:der %; die Bedingung erfüllt wirkt [npc=$1] [spell=$2], wenn angeklickt.'],
@@ -4457,6 +4458,13 @@ var LANG = {
         id:         "ID",
         foundin:    "Befindet sich in..."
     },
+    figossip: {
+        sepgeneral: "Allgemein",
+        id:         "ID",
+        textid:     "Text-ID"
+    },
+    gossip_options:  "Optionen",
+    gossip_openedby: "Geöffnet von",
     // end aowow custom
 
     pr_notice:     'Zum ersten Mal hier? &ndash; Seid nicht schüchtern! Schaut ruhig mal auf unserer <a href="?help=profiler" target="_blank">Hilfeseite</a> (zurzeit noch unübersetzt) nach! &nbsp; <small class="q0"><a href="javascript:;">Schließen</a></small>',

@@ -354,6 +354,16 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
                 trigger_error('Gameobject has `AIName`: SmartGameObjectAI set in template but no SmartAI defined.');
         }
 
+        // aowow - custom start: gossip menus
+        // staff only, as the menu ids and option types this links to are world DB internals (the ?gossip= page is staff gated too)
+        if (User::isInGroup(U_GROUP_STAFF))
+        {
+            $gossipJSG = [];
+            $this->gossip = Gossip::buildMarkupFor(Gossip::getMenusForObject($this->typeId), 'gossip-object-'.$this->typeId, $gossipJSG);
+            $this->extendGlobalData($gossipJSG);
+        }
+        // aowow - custom end
+
         $this->redButtons  = array(
             BUTTON_WOWHEAD => true,
             BUTTON_LINKS   => ['type' => $this->type, 'typeId' => $this->typeId],

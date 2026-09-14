@@ -75,6 +75,7 @@ abstract class Type
     public const int ENCHANTMENT =                502;
     public const int AREATRIGGER =                503;
     public const int MAIL =                       504;
+    public const int GOSSIP =                     505;
     // Blizzard API things
     //               MOUNT =                    -1000;
     //               RECIPE =                   -1001;
@@ -119,7 +120,8 @@ abstract class Type
         self::EMOTE       => [EmoteList::class,       'emote',       'g_emotes',             self::FLAG_RANDOM_SEARCHABLE | self::FLAG_DB_TYPE],
         self::ENCHANTMENT => [EnchantmentList::class, 'enchantment', 'g_enchantments',       self::FLAG_RANDOM_SEARCHABLE | self::FLAG_FILTRABLE | self::FLAG_DB_TYPE],
         self::AREATRIGGER => [AreatriggerList::class, 'areatrigger', '',                     self::FLAG_FILTRABLE | self::FLAG_DB_TYPE],
-        self::MAIL        => [MailList::class,        'mail',        '',                     self::FLAG_RANDOM_SEARCHABLE | self::FLAG_DB_TYPE]
+        self::MAIL        => [MailList::class,        'mail',        '',                     self::FLAG_RANDOM_SEARCHABLE | self::FLAG_DB_TYPE],
+        self::GOSSIP      => [GossipList::class,      'gossip',      '',                     self::FLAG_FILTRABLE]   // no FLAG_DB_TYPE: world DB type, Type::validateIds() has no aowow table to check against
     );
 
 

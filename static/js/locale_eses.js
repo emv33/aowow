@@ -955,7 +955,8 @@ var mn_database = [
     [31, "Iconos", "?icons", mn_icons],
     [19,"Sonidos","?sounds",mn_sounds],
     [102, 'Areatrigger', '?areatriggers', mn_areatrigger, {requiredAccess: 1726}],    // aowow - custom
-    [103, 'Correos', '?mails']                              // aowow - custom
+    [103, 'Correos', '?mails'],                             // aowow - custom
+    [104, 'Gossip', '?gossips', null, {requiredAccess: 1726}]    // aowow - custom
 ];
 
 var mn_guides = [
@@ -2484,8 +2485,8 @@ var g_condition_sources = {
     11: [['player', null],       'Si se cumplen las condiciones, [item=$2] puede obtenerse de [npc=$1].'],
     12: [['player', null],       'Si se cumplen las condiciones, lanzar [spell=$1] también puede crear [item=$2].'],
     13: [['target', 'caster'],   'Solo un $T%:spell%; que cumpla las condiciones puede ser afectado por [spell=$2].'],
-    14: [['player', 'entity'],   'Mostrar el texto de rumor #$2 del menú #$1, si se cumplen las condiciones en el $T%:%;.'],
-    15: [['player', 'entity'],   'Mostrar la opción de rumor #$2 del menú #$1, si se cumplen las condiciones en el $T%:%;.'],
+    14: [['player', 'entity'],   'Mostrar el texto de rumor #$2 del [url=?gossip=$1]menú #$1[/url], si se cumplen las condiciones en el $T%:%;.'],
+    15: [['player', 'entity'],   'Mostrar la opción de rumor #$2 del [url=?gossip=$1]menú #$1[/url], si se cumplen las condiciones en el $T%:%;.'],
     16: [['player', 'creature'], '[npc=$2] puede usarse como vehículo si se cumplen sus condiciones.'],
     17: [['caster', 'target'],   '[spell=$2] solo puede lanzarse si se cumplen las condiciones del hechizo.'],
     18: [['player', 'creature'], 'Si se cumplen las condiciones, [npc=$1] lanzará [spell=$2] si se hace clic.'],
@@ -4457,6 +4458,13 @@ var LANG = {
         id:         "ID",
         foundin:    "Encontrado en..."
     },
+    figossip: {
+        sepgeneral: "General",
+        id:         "ID",
+        textid:     "ID de texto"
+    },
+    gossip_options:  "Opciones",
+    gossip_openedby: "Abierto por",
     // end aowow custom
 
     pr_notice:     '¿La primera vez? &ndash; ¡No temas! ¡Visita nuestra <a href="?help=profiler" target="_blank">página de ayuda</a>! &nbsp; <small class="q0"><a href="javascript:;">cerrar</a></small>',

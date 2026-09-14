@@ -355,6 +355,16 @@ class NpcBaseResponse extends TemplateResponse implements ICache
             }
         }
 
+        // aowow - custom start: gossip menus
+        // staff only, as the menu ids and option types this links to are world DB internals (the ?gossip= page is staff gated too)
+        if (User::isInGroup(U_GROUP_STAFF))
+        {
+            $gossipJSG = [];
+            $this->gossip = Gossip::buildMarkupFor(Gossip::getMenusForNPC($this->typeId), 'gossip-npc-'.$this->typeId, $gossipJSG);
+            $this->extendGlobalData($gossipJSG);
+        }
+        // aowow - custom end
+
         // consider pooled spawns
         $this->quotes       = $this->getQuotes();
         $this->reputation   = $this->getOnKillRep($_altIds, $mapType);

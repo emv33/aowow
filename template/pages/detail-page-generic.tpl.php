@@ -46,6 +46,8 @@
 
     $this->brick('markup', ['markup' => $this->smartAI]);
 
+    $this->brick('markup', ['markup' => $this->gossip]);   // aowow - custom
+
 if ($this->zoneMusic):
 ?>
 

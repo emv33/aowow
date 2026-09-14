@@ -30,6 +30,7 @@ class Listview implements \JsonSerializable
         'event'             => ['template' => 'holiday',           'id' => 'holidays',        'name' => '$LANG.tab_holidays'      ],
         'faction'           => ['template' => 'faction',           'id' => 'factions',        'name' => '$LANG.tab_factions'      ],
         'genericmodel'      => ['template' => 'genericmodel',      'id' => 'same-model-as',   'name' => '$LANG.tab_samemodelas'   ],
+        'gossip'            => ['template' => 'gossip',            'id' => 'gossip',                                              ], // aowow - custom
         'icongallery'       => ['template' => 'icongallery',       'id' => 'icons',                                               ],
         'item'              => ['template' => 'item',              'id' => 'items',           'name' => '$LANG.tab_items'         ],
         'itemset'           => ['template' => 'itemset',           'id' => 'itemsets',        'name' => '$LANG.tab_itemsets'      ],

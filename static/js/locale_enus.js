@@ -1001,7 +1001,8 @@ var mn_database = [
     [31, "Icons", "?icons", mn_icons],
     [19,"Sounds","?sounds",mn_sounds],
     [102, 'Areatrigger', '?areatriggers', mn_areatrigger, {requiredAccess: 1726}],    // aowow - custom
-    [103, 'Mails', '?mails']                                // aowow - custom
+    [103, 'Mails', '?mails'],                                // aowow - custom
+    [104, 'Gossip', '?gossips', null, {requiredAccess: 1726}]    // aowow - custom
 ];
 
 var mn_guides = [
@@ -2532,8 +2533,8 @@ var g_condition_sources = {
     11: [['player', null],       'If the conditions are met, [item=$2] can be gathered from [npc=$1].'],                              // CND_SRC_SKINNING_LOOT_TEMPLATE
     12: [['player', null],       'If the conditions are met, casting [spell=$1] may also create [item=$2].'],                         // CND_SRC_SPELL_LOOT_TEMPLATE
     13: [['target', 'caster'],   'Only a $T%:spell%; matching the conditions can be affected by [spell=$2].'],                        // CND_SRC_SPELL_IMPLICIT_TARGET
-    14: [['player', 'entity'],   'Display Gossip text #$2 from menu #$1, if the conditions on the $T%:%; are met.'],                  // CND_SRC_GOSSIP_MENU
-    15: [['player', 'entity'],   'Display Gossip option #$2 from menu #$1, if the conditions on the $T%:%; are met.'],                // CND_SRC_GOSSIP_MENU_OPTION
+    14: [['player', 'entity'],   'Display Gossip text #$2 from [url=?gossip=$1]menu #$1[/url], if the conditions on the $T%:%; are met.'],                  // CND_SRC_GOSSIP_MENU
+    15: [['player', 'entity'],   'Display Gossip option #$2 from [url=?gossip=$1]menu #$1[/url], if the conditions on the $T%:%; are met.'],                // CND_SRC_GOSSIP_MENU_OPTION
     16: [['player', 'creature'], '[npc=$2] can be used as a vehicle, if $Tthe %s:its; conditions are met.'],                          // CND_SRC_CREATURE_TEMPLATE_VEHICLE
     17: [['caster', 'target'],   '[spell=$2] can only be cast, if the $Tspell%s:%s; conditions are met.'],                            // CND_SRC_SPELL
     18: [['player', 'creature'], 'If the $T%s:%s; conditions are met, [npc=$1] casts [spell=$2] if clicked on.'],                     // CND_SRC_SPELL_CLICK_EVENT
@@ -4501,6 +4502,13 @@ var LANG = {
         id:         "ID",
         foundin:    "Found in..."
     },
+    figossip: {
+        sepgeneral: "General",
+        id:         "ID",
+        textid:     "Text ID"
+    },
+    gossip_options:  "Options",
+    gossip_openedby: "Opened by",
     // end aowow custom
 
     pr_notice:     'First time? &ndash; Don\'t be shy! Just check out our <a href="?help=profiler" target="_blank">Help page</a>! &nbsp; <small class="q0"><a href="javascript:;">close</a></small>',

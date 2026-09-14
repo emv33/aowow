@@ -14,6 +14,7 @@ trait TrDetailPage
     public ?array         $series        = null;
     public ?string        $transfer      = null;            // faction transfer equivalent data
     public ?Markup        $smartAI       = null;
+    public ?Markup        $gossip        = null;            // aowow - custom: gossip menus attached to this NPC/object
     public ?array         $map           = null;
     public  array         $headIcons     = [];
 

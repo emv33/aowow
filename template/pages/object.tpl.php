@@ -44,6 +44,8 @@ $this->brick('book');
 
 $this->brick('markup', ['markup' => $this->smartAI]);
 
+$this->brick('markup', ['markup' => $this->gossip]);   // aowow - custom
+
 ?>
 
                 <h2 class="clear"><?=Lang::main('related'); ?></h2>
