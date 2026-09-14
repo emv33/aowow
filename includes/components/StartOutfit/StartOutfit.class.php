@@ -36,6 +36,10 @@ class StartOutfit
     private const int ACTION_TYPE_SPELL      = 0;
     private const int ACTION_TYPE_ITEM       = 128;
 
+    // the client numbers action buttons in blocks of twelve; block 0 is the bar a character logs in
+    // with, the rest are the other bars and the alternate pages
+    private const int MAIN_BAR_SLOTS         = 12;
+
     private const string BASE_CSS = <<<CSS
         #start-outfit-generic .grid { clear:left; display: grid; }
         #start-outfit-generic .grid thead,
@@ -326,9 +330,12 @@ class StartOutfit
         if (!self::hasTable('playercreateinfo_action'))
             return [];
 
+        // only the first block is read. TDB mirrors part of the starting bar onto the alternate
+        // pages - every death knight carries Attack on buttons 0, 72, 84, 96 and 108 - and those
+        // copies used to be listed as if they were extra abilities
         $rows = DB::World()->selectAssoc(
-           'SELECT `button`, `action`, `type` FROM playercreateinfo_action WHERE `race` = %i AND `class` = %i ORDER BY `button` ASC',
-            $race, $class
+           'SELECT `button`, `action`, `type` FROM playercreateinfo_action WHERE `race` = %i AND `class` = %i AND `button` < %i ORDER BY `button` ASC',
+            $race, $class, self::MAIN_BAR_SLOTS
         ) ?: [];
 
         $out = [];
