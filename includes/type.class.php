@@ -76,6 +76,7 @@ abstract class Type
     public const int AREATRIGGER =                503;
     public const int MAIL =                       504;
     public const int GOSSIP =                     505;
+    public const int ENCOUNTER =                  506;
     // Blizzard API things
     //               MOUNT =                    -1000;
     //               RECIPE =                   -1001;
