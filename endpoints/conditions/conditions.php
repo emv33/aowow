@@ -32,7 +32,6 @@ class ConditionsBaseResponse extends TemplateResponse
         'ent' => ['filter' => FILTER_VALIDATE_INT, 'flags' => FILTER_REQUIRE_SCALAR]
     );
 
-    public const int LIMIT = 1000;
 
     public array $srcTypeList = [];                         // for the form in the template
     public array $cndTypeList = [];
@@ -70,19 +69,10 @@ class ConditionsBaseResponse extends TemplateResponse
             'cndType' => $this->formValues['cnd'],
             'value1'  => $this->formValues['val'],
             'entry'   => $this->formValues['ent'],
-            'limit'   => self::LIMIT + 1
+            'limit'   => Listview::DEFAULT_SIZE
         ));
 
-        $truncated = count($rows) > self::LIMIT;
-        if ($truncated)
-            $rows = array_slice($rows, 0, self::LIMIT);
-
         $tabData = ['data' => $this->buildListviewData($rows)];
-        if ($truncated)
-        {
-            $tabData['note']       = sprintf(Util::$tryFilteringEntityString, self::LIMIT.'+', '"'.Lang::game('conditions').'"', self::LIMIT);
-            $tabData['_truncated'] = 1;
-        }
 
         $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"]);
         $this->lvTabs->addListviewTab(new Listview($tabData, 'condition', 'condition'));

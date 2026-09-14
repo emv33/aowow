@@ -318,7 +318,7 @@ class SmartAI
      * one row per distinct script, for the ?smartai browser
      * rendering a script stays with the instance API; this only enumerates them
      *
-     * @param  array $opts  srcType: int[], eventType: int, actionType: int, refId: int, entry: int, limit: int
+     * @param  array $opts  srcType: int[], eventType: int, actionType: int, refId: int, entry: int, limit: int (0 = uncapped)
      * @return array        list of [srcType, entry, nRows, eventTypes[], actionTypes[]]
      */
     public static function browse(array $opts = []) : array
@@ -346,6 +346,10 @@ class SmartAI
         if (!$where)
             $where[] = ['1 = 1'];
 
+        // listings in this fork are uncapped by default - see Listview::DEFAULT_SIZE
+        $limit = intVal($opts['limit'] ?? 0);
+        $limit = $limit > 0 && $limit < PHP_INT_MAX ? ' LIMIT '.$limit : '';
+
         $rows = DB::World()->selectAssoc(
            'SELECT   s.`source_type` AS "srcType", s.`entryorguid` AS "entry", COUNT(1) AS "nRows",
                      GROUP_CONCAT(DISTINCT s.`event_type`)  AS "eventTypes",
@@ -353,9 +357,8 @@ class SmartAI
             FROM     smart_scripts s
             WHERE    %and
             GROUP BY s.`source_type`, s.`entryorguid`
-            ORDER BY s.`source_type`, s.`entryorguid` ASC
-            LIMIT    %i',
-            $where, max(1, intVal($opts['limit'] ?? 1000))
+            ORDER BY s.`source_type`, s.`entryorguid` ASC'.$limit,
+            $where
         ) ?: [];
 
         $out = [];

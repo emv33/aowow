@@ -32,7 +32,6 @@ class SmartaiBaseResponse extends TemplateResponse
         'ent' => ['filter' => FILTER_VALIDATE_INT, 'flags' => FILTER_REQUIRE_SCALAR]
     );
 
-    public const int LIMIT = 1000;
 
     public array $srcTypeList = [];                         // for the form in the template
     public array $evtTypeList = [];
@@ -79,19 +78,10 @@ class SmartaiBaseResponse extends TemplateResponse
             'actionType' => $this->formValues['act'] ?? -1,
             'refId'      => $this->formValues['ref'],
             'entry'      => $this->formValues['ent'],
-            'limit'      => self::LIMIT + 1
+            'limit'      => Listview::DEFAULT_SIZE
         ));
 
-        $truncated = count($rows) > self::LIMIT;
-        if ($truncated)
-            $rows = array_slice($rows, 0, self::LIMIT);
-
         $tabData = ['data' => $this->buildListviewData($rows)];
-        if ($truncated)
-        {
-            $tabData['note']       = sprintf(Util::$tryFilteringEntityString, self::LIMIT.'+', '"'.Lang::game('smartAI').'"', self::LIMIT);
-            $tabData['_truncated'] = 1;
-        }
 
         $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"]);
         $this->lvTabs->addListviewTab(new Listview($tabData, 'smartai', 'smartai'));

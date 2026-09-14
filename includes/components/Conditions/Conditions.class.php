@@ -260,7 +260,7 @@ class Conditions
      * one row per distinct condition source, for the ?conditions browser
      * the detail view of a single source stays with getBySource(); this only enumerates them
      *
-     * @param  array $opts  srcType: int[], cndType: int, value1: int, entry: int, limit: int
+     * @param  array $opts  srcType: int[], cndType: int, value1: int, entry: int, limit: int (0 = uncapped)
      * @return array        list of [srcType, group, entry, srcId, nConditions, cndTypes[]]
      */
     public static function browse(array $opts = []) : array
@@ -292,15 +292,18 @@ class Conditions
         if (!$where)
             $where[] = ['1 = 1'];
 
+        // listings in this fork are uncapped by default - see Listview::DEFAULT_SIZE
+        $limit = intVal($opts['limit'] ?? 0);
+        $limit = $limit > 0 && $limit < PHP_INT_MAX ? ' LIMIT '.$limit : '';
+
         $rows = DB::World()->selectAssoc(
            'SELECT   c.`SourceTypeOrReferenceId` AS "srcType", c.`SourceGroup` AS "group", c.`SourceEntry` AS "entry", c.`SourceId` AS "srcId",
                      COUNT(1) AS "nConditions", GROUP_CONCAT(DISTINCT ABS(c.`ConditionTypeOrReference`)) AS "cndTypes"
             FROM     conditions c
             WHERE    %and
             GROUP BY c.`SourceTypeOrReferenceId`, c.`SourceGroup`, c.`SourceEntry`, c.`SourceId`
-            ORDER BY c.`SourceTypeOrReferenceId`, c.`SourceGroup`, c.`SourceEntry`, c.`SourceId` ASC
-            LIMIT    %i',
-            $where, max(1, intVal($opts['limit'] ?? 1000))
+            ORDER BY c.`SourceTypeOrReferenceId`, c.`SourceGroup`, c.`SourceEntry`, c.`SourceId` ASC'.$limit,
+            $where
         ) ?: [];
 
         $out = [];
