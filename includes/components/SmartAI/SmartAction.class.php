@@ -669,7 +669,8 @@ class SmartAction
                 break;
             case self::ACTION_SPAWN_SPAWNGROUP:             // 131
             case self::ACTION_DESPAWN_SPAWNGROUP:           // 132
-                $this->param[10] = Util::jsEscape(DB::World()->selectCell('SELECT `GroupName` FROM spawn_group_template WHERE `groupId` = %i', $this->param[0]));
+                // no jsEscape: the param is substituted into markup, and Markup::cleanText() already json_encodes the whole body
+                $this->param[10] = (string)DB::World()->selectCell('SELECT `GroupName` FROM spawn_group_template WHERE `groupId` = %i', $this->param[0]);
                 $entities = DB::World()->selectAssoc('SELECT `spawnType` AS "0", `spawnId` AS "1" FROM spawn_group WHERE `groupId` = %i',  $this->param[0]);
 
                 $n = 5;
