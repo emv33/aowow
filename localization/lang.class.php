@@ -58,6 +58,7 @@ class Lang
     private static array $npcExtra;
     private static array $startOutfit;
     private static array $spellOverride;
+    private static array $xRef;
     private static array $dataIntegrity;
 
     private static ?Locale $locale = null;

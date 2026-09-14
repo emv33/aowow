@@ -45,7 +45,7 @@ class SmartTarget
 
     private const string TARGET_TPL = '[tooltip name=t-#rowIdx#]%1$s[/tooltip][span class=tip tooltip=t-#rowIdx#]%2$s[/span]';
 
-    private array $targets = array(
+    private static array $targets = array(
         self::TARGET_NONE                   => [null,                    null,                    null, null], // NONE
         self::TARGET_SELF                   => [null,                    null,                    null, null], // Self cast
         self::TARGET_VICTIM                 => [null,                    null,                    null, null], // Our current target (ie: highest aggro)
@@ -81,6 +81,27 @@ class SmartTarget
 
     private array $jsGlobals = [];
 
+
+    // aowow - custom start: the parameter map read the other way round
+    /**
+     * which target parameters carry the id of a linkable entity
+     * the renderer reads this map forwards; SmartAI::getOwnerOfReference() reads it backwards to
+     * answer "which scripts mention this entity" without a hand written lookup per target
+     *
+     * @return array<int, array<int, int>>  target type => [1 based parameter index => Type]
+     */
+    public static function getParamTypes() : array
+    {
+        $out = [];
+        foreach (self::$targets as $type => $params)
+            for ($i = 0; $i < 4; $i++)
+                if (is_int($params[$i] ?? null) && $params[$i] > 0)
+                    $out[$type][$i + 1] = $params[$i];
+
+        return $out;
+    }
+    // aowow - custom end
+
     public function __construct(
         private int $id,
         public readonly int $type,
@@ -103,7 +124,7 @@ class SmartTarget
 
         for ($i = 0; $i < 4; $i++)
         {
-            $tParams = $this->targets[$this->type];
+            $tParams = self::$targets[$this->type];
 
             if (is_array($tParams[$i]))
             {

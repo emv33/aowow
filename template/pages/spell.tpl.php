@@ -343,6 +343,8 @@ if ($this->attributes):
 
 <?php $this->brick('markup', ['markup' => $this->spellOverride]);   // aowow - custom ?>
 
+<?php $this->brick('markup', ['markup' => $this->xRef]);   // aowow - custom ?>
+
                 <h2 class="clear"><?=Lang::main('related');?></h2>
             </div>
 

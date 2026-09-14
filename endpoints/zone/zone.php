@@ -37,6 +37,8 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
 
     protected function generate() : void
     {
+        $this->applyXRef();                                 // aowow - custom
+
         $this->subject = new ZoneList(array(['id', $this->typeId]));
         if ($this->subject->error)
             $this->generateNotFound(Lang::game('zone'), Lang::zone('notFound'));

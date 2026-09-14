@@ -47,6 +47,8 @@ class QuestBaseResponse extends TemplateResponse implements ICache
 
     protected function generate() : void
     {
+        $this->applyXRef();                                 // aowow - custom
+
         $this->subject = new QuestList(array(['id', $this->typeId]));
         if ($this->subject->error)
             $this->generateNotFound(Lang::game('quest'), Lang::quest('notFound'));

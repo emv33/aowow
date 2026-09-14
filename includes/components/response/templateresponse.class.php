@@ -20,8 +20,23 @@ trait TrDetailPage
     public ?Markup        $spellOverride = null;            // aowow - custom: world DB overrides of a spell's dbc data
     public ?Markup        $questPOI      = null;            // aowow - custom: quest objective blobs from quest_poi
     public ?Markup        $levelCurve    = null;            // aowow - custom: xp curve and per level stats of a class
+    public ?Markup        $xRef          = null;            // aowow - custom: what else in the world DB points at this entity
     public ?array         $map           = null;
     public  array         $headIcons     = [];
+
+    // aowow - custom start: what else in the world DB points at this entity
+    // one call per page rather than a hook in display(), so the block is built in generate() and
+    // ends up inside the page cache like every other markup block
+    protected function applyXRef() : void
+    {
+        if (!User::isInGroup(U_GROUP_STAFF))
+            return;
+
+        $xr = new XRef($this->type, $this->typeId);
+        $this->xRef = $xr->getMarkup();                     // fills the globals; must run first
+        $this->extendGlobalData($xr->getJSGlobals());
+    }
+    // aowow - custom end
 
     public function getCacheKeyComponents() : array
     {

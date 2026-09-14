@@ -170,7 +170,7 @@ class SmartAction
     private const string ACTION_CELL_TPL = '[tooltip name=a-#rowIdx#]%1$s[/tooltip][span tooltip=a-#rowIdx#]%2$s[/span]';
     private const string TAL_TAB_ANCHOR  = '[url=#sai-actionlist-%1$d onclick=TalTabClick(%1$d)]#%1$d[/url]';
 
-    private array $data = array(
+    private static array $data = array(
         self::ACTION_NONE                               => [null, null, null, null, null, null, 0],  // No action
         self::ACTION_TALK                               => [null, ['formatTime', -1, true], null, null, null, null, 0],  // groupID from creature_text, duration to wait before TEXT_OVER event is triggered, useTalkTarget (0/1) - use target as talk target
         self::ACTION_SET_FACTION                        => [null, null, null, null, null, null, 0],  // FactionId (or 0 for default)
@@ -328,6 +328,27 @@ class SmartAction
     private  array $jsGlobals = [];
     private ?array $summons   = null;
 
+
+    // aowow - custom start: the parameter map read the other way round
+    /**
+     * which action parameters carry the id of a linkable entity
+     * the renderer reads this map forwards; SmartAI::getOwnerOfReference() reads it backwards to
+     * answer "which scripts mention this entity" without a hand written lookup per action
+     *
+     * @return array<int, array<int, int>>  action type => [1 based parameter index => Type]
+     */
+    public static function getParamTypes() : array
+    {
+        $out = [];
+        foreach (self::$data as $type => $params)
+            for ($i = 0; $i < 6; $i++)
+                if (is_int($params[$i] ?? null) && $params[$i] > 0)
+                    $out[$type][$i + 1] = $params[$i];
+
+        return $out;
+    }
+    // aowow - custom end
+
     public function __construct(
         private int $id,
         public readonly int $type,
@@ -348,7 +369,7 @@ class SmartAction
 
         for ($i = 0; $i < 5; $i++)
         {
-            $aParams = $this->data[$this->type];
+            $aParams = self::$data[$this->type];
 
             if (is_array($aParams[$i]))
             {

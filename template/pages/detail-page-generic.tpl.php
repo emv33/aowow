@@ -54,6 +54,8 @@
 
     $this->brick('markup', ['markup' => $this->levelCurve]);   // aowow - custom
 
+    $this->brick('markup', ['markup' => $this->xRef]);   // aowow - custom
+
 if ($this->zoneMusic):
 ?>
 

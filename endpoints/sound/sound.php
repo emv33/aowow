@@ -32,6 +32,8 @@ class SoundBaseResponse extends TemplateResponse implements ICache
 
     protected function generate() : void
     {
+        $this->applyXRef();                                 // aowow - custom
+
         $this->subject = new SoundList(array(['id', $this->typeId]));
         if ($this->subject->error)
             $this->generateNotFound(Lang::game('sound'), Lang::sound('notFound'));

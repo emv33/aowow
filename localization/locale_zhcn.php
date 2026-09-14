@@ -1342,6 +1342,15 @@ $lang = array(
         'actionBar'     => "Action bar",
         'startsIn'      => "Starts in"
     ),
+    'xRef' => array(
+        'title'         => "Referenced by",
+        'smartAI'       => "Scripts",
+        'summonedBy'    => "Summoned by",
+        'ridesOn'       => "Rides on",
+        'spawnGroup'    => "Spawn groups",
+        'unnamedGroup'  => 'Group #%1$d',
+        'equippedBy'    => "Equipped by"
+    ),
     'spellOverride' => array(
         'title'         => "Server overrides",
         'teleportsTo'   => "Teleports to",

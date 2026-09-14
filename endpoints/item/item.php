@@ -41,6 +41,8 @@ class ItemBaseResponse extends TemplateResponse implements ICache
 
     protected function generate() : void
     {
+        $this->applyXRef();                                 // aowow - custom
+
         $this->subject = new ItemList(array(['i.id', $this->typeId]));
         if ($this->subject->error)
             $this->generateNotFound(Lang::game('item'), Lang::item('notFound'));

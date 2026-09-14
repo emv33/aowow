@@ -447,7 +447,26 @@ class SmartAI
     // lookup: SmartActionId => [[paramIdx => value], ...]
     private static function getActionOwner(array $lookup, int $typeFilter = 0) : array
     {
-        $qParts    = [];
+        $qParts = [];
+        foreach ($lookup as $action => $params)
+        {
+            $pq = [];
+            $aq = [DB::AND, [['`action_type` = %i', $action], [DB::OR, &$pq]]];
+            foreach ($params as $idx => $p)
+                $pq[] = ["`action_param$idx` = %i", $p];
+
+            $qParts[] = $aq;
+            unset($pq);
+        }
+
+        return self::resolveOwners($qParts, $typeFilter);
+    }
+
+    // aowow - custom start: the tail of getActionOwner(), split off so a caller can bring its own
+    // match - getOwnerOfReference() matches on event and target columns too, which the action only
+    // lookup above cannot express
+    private static function resolveOwners(array $qParts, int $typeFilter = 0) : array
+    {
         $result    = [];
         $genFilter = $talFilter = [];
         switch ($typeFilter)
@@ -466,17 +485,7 @@ class SmartAI
                 break;
         }
 
-        $where = $qParts = [];
-        foreach ($lookup as $action => $params)
-        {
-            $pq = [];
-            $aq = [DB::AND, [['`action_type` = %i', $action], [DB::OR, &$pq]]];
-            foreach ($params as $idx => $p)
-                $pq[] = ["`action_param$idx` = %i", $p];
-
-            $qParts[] = $aq;
-            unset($pq);
-        }
+        $where = [];
 
         if ($genFilter)
             $where[] = ['`source_type` IN %in', $genFilter];
@@ -559,6 +568,49 @@ class SmartAI
 
         return $result;
     }
+
+    /**
+     * every script that names this entity anywhere in its event, action or target parameters
+     *
+     * the four getOwnerOf* lookups above each spell out one action and one parameter index by hand,
+     * which only ever covered summons, spell casts and sounds. The renderer already declares what
+     * each parameter means - SmartEvent, SmartAction and SmartTarget carry a Type per slot - so the
+     * same declaration answers the question in reverse for every type at once.
+     *
+     * @return array  [Type => entryIds[]] of the entities whose scripts mention $type/$typeId
+     */
+    public static function getOwnerOfReference(int $type, int $typeId, int $typeFilter = 0) : array
+    {
+        if ($typeId <= 0)
+            return [];
+
+        $qParts = [];
+        $cols   = array(
+            ['event_type',  'event_param%d',  SmartEvent::getParamTypes() ],
+            ['action_type', 'action_param%d', SmartAction::getParamTypes()],
+            ['target_type', 'target_param%d', SmartTarget::getParamTypes()]
+        );
+
+        foreach ($cols as [$typeCol, $paramCol, $map])
+        {
+            foreach ($map as $subType => $params)
+            {
+                $pq = [];
+                foreach ($params as $idx => $pType)
+                    if ($pType == $type)
+                        $pq[] = ['`'.sprintf($paramCol, $idx).'` = %i', $typeId];
+
+                if ($pq)
+                    $qParts[] = [DB::AND, [['`'.$typeCol.'` = %i', $subType], [DB::OR, $pq]]];
+            }
+        }
+
+        if (!$qParts)
+            return [];
+
+        return self::resolveOwners($qParts, $typeFilter);
+    }
+    // aowow - custom end
 
 
     /********************/

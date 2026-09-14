@@ -33,6 +33,8 @@ class AreatriggerBaseResponse extends TemplateResponse implements ICache
 
     protected function generate() : void
     {
+        $this->applyXRef();                                 // aowow - custom
+
         $this->subject = new AreaTriggerList(array(['id', $this->typeId]));
         if ($this->subject->error)
             $this->generateNotFound(Lang::game('areatrigger'), Lang::areatrigger('notFound'));

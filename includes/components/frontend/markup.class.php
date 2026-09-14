@@ -211,6 +211,18 @@ class Markup implements \JsonSerializable
         return self::parseTags($this->__text);
     }
 
+    // aowow - custom start: the tag list read the other way round, for code that holds a Type and
+    // needs the tag that links it - XRef collects references as [Type => ids] and renders them blind
+    public static function getTagForType(int $type) : string
+    {
+        foreach (self::TAGS as $tag => $def)
+            if ($def[self::IDX_DBTYPE] === $type)
+                return $tag;
+
+        return '';
+    }
+    // aowow - custom end
+
     public static function parseTags(string $text) : array
     {
         $jsgStubs = [];

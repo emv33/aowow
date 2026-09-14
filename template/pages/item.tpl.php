@@ -79,6 +79,8 @@ if ($this->subItems):
 endif;
 
 $this->brick('book');
+
+$this->brick('markup', ['markup' => $this->xRef]);   // aowow - custom
 ?>
 
                 <h2 class="clear"><?=Lang::main('related'); ?></h2>

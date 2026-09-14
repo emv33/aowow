@@ -125,7 +125,7 @@ class SmartEvent
      *
      * @var array<int, array<int, int|array{0: string, 1: int, 2: bool}|null>>
      */
-    private array $data = array(
+    private static array $data = array(
         self::EVENT_UPDATE_IC               => [['numRange', 10, true],       null,                       ['numRange', -1, true], null,                   null, 0], // InitialMin, InitialMax, RepeatMin, RepeatMax
         self::EVENT_UPDATE_OOC              => [['numRange', 10, true],       null,                       ['numRange', -1, true], null,                   null, 0], // InitialMin, InitialMax, RepeatMin, RepeatMax
         self::EVENT_HEALTH_PCT              => [['numRange', 10, false],      null,                       ['numRange', -1, true], null,                   null, 0], // HPMin%, HPMax%,  RepeatMin, RepeatMax
@@ -221,6 +221,27 @@ class SmartEvent
 
     private array $jsGlobals = [];
 
+
+    // aowow - custom start: the parameter map read the other way round
+    /**
+     * which event parameters carry the id of a linkable entity
+     * the renderer reads this map forwards; SmartAI::getOwnerOfReference() reads it backwards to
+     * answer "which scripts mention this entity" without a hand written lookup per event
+     *
+     * @return array<int, array<int, int>>  event type => [1 based parameter index => Type]
+     */
+    public static function getParamTypes() : array
+    {
+        $out = [];
+        foreach (self::$data as $type => $params)
+            for ($i = 0; $i < 5; $i++)
+                if (is_int($params[$i] ?? null) && $params[$i] > 0)
+                    $out[$type][$i + 1] = $params[$i];
+
+        return $out;
+    }
+    // aowow - custom end
+
     public function __construct(
         private int $id,
         public readonly int $type,
@@ -245,7 +266,7 @@ class SmartEvent
 
         for ($i = 0; $i < 5; $i++)
         {
-            $eParams = $this->data[$this->type];
+            $eParams = self::$data[$this->type];
 
             if (is_array($eParams[$i]))
             {
