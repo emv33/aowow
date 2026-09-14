@@ -1334,6 +1334,7 @@ $lang = array(
         'extra'         => "Also carries",
         'spells'        => "Knows",
         'castSpells'    => "Cast on creation",
+        'customSpells'  => "Custom spell list",
         'startsIn'      => "Starts in"
     ),
     'spellOverride' => array(

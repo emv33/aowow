@@ -24,6 +24,10 @@ class StartOutfit
     public const int BY_CLASS = 1;                          // list every race of one class
     public const int BY_RACE  = 2;                          // list every class of one race
 
+    // SkillLineAbility.dbc acquireMethod: 2 is "granted when the skill line is learned", which for a
+    // class or race skill line means at character creation
+    private const int ACQUIRE_ON_SKILL_LEARN = 2;
+
     private const string BASE_CSS = <<<CSS
         #start-outfit-generic .grid { clear:left; display: grid; }
         #start-outfit-generic .grid thead,
@@ -43,11 +47,38 @@ class StartOutfit
         return $has ??= (bool)DB::Aowow()->selectCell('SHOW TABLES LIKE %s', 'dbc_charstartoutfit');
     }
 
-    private static function hasTable(string $tbl) : bool
+    private static function hasTable(string $tbl, bool $aowow = false) : bool
     {
         static $known = [];
 
-        return $known[$tbl] ??= (bool)DB::World()->selectCell('SHOW TABLES LIKE %s', $tbl);
+        return $known[($aowow ? 'a:' : 'w:').$tbl] ??= (bool)($aowow ? DB::Aowow() : DB::World())->selectCell('SHOW TABLES LIKE %s', $tbl);
+    }
+
+    /**
+     * What a character is actually created knowing.
+     *
+     * TrinityCore grants these from SkillLineAbility.dbc rather than from any world DB table, which
+     * is why none of the playercreateinfo_* tables mention them. `acquireMethod` 2 marks a row as
+     * granted when the skill line is learned - i.e. at character creation.
+     *
+     * Both masks gate every row: a 0 means "any", and a row carrying both (the class specific
+     * variants of Arcane Torrent, Blood Fury and Command) must satisfy both or it leaks into the
+     * wrong race.
+     */
+    private function learnedSpells(int $race, int $class) : array
+    {
+        if (!self::hasTable('dbc_skilllineability', true))
+            return [];
+
+        $ids = DB::Aowow()->selectCol(
+           'SELECT `spellId` FROM dbc_skilllineability
+            WHERE  `acquireMethod` = %i
+              AND  (`reqClassMask` = 0 OR (`reqClassMask` & %i))
+              AND  (`reqRaceMask`  = 0 OR (`reqRaceMask`  & %i))',
+            self::ACQUIRE_ON_SKILL_LEARN, 1 << ($class - 1), 1 << ($race - 1)
+        ) ?: [];
+
+        return $this->hideForPlayers(array_values(array_unique(array_filter(array_map('intVal', $ids)))));
     }
 
     /** the race/class pairs that actually exist, from the server's own create info */
@@ -116,7 +147,7 @@ class StartOutfit
      * `playercreateinfo_spell` is a legacy table that on many DBs holds far more than the spells a
      * character is actually created with.
      */
-    private function spells(int $race, int $class) : array
+    private function customSpells(int $race, int $class) : array
     {
         if (self::hasTable('playercreateinfo_spell_custom'))
             $ids = DB::World()->selectCol(
@@ -198,7 +229,8 @@ class StartOutfit
 
     public function getMarkup() : ?Markup
     {
-        $body = '';
+        $body    = '';
+        $isStaff = User::isInGroup(U_GROUP_STAFF);
 
         foreach ($this->pairs() as $p)
         {
@@ -207,12 +239,16 @@ class StartOutfit
             $head  = $this->mode == self::BY_CLASS ? '[race='.$p['race'].']' : '[class='.$p['class'].']';
             $this->jsGlobals[$this->mode == self::BY_CLASS ? Type::CHR_RACE : Type::CHR_CLASS][$other] = $other;
 
-            $outfit = $this->outfitItems($p['race'], $p['class']);
-            $extra  = $this->extraItems($p['race'], $p['class']);
-            $spells = $this->spells($p['race'], $p['class']);
-            $cast   = array_values(array_diff($this->castSpells($p['race'], $p['class']), $spells));
+            $outfit  = $this->outfitItems($p['race'], $p['class']);
+            $extra   = $this->extraItems($p['race'], $p['class']);
+            $learned = $this->learnedSpells($p['race'], $p['class']);
+            $cast    = array_values(array_diff($this->castSpells($p['race'], $p['class']), $learned));
 
-            if (!$outfit && !$extra && !$spells && !$cast)
+            // `playercreateinfo_spell_custom` is not the starting set - in stock TDB it is a full
+            // max rank spellbook per class - so it is staff only and labelled apart from the rest
+            $custom = $isStaff ? array_values(array_diff($this->customSpells($p['race'], $p['class']), $learned, $cast)) : [];
+
+            if (!$outfit && !$extra && !$learned && !$cast && !$custom)
                 continue;
 
             $rows = [];
@@ -233,12 +269,12 @@ class StartOutfit
                 $rows[] = [Lang::startOutfit('extra'), Lang::concat(array_map(fn($id, $n) => ($n > 1 ? $n.'x ' : '').'[item='.$id.']', array_keys($extra), $extra), Lang::CONCAT_NONE)];
             }
 
-            if ($spells)
+            if ($learned)
             {
-                foreach ($spells as $id)
+                foreach ($learned as $id)
                     $this->jsGlobals[Type::SPELL][$id] = $id;
 
-                $rows[] = [Lang::startOutfit('spells'), Lang::concat(array_map(fn($x) => '[spell='.$x.']', $spells), Lang::CONCAT_NONE)];
+                $rows[] = [Lang::startOutfit('spells'), Lang::concat(array_map(fn($x) => '[spell='.$x.']', $learned), Lang::CONCAT_NONE)];
             }
 
             if ($cast)
@@ -247,6 +283,14 @@ class StartOutfit
                     $this->jsGlobals[Type::SPELL][$id] = $id;
 
                 $rows[] = [Lang::startOutfit('castSpells'), Lang::concat(array_map(fn($x) => '[spell='.$x.']', $cast), Lang::CONCAT_NONE)];
+            }
+
+            if ($custom)
+            {
+                foreach ($custom as $id)
+                    $this->jsGlobals[Type::SPELL][$id] = $id;
+
+                $rows[] = [Lang::startOutfit('customSpells'), Lang::concat(array_map(fn($x) => '[spell='.$x.']', $custom), Lang::CONCAT_NONE)];
             }
 
             if ($p['zone'])
