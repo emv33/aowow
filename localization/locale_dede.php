@@ -1335,6 +1335,29 @@ $lang = array(
         'spells'        => "Knows",
         'startsIn'      => "Starts in"
     ),
+    'spellOverride' => array(
+        'title'         => "Server overrides",
+        'teleportsTo'   => "Teleports to",
+        'map'           => 'Map [b]%1$d[/b]',
+        'threat'        => "Threat",
+        'threatFlat'    => '%1$d flat',
+        'threatPct'     => '%1$.0f%% of damage done',
+        'threatAP'      => '%1$.0f%% of attack power',
+        'requires'      => "Requires",
+        'petAura'       => "Pet aura",
+        'petAuraFor'    => '%2$s on %1$s',
+        'petAuraAny'    => '%1$s on any pet',
+        'group'         => "Stack group",
+        'groupLine'     => '#[b]%1$d[/b] – %2$s:',
+        'stackRules'    => array(
+            0 => "does not stack",
+            1 => "strongest aura only",
+            2 => "strongest effect only",
+            3 => "exclusive",
+            4 => "exclusive, highest rank"
+        ),
+        'customAttr'    => "Custom attributes"
+    ),
     'legacyScript' => array(
         'srcTypes'      => array(
             LegacyScript::SRC_EVENT       => "Event script #%d",

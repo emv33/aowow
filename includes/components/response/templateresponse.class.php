@@ -17,6 +17,7 @@ trait TrDetailPage
     public ?Markup        $gossip        = null;            // aowow - custom: gossip menus attached to this NPC/object
     public ?Markup        $legacyScript  = null;            // aowow - custom: pre-SmartAI script engine rows for this entity
     public ?Markup        $startOutfit   = null;            // aowow - custom: starting gear and spells of a class/race
+    public ?Markup        $spellOverride = null;            // aowow - custom: world DB overrides of a spell's dbc data
     public ?array         $map           = null;
     public  array         $headIcons     = [];
 

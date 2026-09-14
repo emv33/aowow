@@ -102,6 +102,9 @@ spl_autoload_register(function (string $class) : void
         case __NAMESPACE__.'\StartOutfit':
             require_once 'includes/components/StartOutfit/StartOutfit.class.php';
             break;
+        case __NAMESPACE__.'\SpellOverride':
+            require_once 'includes/components/SpellOverride/SpellOverride.class.php';
+            break;
     }
 });
 

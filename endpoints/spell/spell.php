@@ -130,6 +130,15 @@ class SpellBaseResponse extends TemplateResponse implements ICache
         }
 
 
+        // aowow - custom start: world DB overrides of the dbc data shown above
+        if (User::isInGroup(U_GROUP_STAFF))
+        {
+            $so = new SpellOverride($this->typeId);
+            $this->spellOverride = $so->getMarkup();         // fills the globals; must run first
+            $this->extendGlobalData($so->getJSGlobals());
+        }
+        // aowow - custom end
+
         // aowow - custom start: legacy script engine
         // `spell_scripts` is keyed by spell id; `event_scripts` by the event a SPELL_EFFECT_SEND_EVENT effect sends
         if (User::isInGroup(U_GROUP_STAFF))
