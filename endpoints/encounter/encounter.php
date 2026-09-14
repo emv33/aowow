@@ -33,7 +33,7 @@ class EncounterBaseResponse extends TemplateResponse implements ICache
 
     protected function generate() : void
     {
-        $this->subject = new EncounterList(array(['id', $this->typeId]));
+        $this->subject = new EncounterList(array(['ie.entry', $this->typeId]));   // `id` is a select alias only; filter on the real column
         if ($this->subject->error)
             $this->generateNotFound(Lang::game('encounter'), Lang::encounter('notFound'));
 
@@ -124,7 +124,7 @@ class EncounterBaseResponse extends TemplateResponse implements ICache
         // the map is a DBC field, so this tab is empty unless DungeonEncounter.dbc was imported
         if ($siblingIds = EncounterList::getIdsForMap($mapId, $this->typeId))
         {
-            $siblings = new EncounterList(array(['id', $siblingIds]));
+            $siblings = new EncounterList(array(['ie.entry', $siblingIds]));
             if (!$siblings->error)
             {
                 $this->extendGlobalData($siblings->getJSGlobals());

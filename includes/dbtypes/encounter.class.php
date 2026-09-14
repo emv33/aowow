@@ -35,6 +35,8 @@ class EncounterList extends DBTypeList
 
     private static ?bool $hasDBC = null;
 
+    // note: `id` is a select alias for the listview only - conditions must target `ie.entry`, as MySQL
+    // does not resolve select aliases in WHERE
     protected string $queryBase = 'SELECT ie.`entry` AS ARRAY_KEY, ie.`entry` AS "id", ie.* FROM instance_encounters ie';
     protected array  $queryOpts = array(
                         'ie' => ['o' => 'ie.`entry` ASC']
@@ -96,7 +98,7 @@ class EncounterList extends DBTypeList
 
     public static function getName(int $id) : ?LocString
     {
-        $el = new self(array(['id', $id]));
+        $el = new self(array(['ie.entry', $id]));         // `id` is a select alias only; filter on the real column
         if ($el->error)
             return null;
 
