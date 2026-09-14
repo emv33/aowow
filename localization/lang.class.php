@@ -48,6 +48,8 @@ class Lang
     private static array $enchantment;
     private static array $gossip;
     private static array $legacyScript;
+    private static array $conditionBrowser;
+    private static array $smartaiBrowser;
 
     private static ?Locale $locale = null;
 

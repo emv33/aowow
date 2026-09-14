@@ -241,6 +241,82 @@ class Conditions
     /* IN */
     /******/
 
+    /**
+     * what `SourceGroup` / `SourceEntry` / `SourceId` mean per source type
+     * a Type constant links to that entity, true is a meaningful-but-unlinkable id, null is unused
+     *
+     * @return array<int, array{?int|bool, ?int|bool, ?int|bool}>
+     */
+    public static function getSourceTypes() : array
+    {
+        $out = [];
+        foreach (self::$source as $srcType => $def)
+            $out[$srcType] = [$def[self::IDX_SRC_GROUP], $def[self::IDX_SRC_ENTRY], $def[self::IDX_SRC_ID]];
+
+        return $out;
+    }
+
+    /**
+     * one row per distinct condition source, for the ?conditions browser
+     * the detail view of a single source stays with getBySource(); this only enumerates them
+     *
+     * @param  array $opts  srcType: int[], cndType: int, value1: int, entry: int, limit: int
+     * @return array        list of [srcType, group, entry, srcId, nConditions, cndTypes[]]
+     */
+    public static function browse(array $opts = []) : array
+    {
+        $where = [];
+
+        if ($_ = array_filter(array_map('intVal', (array)($opts['srcType'] ?? []))))
+            $where[] = ['c.`SourceTypeOrReferenceId` IN %in', $_];
+
+        if ($_ = intVal($opts['entry'] ?? 0))
+            $where[] = ['(c.`SourceEntry` = %i OR c.`SourceGroup` = %i)', $_, $_];
+
+        // "which sources use this condition" - as EXISTS, so the row count stays the count of the whole source
+        $cndType = intVal($opts['cndType'] ?? 0);
+        $value1  = intVal($opts['value1']  ?? 0);
+        if ($cndType || $value1)
+        {
+            $sub = [];
+            if ($cndType)
+                $sub[] = ['ABS(c2.`ConditionTypeOrReference`) = %i', $cndType];
+            if ($value1)
+                $sub[] = ['c2.`ConditionValue1` = %i', $value1];
+
+            $where[] = ['EXISTS (SELECT 1 FROM conditions c2
+                                 WHERE c2.`SourceTypeOrReferenceId` = c.`SourceTypeOrReferenceId` AND c2.`SourceGroup` = c.`SourceGroup`
+                                   AND c2.`SourceEntry` = c.`SourceEntry` AND c2.`SourceId` = c.`SourceId` AND %and)', $sub];
+        }
+
+        if (!$where)
+            $where[] = ['1 = 1'];
+
+        $rows = DB::World()->selectAssoc(
+           'SELECT   c.`SourceTypeOrReferenceId` AS "srcType", c.`SourceGroup` AS "group", c.`SourceEntry` AS "entry", c.`SourceId` AS "srcId",
+                     COUNT(1) AS "nConditions", GROUP_CONCAT(DISTINCT ABS(c.`ConditionTypeOrReference`)) AS "cndTypes"
+            FROM     conditions c
+            WHERE    %and
+            GROUP BY c.`SourceTypeOrReferenceId`, c.`SourceGroup`, c.`SourceEntry`, c.`SourceId`
+            ORDER BY c.`SourceTypeOrReferenceId`, c.`SourceGroup`, c.`SourceEntry`, c.`SourceId` ASC
+            LIMIT    %i',
+            $where, max(1, intVal($opts['limit'] ?? 1000))
+        ) ?: [];
+
+        $out = [];
+        foreach ($rows as $r)
+            $out[] = array(
+                'srcType'     => (int)$r['srcType'],
+                'group'       => (int)$r['group'],
+                'entry'       => (int)$r['entry'],
+                'srcId'       => (int)$r['srcId'],
+                'nConditions' => (int)$r['nConditions'],
+                'cndTypes'    => array_map('intVal', explode(',', (string)$r['cndTypes']))
+            );
+
+        return $out;
+    }
+
     public function getBySource(int|array $type, int|array $group = 0, int|array $entry = 0, int|array $id = 0) : self
     {
         if ($group)

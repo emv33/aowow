@@ -23,6 +23,7 @@ class Listview implements \JsonSerializable
         'calendar'          => ['template' => 'holidaycal',        'id' => 'calendar',        'name' => '$LANG.tab_calendar'      ],
         'class'             => ['template' => 'classs',            'id' => 'classes',         'name' => '$LANG.tab_classes'       ],
         'commentpreview'    => ['template' => 'commentpreview',    'id' => 'comments',        'name' => '$LANG.tab_comments'      ],
+        'condition'         => ['template' => 'condition',         'id' => 'conditions',                                          ], // aowow - custom
         'npc'               => ['template' => 'npc',               'id' => 'npcs',            'name' => '$LANG.tab_npcs'          ],
         'currency'          => ['template' => 'currency',          'id' => 'currencies',      'name' => '$LANG.tab_currencies'    ],
         'emote'             => ['template' => 'emote',             'id' => 'emotes',                                              ],
@@ -31,6 +32,7 @@ class Listview implements \JsonSerializable
         'faction'           => ['template' => 'faction',           'id' => 'factions',        'name' => '$LANG.tab_factions'      ],
         'genericmodel'      => ['template' => 'genericmodel',      'id' => 'same-model-as',   'name' => '$LANG.tab_samemodelas'   ],
         'gossip'            => ['template' => 'gossip',            'id' => 'gossip',                                              ], // aowow - custom
+        'smartai'           => ['template' => 'smartai',           'id' => 'smartai',                                             ], // aowow - custom
         'icongallery'       => ['template' => 'icongallery',       'id' => 'icons',                                               ],
         'item'              => ['template' => 'item',              'id' => 'items',           'name' => '$LANG.tab_items'         ],
         'itemset'           => ['template' => 'itemset',           'id' => 'itemsets',        'name' => '$LANG.tab_itemsets'      ],

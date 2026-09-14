@@ -956,7 +956,9 @@ var mn_database = [
     [31, "Icons", "?icons", mn_icons],
     [102, 'Areatrigger', '?areatriggers', mn_areatrigger, {requiredAccess: 1726}],    // aowow - custom
     [103, 'Briefe', '?mails'],                              // aowow - custom
-    [104, 'Gossip', '?gossips', null, {requiredAccess: 1726}]    // aowow - custom
+    [104, 'Gossip', '?gossips', null, {requiredAccess: 1726}],    // aowow - custom
+    [105, 'Conditions', '?conditions', null, {requiredAccess: 1726}],    // aowow - custom
+    [106, 'SmartAI', '?smartai', null, {requiredAccess: 1726}]    // aowow - custom
 ];
 
 var mn_guides = [
@@ -4465,6 +4467,50 @@ var LANG = {
     },
     gossip_options:  "Optionen",
     gossip_openedby: "Geöffnet von",
+    ficondition: {
+        srctype:    "Source type",
+        gates:      "Gates",
+        count:      "Conditions",
+        types:      "Condition types"
+    },
+    condition_sourcetypes: {
+         1: "Creature loot",          2: "Disenchant loot",      3: "Fishing loot",        4: "Object loot",
+         5: "Item loot",              6: "Mail loot",            7: "Milling loot",        8: "Pickpocket loot",
+         9: "Prospecting loot",      10: "Reference loot",      11: "Skinning loot",      12: "Spell loot",
+        13: "Spell implicit target", 14: "Gossip menu",         15: "Gossip menu option", 16: "Vehicle",
+        17: "Spell",                 18: "Spell click event",   19: "Quest available",    20: "Quest marker",
+        21: "Vehicle spell",         22: "SmartAI event",       23: "Vendor",             24: "Spell proc",
+        30: "Areatrigger"
+    },
+    condition_types: {
+         1: "Aura",                   2: "Item in inventory",    3: "Item equipped",       4: "Zone",
+         5: "Reputation",             6: "Team",                 7: "Skill",               8: "Quest rewarded",
+         9: "Quest taken",           10: "Drunk",               11: "World state",        12: "Active event",
+        13: "Instance info",         14: "Quest never accepted",15: "Class",              16: "Race",
+        17: "Achievement",           18: "Title",               19: "Spawn mask",         20: "Gender",
+        21: "Unit state",            22: "Map",                 23: "Area",               24: "Creature type",
+        25: "Spell known",           26: "Phase mask",          27: "Level",              28: "Quest completed",
+        29: "Near creature",         30: "Near gameobject",     31: "Object entry or guid", 32: "Type mask",
+        33: "Relation to",           34: "Reaction to",         35: "Distance to",        36: "Alive",
+        37: "Health value",          38: "Health percent",      39: "Realm achievement",  40: "In water",
+        41: "Terrain swap",          42: "Stand state",         43: "Daily quest done",   44: "Charmed",
+        45: "Pet type",              46: "On taxi",             47: "Quest state",        48: "Quest objective progress",
+        49: "Difficulty",            50: "Gamemaster"
+    },
+    fismartai: {
+        srctype:    "Source type",
+        entity:     "Scripted entity",
+        count:      "Rows",
+        events:     "Events",
+        actions:    "Actions"
+    },
+    smartai_sourcetypes: {
+        0: "Creature",
+        1: "Gameobject",
+        2: "Areatrigger",
+        9: "Timed action list"
+    },
+    smartai_guid: "guid %d",
     // end aowow custom
 
     pr_notice:     'Zum ersten Mal hier? &ndash; Seid nicht schüchtern! Schaut ruhig mal auf unserer <a href="?help=profiler" target="_blank">Hilfeseite</a> (zurzeit noch unübersetzt) nach! &nbsp; <small class="q0"><a href="javascript:;">Schließen</a></small>',

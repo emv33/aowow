@@ -314,6 +314,63 @@ class SmartAI
     /* Lookups by action */
     /*********************/
 
+    /**
+     * one row per distinct script, for the ?smartai browser
+     * rendering a script stays with the instance API; this only enumerates them
+     *
+     * @param  array $opts  srcType: int[], eventType: int, actionType: int, refId: int, entry: int, limit: int
+     * @return array        list of [srcType, entry, nRows, eventTypes[], actionTypes[]]
+     */
+    public static function browse(array $opts = []) : array
+    {
+        $where = [];
+
+        if ($_ = array_filter(array_map('intVal', (array)($opts['srcType'] ?? [])), fn($x) => $x >= 0))
+            $where[] = ['s.`source_type` IN %in', $_];
+
+        if ($_ = intVal($opts['entry'] ?? 0))
+            $where[] = ['s.`entryorguid` = %i', $_];
+
+        // event_type 0 (UPDATE_IC) and action_type 0 (NONE) are real values, so -1 is the "unset" marker
+        if (($_ = intVal($opts['eventType'] ?? -1)) >= 0)
+            $where[] = ['s.`event_type` = %i', $_];
+
+        if (($_ = intVal($opts['actionType'] ?? -1)) >= 0)
+            $where[] = ['s.`action_type` = %i', $_];
+
+        // "which scripts name this id" - action_param1..6 hold spell/creature/object/sound ids depending on action_type
+        if ($_ = intVal($opts['refId'] ?? 0))
+            $where[] = ['(s.`action_param1` = %i OR s.`action_param2` = %i OR s.`action_param3` = %i OR
+                          s.`action_param4` = %i OR s.`action_param5` = %i OR s.`action_param6` = %i)', $_, $_, $_, $_, $_, $_];
+
+        if (!$where)
+            $where[] = ['1 = 1'];
+
+        $rows = DB::World()->selectAssoc(
+           'SELECT   s.`source_type` AS "srcType", s.`entryorguid` AS "entry", COUNT(1) AS "nRows",
+                     GROUP_CONCAT(DISTINCT s.`event_type`)  AS "eventTypes",
+                     GROUP_CONCAT(DISTINCT s.`action_type`) AS "actionTypes"
+            FROM     smart_scripts s
+            WHERE    %and
+            GROUP BY s.`source_type`, s.`entryorguid`
+            ORDER BY s.`source_type`, s.`entryorguid` ASC
+            LIMIT    %i',
+            $where, max(1, intVal($opts['limit'] ?? 1000))
+        ) ?: [];
+
+        $out = [];
+        foreach ($rows as $r)
+            $out[] = array(
+                'srcType'     => (int)$r['srcType'],
+                'entry'       => (int)$r['entry'],
+                'nRows'       => (int)$r['nRows'],
+                'eventTypes'  => array_map('intVal', explode(',', (string)$r['eventTypes'])),
+                'actionTypes' => array_map('intVal', explode(',', (string)$r['actionTypes']))
+            );
+
+        return $out;
+    }
+
     public static function getOwnerOfNPCSummon(int $npcId, int $typeFilter = 0) : array
     {
         if ($npcId <= 0)
