@@ -199,6 +199,35 @@ class NpcBaseResponse extends TemplateResponse implements ICache
             $infobox[] = Lang::npc('extraFlags', CREATURE_FLAG_EXTRA_GHOST_VISIBILITY);
 
         // id
+        // aowow - custom start: equipment, formations and phasing
+        // `creature_equip_template`, `creature_formations` and `phase_definitions` were unread
+        if ($_ = self::getEquipment($this->typeId))
+        {
+            foreach ($_ as $itemId)
+                $this->extendGlobalIds(Type::ITEM, $itemId);
+
+            $infobox[] = Lang::npcExtra('equipped').Lang::main('colon').Lang::concat(array_map(fn($x) => '[item='.$x.']', $_), Lang::CONCAT_NONE);
+        }
+
+        if ($_ = self::getFormationLeader($this->typeId))
+        {
+            $this->extendGlobalIds(Type::NPC, $_);
+            $infobox[] = Lang::npcExtra('followsLeader').Lang::main('colon').'[npc='.$_.']';
+        }
+
+        if ($_ = self::getPhases($this->typeId))
+            $infobox[] = Lang::npcExtra('phases').Lang::main('colon').implode(', ', $_);
+
+        // the object side of this is imported by objects.ss.php; the creature side was not read at all
+        if ($_ = self::getQuestItems($this->typeId))
+        {
+            foreach ($_ as $itemId)
+                $this->extendGlobalIds(Type::ITEM, $itemId);
+
+            $infobox[] = Lang::npcExtra('questItems').Lang::main('colon').Lang::concat(array_map(fn($x) => '[item='.$x.']', $_), Lang::CONCAT_NONE);
+        }
+        // aowow - custom end
+
         // aowow - custom start: spawn pooling
         // without this the map shows every spawn point as if all of them were live at once
         $pools = Pool::getForEntry(Type::NPC, $this->typeId);
@@ -1297,6 +1326,77 @@ class NpcBaseResponse extends TemplateResponse implements ICache
 
         $this->buildLdJson();
     }
+
+    // aowow - custom start: npc extras
+
+    private static function hasTable(string $tbl) : bool
+    {
+        static $known = [];
+
+        return $known[$tbl] ??= (bool)DB::World()->selectCell('SHOW TABLES LIKE %s', $tbl);
+    }
+
+    /** the weapons a creature visibly carries; the key column was renamed between revisions */
+    private static function getEquipment(int $npcId) : array
+    {
+        if (!self::hasTable('creature_equip_template'))
+            return [];
+
+        $rows = DB::World()->selectAssoc('SELECT * FROM creature_equip_template WHERE `CreatureID` = %i', $npcId);
+        if ($rows === null)
+            $rows = DB::World()->selectAssoc('SELECT * FROM creature_equip_template WHERE `entry` = %i', $npcId) ?: [];
+
+        $out = [];
+        foreach ($rows as $r)
+        {
+            $lc = array_change_key_case($r, CASE_LOWER);
+            foreach (['itemid1', 'itemid2', 'itemid3'] as $k)
+                if ($_ = (int)($lc[$k] ?? 0))
+                    $out[$_] = $_;
+        }
+
+        return array_values($out);
+    }
+
+    /** the creature this one walks in formation behind; the formation is keyed by guid, not entry */
+    private static function getFormationLeader(int $npcId) : int
+    {
+        if (!self::hasTable('creature_formations'))
+            return 0;
+
+        return (int)DB::World()->selectCell(
+           'SELECT   lc.`id`
+            FROM     creature_formations cf
+            JOIN     creature mc ON mc.`guid` = cf.`memberGUID`
+            JOIN     creature lc ON lc.`guid` = cf.`leaderGUID`
+            WHERE    mc.`id` = %i AND lc.`id` <> mc.`id`
+            LIMIT    1', $npcId
+        );
+    }
+
+    /** the phases this creature's spawns sit in - the answer to "why can I not see it" */
+    private static function getPhases(int $npcId) : array
+    {
+        $masks = DB::World()->selectCol('SELECT DISTINCT `phaseMask` FROM creature WHERE `id` = %i AND `phaseMask` NOT IN (0, 1)', $npcId) ?: [];
+
+        $out = [];
+        foreach ($masks as $m)
+            $out[] = '0x'.strtoupper(dechex((int)$m));
+
+        return $out;
+    }
+
+    /** items only lootable by a player on the right quest */
+    private static function getQuestItems(int $npcId) : array
+    {
+        if (!self::hasTable('creature_questitem'))
+            return [];
+
+        $ids = DB::World()->selectCol('SELECT `ItemId` FROM creature_questitem WHERE `CreatureEntry` = %i ORDER BY `Idx` ASC', $npcId) ?: [];
+
+        return array_values(array_unique(array_filter(array_map('intVal', $ids))));
+    }
+    // aowow - custom end
 }
 
 
