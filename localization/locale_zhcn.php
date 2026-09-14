@@ -1244,6 +1244,7 @@ $lang = array(
         'emptyOption'       => "（无文本）",
         'missingText'       => "缺失的 npc_text #%d",
         'opensMenu'         => "打开[url=?gossip=%d]对话菜单 #%d[/url]",
+        'handledBySmart'    => "由 %s 的 SmartAI 处理",
         'marksPoi'          => "在 %s 标记地图",
         'unnamedPoi'        => "兴趣点 #%d",
         'boxMoney'          => "花费",

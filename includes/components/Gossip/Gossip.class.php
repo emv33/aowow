@@ -79,7 +79,10 @@ class Gossip
         if ($_ = DB::World()->selectCell('SELECT `gossip_menu_id` FROM creature_template WHERE `entry` = %i', $npcId))
             $menus[] = (int)$_;
 
-        return array_values(array_unique(array_merge($menus, self::getScriptedMenus(SmartAI::SRC_TYPE_CREATURE, $npcId))));
+        $menus = array_unique(array_merge($menus, self::getScriptedMenus(SmartAI::SRC_TYPE_CREATURE, $npcId)));
+        sort($menus);
+
+        return $menus;
     }
 
     /**
@@ -105,7 +108,10 @@ class Gossip
                 $menus[] = $_;
         }
 
-        return array_values(array_unique(array_merge($menus, self::getScriptedMenus(SmartAI::SRC_TYPE_OBJECT, $objectId))));
+        $menus = array_unique(array_merge($menus, self::getScriptedMenus(SmartAI::SRC_TYPE_OBJECT, $objectId)));
+        sort($menus);
+
+        return $menus;
     }
 
     private static function getScriptedMenus(int $srcType, int $entry) : array
@@ -136,10 +142,10 @@ class Gossip
             return [];
 
         $loc     = Lang::getLocale();
-        $rows    = DB::World()->selectAssoc('SELECT `ID` AS ARRAY_KEY, * FROM npc_text WHERE `ID` IN %in', $textIds) ?: [];
+        $rows    = DB::World()->selectAssoc('SELECT nt.`ID` AS ARRAY_KEY, nt.* FROM npc_text nt WHERE nt.`ID` IN %in', $textIds) ?: [];
         $locRows = [];
         if ($loc != Locale::EN)
-            $locRows = DB::World()->selectAssoc('SELECT `ID` AS ARRAY_KEY, * FROM npc_text_locale WHERE `ID` IN %in AND `Locale` = %s', $textIds, $loc->json()) ?: [];
+            $locRows = DB::World()->selectAssoc('SELECT ntl.`ID` AS ARRAY_KEY, ntl.* FROM npc_text_locale ntl WHERE ntl.`ID` IN %in AND ntl.`Locale` = %s', $textIds, $loc->json()) ?: [];
 
         // a set BroadcastTextID overrides the npc_text columns, the same way the core resolves it
         $bctIds = [];
@@ -273,6 +279,46 @@ class Gossip
         return $options;
     }
 
+    /**
+     * options without an ActionMenuID/ActionPoiID are usually driven by a script
+     * resolve SMART_EVENT_GOSSIP_SELECT so the action column says who handles them
+     *
+     * @return array optionId => [type => entries]
+     */
+    private function fetchSmartHandlers() : array
+    {
+        $out = [];
+
+        foreach (DB::World()->selectAssoc(
+           'SELECT DISTINCT `event_param2` AS "optionId", `source_type` AS "srcType", `entryorguid` AS "entry"
+            FROM   smart_scripts
+            WHERE  `event_type` = %i AND `event_param1` = %i',
+            SmartEvent::EVENT_GOSSIP_SELECT, $this->menuId) ?: [] as $r)
+        {
+            $type = match ((int)$r['srcType'])
+            {
+                SmartAI::SRC_TYPE_CREATURE => Type::NPC,
+                SmartAI::SRC_TYPE_OBJECT   => Type::OBJECT,
+                default                    => 0
+            };
+
+            if (!$type)
+                continue;
+
+            $entry = (int)$r['entry'];
+            if ($entry < 0)                                 // guid specific script; resolve back to the template
+                $entry = (int)DB::World()->selectCell(
+                    $type == Type::NPC ? 'SELECT `id` FROM creature WHERE `guid` = %i' : 'SELECT `id` FROM gameobject WHERE `guid` = %i',
+                    -$entry
+                );
+
+            if ($entry > 0)
+                $out[(int)$r['optionId']][$type][$entry] = $entry;
+        }
+
+        return $out;
+    }
+
     private function fetchBroadcastTexts(array $ids) : array
     {
         if (!$ids)
@@ -377,7 +423,7 @@ class Gossip
         foreach ($this->texts as $textId => $text)
         {
             $cnd = new Conditions();
-            $cnd->getBySource(Conditions::SRC_GOSSIP_MENU, group: $this->menuId, entry: $textId)->prepare();
+            $cnd->getBySource(Conditions::SRC_GOSSIP_MENU, group: [$this->menuId], entry: [$textId])->prepare();   // arrays: getBySource() ignores a filter that is int 0
             $cndTag = $cnd->toMarkupTag();
             if ($cndTag)
             {
@@ -416,7 +462,7 @@ class Gossip
                 {
                     $em = [];
                     foreach ($slot['emotes'] as [$emote, $delay])
-                        $em[] = Lang::gossip('emote', [$emote]) . ($delay ? ' '.Lang::main('parensFmt', ['', Lang::gossip('emoteDelay', [$delay])]) : '');
+                        $em[] = Lang::gossip('emote', [$emote]) . ($delay ? Lang::main('parensFmt', ['', Lang::gossip('emoteDelay', [$delay])]) : '');
 
                     $body[] = '[i][small class=q0]'.Lang::gossip('emotes').Lang::main('colon').Lang::concat($em).'[/small][/i]';
                 }
@@ -456,15 +502,17 @@ class Gossip
         if (!$this->options)
             return '';
 
-        $pois   = $this->fetchPOIs(array_filter(array_column($this->options, 'actionPoiId')));
-        $hasCnd = false;
-        $hasBox = false;
-        $rows   = [];
+        $pois     = $this->fetchPOIs(array_filter(array_column($this->options, 'actionPoiId')));
+        $handlers = $this->fetchSmartHandlers();
+        $hasCnd   = false;
+        $hasBox   = false;
+        $hasAct   = false;
+        $rows     = [];
 
         foreach ($this->options as $oId => $o)
         {
             $cnd = new Conditions();
-            $cnd->getBySource(Conditions::SRC_GOSSIP_MENU_OPTION, group: $this->menuId, entry: $oId)->prepare();
+            $cnd->getBySource(Conditions::SRC_GOSSIP_MENU_OPTION, group: [$this->menuId], entry: [$oId])->prepare();   // arrays: OptionID 0 is a real option
             $cndTag = $cnd->toMarkupTag();
             if ($cndTag)
             {
@@ -497,6 +545,22 @@ class Gossip
                 $action[] = Lang::gossip('marksPoi', [$poiName]) . ($poi ? ' [i][small class=q0]'.sprintf('%.1f, %.1f', $poi['x'], $poi['y']).'[/small][/i]' : '');
             }
 
+            if ($byScript = ($handlers[$oId] ?? []))
+            {
+                $links = [];
+                foreach ($byScript as $type => $entries)
+                    foreach ($entries as $e)
+                    {
+                        $links[] = $type == Type::NPC ? '[npc='.$e.']' : '[object='.$e.']';
+                        $this->jsGlobals[$type][$e] = $e;
+                    }
+
+                $action[] = Lang::gossip('handledBySmart', [Lang::concat($links)]);
+            }
+
+            if ($action)
+                $hasAct = true;
+
             // confirmation box
             $box = [];
             if ($o['boxText'])
@@ -527,6 +591,8 @@ class Gossip
         );
 
         $drop = [];
+        if (!$hasAct)
+            $drop[] = 2;
         if (!$hasBox)
             $drop[] = 3;
         if (!$hasCnd)
@@ -639,7 +705,7 @@ class Gossip
 
             $body = $g->getMarkupBody($collapsed);
             if (!$markup)
-                $markup = new Markup($body, ['allow' => Markup::CLASS_STAFF], 'gossip-generic');
+                $markup = new Markup($body, ['allow' => Markup::CLASS_ADMIN], 'gossip-generic');
             else
                 $markup->append($body);
         }
@@ -652,7 +718,7 @@ class Gossip
         if (($body = $this->getMarkupBody($collapsed)) === null)
             return null;
 
-        return new Markup($body, ['allow' => Markup::CLASS_STAFF], 'gossip-generic');
+        return new Markup($body, ['allow' => Markup::CLASS_ADMIN], 'gossip-generic');
     }
 
     public function getJSGlobals() : array

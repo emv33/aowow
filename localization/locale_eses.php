@@ -1244,6 +1244,7 @@ $lang = array(
         'emptyOption'       => "(sin texto)",
         'missingText'       => "Falta npc_text #%d",
         'opensMenu'         => "Abre [url=?gossip=%d]el menú de rumores #%d[/url]",
+        'handledBySmart'    => "Gestionado por la SmartAI de %s",
         'marksPoi'          => "Marca el mapa en %s",
         'unnamedPoi'        => "punto de interés #%d",
         'boxMoney'          => "Cuesta",
