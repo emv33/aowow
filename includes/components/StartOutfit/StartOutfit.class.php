@@ -130,15 +130,58 @@ class StartOutfit
 
         $ids = array_values(array_unique(array_filter(array_map('intVal', $ids))));
 
-        // a starting spell may be a hidden one - the passives a class is seeded with are not in the
-        // spellbook. Drop those for players, the way CUSTOM_EXCLUDE_FOR_LISTVIEW is overridden for
-        // staff everywhere else, rather than leaking them onto a public page
-        if ($ids && !User::isInGroup(U_GROUP_STAFF))
-            $ids = array_map('intVal', DB::Aowow()->selectCol(
-               'SELECT `id` FROM ::spell WHERE `id` IN %in AND (`cuFlags` & %i) = 0', $ids, CUSTOM_EXCLUDE_FOR_LISTVIEW
-            ) ?: []);
+        return $this->hideForPlayers($ids);
+    }
 
-        return $ids;
+    /**
+     * a starting spell may be a hidden one - the passives a class is seeded with are not in the
+     * spellbook. Drop those for players, the way CUSTOM_EXCLUDE_FOR_LISTVIEW is overridden for
+     * staff everywhere else, rather than leaking them onto a public page
+     */
+    private function hideForPlayers(array $ids) : array
+    {
+        if (!$ids || User::isInGroup(U_GROUP_STAFF))
+            return $ids;
+
+        return array_map('intVal', DB::Aowow()->selectCol(
+           'SELECT `id` FROM ::spell WHERE `id` IN %in AND (`cuFlags` & %i) = 0', $ids, CUSTOM_EXCLUDE_FOR_LISTVIEW
+        ) ?: []);
+    }
+
+    /**
+     * `playercreateinfo_cast_spell` - spells cast on a new character rather than learned
+     *
+     * This is where the hidden passives a class is seeded with live; they never appear in
+     * playercreateinfo_spell_custom. The mask columns are spelled raceMask/classMask on some
+     * revisions and racemask/classmask on others, so the row is read whole and the keys matched
+     * case insensitively rather than guessing at a spelling.
+     */
+    private function castSpells(int $race, int $class) : array
+    {
+        if (!self::hasTable('playercreateinfo_cast_spell'))
+            return [];
+
+        $rows = DB::World()->selectAssoc('SELECT * FROM playercreateinfo_cast_spell') ?: [];
+        if (!$rows)
+            return [];
+
+        $raceBit  = 1 << ($race  - 1);
+        $classBit = 1 << ($class - 1);
+
+        $ids = [];
+        foreach ($rows as $r)
+        {
+            $lc = array_change_key_case($r, CASE_LOWER);
+
+            $rm = (int)($lc['racemask']  ?? 0);
+            $cm = (int)($lc['classmask'] ?? 0);
+            $sp = (int)($lc['spell']     ?? 0);
+
+            if ($sp > 0 && (!$rm || ($rm & $raceBit)) && (!$cm || ($cm & $classBit)))
+                $ids[$sp] = $sp;
+        }
+
+        return $this->hideForPlayers(array_values($ids));
     }
 
     private function renderGrid(array $th, array $rows) : string
@@ -167,8 +210,9 @@ class StartOutfit
             $outfit = $this->outfitItems($p['race'], $p['class']);
             $extra  = $this->extraItems($p['race'], $p['class']);
             $spells = $this->spells($p['race'], $p['class']);
+            $cast   = array_values(array_diff($this->castSpells($p['race'], $p['class']), $spells));
 
-            if (!$outfit && !$extra && !$spells)
+            if (!$outfit && !$extra && !$spells && !$cast)
                 continue;
 
             $rows = [];
@@ -195,6 +239,14 @@ class StartOutfit
                     $this->jsGlobals[Type::SPELL][$id] = $id;
 
                 $rows[] = [Lang::startOutfit('spells'), Lang::concat(array_map(fn($x) => '[spell='.$x.']', $spells), Lang::CONCAT_NONE)];
+            }
+
+            if ($cast)
+            {
+                foreach ($cast as $id)
+                    $this->jsGlobals[Type::SPELL][$id] = $id;
+
+                $rows[] = [Lang::startOutfit('castSpells'), Lang::concat(array_map(fn($x) => '[spell='.$x.']', $cast), Lang::CONCAT_NONE)];
             }
 
             if ($p['zone'])

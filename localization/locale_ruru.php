@@ -1334,6 +1334,7 @@ $lang = array(
         'gear'          => "Equipment",
         'extra'         => "Also carries",
         'spells'        => "Knows",
+        'castSpells'    => "Cast on creation",
         'startsIn'      => "Starts in"
     ),
     'spellOverride' => array(
