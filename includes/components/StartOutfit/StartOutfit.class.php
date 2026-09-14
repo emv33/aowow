@@ -37,8 +37,10 @@ class StartOutfit
         #start-outfit-generic .grid thead,
         #start-outfit-generic .grid tbody,
         #start-outfit-generic .grid tr { display: contents; }
-        #start-outfit-generic .so-tabs { display: grid; grid-template-columns: max-content auto; gap: 3px 12px; }
-        #start-outfit-generic .so-tab { white-space: nowrap; text-align: right; }
+        #start-outfit-generic .so-tabs { display: grid; grid-template-columns: max-content auto; border: 1px solid #404040; }
+        #start-outfit-generic .so-tabs > div { padding: 4px 8px; border-top: 1px solid #404040; }
+        #start-outfit-generic .so-tabs > div:nth-child(-n+2) { border-top: 0; }
+        #start-outfit-generic .so-tab { white-space: nowrap; background-color: #1a1a1a; border-right: 1px solid #404040; }
     CSS;
 
     private array  $jsGlobals = [];
