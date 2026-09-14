@@ -151,7 +151,7 @@ class SpellOverride
         $out = [];
         foreach ($groupIds as $gId)
         {
-            $peers = DB::World()->selectCol('SELECT `spell_id` FROM spell_group WHERE `id` = %i AND `spell_id` <> %i LIMIT 25', $gId, $this->spellId) ?: [];
+            $peers = DB::World()->selectCol('SELECT `spell_id` FROM spell_group WHERE `id` = %i AND `spell_id` <> %i', $gId, $this->spellId) ?: [];
             $peers = array_values(array_filter(array_map('intVal', $peers), fn($x) => $x > 0));
 
             foreach ($peers as $id)
