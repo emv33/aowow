@@ -607,6 +607,12 @@ var fi_filters = {
         { id: 1, name: 'sepgeneral'             },
         { id: 2, name: 'id',       type: 'num'  },
         { id: 3, name: 'textid',   type: 'num'  }
+    ],
+
+    encounter: [
+        { id: 1, name: 'sepgeneral'             },
+        { id: 2, name: 'id',       type: 'num'  },
+        { id: 3, name: 'credit',   type: 'num'  }
     ]
 
     // end aowow custom

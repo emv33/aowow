@@ -50,6 +50,7 @@ class Lang
     private static array $legacyScript;
     private static array $conditionBrowser;
     private static array $smartaiBrowser;
+    private static array $encounter;
 
     private static ?Locale $locale = null;
 

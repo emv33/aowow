@@ -1004,7 +1004,8 @@ var mn_database = [
     [103, 'Mails', '?mails'],                                // aowow - custom
     [104, 'Gossip', '?gossips', null, {requiredAccess: 1726}],    // aowow - custom
     [105, 'Conditions', '?conditions', null, {requiredAccess: 1726}],    // aowow - custom
-    [106, 'SmartAI', '?smartai', null, {requiredAccess: 1726}]    // aowow - custom
+    [106, 'SmartAI', '?smartai', null, {requiredAccess: 1726}],    // aowow - custom
+    [107, 'Encounters', '?encounters', null, {requiredAccess: 1726}]    // aowow - custom
 ];
 
 var mn_guides = [
@@ -4555,6 +4556,14 @@ var LANG = {
         9: "Timed action list"
     },
     smartai_guid: "guid %d",
+    fiencounter: {
+        sepgeneral: "General",
+        id:         "ID",
+        credit:     "Credited by",
+        instance:   "Instance",
+        order:      "Position"
+    },
+    encounter_lastboss: "final boss",
     // end aowow custom
 
     pr_notice:     'First time? &ndash; Don\'t be shy! Just check out our <a href="?help=profiler" target="_blank">Help page</a>! &nbsp; <small class="q0"><a href="javascript:;">close</a></small>',

@@ -437,6 +437,8 @@ $lang = array(
         'gossips'      => "Rumores",
         'conditions'   => "Conditions",
         'smartAI'      => "SmartAI",
+        'encounter'    => "encounter",
+        'encounters'   => "Encounters",
 
         'cooldown'      => "%s de reutilización",
         'difficulty'    => "Dificultad: ",
@@ -1296,6 +1298,24 @@ $lang = array(
         'colEvents'     => "Events",
         'colActions'    => "Actions",
         'guid'          => "guid %d"
+    ),
+    'encounter' => array(
+        'notFound'      => "This encounter doesn't exist.",
+        'unnamed'       => "Unnamed encounter #%d",
+        'instance'      => "Instance",
+        'mode'          => "Difficulty",
+        'order'         => "Position",
+        'lastBoss'      => "Final boss",
+        'creditKill'    => "Credited by killing",
+        'creditSpell'   => "Credited by casting",
+        'creditedBy'    => "Credited by",
+        'sameInstance'  => "Same instance",
+        'modes'         => array(
+            0 => "10-player normal",
+            1 => "25-player normal",
+            2 => "10-player heroic",
+            3 => "25-player heroic"
+        )
     ),
     'legacyScript' => array(
         'srcTypes'      => array(

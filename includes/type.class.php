@@ -121,7 +121,8 @@ abstract class Type
         self::ENCHANTMENT => [EnchantmentList::class, 'enchantment', 'g_enchantments',       self::FLAG_RANDOM_SEARCHABLE | self::FLAG_FILTRABLE | self::FLAG_DB_TYPE],
         self::AREATRIGGER => [AreatriggerList::class, 'areatrigger', '',                     self::FLAG_FILTRABLE | self::FLAG_DB_TYPE],
         self::MAIL        => [MailList::class,        'mail',        '',                     self::FLAG_RANDOM_SEARCHABLE | self::FLAG_DB_TYPE],
-        self::GOSSIP      => [GossipList::class,      'gossip',      '',                     self::FLAG_FILTRABLE]   // no FLAG_DB_TYPE: world DB type, Type::validateIds() has no aowow table to check against
+        self::GOSSIP      => [GossipList::class,      'gossip',      '',                     self::FLAG_FILTRABLE],  // no FLAG_DB_TYPE: world DB type, Type::validateIds() has no aowow table to check against
+        self::ENCOUNTER   => [EncounterList::class,   'encounter',   'g_encounters',         self::FLAG_FILTRABLE]   // ditto - backed by world `instance_encounters`
     );
 
 
