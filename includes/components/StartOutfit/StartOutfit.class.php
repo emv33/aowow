@@ -37,6 +37,8 @@ class StartOutfit
         #start-outfit-generic .grid thead,
         #start-outfit-generic .grid tbody,
         #start-outfit-generic .grid tr { display: contents; }
+        #start-outfit-generic .so-tabs { display: grid; grid-template-columns: max-content auto; gap: 3px 12px; }
+        #start-outfit-generic .so-tab { white-space: nowrap; text-align: right; }
     CSS;
 
     private array  $jsGlobals = [];
@@ -275,14 +277,18 @@ class StartOutfit
             $out[Lang::startOutfit('general')] = $general;
 
         foreach ($tabs as $slId => [$label, $ids])
-            $out['[skill='.$slId.']'] = $ids;               // link the tab to the skill it is
+        {
+            // without the global the markup has no name to resolve and prints "(Skill #<id>)"
+            $this->jsGlobals[Type::SKILL][$slId] = $slId;
+            $out['[skill='.$slId.']'] = $ids;
+        }
 
         return $out;
     }
 
     /**
-     * one grid row per spellbook tab, the heading naming the source and the tab
-     * a source with a single tab is not worth the extra column, so it stays on one row
+     * one grid row whose value cell holds the spellbook tabs as a nested two column grid
+     * a set that only ever lands in one tab is not worth nesting, so it stays a plain list
      */
     private function spellRows(string $heading, array $spellIds) : array
     {
@@ -293,15 +299,16 @@ class StartOutfit
             $this->jsGlobals[Type::SPELL][$id] = $id;
 
         $tabs = $this->bySkillLine($spellIds);
-        $out  = [];
+        $link = fn(array $ids) => Lang::concat(array_map(fn($x) => '[spell='.$x.']', $ids), Lang::CONCAT_NONE);
 
+        if (count($tabs) < 2)
+            return [[$heading, $link(reset($tabs) ?: $spellIds)]];
+
+        $cell = '';
         foreach ($tabs as $label => $ids)
-        {
-            $caption = count($tabs) > 1 ? $heading.' [small class=q0]&ndash; '.$label.'[/small]' : $heading;
-            $out[]   = [$caption, Lang::concat(array_map(fn($x) => '[spell='.$x.']', $ids), Lang::CONCAT_NONE)];
-        }
+            $cell .= '[div class=so-tab]'.$label.'[/div][div]'.$link($ids).'[/div]';
 
-        return $out;
+        return [[$heading, '[div class=so-tabs]'.$cell.'[/div]']];
     }
 
     private function renderGrid(array $th, array $rows) : string
