@@ -901,6 +901,17 @@ class QuestBaseResponse extends TemplateResponse implements ICache
         $this->end           = $endText;
         $this->suggestedPl   = $this->subject->getField('suggestedPlayers');
         $this->unavailable   = $_flags & QUEST_FLAG_UNAVAILABLE || $this->subject->getField('cuFlags') & CUSTOM_EXCLUDE_FOR_LISTVIEW;
+        // aowow - custom start: quest POI
+        // `quest_poi` / `quest_poi_points` are the objective blobs the client itself draws; the page
+        // only ever plotted npc and object spawns, which approximates something the DB states exactly
+        if (User::isInGroup(U_GROUP_STAFF))
+        {
+            $poiJSG = [];
+            $this->questPOI = self::buildPOIMarkup(self::getQuestPOI($this->typeId), $poiJSG);
+            $this->extendGlobalData($poiJSG);
+        }
+        // aowow - custom end
+
         // aowow - custom start: legacy script engine
         // not every core still ships these two; LegacyScript checks before querying
         if (User::isInGroup(U_GROUP_STAFF))
@@ -1453,6 +1464,91 @@ class QuestBaseResponse extends TemplateResponse implements ICache
 
         $this->buildLdJson();
     }
+
+    /**
+     * aowow - custom start: quest objective markers
+     * the column names were renamed between TC revisions, so rows are read whole and their keys
+     * matched case insensitively rather than guessing at one spelling
+     */
+    private static function getQuestPOI(int $questId) : array
+    {
+        foreach (['quest_poi', 'quest_poi_points'] as $t)
+            if (!DB::World()->selectCell('SHOW TABLES LIKE %s', $t))
+                return [];
+
+        $blobs = DB::World()->selectAssoc('SELECT * FROM quest_poi WHERE `QuestID` = %i', $questId);
+        if ($blobs === null)
+            $blobs = DB::World()->selectAssoc('SELECT * FROM quest_poi WHERE `questId` = %i', $questId) ?: [];
+
+        if (!$blobs)
+            return [];
+
+        $pts = DB::World()->selectAssoc('SELECT * FROM quest_poi_points WHERE `QuestID` = %i', $questId);
+        if ($pts === null)
+            $pts = DB::World()->selectAssoc('SELECT * FROM quest_poi_points WHERE `questId` = %i', $questId) ?: [];
+
+        $col = fn(array $r, string ...$names) => array_reduce($names, function ($carry, $n) use ($r) {
+            if ($carry !== null)
+                return $carry;
+            $lc = array_change_key_case($r, CASE_LOWER);
+            return $lc[strtolower($n)] ?? null;
+        });
+
+        $byIdx = [];
+        foreach ($pts as $pt)
+            $byIdx[(int)$col($pt, 'Idx1', 'id')][] = [(float)$col($pt, 'X', 'x'), (float)$col($pt, 'Y', 'y')];
+
+        $out = [];
+        foreach ($blobs as $b)
+        {
+            $idx = (int)$col($b, 'BlobIndex', 'Idx1', 'id');
+            $out[] = array(
+                'objective' => (int)$col($b, 'ObjectiveIndex', 'objIndex'),
+                'areaId'    => (int)$col($b, 'WorldMapAreaId', 'WorldMapAreaID'),
+                'mapId'     => (int)$col($b, 'MapID', 'mapid'),
+                'floor'     => (int)$col($b, 'Floor', 'FloorId'),
+                'points'    => $byIdx[$idx] ?? []
+            );
+        }
+
+        return $out;
+    }
+
+    /** one row per objective blob; WorldMapAreaId resolves to a real zone through dbc_worldmaparea */
+    private static function buildPOIMarkup(array $poi, ?array &$jsGlobals = []) : ?Markup
+    {
+        if (!$poi)
+            return null;
+
+        $areaIds = DB::Aowow()->selectPairs('SELECT `id`, `areaId` FROM dbc_worldmaparea') ?: [];
+        $jsg     = [];
+        $rows    = '';
+
+        foreach ($poi as $p)
+        {
+            $zone = $areaIds[$p['areaId']] ?? 0;
+            if ($zone)
+                $jsg[Type::ZONE][$zone] = $zone;
+
+            // pins are 3-digit x/y pairs at tenth-of-a-percent precision, as the zone page builds them
+            $pins = '';
+            foreach (array_slice($p['points'], 0, 25) as [$x, $y])
+                $pins .= str_pad((string)(int)($x * 10), 3, '0', STR_PAD_LEFT).str_pad((string)(int)($y * 10), 3, '0', STR_PAD_LEFT);
+
+            $where = $zone ? '[zone='.$zone.']' : Lang::quest('poiMap', [$p['mapId']]);
+            if ($zone && $pins)
+                $where = '[lightbox=map zone='.$zone.($p['floor'] > 1 ? ' floor='.($p['floor'] - 1) : '').' pins='.$pins.']'.ZoneList::getName($zone).'[/lightbox]';
+
+            $rows .= '[tr][td]'.Lang::quest('poiObjective', [$p['objective'] + 1]).'[/td][td]'.$where.
+                     '[/td][td][small class=q0]'.Lang::quest('poiPoints', [count($p['points'])]).'[/small][/td][/tr]';
+        }
+
+        Util::mergeJsGlobals($jsGlobals, $jsg);
+
+        return new Markup('[pad][h3][toggler id=quest-poi]'.Lang::quest('poiTitle').'[/toggler][/h3][div id=quest-poi clear=left][table class=grid]'.$rows.'[/table][/div]',
+                          ['allow' => Markup::CLASS_ADMIN], 'quest-poi-generic');
+    }
+    // aowow - custom end
 }
 
 ?>

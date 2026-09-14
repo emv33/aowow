@@ -1824,6 +1824,10 @@ $lang = array(
         )
     ),
     'quest' => array(
+        'poiTitle'      => "Objective markers",
+        'poiObjective'  => 'Objective %1$d',
+        'poiPoints'     => '%1$d point(s)',
+        'poiMap'        => 'Map [b]%1$d[/b]',
         'id'            => "Задание ID: ",
         'notFound'      => "Такое задание не существует.",
         '_transfer'     => 'Этот предмет превратится в <a href="?quest=%d" class="q1">%s</a>, если вы перейдете за <span class="icon-%s">%s</span>.',

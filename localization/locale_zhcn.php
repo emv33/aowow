@@ -1824,6 +1824,10 @@ $lang = array(
         )
     ),
     'quest' => array(
+        'poiTitle'      => "Objective markers",
+        'poiObjective'  => 'Objective %1$d',
+        'poiPoints'     => '%1$d point(s)',
+        'poiMap'        => 'Map [b]%1$d[/b]',
         'id'            => "任务ID：",
         'notFound'      => "这个任务不存在。",
         '_transfer'     => '这个任务将被转换到<a href="?quest=%d" class="q1">%s</a>，如果你转移到<span class="icon-%s">%s</span>。',

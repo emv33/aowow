@@ -18,6 +18,7 @@ trait TrDetailPage
     public ?Markup        $legacyScript  = null;            // aowow - custom: pre-SmartAI script engine rows for this entity
     public ?Markup        $startOutfit   = null;            // aowow - custom: starting gear and spells of a class/race
     public ?Markup        $spellOverride = null;            // aowow - custom: world DB overrides of a spell's dbc data
+    public ?Markup        $questPOI      = null;            // aowow - custom: quest objective blobs from quest_poi
     public ?array         $map           = null;
     public  array         $headIcons     = [];
 

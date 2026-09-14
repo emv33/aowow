@@ -1823,6 +1823,10 @@ $lang = array(
         )
     ),
     'quest' => array(
+        'poiTitle'      => "Objective markers",
+        'poiObjective'  => 'Objective %1$d',
+        'poiPoints'     => '%1$d point(s)',
+        'poiMap'        => 'Map [b]%1$d[/b]',
         'id'            => "Quest-ID: ",
         'notFound'      => "Diese Quest existiert nicht.",
         '_transfer'     => 'Dieses Quest wird mit <a href="?quest=%d" class="q1">%s</a> vertauscht, wenn Ihr zur <span class="icon-%s">%s</span> wechselt.',
