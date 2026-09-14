@@ -4513,7 +4513,7 @@ var LANG = {
         2: "Areatrigger",
         9: "Timed action list"
     },
-    smartai_guid: "guid %d",
+    smartai_guid: "guid $1",
     fiencounter: {
         sepgeneral: "General",
         id:         "ID",
@@ -4538,9 +4538,9 @@ var LANG = {
         flightmaster: "Flight master",
         triggers:     "Also started by"
     },
-    taxipath_nspells:  "%d spell(s)",
-    taxipath_nscripts: "%d script(s)",
-    taxipath_nobjects: "%d transport(s)",
+    taxipath_nspells:  "$1 spell(s)",
+    taxipath_nscripts: "$1 script(s)",
+    taxipath_nobjects: "$1 transport(s)",
     // end aowow custom
 
     pr_notice:     '¿La primera vez? &ndash; ¡No temas! ¡Visita nuestra <a href="?help=profiler" target="_blank">página de ayuda</a>! &nbsp; <small class="q0"><a href="javascript:;">cerrar</a></small>',
