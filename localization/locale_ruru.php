@@ -1801,6 +1801,14 @@ $lang = array(
         'territory'     => "Территория: ",
         'instanceType'  => "Тип подземелья: ",
         'bgBracket'     => "Level bracket",
+        'graveyard'     => "Graveyard",
+        'graveyardUnnamed' => 'Graveyard #%1$d',
+        'weather'       => "Weather",
+        'weatherTypes'  => array(
+            'rain'  => "rain",
+            'snow'  => "snow",
+            'storm' => "storms"
+        ),
         'lfgBracket'    => "Dungeon Finder bracket",
         'lfgType'       => "Dungeon Finder type",
         'lfgTypes'      => array(

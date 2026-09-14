@@ -188,6 +188,16 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
             }
         }
 
+        // aowow - custom start: graveyards and weather
+        // `game_graveyard` + `graveyard_zone` say where you resurrect, `game_weather` what falls on
+        // you while you are alive; neither was read anywhere
+        foreach (self::getGraveyards($this->typeId) as $gy)
+            $infobox[] = Lang::zone('graveyard').Lang::main('colon').$gy;
+
+        if ($w = self::getWeather($this->typeId))
+            $infobox[] = Lang::zone('weather').Lang::main('colon').$w;
+        // aowow - custom end
+
         // aowow - custom start: battleground bracket and dungeon finder bracket
         // zones.ss.php reads BattlemasterList.dbc for `maxPlayers` and LFGDungeons.dbc for the
         // queue level only; the brackets in both were never carried over
@@ -1025,11 +1035,11 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
     // both tables are written by the `zones` setup step and stay in the aowow DB unless setup ran
     // with --delete, so every one of these guards the table before touching it
 
-    private static function hasTable(string $tbl) : bool
+    private static function hasTable(string $tbl, bool $aowow = true) : bool
     {
         static $known = [];
 
-        return $known[$tbl] ??= (bool)DB::Aowow()->selectCell('SHOW TABLES LIKE %s', $tbl);
+        return $known[($aowow ? 'a:' : 'w:').$tbl] ??= (bool)($aowow ? DB::Aowow() : DB::World())->selectCell('SHOW TABLES LIKE %s', $tbl);
     }
 
     private static function getBattlemasterList(int $mapId) : ?array
@@ -1061,6 +1071,63 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
         $ids = DB::World()->selectCol('SELECT `entry` FROM battlemaster_entry WHERE `bg_template` = %i', $bgTypeId) ?: [];
 
         return array_values(array_filter(array_map('intVal', $ids)));
+    }
+    // aowow - custom end
+
+    // aowow - custom start: graveyard and weather lookups
+
+    /** @return string[] one line per graveyard serving this zone */
+    private static function getGraveyards(int $areaId) : array
+    {
+        if (!self::hasTable('graveyard_zone', false) || !self::hasTable('game_graveyard', false))
+            return [];
+
+        $rows = DB::World()->selectAssoc(
+           'SELECT gy.`ID`, gy.`Map`, gy.`Comment`, gz.`Faction`
+            FROM   graveyard_zone gz JOIN game_graveyard gy ON gy.`ID` = gz.`ID`
+            WHERE  gz.`GhostZone` = %i', $areaId
+        ) ?: [];
+
+        $out = [];
+        foreach ($rows as $r)
+        {
+            $name = trim((string)$r['Comment']) ?: Lang::zone('graveyardUnnamed', [(int)$r['ID']]);
+            $side = match ((int)$r['Faction'])
+            {
+                TEAM_ALLIANCE => '[span class=icon-alliance]%s[/span]',
+                TEAM_HORDE    => '[span class=icon-horde]%s[/span]',
+                default       => '%s'
+            };
+
+            $out[] = sprintf($side, $name);
+        }
+
+        return $out;
+    }
+
+    /** the seasonal chances of `game_weather`, summarised as the wettest season */
+    private static function getWeather(int $areaId) : ?string
+    {
+        if (!self::hasTable('game_weather', false))
+            return null;
+
+        if (!($r = DB::World()->selectRow('SELECT * FROM game_weather WHERE `zone` = %i', $areaId)))
+            return null;
+
+        $lc    = array_change_key_case($r, CASE_LOWER);
+        $parts = [];
+
+        foreach (['rain', 'snow', 'storm'] as $what)
+        {
+            $max = 0;
+            foreach (['spring', 'summer', 'fall', 'winter'] as $season)
+                $max = max($max, (int)($lc[$season.'_'.$what.'_chance'] ?? 0));
+
+            if ($max)
+                $parts[] = Lang::zone('weatherTypes', $what).' '.$max.'%';
+        }
+
+        return $parts ? implode(', ', $parts) : null;
     }
     // aowow - custom end
 }
