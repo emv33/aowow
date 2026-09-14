@@ -43,6 +43,13 @@ class StartOutfit
         return $has ??= (bool)DB::Aowow()->selectCell('SHOW TABLES LIKE %s', 'dbc_charstartoutfit');
     }
 
+    private static function hasTable(string $tbl) : bool
+    {
+        static $known = [];
+
+        return $known[$tbl] ??= (bool)DB::World()->selectCell('SHOW TABLES LIKE %s', $tbl);
+    }
+
     /** the race/class pairs that actually exist, from the server's own create info */
     private function pairs() : array
     {
@@ -101,18 +108,37 @@ class StartOutfit
         return $out;
     }
 
-    /** TC moved this table from race/class columns to bitmasks; support both spellings */
+    /**
+     * TC moved this table from race/class columns to bitmasks; support both spellings
+     *
+     * Pick the table by checking it exists, never by letting a failed query fall through: a column
+     * name this core spells differently would otherwise silently reroute to the other table, and
+     * `playercreateinfo_spell` is a legacy table that on many DBs holds far more than the spells a
+     * character is actually created with.
+     */
     private function spells(int $race, int $class) : array
     {
-        $ids = DB::World()->selectCol(
-           'SELECT `Spell` FROM playercreateinfo_spell_custom WHERE (`racemask` = 0 OR (`racemask` & %i)) AND (`classmask` = 0 OR (`classmask` & %i))',
-            1 << ($race - 1), 1 << ($class - 1)
-        );
-
-        if ($ids === null)
+        if (self::hasTable('playercreateinfo_spell_custom'))
+            $ids = DB::World()->selectCol(
+               'SELECT `Spell` FROM playercreateinfo_spell_custom WHERE (`racemask` = 0 OR (`racemask` & %i)) AND (`classmask` = 0 OR (`classmask` & %i))',
+                1 << ($race - 1), 1 << ($class - 1)
+            ) ?: [];
+        else if (self::hasTable('playercreateinfo_spell'))
             $ids = DB::World()->selectCol('SELECT `Spell` FROM playercreateinfo_spell WHERE `race` = %i AND `class` = %i', $race, $class) ?: [];
+        else
+            $ids = [];
 
-        return array_values(array_unique(array_filter(array_map('intVal', $ids))));
+        $ids = array_values(array_unique(array_filter(array_map('intVal', $ids))));
+
+        // a starting spell may be a hidden one - the passives a class is seeded with are not in the
+        // spellbook. Drop those for players, the way CUSTOM_EXCLUDE_FOR_LISTVIEW is overridden for
+        // staff everywhere else, rather than leaking them onto a public page
+        if ($ids && !User::isInGroup(U_GROUP_STAFF))
+            $ids = array_map('intVal', DB::Aowow()->selectCol(
+               'SELECT `id` FROM ::spell WHERE `id` IN %in AND (`cuFlags` & %i) = 0', $ids, CUSTOM_EXCLUDE_FOR_LISTVIEW
+            ) ?: []);
+
+        return $ids;
     }
 
     private function renderGrid(array $th, array $rows) : string
