@@ -108,6 +108,9 @@ spl_autoload_register(function (string $class) : void
         case __NAMESPACE__.'\TaxiPath':
             require_once 'includes/components/TaxiPath/TaxiPath.class.php';
             break;
+        case __NAMESPACE__.'\Pool':
+            require_once 'includes/components/Pool/Pool.class.php';
+            break;
     }
 });
 

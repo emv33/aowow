@@ -199,6 +199,17 @@ class NpcBaseResponse extends TemplateResponse implements ICache
             $infobox[] = Lang::npc('extraFlags', CREATURE_FLAG_EXTRA_GHOST_VISIBILITY);
 
         // id
+        // aowow - custom start: spawn pooling
+        // without this the map shows every spawn point as if all of them were live at once
+        $pools = Pool::getForEntry(Type::NPC, $this->typeId);
+        foreach ($pools as $pId => $pool)
+        {
+            $infobox[] = $pool['maxActive'] && $pool['nMembers']
+                       ? Lang::pool('pooled', [$pool['maxActive'], $pool['nMembers']])
+                       : Lang::pool('pooledUnknown', [$pId]);
+        }
+        // aowow - custom end
+
         $infobox[] = Lang::npc('id') . $this->typeId;
 
         // original name
@@ -397,6 +408,26 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         /**************/
 
         $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"], 'tabsRelated', true);
+
+        // aowow - custom start: what shares this entry's spawn pools
+        if ($pools)
+        {
+            foreach (Pool::getMembers(array_keys($pools), Type::NPC, $this->typeId) as $mType => $mIds)
+            {
+                $mList = $mType == Type::NPC ? new CreatureList([['id', array_values($mIds)]]) : new GameObjectList([['id', array_values($mIds)]]);
+                if ($mList->error)
+                    continue;
+
+                $this->extendGlobalData($mList->getJSGlobals());
+                $this->addDataLoader('zones');
+                $this->lvTabs->addListviewTab(new Listview(array(
+                    'data' => $mList->getListviewData(),
+                    'name' => Lang::pool('sharesPool'),
+                    'id'   => 'shares-pool-'.$mType
+                ), $mType == Type::NPC ? CreatureList::$brickFile : GameObjectList::$brickFile));
+            }
+        }
+        // aowow - custom end
 
         // aowow - custom start: flight paths
         // ::taxinodes points a node at the creature standing on it, so a flight master can name its routes

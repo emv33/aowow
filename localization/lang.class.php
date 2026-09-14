@@ -53,6 +53,7 @@ class Lang
     private static array $encounter;
     private static array $transport;
     private static array $taxipath;
+    private static array $pool;
     private static array $startOutfit;
     private static array $spellOverride;
     private static array $dataIntegrity;

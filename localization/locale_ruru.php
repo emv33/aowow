@@ -1410,6 +1410,11 @@ $lang = array(
         'sentByScript'  => "Sent by script",
         'usedByObject'  => "Used by transport"
     ),
+    'pool' => array(
+        'pooled'        => 'Pooled spawn: %1$d of %2$d points active',
+        'pooledUnknown' => 'Part of spawn pool #%1$d',
+        'sharesPool'    => "Shares a spawn pool"
+    ),
     'legacyScript' => array(
         'srcTypes'      => array(
             LegacyScript::SRC_EVENT       => "Event script #%d",

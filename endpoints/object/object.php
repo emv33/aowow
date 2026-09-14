@@ -255,6 +255,17 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
         }
         // aowow - custom end
 
+        // aowow - custom start: spawn pooling
+        // without this the map shows every spawn point as if all of them were live at once
+        $pools = Pool::getForEntry(Type::OBJECT, $this->typeId);
+        foreach ($pools as $pId => $pool)
+        {
+            $infobox[] = $pool['maxActive'] && $pool['nMembers']
+                       ? Lang::pool('pooled', [$pool['maxActive'], $pool['nMembers']])
+                       : Lang::pool('pooledUnknown', [$pId]);
+        }
+        // aowow - custom end
+
         $infobox[] = Lang::gameObject('id') . $this->typeId;
 
         // original name
@@ -412,6 +423,26 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
         /**************/
 
         $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"], 'tabsRelated', true);
+
+        // aowow - custom start: what shares this entry's spawn pools
+        if ($pools)
+        {
+            foreach (Pool::getMembers(array_keys($pools), Type::OBJECT, $this->typeId) as $mType => $mIds)
+            {
+                $mList = $mType == Type::NPC ? new CreatureList([['id', array_values($mIds)]]) : new GameObjectList([['id', array_values($mIds)]]);
+                if ($mList->error)
+                    continue;
+
+                $this->extendGlobalData($mList->getJSGlobals());
+                $this->addDataLoader('zones');
+                $this->lvTabs->addListviewTab(new Listview(array(
+                    'data' => $mList->getListviewData(),
+                    'name' => Lang::pool('sharesPool'),
+                    'id'   => 'shares-pool-'.$mType
+                ), $mType == Type::NPC ? CreatureList::$brickFile : GameObjectList::$brickFile));
+            }
+        }
+        // aowow - custom end
 
         // tab: summoned by
         $summonEffects = array(
