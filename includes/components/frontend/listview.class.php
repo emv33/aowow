@@ -28,6 +28,7 @@ class Listview implements \JsonSerializable
         'currency'          => ['template' => 'currency',          'id' => 'currencies',      'name' => '$LANG.tab_currencies'    ],
         'emote'             => ['template' => 'emote',             'id' => 'emotes',                                              ],
         'enchantment'       => ['template' => 'enchantment',       'id' => 'enchantments',                                        ],
+        'encounter'         => ['template' => 'encounter',         'id' => 'encounters',                                          ], // aowow - custom
         'event'             => ['template' => 'holiday',           'id' => 'holidays',        'name' => '$LANG.tab_holidays'      ],
         'faction'           => ['template' => 'faction',           'id' => 'factions',        'name' => '$LANG.tab_factions'      ],
         'genericmodel'      => ['template' => 'genericmodel',      'id' => 'same-model-as',   'name' => '$LANG.tab_samemodelas'   ],
@@ -45,6 +46,7 @@ class Listview implements \JsonSerializable
         'race'              => ['template' => 'race',              'id' => 'races',           'name' => '$LANG.tab_races'         ],
         'replypreview'      => ['template' => 'replypreview',      'id' => 'comment-replies', 'name' => '$LANG.tab_commentreplies'],
         'reputationhistory' => ['template' => 'reputationhistory', 'id' => 'reputation',      'name' => '$LANG.tab_reputation'    ],
+        'transport'         => ['template' => 'transport',         'id' => 'transports',                                          ], // aowow - custom
         'screenshot'        => ['template' => 'screenshot',        'id' => 'screenshots',     'name' => '$LANG.tab_screenshots'   ],
         'skill'             => ['template' => 'skill',             'id' => 'skills',          'name' => '$LANG.tab_skills'        ],
         'sound'             => ['template' => 'sound',             'id' => 'sounds',          'name' => '$LANG.types[19][2]'      ],
@@ -107,7 +109,9 @@ class Listview implements \JsonSerializable
 
     public function __construct(array $opts, string $template = '', string $addIn = '')
     {
-        if ($template && isset(self::TEMPLATES[$template]))
+        if ($template && !isset(self::TEMPLATES[$template]))
+            trigger_error('Nonexistent Listview template requested: '.$template, E_USER_WARNING);   // aowow - custom: used to fail silently, rendering an empty tab
+        else if ($template)
             foreach (self::TEMPLATES[$template] as $k => $v)
                 $this->$k = $v;
 
