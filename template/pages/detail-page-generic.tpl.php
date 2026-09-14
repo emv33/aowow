@@ -52,6 +52,8 @@
 
     $this->brick('markup', ['markup' => $this->startOutfit]);   // aowow - custom
 
+    $this->brick('markup', ['markup' => $this->levelCurve]);   // aowow - custom
+
 if ($this->zoneMusic):
 ?>
 

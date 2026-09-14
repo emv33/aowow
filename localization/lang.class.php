@@ -54,6 +54,8 @@ class Lang
     private static array $transport;
     private static array $taxipath;
     private static array $pool;
+    private static array $levelCurve;
+    private static array $npcExtra;
     private static array $startOutfit;
     private static array $spellOverride;
     private static array $dataIntegrity;

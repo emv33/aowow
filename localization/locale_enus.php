@@ -1339,6 +1339,7 @@ $lang = array(
         'general'       => "General",
         'castSpells'    => "Cast on creation",
         'customSpells'  => "Custom spell list",
+        'actionBar'     => "Action bar",
         'startsIn'      => "Starts in"
     ),
     'spellOverride' => array(
@@ -1414,6 +1415,18 @@ $lang = array(
         'pooled'        => 'Pooled spawn: %1$d of %2$d points active',
         'pooledUnknown' => 'Part of spawn pool #%1$d',
         'sharesPool'    => "Shares a spawn pool"
+    ),
+    'levelCurve' => array(
+        'levelCurve'    => "Levelling",
+        'xpToNext'      => "XP to next",
+        'baseHp'        => "Base health",
+        'baseMana'      => "Base mana"
+    ),
+    'npcExtra' => array(
+        'equipped'      => "Equipped",
+        'followsLeader' => "Follows",
+        'phases'        => "Phase mask",
+        'questItems'    => "Quest items"
     ),
     'legacyScript' => array(
         'srcTypes'      => array(

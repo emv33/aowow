@@ -141,6 +141,14 @@ class ClassBaseResponse extends TemplateResponse implements ICache
         /* Extra Tabs */
         /**************/
 
+        // aowow - custom start: level curve
+        // `player_xp_for_level` and `player_classlevelstats` were read nowhere, so the page said
+        // nothing about what levelling this class actually costs or yields
+        $lcJSG = [];
+        $this->levelCurve = self::buildLevelCurve($this->typeId);
+        $this->extendGlobalData($lcJSG);
+        // aowow - custom end
+
         // aowow - custom start: starting gear and spells
         $so = new StartOutfit(StartOutfit::BY_CLASS, $this->typeId);
         $this->startOutfit = $so->getMarkup();               // fills the globals; must run first
@@ -333,6 +341,62 @@ class ClassBaseResponse extends TemplateResponse implements ICache
 
         $this->buildLdJson();
     }
+
+    // aowow - custom start: level curve
+
+    private static function hasTable(string $tbl) : bool
+    {
+        static $known = [];
+
+        return $known[$tbl] ??= (bool)DB::World()->selectCell('SHOW TABLES LIKE %s', $tbl);
+    }
+
+    /** XP to the next level and the base health/mana of this class, sampled every ten levels */
+    private static function buildLevelCurve(int $classId) : ?Markup
+    {
+        $xp = [];
+        if (self::hasTable('player_xp_for_level'))
+        {
+            $rows = DB::World()->selectAssoc('SELECT * FROM player_xp_for_level ORDER BY 1 ASC') ?: [];
+            foreach ($rows as $r)
+            {
+                $lc = array_change_key_case($r, CASE_LOWER);
+                $lv = (int)($lc['level'] ?? $lc['lvl'] ?? 0);
+                $v  = (int)($lc['experience'] ?? $lc['xp_for_next_level'] ?? 0);
+                if ($lv)
+                    $xp[$lv] = $v;
+            }
+        }
+
+        $stats = [];
+        if (self::hasTable('player_classlevelstats'))
+        {
+            $rows = DB::World()->selectAssoc('SELECT * FROM player_classlevelstats WHERE `class` = %i ORDER BY `level` ASC', $classId) ?: [];
+            foreach ($rows as $r)
+            {
+                $lc = array_change_key_case($r, CASE_LOWER);
+                $stats[(int)($lc['level'] ?? 0)] = [(int)($lc['basehp'] ?? 0), (int)($lc['basemana'] ?? 0)];
+            }
+        }
+
+        if (!$xp && !$stats)
+            return null;
+
+        $levels = array_unique(array_merge(array_keys($xp), array_keys($stats)));
+        sort($levels);
+        $levels = array_values(array_filter($levels, fn($l) => $l == 1 || $l % 10 == 0 || $l == MAX_LEVEL));
+
+        $tbl = '[tr][td header]'.Lang::game('level').'[/td][td header]'.Lang::levelCurve('xpToNext').'[/td][td header]'.Lang::levelCurve('baseHp').'[/td][td header]'.Lang::levelCurve('baseMana').'[/td][/tr]';
+        foreach ($levels as $lv)
+        {
+            [$hp, $mana] = $stats[$lv] ?? [0, 0];
+            $tbl .= '[tr][td]'.$lv.'[/td][td]'.($xp[$lv] ?? 0 ? number_format($xp[$lv]) : '-').'[/td][td]'.($hp ?: '-').'[/td][td]'.($mana ?: '-').'[/td][/tr]';
+        }
+
+        return new Markup('[pad][h3][toggler=hidden id=level-curve]'.Lang::levelCurve('levelCurve').'[/toggler][/h3][div=hidden id=level-curve clear=left][table class=grid]'.$tbl.'[/table][/div]',
+                          ['allow' => Markup::CLASS_ADMIN], 'level-curve-generic');
+    }
+    // aowow - custom end
 }
 
 ?>

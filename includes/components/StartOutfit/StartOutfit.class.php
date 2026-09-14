@@ -32,6 +32,10 @@ class StartOutfit
     // language and racial lines sit in other categories and belong under General, as they do in game.
     private const int SKILL_CATEGORY_CLASS   = 7;
 
+    // playercreateinfo_action.type - ACTION_BUTTON_SPELL / ACTION_BUTTON_ITEM
+    private const int ACTION_TYPE_SPELL      = 0;
+    private const int ACTION_TYPE_ITEM       = 128;
+
     private const string BASE_CSS = <<<CSS
         #start-outfit-generic .grid { clear:left; display: grid; }
         #start-outfit-generic .grid thead,
@@ -313,6 +317,38 @@ class StartOutfit
         return [[$heading, '[div class=so-tabs]'.$cell.'[/div]']];
     }
 
+    /**
+     * `playercreateinfo_action` - the action bar a character logs in with
+     * `type` says what the slot holds: 0 a spell, 128 an item, 64 a macro
+     */
+    private function actionBar(int $race, int $class) : array
+    {
+        if (!self::hasTable('playercreateinfo_action'))
+            return [];
+
+        $rows = DB::World()->selectAssoc(
+           'SELECT `button`, `action`, `type` FROM playercreateinfo_action WHERE `race` = %i AND `class` = %i ORDER BY `button` ASC',
+            $race, $class
+        ) ?: [];
+
+        $out = [];
+        foreach ($rows as $r)
+        {
+            $act = (int)$r['action'];
+            if ($act <= 0)
+                continue;
+
+            $out[] = match ((int)$r['type'])
+            {
+                self::ACTION_TYPE_ITEM  => ['type' => Type::ITEM,  'id' => $act],
+                self::ACTION_TYPE_SPELL => ['type' => Type::SPELL, 'id' => $act],
+                default                 => ['type' => 0,           'id' => $act]
+            };
+        }
+
+        return $out;
+    }
+
     private function renderGrid(array $th, array $rows) : string
     {
         $tblId = Util::createHash(12);
@@ -372,6 +408,23 @@ class StartOutfit
             $rows = array_merge($rows, $this->spellRows(Lang::startOutfit('castSpells'), $cast));
 
             $rows = array_merge($rows, $this->spellRows(Lang::startOutfit('customSpells'), $custom));
+
+            if ($bar = $this->actionBar($p['race'], $p['class']))
+            {
+                $cells = [];
+                foreach ($bar as $slot)
+                {
+                    if ($slot['type'])
+                    {
+                        $this->jsGlobals[$slot['type']][$slot['id']] = $slot['id'];
+                        $cells[] = '['.Type::getFileString($slot['type']).'='.$slot['id'].']';
+                    }
+                    else
+                        $cells[] = '[small class=q0]'.$slot['id'].'[/small]';
+                }
+
+                $rows[] = [Lang::startOutfit('actionBar'), Lang::concat($cells, Lang::CONCAT_NONE)];
+            }
 
             if ($p['zone'])
             {
