@@ -1514,30 +1514,54 @@ class QuestBaseResponse extends TemplateResponse implements ICache
         return $out;
     }
 
-    /** one row per objective blob; WorldMapAreaId resolves to a real zone through dbc_worldmaparea */
+    /**
+     * one row per objective blob
+     *
+     * `quest_poi_points` holds world coordinates, not map percentages, so each point goes through
+     * WorldPosition::toZonePos() - the same conversion the spawn importer uses. Building the
+     * percentage by hand is not an option: the transform swaps the axes, and the `pins` attribute is
+     * validated as digits only, so a negative or out of range value makes markup.js reject the whole
+     * lightbox tag and print it verbatim.
+     */
     private static function buildPOIMarkup(array $poi, ?array &$jsGlobals = []) : ?Markup
     {
         if (!$poi)
             return null;
 
-        $areaIds = DB::Aowow()->selectPairs('SELECT `id`, `areaId` FROM dbc_worldmaparea') ?: [];
-        $jsg     = [];
-        $rows    = '';
+        $jsg  = [];
+        $rows = '';
 
         foreach ($poi as $p)
         {
-            $zone = $areaIds[$p['areaId']] ?? 0;
+            $pins  = '';
+            $zone  = 0;
+            $floor = 0;
+
+            foreach ($p['points'] as [$x, $y])
+            {
+                if (!($pt = WorldPosition::toZonePos($p['mapId'], $x, $y, $zone ?: 0)))
+                    continue;
+
+                $pt = $pt[0];
+                $zone  = $zone ?: (int)$pt['areaId'];       // keep every pin of a blob on one map
+                $floor = $floor ?: (int)$pt['floor'];
+
+                if ((int)$pt['areaId'] != $zone)
+                    continue;
+
+                $pins .= str_pad((string)(int)round($pt['posX'] * 10), 3, '0', STR_PAD_LEFT)
+                       . str_pad((string)(int)round($pt['posY'] * 10), 3, '0', STR_PAD_LEFT);
+            }
+
             if ($zone)
                 $jsg[Type::ZONE][$zone] = $zone;
 
-            // pins are 3-digit x/y pairs at tenth-of-a-percent precision, as the zone page builds them
-            $pins = '';
-            foreach (array_slice($p['points'], 0, 25) as [$x, $y])
-                $pins .= str_pad((string)(int)($x * 10), 3, '0', STR_PAD_LEFT).str_pad((string)(int)($y * 10), 3, '0', STR_PAD_LEFT);
-
-            $where = $zone ? '[zone='.$zone.']' : Lang::quest('poiMap', [$p['mapId']]);
             if ($zone && $pins)
-                $where = '[lightbox=map zone='.$zone.($p['floor'] > 1 ? ' floor='.($p['floor'] - 1) : '').' pins='.$pins.']'.ZoneList::getName($zone).'[/lightbox]';
+                $where = '[lightbox=map zone='.$zone.($floor > 1 ? ' floor='.($floor - 1) : '').' pins='.$pins.']'.ZoneList::getName($zone).'[/lightbox]';
+            else if ($zone)
+                $where = '[zone='.$zone.']';
+            else
+                $where = Lang::quest('poiMap', [$p['mapId']]);
 
             $rows .= '[tr][td]'.Lang::quest('poiObjective', [$p['objective'] + 1]).'[/td][td]'.$where.
                      '[/td][td][small class=q0]'.Lang::quest('poiPoints', [count($p['points'])]).'[/small][/td][/tr]';
