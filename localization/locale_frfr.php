@@ -439,6 +439,8 @@ $lang = array(
         'smartAI'      => "SmartAI",
         'encounter'    => "encounter",
         'encounters'   => "Encounters",
+        'transport'    => "transport",
+        'transports'   => "Transports",
 
         'cooldown'      => "%s de recharge",
         'difficulty'    => "Difficulté : ",
@@ -1315,6 +1317,14 @@ $lang = array(
             1 => "25-player normal",
             2 => "10-player heroic",
             3 => "25-player heroic"
+        )
+    ),
+    'transport' => array(
+        'unnamed'       => "Unnamed transport #%d",
+        'route'         => "Route",
+        'types'         => array(
+            GO_TYPE_TRANSPORT    => "Elevator",
+            GO_TYPE_MO_TRANSPORT => "Transport"
         )
     ),
     'legacyScript' => array(

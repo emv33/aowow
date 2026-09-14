@@ -233,6 +233,27 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
         }
 
         // id
+        // aowow - custom start: transport route
+        // a MO_TRANSPORT names a TaxiPath in `data0`; nothing linked it to the nodes it runs between
+        if ($this->subject->getField('type') == GO_TYPE_MO_TRANSPORT)
+        {
+            $route = GameObjectList::getTransportRoute($this->typeId);
+            if ($route)
+            {
+                foreach ([['from', 'fromArea'], ['to', 'toArea']] as [$nameKey, $areaKey])
+                {
+                    if ($_ = $route[$areaKey])
+                    {
+                        $this->extendGlobalIds(Type::ZONE, $_);
+                        $route[$nameKey] = '[zone='.$_.']';
+                    }
+                }
+
+                $infobox[] = Lang::transport('route').Lang::main('colon').$route['from'].' &rarr; '.$route['to'];
+            }
+        }
+        // aowow - custom end
+
         $infobox[] = Lang::gameObject('id') . $this->typeId;
 
         // original name

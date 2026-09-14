@@ -1005,7 +1005,8 @@ var mn_database = [
     [104, '对话', '?gossips', null, {requiredAccess: 1726}],    // aowow - custom
     [105, 'Conditions', '?conditions', null, {requiredAccess: 1726}],    // aowow - custom
     [106, 'SmartAI', '?smartai', null, {requiredAccess: 1726}],    // aowow - custom
-    [107, 'Encounters', '?encounters', null, {requiredAccess: 1726}]    // aowow - custom
+    [107, 'Encounters', '?encounters', null, {requiredAccess: 1726}],    // aowow - custom
+    [108, 'Transports', '?transports', null, {requiredAccess: 1726}]    // aowow - custom
 ];
 
 var mn_guides = [
@@ -4561,6 +4562,16 @@ var LANG = {
         order:      "Position"
     },
     encounter_lastboss: "final boss",
+    fitransport: {
+        type:       "Type",
+        route:      "Route",
+        path:       "Path"
+    },
+    transport_types: {
+        11: "Elevator",
+        15: "Transport"
+    },
+    transport_notspawned: "not spawned",
     // end aowow custom
 
     pr_notice:     'First time? &ndash; Don\'t be shy! Just check out our <a href="?help=profiler" target="_blank">Help page</a>! &nbsp; <small class="q0"><a href="javascript:;">close</a></small>', // enUS

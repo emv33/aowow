@@ -141,6 +141,97 @@ class GameObjectList extends DBTypeList
 
         return $data;
     }
+
+    /**
+     * aowow - custom start: transports
+     * A GAMEOBJECT_TYPE_MO_TRANSPORT names a TaxiPath in `data0`, and that path resolves - through
+     * the taxi tables the `taxi` setup step already writes - to the two nodes it runs between.
+     * Nothing linked the two, so a boat's destination appeared nowhere.
+     */
+    public static function getTransportRoute(int $entry) : ?array
+    {
+        $pathId = (int)DB::World()->selectCell('SELECT `data0` FROM gameobject_template WHERE `entry` = %i AND `type` = %i', $entry, GO_TYPE_MO_TRANSPORT);
+
+        return $pathId ? (self::getTransportRoutes([$pathId])[$pathId] ?? null) : null;
+    }
+
+    /** every transport template, with the route of those that run one */
+    public static function getTransports() : array
+    {
+        $tpl = DB::World()->selectAssoc(
+           'SELECT `entry` AS ARRAY_KEY, `entry`, `type`, `name`, `data0` FROM gameobject_template WHERE `type` IN %in ORDER BY `type`, `entry` ASC',
+            [GO_TYPE_TRANSPORT, GO_TYPE_MO_TRANSPORT]
+        ) ?: [];
+
+        if (!$tpl)
+            return [];
+
+        // only a MO_TRANSPORT names a TaxiPath; a plain TRANSPORT is an elevator and `data0` is its pause timer
+        $pathIds = [];
+        foreach ($tpl as $t)
+            if ((int)$t['type'] == GO_TYPE_MO_TRANSPORT && (int)$t['data0'] > 0)
+                $pathIds[] = (int)$t['data0'];
+
+        $routes  = self::getTransportRoutes($pathIds);
+        $spawned = self::getSpawnedTransports(array_keys($tpl));
+
+        $out = [];
+        foreach ($tpl as $entry => $t)
+        {
+            $out[(int)$entry] = array(
+                'entry'   => (int)$entry,
+                'type'    => (int)$t['type'],
+                'name'    => (string)$t['name'],
+                'pathId'  => (int)$t['type'] == GO_TYPE_MO_TRANSPORT ? (int)$t['data0'] : 0,
+                'route'   => $routes[(int)$t['data0']] ?? null,
+                'spawned' => isset($spawned[(int)$entry])
+            );
+        }
+
+        return $out;
+    }
+
+    private static function getTransportRoutes(array $pathIds) : array
+    {
+        if (!$pathIds = array_values(array_unique(array_filter($pathIds))))
+            return [];
+
+        $loc  = Lang::getLocale();
+        $rows = DB::Aowow()->selectAssoc(
+           'SELECT   tp.`id` AS ARRAY_KEY,
+                     n1.`name_loc0` AS "fromName0", n1.`name_loc'.$loc->value.'` AS "fromName", n1.`areaId` AS "fromArea",
+                     n2.`name_loc0` AS "toName0",   n2.`name_loc'.$loc->value.'` AS "toName",   n2.`areaId` AS "toArea"
+            FROM     ::taxipath tp
+            JOIN     ::taxinodes n1 ON n1.`id` = tp.`startNodeId`
+            JOIN     ::taxinodes n2 ON n2.`id` = tp.`endNodeId`
+            WHERE    tp.`id` IN %in',
+            $pathIds
+        ) ?: [];
+
+        $out = [];
+        foreach ($rows as $id => $r)
+            $out[(int)$id] = array(
+                'from'     => (string)($r['fromName'] ?: $r['fromName0']),
+                'fromArea' => (int)$r['fromArea'],
+                'to'       => (string)($r['toName'] ?: $r['toName0']),
+                'toArea'   => (int)$r['toArea']
+            );
+
+        return $out;
+    }
+
+    /** the `transports` table holds one row per spawned MO transport; not every core ships it */
+    private static function getSpawnedTransports(array $entries) : array
+    {
+        if (!$entries || !DB::World()->selectCell('SHOW TABLES LIKE %s', 'transports'))
+            return [];
+
+        $ids = DB::World()->selectCol('SELECT DISTINCT `entry` FROM transports WHERE `entry` IN %in', $entries) ?: [];
+
+        return array_flip(array_map('intVal', $ids));
+    }
+    // aowow - custom end
+
 }
 
 

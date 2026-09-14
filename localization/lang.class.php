@@ -51,6 +51,7 @@ class Lang
     private static array $conditionBrowser;
     private static array $smartaiBrowser;
     private static array $encounter;
+    private static array $transport;
 
     private static ?Locale $locale = null;
 
