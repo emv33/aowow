@@ -321,25 +321,38 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         if ($this->subject->getField('ScriptOrAI') == 'SmartAI')
         {
             $sai = new SmartAI(SmartAI::SRC_TYPE_CREATURE, $this->typeId);
-            if (!$sai->prepare())                           // no smartAI found .. check per guid
-            {
-                // at least one of many
-                $guids = DB::World()->selectCol('SELECT `guid` FROM creature WHERE `id` = %i', $this->typeId);
-                while ($_ = array_pop($guids))
-                {
-                    $sai = new SmartAI(SmartAI::SRC_TYPE_CREATURE, -$_, ['baseEntry' => $this->typeId, 'title' => ' [small](for GUID: '.$_.')[/small]']);
-                    if ($sai->prepare())
-                        break;
-                }
-            }
-
             if ($sai->prepare())
             {
                 $this->extendGlobalData($sai->getJSGlobals());
                 $this->smartAI = $sai->getMarkup();
             }
-            else
-                trigger_error('Creature has `AIName`: SmartAI set in template but no SmartAI defined.');
+            else                                             // no smartAI found .. check per guid
+            {
+                $guids = DB::World()->selectCol('SELECT `guid` FROM creature WHERE `id` = %i', $this->typeId);
+                $found = [];
+                foreach ($guids as $g)
+                {
+                    $sai = new SmartAI(SmartAI::SRC_TYPE_CREATURE, -$g, ['uid' => 'sai-'.$g, 'title' => ' [small](for GUID: '.$g.')[/small]']);
+                    if ($sai->prepare())
+                        $found[] = $sai;
+                }
+
+                if ($found)                                 // multiple guid-specific tables collapsed by default; a single one stays open
+                {
+                    $collapsed = count($found) > 1;
+                    foreach ($found as $sai)
+                    {
+                        $this->extendGlobalData($sai->getJSGlobals());
+                        $body = $sai->getMarkupBody($collapsed);
+                        if (!$this->smartAI)
+                            $this->smartAI = new Markup($body, ['allow' => Markup::CLASS_ADMIN], 'smartai-generic');
+                        else
+                            $this->smartAI->append($body);
+                    }
+                }
+                else
+                    trigger_error('Creature has `AIName`: SmartAI set in template but no SmartAI defined.');
+            }
         }
 
         // consider pooled spawns

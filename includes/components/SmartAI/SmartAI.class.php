@@ -271,16 +271,20 @@ class SmartAI
     // misc data
     public readonly int    $baseEntry;                      // I'm a timed action list belonging to this entry
     public readonly string $title;                          // title appendix for the [toggle]
+    public readonly string $uid;                             // id for the [toggler]/[div] pair, so multiple tables can coexist on one page
     public readonly int    $teleportTargetArea;             // precalculated areaId so we don't have to look it up right now
 
     public function __construct(public readonly int $srcType = 0, public readonly int $entry = 0, array $miscData = [])
     {
         $this->baseEntry          = $miscData['baseEntry']          ?? 0;
         $this->title              = $miscData['title']              ?? '';
+        $this->uid                = $miscData['uid']                ?? 'sai';
         $this->teleportTargetArea = $miscData['teleportTargetArea'] ?? 0;
 
         if ($this->baseEntry)                               // my parent handles base css
             $this->css = '';
+        else if ($this->uid !== 'sai')
+            $this->css = str_replace('#sai', '#'.$this->uid, $this->css);
 
         $raw = DB::World()->selectAssoc(
            'SELECT   `id`, `link`,
@@ -733,20 +737,22 @@ class SmartAI
         return true;
     }
 
-    public function getMarkup() : ?Markup
+    // raw markup body for this instance only; lets a caller combine several instances (e.g. one per guid) into a single Markup
+    public function getMarkupBody(bool $collapsed = false) : ?string
     {
         # id | event (footer phase) | chance | action + target
 
         if (!$this->rawData)
             return null;
 
+        $state   = $collapsed ? '=hidden' : '';
         $wrapper = '%s';
-        $return  = '[style]'.strtr($this->css, "\n", ' ').'[/style][pad][h3][toggler id=sai]SmartAI'.$this->title.'[/toggler][/h3][div id=sai clear=left]%s[/div]';
+        $return  = '[style]'.strtr($this->css, "\n", ' ').'[/style][pad][h3][toggler'.$state.' id='.$this->uid.']SmartAI'.$this->title.'[/toggler][/h3][div'.$state.' id='.$this->uid.' clear=left]%s[/div]';
         $tabs    = '';
         if (count($this->tabs) > 1)
         {
-            $wrapper = '[tabs name=sai]%s[/tabs]';
-            $return  = "[script]function TalTabClick(id) { $('#dsf67g4d-sai').find('[href=\'#sai-actionlist-' + id + '\']').click(); }[/script]" . $return;
+            $wrapper = '[tabs name='.$this->uid.']%s[/tabs]';
+            $return  = "[script]function TalTabClick(id) { $('#dsf67g4d-".$this->uid."').find('[href=\'#".$this->uid."-actionlist-' + id + '\']').click(); }[/script]" . $return;
             foreach ($this->tabs as $guid => $data)
             {
                 $buff = '[tab name="'.($guid ? 'ActionList #'.$guid : 'Main').'"]'.$data.'[/tab]';
@@ -757,7 +763,15 @@ class SmartAI
             }
         }
 
-        return new Markup(sprintf($return, sprintf($wrapper, $tabs ?: $this->tabs[0])), ['allow' => Markup::CLASS_ADMIN], 'smartai-generic');
+        return sprintf($return, sprintf($wrapper, $tabs ?: $this->tabs[0]));
+    }
+
+    public function getMarkup(bool $collapsed = false) : ?Markup
+    {
+        if (($body = $this->getMarkupBody($collapsed)) === null)
+            return null;
+
+        return new Markup($body, ['allow' => Markup::CLASS_ADMIN], 'smartai-generic');
     }
 
     public function addJsGlobals(array $jsg) : void
