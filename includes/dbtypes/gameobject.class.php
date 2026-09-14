@@ -220,15 +220,27 @@ class GameObjectList extends DBTypeList
         return $out;
     }
 
-    /** the `transports` table holds one row per spawned MO transport; not every core ships it */
+    /**
+     * the two transport types are spawned by different mechanisms, and checking only one of them
+     * marks every entry of the other type as never spawned
+     *   MO_TRANSPORT - a row in `transports`, which not every core ships
+     *   TRANSPORT    - an elevator, spawned through `gameobject` like any other object
+     */
     private static function getSpawnedTransports(array $entries) : array
     {
-        if (!$entries || !DB::World()->selectCell('SHOW TABLES LIKE %s', 'transports'))
+        if (!$entries)
             return [];
 
-        $ids = DB::World()->selectCol('SELECT DISTINCT `entry` FROM transports WHERE `entry` IN %in', $entries) ?: [];
+        $spawned = [];
 
-        return array_flip(array_map('intVal', $ids));
+        foreach (DB::World()->selectCol('SELECT DISTINCT `id` FROM gameobject WHERE `id` IN %in', $entries) ?: [] as $id)
+            $spawned[(int)$id] = true;
+
+        if (DB::World()->selectCell('SHOW TABLES LIKE %s', 'transports'))
+            foreach (DB::World()->selectCol('SELECT DISTINCT `entry` FROM transports WHERE `entry` IN %in', $entries) ?: [] as $id)
+                $spawned[(int)$id] = true;
+
+        return $spawned;
     }
     // aowow - custom end
 
