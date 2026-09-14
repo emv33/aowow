@@ -441,6 +441,8 @@ $lang = array(
         'encounters'   => "Encounters",
         'transport'    => "transport",
         'transports'   => "Transports",
+        'taxipath'     => "flight path",
+        'taxipaths'    => "Flight paths",
 
         'cooldown'      => "%s de reutilización",
         'difficulty'    => "Dificultad: ",
@@ -829,7 +831,7 @@ $lang = array(
             SmartAction::ACTION_ATTACK_START                       => ['Comenzar a atacar a #target#.', ''],
 /* 50*/     SmartAction::ACTION_SUMMON_GO                          => ['Invocar [object=%1$d](%2$d)? para %11$s:; en #target#.', 'Desaparición no vinculada al invocador'],
             SmartAction::ACTION_KILL_UNIT                          => ['¡#target# muere!', ''],
-            SmartAction::ACTION_ACTIVATE_TAXI                      => ['Volar desde [span class=q1]%11$s[/span] hasta [span class=q1]%12$s[/span]', ''],
+            SmartAction::ACTION_ACTIVATE_TAXI                      => ['[url=?taxipath=%1$d]Volar desde [span class=q1]%11$s[/span] hasta [span class=q1]%12$s[/span][/url]', ''],
             SmartAction::ACTION_WP_START                           => ['(%1$d)?Correr:Caminando; en la ruta del punto de ruta #[b]%2$d[/b](%4$d)? y estar vinculado a [quest=%4$d]:;.(%5$d)? Desaparecer después de %11$s:;', 'Repetible(%12$s)? [DEPRECATED] React %12$s en el camino:;'],
             SmartAction::ACTION_WP_PAUSE                           => ['Pausar la ruta del punto de ruta por %11$s', ''],
             SmartAction::ACTION_WP_STOP                            => ['Terminar ruta del punto de ruta(%1$d)? y desaparecer después de %11$s:.; (%2$d)?[quest=%2$d]:quest desde la acción de inicio; (%3$d)?fallos:está completado;.', ''],
@@ -1395,6 +1397,18 @@ $lang = array(
             'conditionGossip'     => ['name' => "Conditions on gossip options that do not exist",
                                       'hint' => "A CONDITION_SOURCE_TYPE_GOSSIP_MENU_OPTION row whose menu/option pair is not in gossip_menu_option."]
         )
+    ),
+    'taxipath' => array(
+        'notFound'      => "This flight path doesn't exist.",
+        'route'         => '%1$s → %2$s',
+        'id'            => "ID",
+        'startsAt'      => "Departs from",
+        'endsAt'        => "Arrives at",
+        'flightMaster'  => "Flight master",
+        'flightMasters' => "Flight masters",
+        'sentBySpell'   => "Sent by spell",
+        'sentByScript'  => "Sent by script",
+        'usedByObject'  => "Used by transport"
     ),
     'legacyScript' => array(
         'srcTypes'      => array(

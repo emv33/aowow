@@ -440,6 +440,8 @@ $lang = array(
         'encounters'   => "Encounters",
         'transport'    => "transport",
         'transports'   => "Transports",
+        'taxipath'     => "flight path",
+        'taxipaths'    => "Flight paths",
 
         'cooldown'      => "%s Abklingzeit",
         'difficulty'    => "Modus: ",
@@ -828,7 +830,7 @@ $lang = array(
             SmartAction::ACTION_ATTACK_START                       => ['Greife #target# an.', ''],
 /* 50*/     SmartAction::ACTION_SUMMON_GO                          => ['Beschwöre [object=%1$d] bei #target#(%2$d)? für %11$s:.;', 'Verschwinden an Beschwörer geknüpft'],
             SmartAction::ACTION_KILL_UNIT                          => ['#target# stirbt!', ''],
-            SmartAction::ACTION_ACTIVATE_TAXI                      => ['Fliege von [span class=q1]%11$s[/span] nach [span class=q1]%12$s[/span]', ''],
+            SmartAction::ACTION_ACTIVATE_TAXI                      => ['[url=?taxipath=%1$d]Fliege von [span class=q1]%11$s[/span] nach [span class=q1]%12$s[/span][/url]', ''],
             SmartAction::ACTION_WP_START                           => ['(%1$d)?Renne:Gehe; auf Pfad #[b]%2$d[/b].(%4$d)? Verknüpft mit [quest=%4$d].:;(%5$d)? Verschwinde nach %11$s:;', 'Wiederholbar(%12$s)? [DEPRECATED] Reagiere auf dem Pfad %12$s:;'],
             SmartAction::ACTION_WP_PAUSE                           => ['Pausiere Pfad für %11$s.', ''],
             SmartAction::ACTION_WP_STOP                            => ['Beende Pfad(%1$d)? und verschwinde nach %11$s:;. (%2$d)?[quest=%2$d]:Quest vom Pfadanfang; (%3$d)?schlägt fehl:wird abgeschlossen;.', ''],
@@ -1394,6 +1396,18 @@ $lang = array(
             'conditionGossip'     => ['name' => "Conditions on gossip options that do not exist",
                                       'hint' => "A CONDITION_SOURCE_TYPE_GOSSIP_MENU_OPTION row whose menu/option pair is not in gossip_menu_option."]
         )
+    ),
+    'taxipath' => array(
+        'notFound'      => "This flight path doesn't exist.",
+        'route'         => '%1$s → %2$s',
+        'id'            => "ID",
+        'startsAt'      => "Departs from",
+        'endsAt'        => "Arrives at",
+        'flightMaster'  => "Flight master",
+        'flightMasters' => "Flight masters",
+        'sentBySpell'   => "Sent by spell",
+        'sentByScript'  => "Sent by script",
+        'usedByObject'  => "Used by transport"
     ),
     'legacyScript' => array(
         'srcTypes'      => array(

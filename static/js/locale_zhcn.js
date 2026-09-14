@@ -1006,7 +1006,8 @@ var mn_database = [
     [105, 'Conditions', '?conditions', null, {requiredAccess: 1726}],    // aowow - custom
     [106, 'SmartAI', '?smartai', null, {requiredAccess: 1726}],    // aowow - custom
     [107, 'Encounters', '?encounters', null, {requiredAccess: 1726}],    // aowow - custom
-    [108, 'Transports', '?transports', null, {requiredAccess: 1726}]    // aowow - custom
+    [108, 'Transports', '?transports', null, {requiredAccess: 1726}],    // aowow - custom
+    [110, 'Flight paths', '?taxipaths', null, {requiredAccess: 1726}]    // aowow - custom
 ];
 
 var mn_guides = [
@@ -4572,6 +4573,15 @@ var LANG = {
         15: "Transport"
     },
     transport_notspawned: "not spawned",
+    fitaxipath: {
+        route:        "Route",
+        zones:        "Zones",
+        flightmaster: "Flight master",
+        triggers:     "Also started by"
+    },
+    taxipath_nspells:  "%d spell(s)",
+    taxipath_nscripts: "%d script(s)",
+    taxipath_nobjects: "%d transport(s)",
     // end aowow custom
 
     pr_notice:     'First time? &ndash; Don\'t be shy! Just check out our <a href="?help=profiler" target="_blank">Help page</a>! &nbsp; <small class="q0"><a href="javascript:;">close</a></small>', // enUS

@@ -2389,7 +2389,8 @@ class SpellBaseResponse extends TemplateResponse implements ICache
                         if ($_['endAreaId'])
                             $end = sprintf('<a href="?maps=%d:%03d%03d">%s</a>', $_['endAreaId'], $_['endPosX'] * 10, $_['endPosY'] * 10, $end);
 
-                        $_nameMV = $this->fmtStaffTip('<span class="breadcrumb-arrow">'.$start.'</span>'.$end, 'MiscValue: '.$effMV);
+                        // $start/$end are already anchors, so the path link is appended rather than wrapped
+                        $_nameMV = $this->fmtStaffTip('<span class="breadcrumb-arrow">'.$start.'</span>'.$end.' <a href="?taxipath='.$effMV.'" class="q0">#'.$effMV.'</a>', 'MiscValue: '.$effMV);
                     }
                     break;
                 case SPELL_EFFECT_TITAN_GRIP:

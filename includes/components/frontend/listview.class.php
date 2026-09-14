@@ -47,6 +47,7 @@ class Listview implements \JsonSerializable
         'replypreview'      => ['template' => 'replypreview',      'id' => 'comment-replies', 'name' => '$LANG.tab_commentreplies'],
         'reputationhistory' => ['template' => 'reputationhistory', 'id' => 'reputation',      'name' => '$LANG.tab_reputation'    ],
         'transport'         => ['template' => 'transport',         'id' => 'transports',                                          ], // aowow - custom
+        'taxipath'          => ['template' => 'taxipath',          'id' => 'taxipaths',                                           ], // aowow - custom
         'screenshot'        => ['template' => 'screenshot',        'id' => 'screenshots',     'name' => '$LANG.tab_screenshots'   ],
         'skill'             => ['template' => 'skill',             'id' => 'skills',          'name' => '$LANG.tab_skills'        ],
         'sound'             => ['template' => 'sound',             'id' => 'sounds',          'name' => '$LANG.types[19][2]'      ],

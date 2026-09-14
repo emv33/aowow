@@ -398,6 +398,25 @@ class NpcBaseResponse extends TemplateResponse implements ICache
 
         $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"], 'tabsRelated', true);
 
+        // aowow - custom start: flight paths
+        // ::taxinodes points a node at the creature standing on it, so a flight master can name its routes
+        if ($tpIds = TaxiPath::getPathIdsForNPC($this->typeId))
+        {
+            $tpJSG = [];
+            $tpData = TaxiPath::getListviewData($tpIds, $tpJSG);
+            if ($tpData)
+            {
+                $this->extendGlobalData($tpJSG);
+                $this->lvTabs->addListviewTab(new Listview(array(
+                    'data' => $tpData,
+                    'name' => Lang::game('taxipaths'),
+                    'id'   => 'taxipaths'
+                ), 'taxipath', 'taxipath'));
+            }
+        }
+        // aowow - custom end
+
+
         // tab: abilities / tab_controlledabilities (dep: VehicleId)
         $tplSpells  = [];
         $genSpells  = [];
