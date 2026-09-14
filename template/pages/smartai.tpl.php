@@ -37,9 +37,9 @@
                             <td><?=$this->ucFirst(Lang::smartaiBrowser('srcType')).Lang::main('colon'); ?></td>
                             <td>
                                 <select name="src">
-                                    <option value=""><?=Lang::smartaiBrowser('anySource'); ?></option>
+                                    <option value=""<?=($f['src'] === null ? ' selected="selected"' : ''); ?>><?=Lang::smartaiBrowser('anySource'); ?></option>
 <?php foreach ($this->srcTypeList as $id => $name): ?>
-                                    <option value="<?=$id; ?>"<?=($f['src'] !== null && $f['src'] == $id ? ' selected="selected"' : ''); ?>><?=$this->escHTML($name); ?></option>
+                                    <option value="<?=$id; ?>"<?=($f['src'] === $id ? ' selected="selected"' : ''); ?>><?=$this->escHTML($name); ?></option>
 <?php endforeach; ?>
                                 </select>
                             </td>
@@ -50,9 +50,9 @@
                             <td><?=$this->ucFirst(Lang::smartaiBrowser('eventType')).Lang::main('colon'); ?></td>
                             <td>
                                 <select name="evt">
-                                    <option value=""><?=Lang::smartaiBrowser('anyEvent'); ?></option>
+                                    <option value=""<?=($f['evt'] === null ? ' selected="selected"' : ''); ?>><?=Lang::smartaiBrowser('anyEvent'); ?></option>
 <?php foreach ($this->evtTypeList as $id => $name): ?>
-                                    <option value="<?=$id; ?>"<?=($f['evt'] !== null && $f['evt'] == $id ? ' selected="selected"' : ''); ?>><?=$id.' &ndash; '.$this->escHTML($name); ?></option>
+                                    <option value="<?=$id; ?>"<?=($f['evt'] === $id ? ' selected="selected"' : ''); ?>><?=$id.' &ndash; '.$this->escHTML($name); ?></option>
 <?php endforeach; ?>
                                 </select>
                             </td>
@@ -63,9 +63,9 @@
                             <td><?=$this->ucFirst(Lang::smartaiBrowser('actionType')).Lang::main('colon'); ?></td>
                             <td colspan="3">
                                 <select name="act">
-                                    <option value=""><?=Lang::smartaiBrowser('anyAction'); ?></option>
+                                    <option value=""<?=($f['act'] === null ? ' selected="selected"' : ''); ?>><?=Lang::smartaiBrowser('anyAction'); ?></option>
 <?php foreach ($this->actTypeList as $id => $name): ?>
-                                    <option value="<?=$id; ?>"<?=($f['act'] !== null && $f['act'] == $id ? ' selected="selected"' : ''); ?>><?=$id.' &ndash; '.$this->escHTML($name); ?></option>
+                                    <option value="<?=$id; ?>"<?=($f['act'] === $id ? ' selected="selected"' : ''); ?>><?=$id.' &ndash; '.$this->escHTML($name); ?></option>
 <?php endforeach; ?>
                                 </select>
                             </td>

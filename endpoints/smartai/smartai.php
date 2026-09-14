@@ -60,18 +60,23 @@ class SmartaiBaseResponse extends TemplateResponse
         $this->srcTypeList = Lang::smartaiBrowser('srcTypes');
         $this->evtTypeList = self::nameList(Lang::smartAI('events'));
         $this->actTypeList = self::nameList(Lang::smartAI('actions'));
+        // FILTER_VALIDATE_INT yields false - not null - for the empty string the "Any" option submits,
+        // and false == 0 in a loose comparison, so anything but a real int has to become null here or
+        // the template marks event/action type 0 as the selected one
+        $asInt = fn(string $k) : ?int => is_int($this->_get[$k] ?? null) ? $this->_get[$k] : null;
+
         $this->formValues  = array(
-            'src' => $this->_get['src'] ?? null,
-            'evt' => $this->_get['evt'] ?? null,
-            'act' => $this->_get['act'] ?? null,
-            'ref' => (int)($this->_get['ref'] ?? 0),
-            'ent' => (int)($this->_get['ent'] ?? 0)
+            'src' => $asInt('src'),
+            'evt' => $asInt('evt'),
+            'act' => $asInt('act'),
+            'ref' => $asInt('ref') ?? 0,
+            'ent' => $asInt('ent') ?? 0
         );
 
         $rows = SmartAI::browse(array(
-            'srcType'    => $this->formValues['src'] !== null ? [(int)$this->formValues['src']] : [],
-            'eventType'  => $this->formValues['evt'] !== null ? (int)$this->formValues['evt'] : -1,
-            'actionType' => $this->formValues['act'] !== null ? (int)$this->formValues['act'] : -1,
+            'srcType'    => $this->formValues['src'] !== null ? [$this->formValues['src']] : [],
+            'eventType'  => $this->formValues['evt'] ?? -1,
+            'actionType' => $this->formValues['act'] ?? -1,
             'refId'      => $this->formValues['ref'],
             'entry'      => $this->formValues['ent'],
             'limit'      => self::LIMIT + 1
