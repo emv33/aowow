@@ -141,6 +141,12 @@ class ClassBaseResponse extends TemplateResponse implements ICache
         /* Extra Tabs */
         /**************/
 
+        // aowow - custom start: starting gear and spells
+        $so = new StartOutfit(StartOutfit::BY_CLASS, $this->typeId);
+        $this->startOutfit = $so->getMarkup();               // fills the globals; must run first
+        $this->extendGlobalData($so->getJSGlobals());
+        // aowow - custom end
+
         $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"], 'tabsRelated', true);
 
         // tab: spells (grouped)

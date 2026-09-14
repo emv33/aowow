@@ -1327,6 +1327,15 @@ $lang = array(
             GO_TYPE_MO_TRANSPORT => "Transport"
         )
     ),
+    'startOutfit' => array(
+        'title'         => "Starting out",
+        'what'          => "",
+        'value'         => "",
+        'gear'          => "Equipment",
+        'extra'         => "Also carries",
+        'spells'        => "Knows",
+        'startsIn'      => "Starts in"
+    ),
     'legacyScript' => array(
         'srcTypes'      => array(
             LegacyScript::SRC_EVENT       => "Event script #%d",

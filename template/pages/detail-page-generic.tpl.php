@@ -50,6 +50,8 @@
 
     $this->brick('markup', ['markup' => $this->legacyScript]);   // aowow - custom
 
+    $this->brick('markup', ['markup' => $this->startOutfit]);   // aowow - custom
+
 if ($this->zoneMusic):
 ?>
 

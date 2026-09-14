@@ -52,6 +52,7 @@ class Lang
     private static array $smartaiBrowser;
     private static array $encounter;
     private static array $transport;
+    private static array $startOutfit;
 
     private static ?Locale $locale = null;
 
