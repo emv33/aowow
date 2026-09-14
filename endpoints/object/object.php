@@ -249,7 +249,8 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
                     }
                 }
 
-                $infobox[] = Lang::transport('route').Lang::main('colon').$route['from'].' &rarr; '.$route['to'];
+                // a literal arrow, not &rarr;: Markup._safeHtml() escapes every & and re-allows only nbsp and ndash
+                $infobox[] = Lang::transport('route').Lang::main('colon').$route['from'].' → '.$route['to'];
             }
         }
         // aowow - custom end
