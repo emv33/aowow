@@ -1333,6 +1333,7 @@ $lang = array(
         'gear'          => "Equipment",
         'extra'         => "Also carries",
         'spells'        => "Knows",
+        'general'       => "General",
         'castSpells'    => "Cast on creation",
         'customSpells'  => "Custom spell list",
         'startsIn'      => "Starts in"

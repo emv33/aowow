@@ -28,6 +28,10 @@ class StartOutfit
     // class or race skill line means at character creation
     private const int ACQUIRE_ON_SKILL_LEARN = 2;
 
+    // SkillLine.dbc categoryId 7 is the class skill lines - the spellbook's spec tabs. Weapon, armor,
+    // language and racial lines sit in other categories and belong under General, as they do in game.
+    private const int SKILL_CATEGORY_CLASS   = 7;
+
     private const string BASE_CSS = <<<CSS
         #start-outfit-generic .grid { clear:left; display: grid; }
         #start-outfit-generic .grid thead,
@@ -221,6 +225,85 @@ class StartOutfit
         return $this->hideForPlayers(array_values($ids));
     }
 
+    /**
+     * split a set of spells into the tabs the in-game spellbook uses
+     *
+     * The tabs are skill lines: category 7 holds the class lines - the spec tabs - while weapon,
+     * armor, language and racial lines all belong under General. `skillLine1` on the spell is the
+     * line it is filed under, which is what the client groups by.
+     *
+     * @return array ordered [label => spellIds], General first
+     */
+    private function bySkillLine(array $spellIds) : array
+    {
+        if (!$spellIds)
+            return [];
+
+        $loc  = Lang::getLocale();
+        $rows = DB::Aowow()->selectAssoc(
+           'SELECT   s.`id` AS ARRAY_KEY, s.`skillLine1`, sl.`categoryId`, sl.`name_loc0`, sl.`name_loc'.$loc->value.'` AS "name_loc"
+            FROM     ::spell s
+            LEFT JOIN ::skillline sl ON sl.`id` = s.`skillLine1`
+            WHERE    s.`id` IN %in',
+            $spellIds
+        ) ?: [];
+
+        $general = [];
+        $tabs    = [];                                      // skillLineId => [label, ids]
+
+        foreach ($spellIds as $id)                          // keep the caller's order within a tab
+        {
+            $r = $rows[$id] ?? null;
+
+            if (!$r || (int)$r['categoryId'] != self::SKILL_CATEGORY_CLASS || !(int)$r['skillLine1'])
+            {
+                $general[] = $id;
+                continue;
+            }
+
+            $slId = (int)$r['skillLine1'];
+            if (!isset($tabs[$slId]))
+                $tabs[$slId] = [(string)($r['name_loc'] ?: $r['name_loc0']), []];
+
+            $tabs[$slId][1][] = $id;
+        }
+
+        uasort($tabs, fn($a, $b) => strcmp($a[0], $b[0]));
+
+        $out = [];
+        if ($general)
+            $out[Lang::startOutfit('general')] = $general;
+
+        foreach ($tabs as $slId => [$label, $ids])
+            $out['[skill='.$slId.']'] = $ids;               // link the tab to the skill it is
+
+        return $out;
+    }
+
+    /**
+     * one grid row per spellbook tab, the heading naming the source and the tab
+     * a source with a single tab is not worth the extra column, so it stays on one row
+     */
+    private function spellRows(string $heading, array $spellIds) : array
+    {
+        if (!$spellIds)
+            return [];
+
+        foreach ($spellIds as $id)
+            $this->jsGlobals[Type::SPELL][$id] = $id;
+
+        $tabs = $this->bySkillLine($spellIds);
+        $out  = [];
+
+        foreach ($tabs as $label => $ids)
+        {
+            $caption = count($tabs) > 1 ? $heading.' [small class=q0]&ndash; '.$label.'[/small]' : $heading;
+            $out[]   = [$caption, Lang::concat(array_map(fn($x) => '[spell='.$x.']', $ids), Lang::CONCAT_NONE)];
+        }
+
+        return $out;
+    }
+
     private function renderGrid(array $th, array $rows) : string
     {
         $tblId = Util::createHash(12);
@@ -275,29 +358,11 @@ class StartOutfit
                 $rows[] = [Lang::startOutfit('extra'), Lang::concat(array_map(fn($id, $n) => ($n > 1 ? $n.'x ' : '').'[item='.$id.']', array_keys($extra), $extra), Lang::CONCAT_NONE)];
             }
 
-            if ($learned)
-            {
-                foreach ($learned as $id)
-                    $this->jsGlobals[Type::SPELL][$id] = $id;
+            $rows = array_merge($rows, $this->spellRows(Lang::startOutfit('spells'), $learned));
 
-                $rows[] = [Lang::startOutfit('spells'), Lang::concat(array_map(fn($x) => '[spell='.$x.']', $learned), Lang::CONCAT_NONE)];
-            }
+            $rows = array_merge($rows, $this->spellRows(Lang::startOutfit('castSpells'), $cast));
 
-            if ($cast)
-            {
-                foreach ($cast as $id)
-                    $this->jsGlobals[Type::SPELL][$id] = $id;
-
-                $rows[] = [Lang::startOutfit('castSpells'), Lang::concat(array_map(fn($x) => '[spell='.$x.']', $cast), Lang::CONCAT_NONE)];
-            }
-
-            if ($custom)
-            {
-                foreach ($custom as $id)
-                    $this->jsGlobals[Type::SPELL][$id] = $id;
-
-                $rows[] = [Lang::startOutfit('customSpells'), Lang::concat(array_map(fn($x) => '[spell='.$x.']', $custom), Lang::CONCAT_NONE)];
-            }
+            $rows = array_merge($rows, $this->spellRows(Lang::startOutfit('customSpells'), $custom));
 
             if ($p['zone'])
             {
