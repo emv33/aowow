@@ -612,7 +612,7 @@ define('GO_TYPE_TRAP',                       6);
 define('GO_TYPE_CHAIR',                      7);
 define('GO_TYPE_SPELL_FOCUS',                8);
 define('GO_TYPE_TEXT',                       9);
-define('GO_TYPE_GOOBER',                    10);            // data19 - gossipID
+define('GO_TYPE_GOOBER',                    10);            // data18 - gossipID
 define('GO_TYPE_TRANSPORT',                 11);
 define('GO_TYPE_AREADAMAGE',                12);
 define('GO_TYPE_CAMERA',                    13);

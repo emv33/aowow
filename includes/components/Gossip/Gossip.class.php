@@ -95,12 +95,12 @@ class Gossip
     {
         $menus = [];
 
-        if ($row = DB::World()->selectRow('SELECT `type`, `data3`, `data19` FROM gameobject_template WHERE `entry` = %i', $objectId))
+        if ($row = DB::World()->selectRow('SELECT `type`, `data3`, `data18` FROM gameobject_template WHERE `entry` = %i', $objectId))
         {
             $_ = match ((int)$row['type'])
             {
                 GO_TYPE_QUESTGIVER => (int)$row['data3'],
-                GO_TYPE_GOOBER     => (int)$row['data19'],
+                GO_TYPE_GOOBER     => (int)$row['data18'],
                 default            => 0
             };
 

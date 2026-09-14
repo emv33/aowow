@@ -75,7 +75,7 @@ class GossipList extends DBTypeList
             $result[(int)$r['menuId']][Type::NPC][(int)$r['entry']] = (int)$r['entry'];
 
         // gameobject_template - the gossip field is type dependent
-        $goGossip = 'IF(`type` = '.GO_TYPE_QUESTGIVER.', `data3`, IF(`type` = '.GO_TYPE_GOOBER.', `data19`, 0))';
+        $goGossip = 'IF(`type` = '.GO_TYPE_QUESTGIVER.', `data3`, IF(`type` = '.GO_TYPE_GOOBER.', `data18`, 0))';
         foreach (DB::World()->selectAssoc('SELECT '.$goGossip.' AS "menuId", `entry` FROM gameobject_template WHERE '.$goGossip.' IN %in', $menuIds) ?: [] as $r)
             $result[(int)$r['menuId']][Type::OBJECT][(int)$r['entry']] = (int)$r['entry'];
 
