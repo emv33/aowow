@@ -679,7 +679,7 @@ class SmartAction
                 {
                     $type = Type::NPC;
                     if ($spawnType == 1)
-                        $type == Type::OBJECT;
+                        $type = Type::OBJECT;
 
                     if ($_ = $this->resolveGuid($type, $guid))
                     {
@@ -696,7 +696,7 @@ class SmartAction
                 if (count($entities) > 5)
                     $buff[] = '+'.(count($entities) - 5).'…';
 
-                $this->param[12] = '[ul][li]'.implode('[/li][li]', $buff).'[/li][/ul]';
+                $this->param[12] = $buff ? '[ul][li]'.implode('[/li][li]', $buff).'[/li][/ul]' : '';
 
                 // i'd like this stored in $data but numRange can only handle msec
                 if ($time = $this->numRange($this->param[1] * 1000, $this->param[2] * 1000, true))
@@ -705,7 +705,7 @@ class SmartAction
             case self::ACTION_RESPAWN_BY_SPAWNID:           // 133
                 $type = Type::NPC;
                 if ($this->param[0] == 1)
-                    $type == Type::OBJECT;
+                    $type = Type::OBJECT;
 
                 if ($_ = $this->resolveGuid($type, $this->param[1]))
                 {
