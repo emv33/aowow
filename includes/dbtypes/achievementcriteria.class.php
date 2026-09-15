@@ -51,9 +51,9 @@ class AchievementCriteriaList extends DBTypeList
         ACHIEVEMENT_CRITERIA_TYPE_ON_LOGIN             => 'On login',
         ACHIEVEMENT_CRITERIA_TYPE_LEARN_SKILLLINE_SPELLS => 'Learn skill line spells',
         ACHIEVEMENT_CRITERIA_TYPE_KILL_CREATURE_TYPE   => 'Kill creature type',
-        ACHIEVEMENT_CRITERIA_TYPE_GAIN_REVERED_REPUTATION => 'Gain revered reputation',
-        ACHIEVEMENT_CRITERIA_TYPE_GAIN_HONORED_REPUTATION => 'Gain honored reputation',
-        ACHIEVEMENT_CRITERIA_TYPE_KNOWN_FACTIONS       => 'Known factions'
+        87                                              => 'Gain revered reputation',
+        88                                              => 'Gain honored reputation',
+        89                                              => 'Known factions'
     );
 
     private const array FLAG_NAMES = array(
