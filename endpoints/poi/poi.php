@@ -99,7 +99,9 @@ class PoiBaseResponse extends TemplateResponse
      * a point of interest carries no map id of its own; the map it belongs to is only reachable
      * through the menus whose options point at it (`gossip_menu_option`.`ActionPoiID`), and from
      * there to whichever NPCs/objects actually present that menu - either as their default
-     * `gossip_menu_id`/`data3`/`data18`, or sent explicitly by a SmartAI script. This mirrors
+     * `gossip_menu_id`/`data3`/`data18`, sent explicitly by a SmartAI script, or as a submenu a
+     * parent menu opens via its own option's `ActionMenuID` (most poi options sit several
+     * submenus deep, not on an NPC's/object's own default menu). This mirrors
      * Gossip::getMenusForNPC()/getMenusForObject(), just followed backwards from menu to owner.
      *
      * @param int[] $poiIds
@@ -126,6 +128,38 @@ class PoiBaseResponse extends TemplateResponse
             $poiToMenus[(int)$r['poi']][$menu] = $menu;
             $menuIds[$menu] = $menu;
         }
+
+        // walk from each poi-carrying menu up to whatever parent menu opens it via
+        // ActionMenuID, as far up as the tree goes, so an NPC/object several submenus
+        // above the poi option is still found; menuParents keeps the edges so the walk
+        // can later be redone per-poi to attribute a resolved map back to the right one
+        $menuParents = [];                                  // childMenu => [parentMenu, ...]
+        $allMenus    = $menuIds;
+        $frontier    = $menuIds;
+
+        for ($hop = 0; $frontier && $hop < 12; $hop++)
+        {
+            $rows = DB::World()->selectAssoc(
+               'SELECT `MenuID` AS "parent", `ActionMenuID` AS "child" FROM gossip_menu_option WHERE `ActionMenuID` IN %in',
+                $frontier
+            ) ?: [];
+
+            $frontier = [];
+            foreach ($rows as $r)
+            {
+                $parent = (int)$r['parent'];
+                $child  = (int)$r['child'];
+                $menuParents[$child][$parent] = $parent;
+
+                if (!isset($allMenus[$parent]))
+                {
+                    $allMenus[$parent] = $parent;
+                    $frontier[$parent] = $parent;
+                }
+            }
+        }
+
+        $menuIds = $allMenus;
 
         // menuId => lowest map id any NPC/object presenting that menu is found on
         $menuToMap = [];
@@ -233,10 +267,33 @@ class PoiBaseResponse extends TemplateResponse
         $out = [];
         foreach ($poiToMenus as $poi => $menus)
             foreach ($menus as $menu)
-                if (isset($menuToMap[$menu]) && (!isset($out[$poi]) || $menuToMap[$menu] < $out[$poi]))
-                    $out[$poi] = $menuToMap[$menu];
+                foreach (self::menuAndAncestors($menu, $menuParents) as $m)
+                    if (isset($menuToMap[$m]) && (!isset($out[$poi]) || $menuToMap[$m] < $out[$poi]))
+                        $out[$poi] = $menuToMap[$m];
 
         return $out;
+    }
+
+    /** a menu plus every parent menu that can reach it through an ActionMenuID chain */
+    private static function menuAndAncestors(int $menu, array $menuParents) : array
+    {
+        $seen  = [$menu => $menu];
+        $stack = [$menu];
+
+        while ($stack)
+        {
+            $m = array_pop($stack);
+            foreach ($menuParents[$m] ?? [] as $parent)
+            {
+                if (!isset($seen[$parent]))
+                {
+                    $seen[$parent] = $parent;
+                    $stack[] = $parent;
+                }
+            }
+        }
+
+        return $seen;
     }
 
     /** the three-digit pin block the Mapper link format uses per coordinate */
