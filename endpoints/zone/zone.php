@@ -153,14 +153,14 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
         if ($_ = DB::Aowow()->selectCol('SELECT `typeId` FROM ::spawns WHERE `type`= %i AND `areaId` = %i ', Type::ZONE, $this->typeId))
         {
             $this->extendGlobalIds(Type::ZONE, ...$_);
-            $infobox[] = [Lang::maps('Instances').Lang::main('colon').Lang::concat($_, Lang::CONCAT_NONE, fn($x) => "\n[zone=".$x."]"), ['class' => 'infobox-wrap']];
+            $infobox[] = Lang::maps('Instances').Lang::main('colon').Lang::concat($_, Lang::CONCAT_NONE, fn($x) => "\n[zone=".$x."]");
         }
 
         // start area
         if ($_ = DB::Aowow()->selectCol('SELECT `id` FROM ::races WHERE `startAreaId` = %i', $this->typeId))
         {
             $this->extendGlobalIds(Type::CHR_RACE, ...$_);
-            $infobox[] = [Lang::concat($_, Lang::CONCAT_NONE, fn($x) => '[race='.$x.']').' '.Lang::race('startZone'), ['class' => 'infobox-wrap']];
+            $infobox[] = Lang::concat($_, Lang::CONCAT_NONE, fn($x) => '[race='.$x.']').' '.Lang::race('startZone');
         }
 
         parent::generate(); // calls applyGlobals .. probably too early here, but addMoveLocationMenu requires PageTemplate to be initialized
@@ -189,7 +189,7 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
                     if (!$_ = array_values(array_filter($ids, fn($id) => ($id < 0) === $heroic)))
                         continue;
 
-                    $infobox[] = [Lang::zone($name, (int)$heroic).Lang::concat(array_map(fn($id) => '['.$tag.'='.abs($id).']', $_), Lang::CONCAT_NONE), ['class' => 'infobox-wrap']];
+                    $infobox[] = Lang::zone($name, (int)$heroic).Lang::concat(array_map(fn($id) => '['.$tag.'='.abs($id).']', $_), Lang::CONCAT_NONE);
                 }
             }
         }
@@ -232,7 +232,7 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
             if ($holidays = self::getBattlegroundHoliday($bg['id']))
             {
                 $this->extendGlobalIds(Type::WORLDEVENT, ...$holidays);
-                $infobox[] = [Lang::zone('holiday').Lang::main('colon').Lang::concat(array_map(fn($x) => '[event='.$x.']', $holidays), Lang::CONCAT_NONE), ['class' => 'infobox-wrap']];
+                $infobox[] = Lang::zone('holiday').Lang::main('colon').Lang::concat(array_map(fn($x) => '[event='.$x.']', $holidays), Lang::CONCAT_NONE);
             }
         }
 
@@ -258,7 +258,7 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
                 }
 
                 if ($quests)
-                    $infobox[] = [Lang::zone('lfgReward', [$rw['maxLevel']]).Lang::main('colon').implode(', ', $quests), ['class' => 'infobox-wrap']];
+                    $infobox[] = Lang::zone('lfgReward', [$rw['maxLevel']]).Lang::main('colon').implode(', ', $quests);
             }
         }
         // aowow - custom end

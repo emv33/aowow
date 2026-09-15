@@ -210,7 +210,7 @@ class NpcBaseResponse extends TemplateResponse implements ICache
             foreach ($_ as $itemId)
                 $this->extendGlobalIds(Type::ITEM, $itemId);
 
-            $infobox[] = [Lang::npcExtra('equipped').Lang::main('colon').Lang::concat(array_map(fn($x) => '[item='.$x.']', $_), Lang::CONCAT_NONE), ['class' => 'infobox-wrap']];
+            $infobox[] = Lang::npcExtra('equipped').Lang::main('colon').Lang::concat(array_map(fn($x) => '[item='.$x.']', $_), Lang::CONCAT_NONE);
         }
 
         if ($_ = self::getFormationLeader($this->typeId))
@@ -245,7 +245,7 @@ class NpcBaseResponse extends TemplateResponse implements ICache
             foreach ($_ as $itemId)
                 $this->extendGlobalIds(Type::ITEM, $itemId);
 
-            $infobox[] = [Lang::npcExtra('questItems').Lang::main('colon').Lang::concat(array_map(fn($x) => '[item='.$x.']', $_), Lang::CONCAT_NONE), ['class' => 'infobox-wrap']];
+            $infobox[] = Lang::npcExtra('questItems').Lang::main('colon').Lang::concat(array_map(fn($x) => '[item='.$x.']', $_), Lang::CONCAT_NONE);
         }
         // aowow - custom end
 

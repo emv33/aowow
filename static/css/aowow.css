@@ -3749,9 +3749,10 @@ a.button-bigblue b {
     color: white;
 }
 
-/* a long row (e.g. the zones an achievement takes place in) wraps inside a
-   fixed width instead of stretching the box to fit on one line */
-.infobox li.infobox-wrap {
+/* rows wrap inside a fixed width instead of stretching the box to fit on
+   one line; a long row (the zones an achievement takes place in, a boss's
+   equipped kit) now adds height, not width */
+.infobox li {
     white-space: normal;
     max-width: 240px;
 }
