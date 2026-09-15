@@ -1,3 +1,15 @@
+// sai.linkid/url/lookup/name describe the row's own entity (creature/object/areatrigger); sai.owners
+// (only ever set for a Timed action list row, which has no page of its own) lists every entity -
+// same shape minus linkid - whose script calls that list
+// not a column method: col.compute is invoked bound to the Listview instance (see listview.js
+// createRow()), not the column, so a helper shared with getVisibleText has to live out here instead
+function smartaiResolveName(url, id, lookup, name) {
+    var nameCol = 'name_' + Locale.getName(),
+        entry   = lookup ? (window[lookup] || {})[id] : null;
+
+    return (entry && entry[nameCol]) ? entry[nameCol] : (name || null);
+}
+
 Listview.templates.smartai = {
     sort: [1],
     searchable: 1,
@@ -24,17 +36,8 @@ Listview.templates.smartai = {
             name: LANG.fismartai.entity,
             type: 'text',
             align: 'left',
-            // sai.linkid/url/lookup/name describe the row's own entity (creature/object/areatrigger);
-            // sai.owners (only ever set for a Timed action list row, which has no page of its own)
-            // lists every entity - same shape minus linkid - whose script calls that list
-            resolveName: function(url, id, lookup, name) {
-                var nameCol = 'name_' + Locale.getName(),
-                    entry   = lookup ? (window[lookup] || {})[id] : null;
-
-                return (entry && entry[nameCol]) ? entry[nameCol] : (name || null);
-            },
             compute: function(sai, td) {
-                var name = this.resolveName(sai.url, sai.linkid, sai.lookup, sai.name);
+                var name = smartaiResolveName(sai.url, sai.linkid, sai.lookup, sai.name);
 
                 if (name && sai.url) {
                     var a = $WH.ce('a');
@@ -60,21 +63,21 @@ Listview.templates.smartai = {
                         var a = $WH.ce('a');
                         a.className = 'q1';
                         a.href = '?' + o.url + '=' + o.id;
-                        $WH.ae(a, $WH.ct(this.resolveName(o.url, o.id, o.lookup, o.name) || ('#' + o.id)));
+                        $WH.ae(a, $WH.ct(smartaiResolveName(o.url, o.id, o.lookup, o.name) || ('#' + o.id)));
                         $WH.ae(td, a);
-                    }, this);
+                    });
                     $WH.ae(td, $WH.ct(')'));
                 }
             },
             getVisibleText: function(sai) {
-                var name = this.resolveName(sai.url, sai.linkid, sai.lookup, sai.name),
+                var name = smartaiResolveName(sai.url, sai.linkid, sai.lookup, sai.name),
                     text = name ? (name + (sai.entry < 0 ? ' ' + $WH.sprintf(LANG.smartai_guid, -sai.entry) : ''))
                                 : (sai.entry < 0 ? $WH.sprintf(LANG.smartai_guid, -sai.entry) : String(sai.entry));
 
                 if (sai.owners && sai.owners.length)
                     text += ' (' + sai.owners.map(function(o) {
-                        return this.resolveName(o.url, o.id, o.lookup, o.name) || ('#' + o.id);
-                    }, this).join(', ') + ')';
+                        return smartaiResolveName(o.url, o.id, o.lookup, o.name) || ('#' + o.id);
+                    }).join(', ') + ')';
 
                 return text;
             },
