@@ -74,6 +74,7 @@ class PoiBaseResponse extends TemplateResponse
         // gossip menus whose options point at it
         $maps = $this->getPoiMaps(array_keys($pois));
 
+        $jsg  = [];
         $data = [];
         foreach ($pois as $poi)
         {
@@ -82,39 +83,158 @@ class PoiBaseResponse extends TemplateResponse
             {
                 $poi['zone']    = (int)$pt[0]['areaId'];
                 $poi['maplink'] = '?maps='.$poi['zone'].':'.self::pinStr($pt[0]['posX']).self::pinStr($pt[0]['posY']);
+
+                $jsg[Type::ZONE][$poi['zone']] = $poi['zone'];
             }
 
             $data[] = $poi;
         }
 
+        $this->extendGlobalData($jsg);
+
         return $data;
     }
 
     /**
+     * a point of interest carries no map id of its own; the map it belongs to is only reachable
+     * through the menus whose options point at it (`gossip_menu_option`.`ActionPoiID`), and from
+     * there to whichever NPCs/objects actually present that menu - either as their default
+     * `gossip_menu_id`/`data3`/`data18`, or sent explicitly by a SmartAI script. This mirrors
+     * Gossip::getMenusForNPC()/getMenusForObject(), just followed backwards from menu to owner.
+     *
      * @param int[] $poiIds
      * @return array<int, int> poiId => mapId
      */
     private function getPoiMaps(array $poiIds) : array
     {
-        foreach (['gossip_menu', 'gossip_menu_option', 'creature_template', 'creature'] as $tbl)
-            if (!DB::World()->selectCell('SHOW TABLES LIKE %s', $tbl))
-                return [];
+        if (!DB::World()->selectCell('SHOW TABLES LIKE %s', 'gossip_menu_option'))
+            return [];
 
-        // a menu can be shared by creatures on several maps; the lowest map id wins, which is
-        // enough to open a map the point is actually drawn on
-        $rows = DB::World()->selectAssoc(
-           'SELECT gmo.`ActionPoiID` AS "poi", MIN(c.`map`) AS "map"
-            FROM   gossip_menu_option gmo
-            JOIN   gossip_menu gm ON gm.`MenuID` = gmo.`MenuID`
-            JOIN   creature_template ct ON ct.`gossip_menu_id` = gm.`MenuID`
-            JOIN   creature c ON c.`id` = ct.`entry`
-            WHERE  gmo.`ActionPoiID` IN %in
-            GROUP BY gmo.`ActionPoiID`', $poiIds
+        $optRows = DB::World()->selectAssoc(
+           'SELECT `MenuID` AS "menu", `ActionPoiID` AS "poi" FROM gossip_menu_option WHERE `ActionPoiID` IN %in',
+            $poiIds
         ) ?: [];
 
+        if (!$optRows)
+            return [];
+
+        $poiToMenus = [];
+        $menuIds    = [];
+        foreach ($optRows as $r)
+        {
+            $menu = (int)$r['menu'];
+            $poiToMenus[(int)$r['poi']][$menu] = $menu;
+            $menuIds[$menu] = $menu;
+        }
+
+        // menuId => lowest map id any NPC/object presenting that menu is found on
+        $menuToMap = [];
+        $useMap    = function(int $menu, int $map) use (&$menuToMap) : void
+        {
+            if ($menu && (!isset($menuToMap[$menu]) || $map < $menuToMap[$menu]))
+                $menuToMap[$menu] = $map;
+        };
+
+        if (DB::World()->selectCell('SHOW TABLES LIKE %s', 'creature_template') && DB::World()->selectCell('SHOW TABLES LIKE %s', 'creature'))
+        {
+            $rows = DB::World()->selectAssoc(
+               'SELECT ct.`gossip_menu_id` AS "menu", MIN(c.`map`) AS "map"
+                FROM   creature_template ct
+                JOIN   creature c ON c.`id` = ct.`entry`
+                WHERE  ct.`gossip_menu_id` IN %in
+                GROUP BY ct.`gossip_menu_id`',
+                $menuIds
+            ) ?: [];
+
+            foreach ($rows as $r)
+                $useMap((int)$r['menu'], (int)$r['map']);
+        }
+
+        if (DB::World()->selectCell('SHOW TABLES LIKE %s', 'gameobject_template') && DB::World()->selectCell('SHOW TABLES LIKE %s', 'gameobject'))
+        {
+            $rows = DB::World()->selectAssoc(
+               'SELECT
+                    CASE gt.`type` WHEN %i THEN gt.`data3` WHEN %i THEN gt.`data18` END AS "menu",
+                    MIN(g.`map`) AS "map"
+                FROM   gameobject_template gt
+                JOIN   gameobject g ON g.`id` = gt.`entry`
+                WHERE  (gt.`type` = %i AND gt.`data3`  IN %in)
+                   OR  (gt.`type` = %i AND gt.`data18` IN %in)
+                GROUP BY menu',
+                GO_TYPE_QUESTGIVER, GO_TYPE_GOOBER, GO_TYPE_QUESTGIVER, $menuIds, GO_TYPE_GOOBER, $menuIds
+            ) ?: [];
+
+            foreach ($rows as $r)
+                $useMap((int)$r['menu'], (int)$r['map']);
+        }
+
+        if (DB::World()->selectCell('SHOW TABLES LIKE %s', 'smart_scripts'))
+        {
+            $rows = DB::World()->selectAssoc(
+               'SELECT `source_type` AS "srcType", `entryorguid` AS "entry", `action_param1` AS "menu"
+                FROM   smart_scripts
+                WHERE  `action_type` = %i AND `action_param1` IN %in',
+                SmartAction::ACTION_SEND_GOSSIP_MENU, $menuIds
+            ) ?: [];
+
+            $npcEntries = [];                               // entry => [menuId, ...]
+            $goEntries  = [];
+            $npcGuids   = [];                                // guid  => [menuId, ...]
+            $goGuids    = [];
+
+            foreach ($rows as $r)
+            {
+                $entry = (int)$r['entry'];
+                $menu  = (int)$r['menu'];
+
+                if ((int)$r['srcType'] == SmartAI::SRC_TYPE_CREATURE)
+                {
+                    if ($entry > 0)
+                        $npcEntries[$entry][] = $menu;
+                    else if ($entry < 0)                    // guid specific script; resolve back to the template
+                        $npcGuids[-$entry][] = $menu;
+                }
+                else if ((int)$r['srcType'] == SmartAI::SRC_TYPE_OBJECT)
+                {
+                    if ($entry > 0)
+                        $goEntries[$entry][] = $menu;
+                    else if ($entry < 0)
+                        $goGuids[-$entry][] = $menu;
+                }
+            }
+
+            if ($npcGuids)
+                foreach (DB::World()->selectAssoc('SELECT `guid`, `id` AS "entry" FROM creature WHERE `guid` IN %in', array_keys($npcGuids)) ?: [] as $r)
+                    foreach ($npcGuids[(int)$r['guid']] as $menu)
+                        $npcEntries[(int)$r['entry']][] = $menu;
+
+            if ($goGuids)
+                foreach (DB::World()->selectAssoc('SELECT `guid`, `id` AS "entry" FROM gameobject WHERE `guid` IN %in', array_keys($goGuids)) ?: [] as $r)
+                    foreach ($goGuids[(int)$r['guid']] as $menu)
+                        $goEntries[(int)$r['entry']][] = $menu;
+
+            if ($npcEntries)
+            {
+                $maps = DB::World()->selectAssoc('SELECT `id` AS "entry", MIN(`map`) AS "map" FROM creature WHERE `id` IN %in GROUP BY `id`', array_keys($npcEntries)) ?: [];
+                foreach ($maps as $r)
+                    foreach ($npcEntries[(int)$r['entry']] as $menu)
+                        $useMap($menu, (int)$r['map']);
+            }
+
+            if ($goEntries)
+            {
+                $maps = DB::World()->selectAssoc('SELECT `id` AS "entry", MIN(`map`) AS "map" FROM gameobject WHERE `id` IN %in GROUP BY `id`', array_keys($goEntries)) ?: [];
+                foreach ($maps as $r)
+                    foreach ($goEntries[(int)$r['entry']] as $menu)
+                        $useMap($menu, (int)$r['map']);
+            }
+        }
+
         $out = [];
-        foreach ($rows as $r)
-            $out[(int)$r['poi']] = (int)$r['map'];
+        foreach ($poiToMenus as $poi => $menus)
+            foreach ($menus as $menu)
+                if (isset($menuToMap[$menu]) && (!isset($out[$poi]) || $menuToMap[$menu] < $out[$poi]))
+                    $out[$poi] = $menuToMap[$menu];
 
         return $out;
     }
