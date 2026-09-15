@@ -121,6 +121,40 @@ class EncounterList extends DBTypeList
     }
 
     /**
+     * without DungeonEncounter.dbc an encounter has no map, so the instance cannot be resolved
+     * through mapsToAreas(); most bosses are credited by killing a creature, and the zone that
+     * creature spawns in is the instance
+     */
+    private static function creditAreas(array $templates) : array
+    {
+        $byEntry = [];
+        foreach ($templates as $id => $tpl)
+        {
+            if ((int)($tpl['creditType'] ?? 0) == self::CREDIT_KILL_CREATURE && ($entry = (int)($tpl['creditEntry'] ?? 0)))
+                $byEntry[$entry] = (int)$id;
+        }
+
+        if (!$byEntry)
+            return [];
+
+        $rows = DB::Aowow()->selectAssoc(
+           'SELECT s.`typeId` AS ARRAY_KEY, MIN(z.`id`) AS "areaId"
+            FROM   ::spawns s
+            JOIN   ::zones z ON z.`id` = s.`areaId` AND z.`parentArea` = 0
+            WHERE  s.`type` = %i AND s.`typeId` IN %in AND s.`areaId` > 0
+            GROUP BY s.`typeId`',
+            Type::NPC, array_keys($byEntry)
+        ) ?: [];
+
+        $out = [];
+        foreach ($rows as $entry => $r)
+            if (isset($byEntry[(int)$entry]))
+                $out[$byEntry[(int)$entry]] = (int)$r['areaId'];
+
+        return $out;
+    }
+
+    /**
      * the other encounters sharing a map
      * the map only exists in DungeonEncounter.dbc, so without it there are no siblings to find
      */
@@ -137,8 +171,9 @@ class EncounterList extends DBTypeList
 
     public function getListviewData() : array
     {
-        $areas = self::mapsToAreas(array_column($this->templates, 'mapId'));
-        $data  = [];
+        $areas    = self::mapsToAreas(array_column($this->templates, 'mapId'));
+        $fallback = self::creditAreas($this->templates);
+        $data     = [];
 
         foreach ($this->iterate() as $id => $__)
         {
@@ -150,7 +185,7 @@ class EncounterList extends DBTypeList
                 'lastboss' => $this->curTpl['lastBoss'] ? 1 : 0
             );
 
-            if ($_ = ($areas[$this->curTpl['mapId']] ?? 0))
+            if ($_ = ($areas[$this->curTpl['mapId']] ?? $fallback[$id] ?? 0))
                 $data[$id]['area'] = $_;
 
             if ($this->curTpl['creditEntry'])
@@ -165,10 +200,11 @@ class EncounterList extends DBTypeList
 
     public function getJSGlobals(int $addMask = GLOBALINFO_ANY) : array
     {
-        $data  = [];
-        $areas = self::mapsToAreas(array_column($this->templates, 'mapId'));
+        $data     = [];
+        $areas    = self::mapsToAreas(array_column($this->templates, 'mapId'));
+        $fallback = self::creditAreas($this->templates);
 
-        foreach ($this->iterate() as $__)
+        foreach ($this->iterate() as $id => $__)
         {
             if ($this->curTpl['creditEntry'])
             {
@@ -176,7 +212,7 @@ class EncounterList extends DBTypeList
                 $data[$type][$this->curTpl['creditEntry']] = $this->curTpl['creditEntry'];
             }
 
-            if ($_ = ($areas[$this->curTpl['mapId']] ?? 0))
+            if ($_ = ($areas[$this->curTpl['mapId']] ?? $fallback[$id] ?? 0))
                 $data[Type::ZONE][$_] = $_;
         }
 
