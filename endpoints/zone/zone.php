@@ -170,8 +170,7 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
         {
             $this->addMoveLocationMenu($pa['areaId'], $pa['floor']);
 
-            $pins = str_pad($pa['posX'] * 10, 3, '0', STR_PAD_LEFT) . str_pad($pa['posY'] * 10, 3, '0', STR_PAD_LEFT);
-            $infobox[] = Lang::zone('location').'[lightbox=map zone='.$pa['areaId'].' '.($pa['floor'] > 1 ? 'floor='.--$pa['floor'] : '').' pins='.$pins.']'.ZoneList::getName($pa['areaId']).'[/lightbox]';
+            $infobox[] = Lang::zone('location').self::makeMapLink($pa);
         }
 
         // Attunement Quest/Achievements & Keys
@@ -180,12 +179,17 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
             foreach ($attmnt as $type => $ids)
             {
                 $this->extendGlobalIds($type, ...array_map('abs', $ids));
-                foreach ($ids as $id)
+
+                // one line per kind (normal / heroic), its ids as a list
+                $tag  = $type == Type::ITEM ? 'item' : Type::getFileString($type);
+                $name = $type == Type::ITEM ? 'key' : 'attunement';
+
+                foreach ([false, true] as $heroic)
                 {
-                    if ($type == Type::ITEM)
-                        $infobox[] = Lang::zone('key', (int)($id < 0)).'[item='.abs($id).']';
-                    else
-                        $infobox[] = Lang::zone('attunement', (int)($id < 0)).'['.Type::getFileString($type).'='.abs($id).']';
+                    if (!$_ = array_values(array_filter($ids, fn($id) => ($id < 0) === $heroic)))
+                        continue;
+
+                    $infobox[] = Lang::zone($name, (int)$heroic).Lang::concat(array_map(fn($id) => '['.$tag.'='.abs($id).']', $_), Lang::CONCAT_NONE);
                 }
             }
         }
@@ -262,7 +266,7 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
         // aowow - custom start: `instance_template` was read nowhere
         // it is the server's own row for an instance map - whether mounts work inside, which map it
         // is entered from, and the name of the C++ script that runs it
-        foreach ($this->getInstanceTemplate($mapId) as $line)
+        foreach ($this->getInstanceTemplate($mapId, $pa ?? null) as $line)
             $infobox[] = $line;
         // aowow - custom end
 
@@ -1131,7 +1135,7 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
     }
 
     /** `instance_template` - what the server knows about an instance map that the dbc does not */
-    private function getInstanceTemplate(int $mapId) : array
+    private function getInstanceTemplate(int $mapId, ?array $portal = null) : array
     {
         if ($mapId <= 0 || !self::hasTable('instance_template', false))
             return [];
@@ -1152,14 +1156,31 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
             if ($zoneId = (int)DB::Aowow()->selectCell('SELECT `id` FROM ::zones WHERE `mapId` = %i AND `parentArea` = 0 AND (`cuFlags` & %i) = 0 LIMIT 1', $parent, CUSTOM_EXCLUDE_FOR_LISTVIEW))
             {
                 $this->extendGlobalIds(Type::ZONE, $zoneId);
-                $out[] = Lang::zone('enteredFrom').Lang::main('colon').'[zone='.$zoneId.']';
+
+                // the zone's own spawn row marks the entrance on the map it is entered from
+                if ($portal)
+                    $out[] = Lang::zone('enteredFrom').Lang::main('colon').self::makeMapLink($portal);
+                else
+                    $out[] = Lang::zone('enteredFrom').Lang::main('colon').'[zone='.$zoneId.']';
             }
         }
 
         if (($script = trim((string)($r['script'] ?? ''))) && User::isInGroup(U_GROUP_STAFF))
-            $out[] = Lang::zone('instanceScript').Lang::main('colon').'[small class=q0]'.$script.'[/small]';
+            $out[] = Lang::zone('instanceScript').Lang::main('colon').$script;
 
         return $out;
+    }
+
+    /**
+     * a [lightbox=map] link to the map a spawn row sits on, pinned at its position
+     * the pin code is the tile position - six digits, zero-padded per axis - the
+     * client side decodes back into the same (posX, posY) the mapper displays
+     */
+    private static function makeMapLink(array $spawn) : string
+    {
+        $pins = str_pad((int)round($spawn['posX'] * 10), 3, '0', STR_PAD_LEFT) . str_pad((int)round($spawn['posY'] * 10), 3, '0', STR_PAD_LEFT);
+
+        return '[lightbox=map zone='.$spawn['areaId'].' '.($spawn['floor'] > 1 ? 'floor='.($spawn['floor'] - 1) : '').' pins='.$pins.']'.ZoneList::getName($spawn['areaId']).'[/lightbox]';
     }
 
     private static function getBattlemastersFor(int $bgTypeId) : array
