@@ -24,6 +24,8 @@ class TextsBaseResponse extends TemplateResponse
     protected ?int    $activeTab         = parent::TAB_DATABASE;
     protected  array  $breadcrumb        = [0, 109];
 
+    protected  array  $scripts           = [[SC_JS_FILE, 'js/filters.js']];   // fi_toggle(), used to (un)collapse the search form
+
     protected  array  $expectedGET       = array(
         'q'   => ['filter' => FILTER_CALLBACK,     'options' => [self::class, 'checkTextLine']],
         'src' => ['filter' => FILTER_VALIDATE_INT, 'flags' => FILTER_REQUIRE_SCALAR]
