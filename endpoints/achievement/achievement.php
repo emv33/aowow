@@ -113,7 +113,7 @@ class AchievementBaseResponse extends TemplateResponse implements ICache
 
         // criteria
         if ($criteriaCount = count($this->subject->getCriteria()))
-            $infobox[] = Lang::achievement('criteria').Lang::main('colon').'[url=?achievement-criteria&ac='.$this->typeId.']'.$criteriaCount.'[/url]';
+            $infobox[] = '[url=?achievement-criteria&ac='.$this->typeId.']'.Lang::achievement('criteria').Lang::main('colon').$criteriaCount.'[/url]';
 
         // icon
         if ($_ = $this->subject->getField('iconId'))
