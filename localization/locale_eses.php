@@ -1556,6 +1556,7 @@ $lang = array(
         'fromBroadcastText' => "de broadcast text #%d",
         'emptyText'         => "Esta entrada de texto no tiene contenido.",
         'emptyOption'       => "(sin texto)",
+        'friendlyFaction'   => 'While this menu is open the creature uses faction %1$s.',
         'missingText'       => "Falta npc_text #%d",
         'opensMenu'         => "Abre [url=?gossip=%d]el menú de rumores #%d[/url]",
         'handledBySmart'    => "Gestionado por la SmartAI de %s",

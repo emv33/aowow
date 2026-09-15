@@ -38,6 +38,7 @@ class Gossip
     private string $gridCss   = '';
     private string $textTbl   = '';
     private string $optionTbl = '';
+    private int    $friendly  = 0;                          // aowow - custom: faction the npc borrows while this menu is open
 
     public function __construct(public readonly int $menuId, array $miscData = [])
     {
@@ -385,6 +386,7 @@ class Gossip
         if ($this->textTbl || $this->optionTbl)
             return true;
 
+        $this->friendly  = $this->fetchFriendlyFaction();    // aowow - custom
         $this->textTbl   = $this->buildTextTable();
         $this->optionTbl = $this->buildOptionTable();
 
@@ -409,6 +411,31 @@ class Gossip
         }
 
         return true;
+    }
+
+    /**
+     * aowow - custom: `gossip_menu_addon` was read nowhere
+     *
+     * a menu can hand the npc a friendly faction template for as long as its window is open, which
+     * is how a hostile or neutral creature can be talked to at all; the column names a
+     * FactionTemplate.dbc row rather than a faction, so it is resolved before it is linked
+     */
+    private function fetchFriendlyFaction() : int
+    {
+        if (!DB::World()->selectCell('SHOW TABLES LIKE %s', 'gossip_menu_addon'))
+            return 0;
+
+        if (!($tplId = (int)DB::World()->selectCell('SELECT `FriendlyFaction` FROM gossip_menu_addon WHERE `MenuID` = %i', $this->menuId)))
+            return 0;
+
+        if (!($factionId = (int)DB::Aowow()->selectCell('SELECT `factionId` FROM ::factiontemplate WHERE `id` = %i', $tplId)))
+            return 0;
+
+        // registered here rather than where it is rendered: buildMarkupFor() collects the globals
+        // before it asks for the body
+        $this->jsGlobals[Type::FACTION][$factionId] = $factionId;
+
+        return $factionId;
     }
 
     private function buildTextTable() : string
@@ -659,6 +686,10 @@ class Gossip
             return null;
 
         $body = $this->textTbl . $this->optionTbl;
+
+        // aowow - custom
+        if ($this->friendly)
+            $body = '[i][small class=q0]'.Lang::gossip('friendlyFaction', ['[faction='.$this->friendly.']']).'[/small][/i][br]'.$body;
 
         foreach ($this->subMenus as $sub)
             if ($_ = $sub->getMarkupBody(true))
