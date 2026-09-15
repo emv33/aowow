@@ -539,12 +539,18 @@ class AchievementBaseResponse extends TemplateResponse implements ICache
             }
         }
 
-        foreach (DB::World()->select('SELECT `type`, `value1` FROM achievement_criteria_data WHERE `criteria_id` IN %in AND `type` IN %in', array_column($criteria, 'id'), [ACHIEVEMENT_CRITERIA_DATA_TYPE_S_AREA, ACHIEVEMENT_CRITERIA_DATA_TYPE_MAP_ID]) as $_)
+        // the place can also sit in the criteria data, reachable only through the criteria id
+        $crtIds = array_column($criteria, 'id');
+        if ($crtIds)
         {
-            if ($_['type'] == ACHIEVEMENT_CRITERIA_DATA_TYPE_S_AREA)
-                $areas[] = (int)$_['value1'];
-            else
-                $maps[] = (int)$_['value1'];
+            $crtData = DB::World()->selectAssoc('SELECT `criteria_id` AS ARRAY_KEY, `type` AS ARRAY_KEY2, `value1` FROM achievement_criteria_data WHERE `criteria_id` IN %in AND `type` IN %in', $crtIds, [ACHIEVEMENT_CRITERIA_DATA_TYPE_S_AREA, ACHIEVEMENT_CRITERIA_DATA_TYPE_MAP_ID]) ?? [];
+
+            foreach ($crtData as $crtRows)
+                foreach ($crtRows as $type => $row)
+                    if ($type == ACHIEVEMENT_CRITERIA_DATA_TYPE_S_AREA)
+                        $areas[] = (int)$row['value1'];
+                    else
+                        $maps[] = (int)$row['value1'];
         }
 
         if ($maps)
