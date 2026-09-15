@@ -73,13 +73,13 @@ class AchievementcriteriaBaseResponse extends TemplateResponse
         if (ctype_digit($this->formValues['ac']))
             $conditions[] = ['refAchievementId', (int)$this->formValues['ac']];
         else if ($this->formValues['ac'])
-            $conditions[] = ['a.name_loc'.Lang::getLocale()->value, '%'.$this->formValues['ac'].'%', 'LIKE'];
+            $conditions[] = ['a.name_loc'.Lang::getLocale()->value, $this->formValues['ac'], 'LIKE'];
         if ($this->formValues['ty'])
             $conditions[] = ['type', $this->formValues['ty']];
         if ($this->formValues['fl'])
             $conditions[] = [['completionFlags', $this->formValues['fl'], '&'], $this->formValues['fl']];
         if ($this->formValues['na'])
-            $conditions[] = ['name_loc'.Lang::getLocale()->value, '%'.$this->formValues['na'].'%', 'LIKE'];
+            $conditions[] = ['name_loc'.Lang::getLocale()->value, $this->formValues['na'], 'LIKE'];
 
         $tabData = [];
         $crtList = new AchievementCriteriaList($conditions);
