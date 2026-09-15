@@ -1349,6 +1349,9 @@ $lang = array(
         'worldStates'      => 'world states %1$d / %2$d',
         'pools'            => 'Spawn pools (%1$d)'
     ),
+    'teleport' => array(
+        'title'         => "Named locations"
+    ),
     'gameText' => array(
         'title'         => "Game text",
         'term'          => "text contains",

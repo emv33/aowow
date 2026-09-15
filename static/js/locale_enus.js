@@ -1008,7 +1008,8 @@ var mn_database = [
     [107, 'Encounters', '?encounters', null, {requiredAccess: 1726}],    // aowow - custom
     [108, 'Transports', '?transports', null, {requiredAccess: 1726}],    // aowow - custom
     [109, 'Game text', '?texts', null, {requiredAccess: 1726}],    // aowow - custom
-    [110, 'Flight paths', '?taxipaths', null, {requiredAccess: 1726}]    // aowow - custom
+    [110, 'Flight paths', '?taxipaths', null, {requiredAccess: 1726}],    // aowow - custom
+    [111, 'Named locations', '?teleports', null, {requiredAccess: 1726}]    // aowow - custom
 ];
 
 var mn_guides = [
@@ -4545,6 +4546,12 @@ var LANG = {
         45: "Pet type",              46: "On taxi",             47: "Quest state",        48: "Quest objective progress",
         49: "Difficulty",            50: "Gamemaster"
     },
+    fiteleport: {
+        name:       "Name",
+        zone:       "Zone",
+        position:   "Position"
+    },
+    teleport_map: "Map $1",
     fitext: {
         source:     "Source",
         owner:      "Spoken by",
