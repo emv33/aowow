@@ -1451,7 +1451,17 @@ $lang = array(
         'equipped'      => "Equipped",
         'followsLeader' => "Follows",
         'phases'        => "Phase mask",
-        'questItems'    => "Quest items"
+        'questItems'    => "Quest items",
+        'movement'      => "Movement",
+        'movementOverride' => '%1$d spawn(s) move differently',
+        'movementTypes' => array(               // only the values that depart from the default are named
+            'ground' => [0 => "does not move on the ground", 1 => '',                 2 => "hovers"                    ],
+            'swim'   => [0 => "cannot swim",                 1 => ''                                                  ],
+            'flight' => [0 => '',                            1 => "ignores gravity",  2 => "flies"                     ],
+            'rooted' => [0 => '',                            1 => "rooted"                                            ],
+            'chase'  => [0 => '',                            1 => "may walk chasing", 2 => "always walks when chasing" ],
+            'random' => [0 => '',                            1 => "may run when idle",2 => "always runs when idle"     ]
+        )
     ),
     'legacyScript' => array(
         'srcTypes'      => array(

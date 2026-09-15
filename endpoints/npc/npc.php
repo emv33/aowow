@@ -220,6 +220,11 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         if ($_ = self::getPhases($this->typeId))
             $infobox[] = Lang::npcExtra('phases').Lang::main('colon').implode(', ', $_);
 
+        // `creature_template_movement` and `creature_movement_override` were read nowhere, so every
+        // creature was presented as if it moved like every other one
+        if ($_ = self::getMovement($this->typeId))
+            $infobox[] = Lang::npcExtra('movement').Lang::main('colon').implode(', ', $_);
+
         // the object side of this is imported by objects.ss.php; the creature side was not read at all
         if ($_ = self::getQuestItems($this->typeId))
         {
@@ -1384,6 +1389,49 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         $out = [];
         foreach ($masks as $m)
             $out[] = '0x'.strtoupper(dechex((int)$m));
+
+        return $out;
+    }
+
+    /**
+     * how this creature moves - ground, water and air, plus how it behaves while chasing or idle
+     *
+     * only what departs from the default is named, as saying "runs, swims, does not fly, is not
+     * rooted" of every creature in the game says nothing about any of them
+     */
+    private static function getMovement(int $npcId) : array
+    {
+        if (!self::hasTable('creature_template_movement'))
+            return [];
+
+        if (!($r = DB::World()->selectRow('SELECT * FROM creature_template_movement WHERE `CreatureId` = %i', $npcId)))
+            return [];
+
+        $r     = array_change_key_case($r, CASE_LOWER);
+        $names = Lang::npcExtra('movementTypes');
+        $out   = [];
+
+        // a NULL column means "inherit the default", which is what the absent row already says
+        foreach (array_keys($names) as $what)
+        {
+            if (!isset($r[$what]))
+                continue;
+
+            if ($_ = $names[$what][(int)$r[$what]] ?? '')
+                $out[] = $_;
+        }
+
+        // the same columns exist per spawn; a creature can move one way in one place and another elsewhere
+        if (self::hasTable('creature_movement_override'))
+        {
+            $nOverride = (int)DB::World()->selectCell(
+               'SELECT COUNT(1) FROM creature_movement_override cmo JOIN creature c ON c.`guid` = cmo.`SpawnId` WHERE c.`id` = %i',
+                $npcId
+            );
+
+            if ($nOverride)
+                $out[] = Lang::npcExtra('movementOverride', [$nOverride]);
+        }
 
         return $out;
     }
