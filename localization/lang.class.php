@@ -24,6 +24,7 @@ class Lang
 
     // types
     private static array $achievement;
+    private static array $achievementCriteriaBrowser;
     private static array $areatrigger;
     private static array $chrClass;
     private static array $currency;

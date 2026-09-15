@@ -7,6 +7,7 @@
 
     $this->brick('header');
     $f = $this->formValues;                                 // shorthand
+    $hasQuery = $f['src'] || $f['cnd'] || $f['val'] || $f['ent'];
 ?>
 
     <div class="main" id="main">
@@ -19,7 +20,7 @@
     $this->brick('pageTemplate', ['fiMenuItem' => [105]]);
 ?>
 
-            <div id="fi" style="display: block;">
+            <div id="fi" style="display: <?=($hasQuery ? 'block' : 'none'); ?>;">
                 <form action="?conditions" method="get" name="fi">
                     <input type="hidden" name="conditions" value="" />
                     <div class="text">

@@ -1849,6 +1849,12 @@ $lang = array(
             15042 => "Der Untergang des Lichkönigs - Schlachtzug für 25 Spieler", 15062 => "Der Untergang des Lichkönigs"
         )
     ),
+    'achievementCriteriaBrowser' => array(
+        'id'            => "ID",
+        'achievement'   => "Achievement",
+        'type'          => "Type",
+        'flags'         => "Flags"
+    ),
     'chrClass' => array(
         'id'            => "Klassen-ID: ",
         'notFound'      => "Diese Klasse existiert nicht."

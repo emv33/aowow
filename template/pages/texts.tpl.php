@@ -7,6 +7,7 @@
 
     $this->brick('header');
     $f = $this->formValues;                                 // shorthand
+    $hasQuery = $f['q'] !== '' || $f['src'];
 ?>
 
     <div class="main" id="main">
@@ -19,7 +20,7 @@
     $this->brick('pageTemplate', ['fiMenuItem' => [109]]);
 ?>
 
-            <div id="fi" style="display: block;">
+            <div id="fi" style="display: <?=($hasQuery ? 'block' : 'none'); ?>;">
                 <form action="?texts" method="get" name="fi">
                     <input type="hidden" name="texts" value="" />
                     <div class="text">

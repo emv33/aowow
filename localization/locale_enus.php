@@ -1850,6 +1850,12 @@ $lang = array(
             15042 => "Fall of the Lich King 25-Player Raid",                      15062 => "Fall of the Lich King"
         )
     ),
+    'achievementCriteriaBrowser' => array(
+        'id'            => "ID",
+        'achievement'   => "Achievement",
+        'type'          => "Type",
+        'flags'         => "Flags"
+    ),
     'chrClass' => array(
         'id'            => "Class ID: ",
         'notFound'      => "This class doesn't exist."

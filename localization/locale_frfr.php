@@ -1850,6 +1850,12 @@ $lang = array(
             15042 => "La chute du roi-liche, raid à 25",                          15062 => "La chute du roi-liche"
         )
     ),
+    'achievementCriteriaBrowser' => array(
+        'id'            => "ID",
+        'achievement'   => "Achievement",
+        'type'          => "Type",
+        'flags'         => "Flags"
+    ),
     'chrClass' => array(
         'id'            => "ID Classe : ",
         'notFound'      => "Cette classe n'existe pas."

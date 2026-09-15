@@ -1850,6 +1850,12 @@ $lang = array(
             15042 => "巫妖王的陨落 - 25人团队",                                            15062 => "巫妖王的陨落"
         )
     ),
+    'achievementCriteriaBrowser' => array(
+        'id'            => "ID",
+        'achievement'   => "Achievement",
+        'type'          => "Type",
+        'flags'         => "Flags"
+    ),
     'chrClass' => array(
         'id'            => "职业ID：",
         'notFound'      => "这个职业不存在。"

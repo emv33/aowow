@@ -6,6 +6,8 @@
     /** @var PageTemplate $this */
 
     $this->brick('header');
+    $f = $this->formValues;                                 // shorthand
+    $hasQuery = $f['id'] || $f['ac'] || $f['ty'] || $f['fl'] || $f['na'];
 ?>
 
     <div class="main" id="main">
@@ -15,56 +17,52 @@
 <?php
     $this->brick('announcement');
 
-    $this->brick('pageTemplate');
+    $this->brick('pageTemplate', ['fiMenuItem' => [118]]);
 ?>
 
-            <div class="text">
+            <div id="fi" style="display: <?=($hasQuery ? 'block' : 'none'); ?>;">
+                <form action="?achievement-criteria" method="get" name="fi">
+                    <input type="hidden" name="achievement-criteria" value="" />
+                    <div class="text">
 
 <?php
+    $this->brick('headIcons');
+
     $this->brick('redButtons');
-
-    if ($this->h1):
-        echo '                <h1>'.$this->h1.'</h1>';
-    endif;
-
-    $this->brick('mapper');
-
-    $this->brick('markup', ['markup' => $this->article]);
-
-    $this->brick('markup', ['markup' => $this->extraText]);
-
-    echo $this->extraHTML ?? '';
 ?>
 
-                <form class="search-form" method="get" action="?achievement-criteria">
-                    <input type="hidden" name="achievement-criteria" value="">
-                    <label>ID <input type="text" name="id" value="<?= htmlspecialchars((string)($this->formValues['id'] ?? '')) ?>" size="8"></label>
-                    <label>Achievement <input type="text" name="ac" value="<?= htmlspecialchars((string)($this->formValues['ac'] ?? '')) ?>" size="8"></label>
-                    <label>Type <input type="text" name="ty" value="<?= htmlspecialchars((string)($this->formValues['ty'] ?? '')) ?>" size="6"></label>
-                    <label>Flags <input type="text" name="fl" value="<?= htmlspecialchars((string)($this->formValues['fl'] ?? '')) ?>" size="6"></label>
-                    <label>Name <input type="text" name="na" value="<?= htmlspecialchars((string)($this->formValues['na'] ?? '')) ?>"></label>
-                    <button type="submit"><?= Lang::main('search') ?></button>
+                        <h1><?=$this->h1; ?></h1>
+                    </div>
+                    <table>
+                        <tr>
+                            <td><?=$this->ucFirst(Lang::achievementCriteriaBrowser('id')).Lang::main('colon'); ?></td>
+                            <td><input type="text" name="id" size="10" value="<?=($f['id'] ?: ''); ?>" /></td>
+                            <td><?=$this->ucFirst(Lang::achievementCriteriaBrowser('achievement')).Lang::main('colon'); ?></td>
+                            <td><input type="text" name="ac" size="10" value="<?=($f['ac'] ?: ''); ?>" /></td>
+                        </tr>
+                        <tr>
+                            <td><?=$this->ucFirst(Lang::achievementCriteriaBrowser('type')).Lang::main('colon'); ?></td>
+                            <td><input type="text" name="ty" size="10" value="<?=($f['ty'] ?: ''); ?>" /></td>
+                            <td><?=$this->ucFirst(Lang::achievementCriteriaBrowser('flags')).Lang::main('colon'); ?></td>
+                            <td><input type="text" name="fl" size="10" value="<?=($f['fl'] ?: ''); ?>" /></td>
+                        </tr>
+                        <tr>
+                            <td><?=$this->ucFirst(Lang::main('name')).Lang::main('colon'); ?></td>
+                            <td colspan="3"><input type="text" name="na" size="30" value="<?=$this->escHTML($f['na']); ?>" /></td>
+                        </tr>
+                    </table>
+
+                    <div class="padded">
+                        <input type="submit" value="<?=Lang::main('applyFilter'); ?>" />
+                    </div>
+
                 </form>
-
-<?php
-    if ($this->tabsTitle):
-        echo '                <h2 class="clear">'.$this->tabsTitle.'</h2>';
-    endif;
-?>
-
             </div>
+            <div class="pad clear"></div>
 
-<?php
-    if ($this->lvTabs):
-        $this->brick('lvTabs');
-?>
+<?php $this->brick('lvTabs'); ?>
 
-        <div class="clear"></div>
-
-<?php
-    endif;
-?>
-
+            <div class="clear"></div>
         </div><!-- main-contents -->
     </div><!-- main -->
 

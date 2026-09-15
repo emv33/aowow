@@ -1850,6 +1850,12 @@ $lang = array(
             15042 => "La Caída (25 j.)",                                          15062 => "La caída del Rey Exánime"
         )
     ),
+    'achievementCriteriaBrowser' => array(
+        'id'            => "ID",
+        'achievement'   => "Achievement",
+        'type'          => "Type",
+        'flags'         => "Flags"
+    ),
     'chrClass' => array(
         'id'            => "ID de Clase: ",
         'notFound'      => "Esta clase no existe."

@@ -1850,6 +1850,12 @@ $lang = array(
             15042 => "Падение Короля-лича (25)",                                  15062 => "Падение Короля-лича"
         )
     ),
+    'achievementCriteriaBrowser' => array(
+        'id'            => "ID",
+        'achievement'   => "Achievement",
+        'type'          => "Type",
+        'flags'         => "Flags"
+    ),
     'chrClass' => array(
         'id'            => "Класс ID: ",
         'notFound'      => "Такой класс не существует."
