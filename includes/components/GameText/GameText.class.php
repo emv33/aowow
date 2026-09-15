@@ -243,15 +243,56 @@ class GameText
         return $out;
     }
 
-    /** the menus an npc_text is the flavour of - the only page such a row can be reached from */
+    /**
+     * the menus an npc_text is the flavour of - the only page such a row can be reached from
+     *
+     * `gossip_menu` wires most of them, but a menu can also be sent by a script instead of being
+     * written down, and a text nothing sends at all has no page to link to
+     */
     private static function menusForText(array $textIds) : array
     {
-        if (!$textIds || !self::hasTable('gossip_menu'))
+        if (!$textIds)
             return [];
 
         $out = [];
-        foreach (DB::World()->selectAssoc('SELECT `MenuID`, `TextID` FROM gossip_menu WHERE `TextID` IN %in', $textIds) ?: [] as $r)
-            $out[(int)$r['TextID']][] = (int)$r['MenuID'];
+
+        if (self::hasTable('gossip_menu'))
+            foreach (DB::World()->selectAssoc('SELECT `MenuID`, `TextID` FROM gossip_menu WHERE `TextID` IN %in', $textIds) ?: [] as $r)
+                $out[(int)$r['TextID']][] = (int)$r['MenuID'];
+
+        // SMART_ACTION_SEND_GOSSIP_MENU names the menu in param1 and the text in param2
+        if (($rest = array_diff($textIds, array_keys($out))) && self::hasTable('smart_scripts'))
+        {
+            $sent = DB::World()->selectAssoc(
+               'SELECT `action_param1`, `action_param2` FROM smart_scripts WHERE `action_type` = %i AND `action_param1` > 0 AND `action_param2` IN %in',
+                SmartAction::ACTION_SEND_GOSSIP_MENU, array_values($rest)
+            ) ?: [];
+
+            // a script may name a menu that was never written down; linking there is a dead page
+            if ($sent && ($real = self::existingMenus(array_map(fn($x) => (int)$x['action_param1'], $sent))))
+                foreach ($sent as $r)
+                    if (isset($real[(int)$r['action_param1']]))
+                        $out[(int)$r['action_param2']][] = (int)$r['action_param1'];
+        }
+
+        foreach ($out as &$menuIds)
+            $menuIds = array_values(array_unique($menuIds));
+
+        return $out;
+    }
+
+    /** menu ids that have a page: the Gossip component renders a menu with texts or with options */
+    private static function existingMenus(array $menuIds) : array
+    {
+        $out = [];
+        foreach ([['gossip_menu', 'MenuID'], ['gossip_menu_option', 'MenuID']] as [$table, $col])
+        {
+            if (!$menuIds || !self::hasTable($table))
+                continue;
+
+            foreach (DB::World()->selectCol('SELECT DISTINCT `'.$col.'` FROM %n WHERE `'.$col.'` IN %in', $table, array_values(array_unique($menuIds))) ?: [] as $id)
+                $out[(int)$id] = (int)$id;
+        }
 
         return $out;
     }
