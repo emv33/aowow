@@ -1872,6 +1872,9 @@ $lang = array(
             'storm' => "storms"
         ),
         'bgTeamSize'    => "Players per team",
+        'mountsAllowed' => "Mounts can be used here",
+        'enteredFrom'   => "Entered from",
+        'instanceScript' => "Instance script",
         'bgBracketServer' => "Level bracket (server)",
         'lfgBracket'    => "Dungeon Finder bracket",
         'lfgReward'     => 'Dungeon Finder reward (up to level %1$d)',

@@ -252,6 +252,13 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
         }
         // aowow - custom end
 
+        // aowow - custom start: `instance_template` was read nowhere
+        // it is the server's own row for an instance map - whether mounts work inside, which map it
+        // is entered from, and the name of the C++ script that runs it
+        foreach ($this->getInstanceTemplate($mapId) as $line)
+            $infobox[] = $line;
+        // aowow - custom end
+
         // id
         $infobox[] = Lang::zone('id') . $this->typeId;
 
@@ -1123,6 +1130,38 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
         ) ?: [];
 
         return array_map(fn($r) => array_map('intVal', $r), $rows);
+    }
+
+    /** `instance_template` - what the server knows about an instance map that the dbc does not */
+    private function getInstanceTemplate(int $mapId) : array
+    {
+        if ($mapId <= 0 || !self::hasTable('instance_template', false))
+            return [];
+
+        if (!($r = DB::World()->selectRow('SELECT * FROM instance_template WHERE `map` = %i', $mapId)))
+            return [];
+
+        $r   = array_change_key_case($r, CASE_LOWER);
+        $out = [];
+
+        // only the exception is worth a line - an instance blocks mounts unless it says otherwise
+        if (!empty($r['allowmount']))
+            $out[] = Lang::zone('mountsAllowed');
+
+        // the map an instance is entered from, which is how the core groups its resets
+        if ($parent = (int)($r['parent'] ?? 0))
+        {
+            if ($zoneId = (int)DB::Aowow()->selectCell('SELECT `id` FROM ::zones WHERE `mapId` = %i AND `parentArea` = 0 AND (`cuFlags` & %i) = 0 LIMIT 1', $parent, CUSTOM_EXCLUDE_FOR_LISTVIEW))
+            {
+                $this->extendGlobalIds(Type::ZONE, $zoneId);
+                $out[] = Lang::zone('enteredFrom').Lang::main('colon').'[zone='.$zoneId.']';
+            }
+        }
+
+        if (($script = trim((string)($r['script'] ?? ''))) && User::isInGroup(U_GROUP_STAFF))
+            $out[] = Lang::zone('instanceScript').Lang::main('colon').'[small class=q0]'.$script.'[/small]';
+
+        return $out;
     }
 
     private static function getBattlemastersFor(int $bgTypeId) : array
