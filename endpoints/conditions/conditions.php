@@ -96,7 +96,7 @@ class ConditionsBaseResponse extends TemplateResponse
             [$grpType, $entryType, ] = $srcTypes[$r['srcType']] ?? [null, null, null];
 
             $row = array(
-                'id'          => $i,                        // the listview needs a unique key; a condition source has no id of its own
+                'id'          => $i + 1,                    // the listview needs a unique key; a condition source has no id of its own - count from 1 so the debug id column renders the first row (index 0 is falsy in JS)
                 'srctype'     => $r['srcType'],
                 'group'       => $r['group'],
                 'entry'       => $r['entry'],
