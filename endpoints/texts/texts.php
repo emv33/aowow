@@ -57,6 +57,8 @@ class TextsBaseResponse extends TemplateResponse
             'src' => (int)($this->_get['src'] ?? 0)
         );
 
+        $this->pageTemplate['filter'] = array_filter($this->formValues) ? 1 : 0;
+
         // same floor the site's own search uses - two characters match half the game
         if ($this->formValues['q'] && mb_strlen($this->formValues['q']) < 3 && !Lang::getLocale()->isLogographic())
         {

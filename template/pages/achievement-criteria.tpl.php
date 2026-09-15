@@ -7,7 +7,6 @@
 
     $this->brick('header');
     $f = $this->formValues;                                 // shorthand
-    $hasQuery = $f['id'] || $f['ac'] || $f['ty'] || $f['fl'] || $f['na'];
 ?>
 
     <div class="main" id="main">
@@ -20,7 +19,7 @@
     $this->brick('pageTemplate', ['fiMenuItem' => [118]]);
 ?>
 
-            <div id="fi" style="display: <?=($hasQuery ? 'block' : 'none'); ?>;">
+            <div id="fi" style="display: <?=($this->pageTemplate['filter'] ? 'block' : 'none'); ?>;">
                 <form action="?achievement-criteria" method="get" name="fi">
                     <input type="hidden" name="achievement-criteria" value="" />
                     <div class="text">

@@ -72,6 +72,9 @@ class SmartaiBaseResponse extends TemplateResponse
             'ent' => $asInt('ent') ?? 0
         );
 
+        $this->pageTemplate['filter'] = ($this->formValues['src'] !== null || $this->formValues['evt'] !== null ||
+            $this->formValues['act'] !== null || $this->formValues['ref'] || $this->formValues['ent']) ? 1 : 0;
+
         $rows = SmartAI::browse(array(
             'srcType'    => $this->formValues['src'] !== null ? [$this->formValues['src']] : [],
             'eventType'  => $this->formValues['evt'] ?? -1,

@@ -63,6 +63,8 @@ class AchievementcriteriaBaseResponse extends TemplateResponse
             'na' => (string)($this->_get['na'] ?? '')
         );
 
+        $this->pageTemplate['filter'] = array_filter($this->formValues) ? 1 : 0;
+
         $conditions = [Listview::DEFAULT_SIZE];
         if ($this->formValues['id'])
             $conditions[] = ['id', $this->formValues['id']];

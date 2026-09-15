@@ -7,7 +7,6 @@
 
     $this->brick('header');
     $f = $this->formValues;                                 // shorthand
-    $hasQuery = $f['src'] !== null || $f['evt'] !== null || $f['act'] !== null || $f['ref'] || $f['ent'];
 ?>
 
     <div class="main" id="main">
@@ -20,7 +19,7 @@
     $this->brick('pageTemplate', ['fiMenuItem' => [106]]);
 ?>
 
-            <div id="fi" style="display: <?=($hasQuery ? 'block' : 'none'); ?>;">
+            <div id="fi" style="display: <?=($this->pageTemplate['filter'] ? 'block' : 'none'); ?>;">
                 <form action="?smartai" method="get" name="fi">
                     <input type="hidden" name="smartai" value="" />
                     <div class="text">

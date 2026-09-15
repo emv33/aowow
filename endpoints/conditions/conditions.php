@@ -64,6 +64,8 @@ class ConditionsBaseResponse extends TemplateResponse
             'ent' => (int)($this->_get['ent'] ?? 0)
         );
 
+        $this->pageTemplate['filter'] = array_filter($this->formValues) ? 1 : 0;
+
         $rows = Conditions::browse(array(
             'srcType' => $this->formValues['src'] ? [$this->formValues['src']] : [],
             'cndType' => $this->formValues['cnd'],

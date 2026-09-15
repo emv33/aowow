@@ -628,8 +628,11 @@ function fi_toggle() {
         d.firstChild.nodeValue = LANG.fihide;
         c = (c.parentNode.tagName == 'FORM' ? c.parentNode : $WH.gE(c, 'form')[0]);
         c = c.elements.na ? c.elements.na : c.elements.ti;
-        c.focus();
-        c.select();
+        // aowow - custom: not every filter form has a name/title field to focus (conditions, smartai, ...)
+        if (c) {
+            c.focus();
+            c.select();
+        }
     }
     else {
         d.firstChild.nodeValue = LANG.fishow;
