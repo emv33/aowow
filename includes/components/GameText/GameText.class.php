@@ -44,22 +44,21 @@ class GameText
     }
 
     /**
-     * @param  array $opts  query: string, src: int (0 = every source)
+     * @param  array $opts  query: string (empty lists every line), src: int (0 = every source)
      * @return array        list of [src, id, entry, text, ownerType, ownerId, ownerName]
      */
     public static function browse(array $opts = []) : array
     {
         $query = trim((string)($opts['query'] ?? ''));
-        if ($query === '')
-            return [];
 
-        // the wildcards are ours, so a term containing one must not spend it
-        $like = '%'.addcslashes($query, '%_\\').'%';
+        // no term lists the whole of it, the way the other world DB browsers do; the wildcards in
+        // a term that has some are ours, so they must not be spent on it
+        $like = $query === '' ? null : '%'.addcslashes($query, '%_\\').'%';
 
         $rows = array_merge(
             self::creatureText($like),
             self::broadcastText($like),
-            self::npcText($query),
+            self::npcText($query, $like),
             self::gossipOption($like),
             self::pageText($like)
         );
@@ -84,6 +83,12 @@ class GameText
         }
 
         return $out;
+    }
+
+    /** an `IN` over the given ids, or a condition that holds for every row when there are none */
+    private static function inSet(string $column, ?array $ids) : array
+    {
+        return $ids === null ? ['1 = 1'] : [$column.' IN %in', $ids];
     }
 
     /**
@@ -125,14 +130,16 @@ class GameText
     }
 
     /** what a creature says, yells or whispers - the speaker is the row's own key */
-    private static function creatureText(string $like) : array
+    private static function creatureText(?string $like) : array
     {
         if (!self::hasTable('creature_text'))
             return [];
 
+        $where = $like === null ? [['`Text` <> %s', '']] : [['`Text` LIKE %s', $like]];
+
         $rows = DB::World()->selectAssoc(
-           'SELECT `CreatureID`, `GroupID`, `ID`, `Text` FROM creature_text WHERE `Text` LIKE %s ORDER BY `CreatureID`, `GroupID`, `ID` ASC',
-            $like
+           'SELECT `CreatureID`, `GroupID`, `ID`, `Text` FROM creature_text WHERE %and ORDER BY `CreatureID`, `GroupID`, `ID` ASC',
+            $where
         ) ?: [];
 
         $out = [];
@@ -148,19 +155,26 @@ class GameText
      *
      * spelled Text/Text1 on some revisions and MaleText/FemaleText on others
      */
-    private static function broadcastText(string $like) : array
+    private static function broadcastText(?string $like) : array
     {
         if (!self::hasTable('broadcast_text'))
             return [];
 
-        $rows = DB::World()->selectAssoc('SELECT `ID`, `Text`, `Text1` FROM broadcast_text WHERE `Text` LIKE %s OR `Text1` LIKE %s ORDER BY `ID` ASC', $like, $like);
-        if ($rows === null)
-            $rows = DB::World()->selectAssoc('SELECT `ID`, `MaleText` AS "Text", `FemaleText` AS "Text1" FROM broadcast_text WHERE `MaleText` LIKE %s OR `FemaleText` LIKE %s ORDER BY `ID` ASC', $like, $like) ?: [];
+        foreach ([['Text', 'Text1'], ['MaleText', 'FemaleText']] as [$male, $female])
+        {
+            $where = $like === null ? [[DB::OR, [['`'.$male.'` <> %s', ''], ['`'.$female.'` <> %s', '']]]]
+                                    : [[DB::OR, [['`'.$male.'` LIKE %s', $like], ['`'.$female.'` LIKE %s', $like]]]];
+
+            $rows = DB::World()->selectAssoc('SELECT `ID`, `'.$male.'` AS "Text", `'.$female.'` AS "Text1" FROM broadcast_text WHERE %and ORDER BY `ID` ASC', $where);
+            if ($rows !== null)
+                break;
+        }
 
         if (!$rows)
             return [];
 
-        $refs = self::broadcastReferrers(array_map(fn($x) => (int)$x['ID'], $rows));
+        // an unfiltered listing takes every referrer rather than naming fifty thousand ids
+        $refs = self::broadcastReferrers($like === null ? null : array_map(fn($x) => (int)$x['ID'], $rows));
 
         $out = [];
         foreach ($rows as $r)
@@ -189,24 +203,25 @@ class GameText
      *
      * @return array  broadcastTextId => [[srcType, ownerType, ownerId], ...]
      */
-    private static function broadcastReferrers(array $ids) : array
+    private static function broadcastReferrers(?array $ids) : array
     {
         $out = [];
-        if (!$ids)
+        if ($ids === [])
             return $out;
 
         // a common word matches thousands of lines, so membership is a lookup rather than a scan
-        $wanted = array_flip($ids);
+        $wanted = $ids === null ? null : array_flip($ids);
+        $keep   = fn(int $bct) => $bct && ($wanted === null || isset($wanted[$bct]));
 
         if (self::hasTable('creature_text'))
-            foreach (DB::World()->selectAssoc('SELECT `BroadcastTextId`, `CreatureID` FROM creature_text WHERE `BroadcastTextId` IN %in', $ids) ?: [] as $r)
+            foreach (DB::World()->selectAssoc('SELECT `BroadcastTextId`, `CreatureID` FROM creature_text WHERE `BroadcastTextId` > 0 AND %and', [self::inSet('`BroadcastTextId`', $ids)]) ?: [] as $r)
                 $out[(int)$r['BroadcastTextId']][] = [self::SRC_CREATURE_TEXT, Type::NPC, (int)$r['CreatureID']];
 
         if (self::hasTable('npc_text'))
         {
             $where = [];
             for ($i = 0; $i < GOSSIP_TEXT_SLOT_COUNT; $i++)
-                $where[] = ['`BroadcastTextID'.$i.'` IN %in', $ids];
+                $where[] = $ids === null ? ['`BroadcastTextID'.$i.'` > 0'] : ['`BroadcastTextID'.$i.'` IN %in', $ids];
 
             // read whole: the slot columns are absent on revisions old enough to predate them
             $rows  = DB::World()->selectAssoc('SELECT * FROM npc_text WHERE %or', $where) ?: [];
@@ -218,7 +233,7 @@ class GameText
                 for ($i = 0; $i < GOSSIP_TEXT_SLOT_COUNT; $i++)
                 {
                     $bct = (int)($lc['broadcasttextid'.$i] ?? 0);
-                    if (!$bct || !isset($wanted[$bct]))
+                    if (!$keep($bct))
                         continue;
 
                     foreach ($menus[(int)$lc['id']] ?? [0] as $menuId)
@@ -229,14 +244,15 @@ class GameText
 
         if (self::hasTable('gossip_menu_option'))
         {
-            $rows = DB::World()->selectAssoc(
-               'SELECT `MenuID`, `OptionBroadcastTextID`, `BoxBroadcastTextID` FROM gossip_menu_option WHERE `OptionBroadcastTextID` IN %in OR `BoxBroadcastTextID` IN %in',
-                $ids, $ids
-            ) ?: [];
+            $where = $ids === null
+                   ? [[DB::OR, [['`OptionBroadcastTextID` > 0'], ['`BoxBroadcastTextID` > 0']]]]
+                   : [[DB::OR, [['`OptionBroadcastTextID` IN %in', $ids], ['`BoxBroadcastTextID` IN %in', $ids]]]];
+
+            $rows = DB::World()->selectAssoc('SELECT `MenuID`, `OptionBroadcastTextID`, `BoxBroadcastTextID` FROM gossip_menu_option WHERE %and', $where) ?: [];
 
             foreach ($rows as $r)
                 foreach (['OptionBroadcastTextID', 'BoxBroadcastTextID'] as $col)
-                    if (($bct = (int)$r[$col]) && isset($wanted[$bct]))
+                    if ($keep($bct = (int)$r[$col]))
                         $out[$bct][] = [self::SRC_GOSSIP_OPTION, Type::GOSSIP, (int)$r['MenuID']];
         }
 
@@ -303,7 +319,7 @@ class GameText
      * a slot that names a broadcast text is skipped: the core reads the broadcast text and never
      * these columns, so a hit here would report a string the game does not show
      */
-    private static function npcText(string $query) : array
+    private static function npcText(string $query, ?string $like) : array
     {
         if (!self::hasTable('npc_text'))
             return [];
@@ -311,7 +327,7 @@ class GameText
         $where = [];
         for ($i = 0; $i < GOSSIP_TEXT_SLOT_COUNT; $i++)
             foreach ([0, 1] as $g)
-                $where[] = ['`text'.$i.'_'.$g.'` LIKE %s', '%'.addcslashes($query, '%_\\').'%'];
+                $where[] = $like === null ? ['`text'.$i.'_'.$g.'` <> %s', ''] : ['`text'.$i.'_'.$g.'` LIKE %s', $like];
 
         $rows  = DB::World()->selectAssoc('SELECT * FROM npc_text WHERE %or ORDER BY `ID` ASC', $where) ?: [];
         $menus = self::menusForText(array_map(fn($x) => (int)$x['ID'], $rows));
@@ -329,8 +345,9 @@ class GameText
 
                 foreach ([0, 1] as $g)
                 {
+                    // the row matched on some column; which of its sixteen is decided here
                     $txt = (string)($lc['text'.$i.'_'.$g] ?? '');
-                    if ($txt === '' || mb_stripos($txt, $query) === false)
+                    if ($txt === '' || ($query !== '' && mb_stripos($txt, $query) === false))
                         continue;
 
                     foreach ($menus[$id] ?? [0] as $menuId)
@@ -344,20 +361,23 @@ class GameText
     }
 
     /** the clickable lines of a gossip window, and the confirmation box behind them */
-    private static function gossipOption(string $like) : array
+    private static function gossipOption(?string $like) : array
     {
         if (!self::hasTable('gossip_menu_option'))
             return [];
 
+        $cond  = fn(string $col) => $like === null ? ['`'.$col.'` <> %s', ''] : ['`'.$col.'` LIKE %s', $like];
+        $where = [[DB::OR, [$cond('OptionText'), $cond('BoxText')]]];
+
         $rows = DB::World()->selectAssoc(
-           'SELECT `MenuID`, `OptionID`, `OptionText`, `BoxText` FROM gossip_menu_option WHERE `OptionText` LIKE %s OR `BoxText` LIKE %s ORDER BY `MenuID`, `OptionID` ASC',
-            $like, $like
+           'SELECT `MenuID`, `OptionID`, `OptionText`, `BoxText` FROM gossip_menu_option WHERE %and ORDER BY `MenuID`, `OptionID` ASC',
+            $where
         );
 
         if ($rows === null)
             $rows = DB::World()->selectAssoc(
-               'SELECT `MenuID`, `OptionID`, `OptionText`, "" AS "BoxText" FROM gossip_menu_option WHERE `OptionText` LIKE %s ORDER BY `MenuID`, `OptionID` ASC',
-                $like
+               'SELECT `MenuID`, `OptionID`, `OptionText`, "" AS "BoxText" FROM gossip_menu_option WHERE %and ORDER BY `MenuID`, `OptionID` ASC',
+                [$cond('OptionText')]
             ) ?: [];
 
         $out = [];
@@ -371,14 +391,21 @@ class GameText
     }
 
     /** books, letters and plaques - the item or object holding the page is one join away */
-    private static function pageText(string $like) : array
+    private static function pageText(?string $like) : array
     {
         if (!self::hasTable('page_text'))
             return [];
 
-        $rows = DB::World()->selectAssoc('SELECT `ID`, `Text` FROM page_text WHERE `Text` LIKE %s ORDER BY `ID` ASC', $like);
-        if ($rows === null)
-            $rows = DB::World()->selectAssoc('SELECT `entry` AS "ID", `text` AS "Text" FROM page_text WHERE `text` LIKE %s ORDER BY `entry` ASC', $like) ?: [];
+        foreach ([['ID', 'Text'], ['entry', 'text']] as [$idCol, $txtCol])
+        {
+            $where = $like === null ? [['`'.$txtCol.'` <> %s', '']] : [['`'.$txtCol.'` LIKE %s', $like]];
+
+            $rows = DB::World()->selectAssoc('SELECT `'.$idCol.'` AS "ID", `'.$txtCol.'` AS "Text" FROM page_text WHERE %and ORDER BY `'.$idCol.'` ASC', $where);
+            if ($rows !== null)
+                break;
+        }
+
+        $rows ??= [];
 
         $owners = self::pageOwners(array_map(fn($x) => (int)$x['ID'], $rows));
 
