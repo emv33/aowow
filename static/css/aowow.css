@@ -3749,6 +3749,13 @@ a.button-bigblue b {
     color: white;
 }
 
+/* a long row (e.g. the zones an achievement takes place in) wraps inside a
+   fixed width instead of stretching the box to fit on one line */
+.infobox li.infobox-wrap {
+    white-space: normal;
+    max-width: 240px;
+}
+
 #infobox-sticky-ss, #infobox-sticky-vi { text-align: center; }
 #infobox-sticky-ss img, #infobox-sticky-vi img { margin-bottom: 4px; }
 

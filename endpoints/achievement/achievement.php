@@ -98,7 +98,7 @@ class AchievementBaseResponse extends TemplateResponse implements ICache
 
         // location
         if ($zones = $this->getCriteriaZones())
-            $infobox[] = Lang::zone('location').Lang::concat($zones, Lang::CONCAT_NONE);
+            $infobox[] = [Lang::zone('location').Lang::concat($zones, Lang::CONCAT_NONE), ['class' => 'infobox-wrap']];
 
         // faction
         $infobox[] = Lang::main('side') . match ($this->subject->getField('faction'))
