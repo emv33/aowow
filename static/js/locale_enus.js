@@ -1007,6 +1007,7 @@ var mn_database = [
     [106, 'SmartAI', '?smartai', null, {requiredAccess: 1726}],    // aowow - custom
     [107, 'Encounters', '?encounters', null, {requiredAccess: 1726}],    // aowow - custom
     [108, 'Transports', '?transports', null, {requiredAccess: 1726}],    // aowow - custom
+    [109, 'Game text', '?texts', null, {requiredAccess: 1726}],    // aowow - custom
     [110, 'Flight paths', '?taxipaths', null, {requiredAccess: 1726}]    // aowow - custom
 ];
 
@@ -4543,6 +4544,18 @@ var LANG = {
         41: "Terrain swap",          42: "Stand state",         43: "Daily quest done",   44: "Charmed",
         45: "Pet type",              46: "On taxi",             47: "Quest state",        48: "Quest objective progress",
         49: "Difficulty",            50: "Gamemaster"
+    },
+    fitext: {
+        source:     "Source",
+        owner:      "Spoken by",
+        text:       "Text"
+    },
+    text_sources: {
+        1: "Creature text",
+        2: "Broadcast text",
+        3: "Gossip text",
+        4: "Gossip option",
+        5: "Page text"
     },
     fismartai: {
         srctype:    "Source type",

@@ -114,6 +114,9 @@ spl_autoload_register(function (string $class) : void
         case __NAMESPACE__.'\XRef':
             require_once 'includes/components/XRef/XRef.class.php';
             break;
+        case __NAMESPACE__.'\GameText':
+            require_once 'includes/components/GameText/GameText.class.php';
+            break;
     }
 });
 

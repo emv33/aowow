@@ -1341,6 +1341,20 @@ $lang = array(
         'actionBar'     => "Action bar",
         'startsIn'      => "Starts in"
     ),
+    'gameText' => array(
+        'title'         => "Game text",
+        'term'          => "text contains",
+        'source'        => "source",
+        'anySource'     => "Any source",
+        'tooShort'      => "Enter at least three characters.",
+        'sources'       => array(
+            GameText::SRC_CREATURE_TEXT => "Creature text",
+            GameText::SRC_BROADCAST     => "Broadcast text",
+            GameText::SRC_NPC_TEXT      => "Gossip text",
+            GameText::SRC_GOSSIP_OPTION => "Gossip option",
+            GameText::SRC_PAGE_TEXT     => "Page text"
+        )
+    ),
     'xRef' => array(
         'title'         => "Referenced by",
         'smartAI'       => "Scripts",
