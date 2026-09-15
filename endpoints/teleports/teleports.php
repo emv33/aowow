@@ -62,9 +62,13 @@ class TeleportsBaseResponse extends TemplateResponse
         $data = [];
         foreach ($rows as $r)
         {
+            // Util::toJSON() emits any string starting with a $ as raw JavaScript, so a name that
+            // opened with one would be spliced into the page as code - see GameText::excerpt()
+            $name = (string)$r['name'];
+
             $row = array(
                 'id'   => (int)$r['id'],
-                'name' => (string)$r['name'],
+                'name' => $name !== '' && $name[0] == '$' ? ' '.$name : $name,
                 'map'  => (int)$r['map'],
                 'posx' => 0,
                 'posy' => 0

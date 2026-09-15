@@ -71,13 +71,30 @@ class GameText
         return $out;
     }
 
+    /**
+     * game text is written for the client: |c colour codes, $B for a line break, $N for the
+     * player's name - all of which UIText::format() resolves, as the mail page already does
+     *
+     * the guard matters beyond legibility. Util::toJSON() emits any string that begins with a $
+     * as raw JavaScript - that is how the site passes expressions like $LANG.tab_npcs into
+     * listview data - so a line opening with a text variable would be spliced into the page as
+     * code and take the whole script with it. format() resolves the variables it knows; a $ that
+     * survives it is one it does not, and a leading space keeps the value a string either way.
+     */
+    private static function excerpt(string $text) : string
+    {
+        $text = Lang::trimTextClean(UIText::format($text, Lang::FMT_RAW), 0);
+
+        return $text !== '' && $text[0] == '$' ? ' '.$text : $text;
+    }
+
     private static function row(int $src, string $id, int $entry, string $text, ?int $ownerType = null, int $ownerId = 0, string $ownerName = '') : array
     {
         return array(
             'src'       => $src,
             'id'        => $id,                             // listviews need a unique key; none of these tables has a single column one
             'entry'     => $entry,
-            'text'      => $text,
+            'text'      => self::excerpt($text),
             'ownerType' => $ownerType,
             'ownerId'   => $ownerId,
             'ownerName' => $ownerName
