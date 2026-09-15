@@ -62,7 +62,10 @@ Listview.templates.trainer = {
             width: '12%',
             value: 'cost',
             compute: function(t, td) {
-                $WH.ae(td, $WH.ct(t.cost ? $WH.sprintf(LANG.money_copper, t.cost) : '-'));
+                if (t.cost)
+                    Listview.funcBox.appendMoney(td, t.cost);
+                else
+                    $WH.ae(td, $WH.ct('-'));
             },
             getVisibleText: function(t) {
                 return t.cost;
