@@ -388,7 +388,7 @@ var Menu = new function()
 
         var $div       = createDiv(depth);
         var $menuItems = createMenuItems(menu);
-        var $menu      = createMenu($menuItems, depth);
+        var $menu      = createMenu($menuItems, depth, x, y);
 
         $div.append($menu);
 
@@ -494,12 +494,10 @@ var Menu = new function()
         return $a;
     }
 
-    function createMenu($menuItems, depth)
+    function createMenu($menuItems, depth, x, y)
     {
-        var $a = $rootNode;
-        var $w = $(window);
         var nItems = $menuItems.length;
-        var availableHeight = $w.height() - (SIZE_BORDER_HEIGHT * 2) - SIZE_SHADOW_HEIGHT;
+        var availableHeight = getAvailableHeight(depth, x, y) - (SIZE_BORDER_HEIGHT * 2) - SIZE_SHADOW_HEIGHT;
         var nItemsThatCanFit = Math.floor(Math.max(0, availableHeight) / SIZE_MENUITEM_HEIGHT);
 
         // 1 column
@@ -541,6 +539,28 @@ var Menu = new function()
         }
 
         return $holder;
+    }
+
+    // the column split has to work off the room actually left for the menu, not the window's full
+    // height - a menu opened well below the top of the page can't use that whole height, since
+    // getFirstMenuPosition() only flips it above the button, it doesn't start it over at y=0
+    function getAvailableHeight(depth, x, y)
+    {
+        var viewport = g_getViewport();
+
+        if(depth == 0 && x == null && y == null) // anchored under a root menu button, which getFirstMenuPosition() may flip above if that side has more room
+        {
+            var offset = $rootNode.offset();
+            var spaceBelow = viewport.b - (offset.top + $rootNode.outerHeight());
+            var spaceAbove = offset.top - viewport.t;
+
+            return Math.max(spaceBelow, spaceAbove);
+        }
+
+        // shown at the cursor, or a submenu anchored to its parent item: both get clamped to the
+        // viewport rather than flipped (see getFirstMenuPosition()'s cursor branch and
+        // getSubmenuPosition()), so the full viewport height is the real budget
+        return viewport.b - viewport.t;
     }
 
     function getMenuPosition($div, depth, x, y)
