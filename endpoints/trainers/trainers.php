@@ -66,25 +66,34 @@ class TrainersBaseResponse extends TemplateResponse
     {
         $data = [];
 
-        // newer cores: creature_default_trainer (entry, TrainerId) + trainer_spell (TrainerId, ...)
+        // newer cores: creature_default_trainer (CreatureId, TrainerId) + trainer_spell (TrainerId, ...)
         if (DB::World()->selectCell('SHOW TABLES LIKE %s', 'creature_default_trainer') && DB::World()->selectCell('SHOW TABLES LIKE %s', 'trainer_spell'))
         {
-            $query =
-               'SELECT cdt.`entry` AS "npc", ts.`SpellId` AS "spell", ts.`MoneyCost` AS "cost",
-                       ts.`ReqSkillLine` AS "reqSkill", ts.`ReqSkillRank` AS "reqSkillRank", ts.`ReqLevel` AS "reqLevel"
-                FROM   creature_default_trainer cdt JOIN trainer_spell ts ON ts.`TrainerId` = cdt.`TrainerId`';
+            // the link column is spelled CreatureId on the cores that ship this pair, entry on
+            // some forks; both are tried, as the npc teaches tab already does
+            foreach (['CreatureId', 'entry'] as $npcCol)
+            {
+                $query =
+                   'SELECT cdt.`'.$npcCol.'` AS "npc", ts.`SpellId` AS "spell", ts.`MoneyCost` AS "cost",
+                           ts.`ReqSkillLine` AS "reqSkill", ts.`ReqSkillRank` AS "reqSkillRank", ts.`ReqLevel` AS "reqLevel"
+                    FROM   creature_default_trainer cdt JOIN trainer_spell ts ON ts.`TrainerId` = cdt.`TrainerId`';
 
-            $where = [];
-            if ($spellFilter)
-                $where[] = 'ts.`SpellId` = '.$spellFilter;
-            if ($npcFilter)
-                $where[] = 'cdt.`entry` = '.$npcFilter;
-            if ($where)
-                $query .= ' WHERE '.implode(' AND ', $where);
+                $where = [];
+                if ($spellFilter)
+                    $where[] = 'ts.`SpellId` = '.$spellFilter;
+                if ($npcFilter)
+                    $where[] = 'cdt.`'.$npcCol.'` = '.$npcFilter;
+                if ($where)
+                    $query .= ' WHERE '.implode(' AND ', $where);
 
-            $query .= ' ORDER BY cdt.`entry` ASC, ts.`SpellId` ASC';
+                $query .= ' ORDER BY cdt.`'.$npcCol.'` ASC, ts.`SpellId` ASC';
 
-            foreach (DB::World()->selectAssoc($query) ?: [] as $r)
+                $rows = DB::World()->selectAssoc($query);
+                if ($rows !== null)
+                    break;
+            }
+
+            foreach ($rows ?: [] as $r)
                 $data[] = $this->normalizeRow($r);
         }
         // 3.3.5: npc_trainer (entry, spell, spellcost, reqskill, reqskillvalue, reqlevel)
