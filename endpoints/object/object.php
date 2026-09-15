@@ -369,25 +369,68 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
         $sai = null;
         if ($this->subject->getField('ScriptOrAI') == 'SmartGameObjectAI')
         {
-            $sai = new SmartAI(SmartAI::SRC_TYPE_OBJECT, $this->typeId);
-            if (!$sai->prepare())                           // no smartAI found .. check per guid
-            {
-                // at least one of many
-                $guids = DB::World()->selectCol('SELECT `guid` FROM gameobject WHERE `id` = %i', $this->typeId);
-                while ($_ = array_pop($guids))
-                {
-                    $sai = new SmartAI(SmartAI::SRC_TYPE_OBJECT, -$_, ['title' => ' [small](for GUID: '.$_.')[/small]']);
-                    if ($sai->prepare())
-                        break;
-                }
-            }
-
-            if ($sai->prepare())
+            $sai        = new SmartAI(SmartAI::SRC_TYPE_OBJECT, $this->typeId);
+            $hasEntryAI = $sai->prepare();
+            if ($hasEntryAI)
             {
                 $this->extendGlobalData($sai->getJSGlobals());
                 $this->smartAI = $sai->getMarkup();
             }
-            else
+
+            // a guid-specific script runs instead of the entry-level one for that particular
+            // spawn, so it can exist alongside an entry-level default - not only as a fallback
+            // for when the entry has no script of its own. Narrow to guids that actually carry
+            // an override, and bucket the guids by script body - several spawns commonly carry
+            // the same override, which is rendered once with every affected guid named in the
+            // title instead of once per guid.
+            $rows = DB::World()->selectAssoc(
+               'SELECT   g.`guid`,
+                         ss.`id`, ss.`link`,
+                         ss.`event_type`,  ss.`event_param1`,  ss.`event_param2`,  ss.`event_param3`,  ss.`event_param4`,  ss.`event_param5`, ss.`event_phase_mask`, ss.`event_chance`, ss.`event_flags`,
+                         ss.`action_type`, ss.`action_param1`, ss.`action_param2`, ss.`action_param3`, ss.`action_param4`, ss.`action_param5`, ss.`action_param6`,
+                         ss.`target_type`, ss.`target_param1`, ss.`target_param2`, ss.`target_param3`, ss.`target_param4`, ss.`target_x`, ss.`target_y`, ss.`target_z`, ss.`target_o`
+                FROM     gameobject g
+                JOIN     smart_scripts ss ON ss.`entryorguid` = -g.`guid` AND ss.`source_type` = %i
+                WHERE    g.`id` = %i
+                ORDER BY g.`guid`, ss.`id` ASC',
+                SmartAI::SRC_TYPE_OBJECT, $this->typeId
+            ) ?: [];
+
+            $buckets = [];                                  // sig (everything but the guid) => guids[]
+            foreach ($rows as $r)
+            {
+                $guid = (int)$r['guid'];
+                unset($r['guid']);
+                $buckets[serialize($r)][] = $guid;
+            }
+
+            $found = [];
+            foreach ($buckets as $guids)
+            {
+                $g   = $guids[0];
+                $ttl = count($guids) > 1
+                    ? ' [small](for GUIDs: '.implode(', ', $guids).')[/small]'
+                    : ' [small](for GUID: '.$g.')[/small]';
+
+                $sai = new SmartAI(SmartAI::SRC_TYPE_OBJECT, -$g, ['uid' => 'sai-'.$g, 'title' => $ttl]);
+                if ($sai->prepare())
+                    $found[] = $sai;
+            }
+
+            if ($found)                                     // multiple guid-specific tables collapsed by default; a single one stays open unless there's already an entry-level table shown
+            {
+                $collapsed = $hasEntryAI || count($found) > 1;
+                foreach ($found as $sai)
+                {
+                    $this->extendGlobalData($sai->getJSGlobals());
+                    $body = $sai->getMarkupBody($collapsed);
+                    if (!$this->smartAI)
+                        $this->smartAI = new Markup($body, ['allow' => Markup::CLASS_ADMIN], 'smartai-generic');
+                    else
+                        $this->smartAI->append($body);
+                }
+            }
+            else if (!$hasEntryAI)
                 trigger_error('Gameobject has `AIName`: SmartGameObjectAI set in template but no SmartAI defined.');
         }
 
