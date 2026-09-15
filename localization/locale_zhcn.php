@@ -1563,6 +1563,7 @@ $lang = array(
         'emptyText'         => "该文本条目没有内容。",
         'emptyOption'       => "（无文本）",
         'friendlyFaction'   => 'While this menu is open the creature uses faction %1$s.',
+        'questGreeting'     => "Quest greeting",
         'missingText'       => "缺失的 npc_text #%d",
         'opensMenu'         => "打开[url=?gossip=%d]对话菜单 #%d[/url]",
         'handledBySmart'    => "由 %s 的 SmartAI 处理",

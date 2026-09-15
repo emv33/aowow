@@ -48,6 +48,8 @@ $this->brick('markup', ['markup' => $this->gossip]);   // aowow - custom
 
 $this->brick('markup', ['markup' => $this->legacyScript]);   // aowow - custom
 
+$this->brick('markup', ['markup' => $this->questGreeting]);   // aowow - custom
+
 $this->brick('markup', ['markup' => $this->xRef]);   // aowow - custom
 
 ?>

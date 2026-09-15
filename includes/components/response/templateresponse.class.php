@@ -22,6 +22,7 @@ trait TrDetailPage
     public ?Markup        $levelCurve    = null;            // aowow - custom: per level stats - the xp curve of a class, the pet table of a creature
     public ?Markup        $xRef          = null;            // aowow - custom: what else in the world DB points at this entity
     public ?Markup        $eventProgress = null;            // aowow - custom: progress counters and spawn pools of a world event
+    public ?Markup        $questGreeting = null;            // aowow - custom: the line an npc/object opens with when it holds several quests
     public ?array         $map           = null;
     public  array         $headIcons     = [];
 

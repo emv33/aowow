@@ -43,6 +43,7 @@ class NpcBaseResponse extends TemplateResponse implements ICache
     protected function generate() : void
     {
         $this->applyXRef();                                 // aowow - custom
+        $this->questGreeting = Gossip::buildGreetingFor(Type::NPC, $this->typeId);   // aowow - custom
 
         $this->subject = new CreatureList(array(['id', $this->typeId]));
         if ($this->subject->error)

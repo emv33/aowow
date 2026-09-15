@@ -744,6 +744,57 @@ class Gossip
         return $markup;
     }
 
+    /**
+     * aowow - custom: `quest_greeting` was read nowhere
+     *
+     * the line an npc or object opens with when it holds more than one quest, which is neither a
+     * gossip menu nor quest text and so appeared on no page at all
+     *
+     * @param  int $type   Type::NPC or Type::OBJECT
+     * @param  int $entry  creature or gameobject entry
+     */
+    public static function buildGreetingFor(int $type, int $entry) : ?Markup
+    {
+        if ($entry <= 0 || !DB::World()->selectCell('SHOW TABLES LIKE %s', 'quest_greeting'))
+            return null;
+
+        // 0 is a creature, 1 a gameobject - the same numbering `quest_greeting` has always used
+        $qgType = match ($type)
+        {
+            Type::NPC    => 0,
+            Type::OBJECT => 1,
+            default      => -1
+        };
+
+        if ($qgType < 0)
+            return null;
+
+        // the columns were renamed across TC revisions, so the row is read whole
+        $r = DB::World()->selectRow('SELECT * FROM quest_greeting WHERE `ID` = %i AND `Type` = %i', $entry, $qgType);
+        if ($r === null)
+            $r = DB::World()->selectRow('SELECT * FROM quest_greeting WHERE `entry` = %i AND `type` = %i', $entry, $qgType);
+
+        if (!$r)
+            return null;
+
+        $r    = array_change_key_case($r, CASE_LOWER);
+        $text = trim((string)($r['greeting'] ?? $r['greeting_text'] ?? ''));
+        if ($text === '')
+            return null;
+
+        $body = '[span class=gossip-text]'.UIText::format($text, Lang::FMT_MARKUP).'[/span]';
+
+        if ($emote = (int)($r['greetemotetype'] ?? $r['emote'] ?? 0))
+            $body .= '[br][i][small class=q0]'.Lang::gossip('emote', [$emote]).'[/small][/i]';
+
+        return new Markup(
+            '[style]'.strtr(self::BASE_CSS, "\n", ' ').'[/style]' .
+            '[pad][h3][toggler id=quest-greeting]'.Lang::gossip('questGreeting').'[/toggler][/h3]' .
+            '[div id=quest-greeting clear=left]'.$body.'[/div]',
+            ['allow' => Markup::CLASS_ADMIN], 'gossip-generic'
+        );
+    }
+
     public function getMarkup(bool $collapsed = false) : ?Markup
     {
         if (($body = $this->getMarkupBody($collapsed)) === null)
