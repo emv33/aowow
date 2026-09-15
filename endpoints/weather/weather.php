@@ -60,7 +60,7 @@ class WeatherBaseResponse extends TemplateResponse
         {
             $lc    = array_change_key_case($r, CASE_LOWER);
             $zone  = (int)$lc['zone'];
-            $row   = ['zone' => $zone, 'rain' => 0, 'snow' => 0, 'storm' => 0];
+            $row   = ['id' => $zone, 'zone' => $zone, 'rain' => 0, 'snow' => 0, 'storm' => 0];
 
             foreach (['rain', 'snow', 'storm'] as $what)
             {

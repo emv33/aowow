@@ -62,6 +62,7 @@ class OutdoorpvpBaseResponse extends TemplateResponse
             $lc = array_change_key_case($r, CASE_LOWER);
 
             $data[] = array(
+                'id'         => (int)($lc['typeid'] ?? 0),
                 'typeId'     => (int)($lc['typeid'] ?? 0),
                 'scriptName' => (string)($lc['scriptname'] ?? ''),
                 'comment'    => (string)($lc['comment'] ?? '')
