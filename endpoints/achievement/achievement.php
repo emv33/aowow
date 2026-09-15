@@ -269,6 +269,11 @@ class AchievementBaseResponse extends TemplateResponse implements ICache
                 case ACHIEVEMENT_CRITERIA_TYPE_HONORABLE_KILL_AT_AREA:
                     $crtIcon = new IconElement(Type::ZONE, $obj, $crtName ?: ZoneList::getName($obj), size: IconElement::SIZE_SMALL, element: 'iconlist-icon');
                     break;
+                // link to area (by exploration overlay)
+                case ACHIEVEMENT_CRITERIA_TYPE_EXPLORE_AREA:
+                    $zoneId  = self::overlayToZoneId($obj);
+                    $crtIcon = new IconElement(Type::ZONE, $zoneId, $crtName ?: ZoneList::getName($zoneId), size: IconElement::SIZE_SMALL, element: 'iconlist-icon');
+                    break;
                 // link to skills
                 case ACHIEVEMENT_CRITERIA_TYPE_REACH_SKILL_LEVEL:
                 case ACHIEVEMENT_CRITERIA_TYPE_LEARN_SKILL_LEVEL:
@@ -457,6 +462,23 @@ class AchievementBaseResponse extends TemplateResponse implements ICache
 
         if ($this->subject->getField('flags') & ACHIEVEMENT_FLAG_REALM_FIRST)
             $this->result->registerDisplayHook('infobox', [self::class, 'infoboxHook']);
+    }
+
+    /**
+     * Exploration criteria reference a WorldMapOverlay, not an area: the overlay is the piece of the
+     * world map that is revealed on discovery and the area it carries is the one it is named after
+     * (see fields 3 and 2 of WorldMapOverlay.dbc). 0 if it cannot be resolved: no link then.
+     */
+    private static function overlayToZoneId(int $overlayId) : int
+    {
+        // aowow - custom: `dbc_worldmapoverlay` is written by the `img-maps` build step and stays in
+        // the aowow DB unless setup ran with --delete, so guard it as the zone page does
+        static $known = null;
+
+        if (($known ??= (bool)DB::Aowow()->selectCell('SHOW TABLES LIKE %s', 'dbc_worldmapoverlay')) === false)
+            return 0;
+
+        return (int)DB::Aowow()->selectCell('SELECT `areaTableId` FROM dbc_worldmapoverlay WHERE `id` = %i', $overlayId);
     }
 
     private function createMail() : bool
