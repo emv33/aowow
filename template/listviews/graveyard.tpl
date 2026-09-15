@@ -101,11 +101,11 @@ Listview.templates.graveyard = {
             type: 'text',
             width: '12%',
             compute: function(t, td) {
-                var label = t.faction == 0 ? LANG.figraveyard.alliance : (t.faction == 1 ? LANG.figraveyard.horde : LANG.figraveyard.neutral);
+                var label = t.faction == 1 ? LANG.figraveyard.alliance : (t.faction == 2 ? LANG.figraveyard.horde : (t.faction == 3 ? LANG.figraveyard.both : LANG.figraveyard.neutral));
                 $WH.ae(td, $WH.ct(label));
             },
             getVisibleText: function(t) {
-                return t.faction == 0 ? LANG.figraveyard.alliance : (t.faction == 1 ? LANG.figraveyard.horde : LANG.figraveyard.neutral);
+                return t.faction == 1 ? LANG.figraveyard.alliance : (t.faction == 2 ? LANG.figraveyard.horde : (t.faction == 3 ? LANG.figraveyard.both : LANG.figraveyard.neutral));
             },
             sortFunc: function(a, b, col) {
                 return $WH.strcmp(this.getVisibleText(a), this.getVisibleText(b));

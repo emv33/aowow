@@ -9,13 +9,10 @@ if (!defined('AOWOW_REVISION'))
 /*
  * Browser over the world DB graveyard tables.
  *
- * The zone page names the graveyards that serve it, but the graveyards themselves were never
- * enumerable: where they sit, which faction uses them, and every zone that resurrects there.
- *
- * The tables split into a position row (`game_graveyard`) and the zone links (`graveyard_zone`
- * on 3.3.5, `game_graveyard_zone` on newer cores). Both halves are read whole and matched
- * lowercased, so the browser keeps working when a core renames columns or drops the position
- * table entirely - in that case the rows are derived from the zone links alone.
+ * Cores that still ship a position table split the data over `game_graveyard` (where the
+ * graveyard sits) and `graveyard_zone` / `game_graveyard_zone` (which zones resurrect there).
+ * Cores without the position table keep everything in the link table: `Comment` carries the
+ * name and the map is derived from the ghost zone.
  */
 class GraveyardsBaseResponse extends TemplateResponse
 {
@@ -54,8 +51,38 @@ class GraveyardsBaseResponse extends TemplateResponse
 
     private function buildListviewData() : array
     {
-        $positions = [];
+        $zoneTbl = self::hasTable('graveyard_zone')
+            ? 'graveyard_zone'
+            : (self::hasTable('game_graveyard_zone') ? 'game_graveyard_zone' : null);
 
+        if (!$zoneTbl)
+            return [];
+
+        // [graveyardId => [zones => [zoneId => true], ally => bool, horde => bool, comment => string]]
+        $links = [];
+        foreach (DB::World()->selectAssoc('SELECT * FROM '.$zoneTbl) ?: [] as $r)
+        {
+            $lc = array_change_key_case($r, CASE_LOWER);
+            $id = (int)($lc['id'] ?? 0);
+            if (!$id)
+                continue;
+
+            $links[$id]['zones'][(int)($lc['ghostzone'] ?? $lc['ghost_zone'] ?? 0)] = true;
+
+            // the link table stores the faction template id: 469 Alliance, 67 Horde, 0 any
+            $faction = (int)($lc['faction'] ?? 0);
+            if ($faction == 469)
+                $links[$id]['ally'] = true;
+            else if ($faction == 67)
+                $links[$id]['horde'] = true;
+
+            $comment = trim((string)($lc['comment'] ?? ''));
+            if ($comment !== '')
+                $links[$id]['comment'] = $comment;
+        }
+
+        // optional position table on cores that still ship it; its name and map win where present
+        $positions = [];
         if (self::hasTable('game_graveyard'))
         {
             foreach (DB::World()->selectAssoc('SELECT * FROM game_graveyard') ?: [] as $r)
@@ -64,74 +91,56 @@ class GraveyardsBaseResponse extends TemplateResponse
                 $id = (int)($lc['id'] ?? 0);
 
                 $positions[$id] = array(
-                    'id'   => $id,
                     'name' => trim((string)($lc['comment'] ?? $lc['name'] ?? '')),
-                    'map'  => (int)($lc['map'] ?? $lc['mapid'] ?? $lc['map_id'] ?? 0),
-                    'x'    => (float)($lc['x'] ?? 0),
-                    'y'    => (float)($lc['y'] ?? 0)
+                    'map'  => (int)($lc['map'] ?? $lc['mapid'] ?? $lc['map_id'] ?? 0)
                 );
             }
         }
 
-        $links = [];
-        $zoneTbl = self::hasTable('graveyard_zone')
-            ? 'graveyard_zone'
-            : (self::hasTable('game_graveyard_zone') ? 'game_graveyard_zone' : null);
-
-        if ($zoneTbl)
-        {
-            foreach (DB::World()->selectAssoc('SELECT * FROM '.$zoneTbl) ?: [] as $r)
-            {
-                $lc = array_change_key_case($r, CASE_LOWER);
-                $id = (int)($lc['id'] ?? 0);
-
-                $links[$id][] = array(
-                    'zone'    => (int)($lc['ghostzone'] ?? $lc['ghost_zone'] ?? 0),
-                    'faction' => (int)($lc['faction'] ?? 0)
-                );
-            }
-        }
-
-        $ids = array_unique(array_merge(array_keys($positions), array_keys($links)));
+        $ids = array_keys($links);
         sort($ids);
 
+        // the link table has no map column, so the map is taken from the first ghost zone
         $zoneIds = [];
+        foreach ($links as $link)
+            foreach (array_keys($link['zones']) as $z)
+                $zoneIds[$z] = $z;
+
+        $zoneIds   = array_values($zoneIds);
+        $mapByZone = [];
+
+        if ($zoneIds)
+            foreach (DB::Aowow()->selectAssoc('SELECT `id` AS ARRAY_KEY, `mapId` FROM ::zones WHERE `id` IN %in', $zoneIds) ?: [] as $zId => $zRow)
+                $mapByZone[(int)$zId] = (int)$zRow['mapId'];
+
         $data = [];
         foreach ($ids as $id)
         {
-            $pos  = $positions[$id] ?? ['id' => $id, 'name' => '', 'map' => 0, 'x' => 0, 'y' => 0];
-            $name = (string)$pos['name'];
+            $link  = $links[$id];
+            $zones = array_keys($link['zones']);
+            sort($zones);
 
-            $row = array(
+            $pos  = $positions[$id] ?? null;
+            $name = $pos && $pos['name'] !== '' ? $pos['name'] : (string)($link['comment'] ?? '');
+            $map  = $pos && $pos['map'] ? $pos['map'] : (isset($zones[0]) ? ($mapByZone[$zones[0]] ?? 0) : 0);
+
+            $faction = 0;
+            if (!empty($link['ally']))
+                $faction |= 1;
+            if (!empty($link['horde']))
+                $faction |= 2;
+
+            $data[] = array(
                 'id'      => $id,
                 'name'    => $name !== '' && $name[0] == '$' ? ' '.$name : $name,
-                'map'     => $pos['map'],
-                'x'       => $pos['x'],
-                'y'       => $pos['y'],
-                'zones'   => [],
-                'faction' => 0
+                'map'     => $map,
+                'zones'   => $zones,
+                'faction' => $faction
             );
-
-            $firstLink = true;
-            foreach ($links[$id] ?? [] as $link)
-            {
-                $row['zones'][] = $link['zone'];
-                $zoneIds[$link['zone']] = $link['zone'];
-
-                // one graveyard can serve both factions through different ghost zones; the row
-                // keeps the first, the zone links themselves stay per-row
-                if ($firstLink)
-                {
-                    $row['faction'] = $link['faction'];
-                    $firstLink      = false;
-                }
-            }
-
-            $data[] = $row;
         }
 
         if ($zoneIds)
-            $this->extendGlobalIds(Type::ZONE, ...array_values($zoneIds));
+            $this->extendGlobalIds(Type::ZONE, ...$zoneIds);
 
         return $data;
     }

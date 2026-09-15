@@ -4571,6 +4571,7 @@ var LANG = {
         faction:    "Faction",
         alliance:   "Alliance",
         horde:      "Horde",
+        both:       "Both",
         neutral:    "Neutral"
     },
     fiweather: {
