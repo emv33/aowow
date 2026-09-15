@@ -28,21 +28,26 @@ Listview.templates.condition = {
                 var nameCol = 'name_' + Locale.getName(),
                     first   = true;
 
-                var append = function(lookupName, urlPart, id) {
-                    if (!lookupName || !id)
+                // most sources resolve group/entry through a g_* lookup; a gossip menu has none of its
+                // own (see GameText's owner column, which hands over the same pre-labelled name), so a
+                // row may carry a ready-made name instead of a lookup to find one in
+                var append = function(lookupName, urlPart, id, inlineName) {
+                    if (!inlineName && (!lookupName || !id))
                         return;
 
-                    var lookup = window[lookupName],
-                        entry  = lookup ? lookup[id] : null;
+                    var lookup = lookupName ? window[lookupName] : null,
+                        entry  = lookup && id ? lookup[id] : null;
 
                     if (!first)
                         $WH.ae(td, $WH.ct(' \u2013 '));
 
-                    if (entry && entry[nameCol]) {
+                    var name = (entry && entry[nameCol]) || inlineName;
+
+                    if (name) {
                         var a = $WH.ce('a');
                         a.className = 'q1';
                         a.href = '?' + urlPart + '=' + id;
-                        $WH.ae(a, $WH.ct(entry[nameCol]));
+                        $WH.ae(a, $WH.ct(name));
                         $WH.ae(td, a);
                     }
                     else
@@ -51,8 +56,8 @@ Listview.templates.condition = {
                     first = false;
                 };
 
-                append(cnd.grouplookup, cnd.groupurl, cnd.group);
-                append(cnd.entrylookup, cnd.entryurl, cnd.entry);
+                append(cnd.grouplookup, cnd.groupurl, cnd.group, cnd.groupname);
+                append(cnd.entrylookup, cnd.entryurl, cnd.entry, cnd.entryname);
 
                 if (first) {
                     // nothing linkable - fall back to the raw source key

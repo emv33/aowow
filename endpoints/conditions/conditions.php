@@ -118,6 +118,13 @@ class ConditionsBaseResponse extends TemplateResponse
                 $jsg[$entryType][$r['entry']] = $r['entry'];
             }
 
+            // a gossip menu has no name of its own and no g_* lookup, same as GameText::row() already handles it
+            if (($r['srcType'] == Conditions::SRC_GOSSIP_MENU || $r['srcType'] == Conditions::SRC_GOSSIP_MENU_OPTION) && $r['group'] > 0)
+            {
+                $row['groupname'] = (string)Lang::gossip('menu', [$r['group']]);
+                $row['groupurl']  = Type::getFileString(Type::GOSSIP);
+            }
+
             $data[] = $row;
         }
 
