@@ -41,7 +41,7 @@ Listview.templates.factionchange = {
                 $WH.ae(a, $WH.ct((entry && entry[nameCol]) ? entry[nameCol] : ('#' + t.alliance)));
 
                 if (entry && entry.icon)
-                    $WH.ae(td, Icon.create(entry.icon, 0, null, a.href));
+                    $WH.ae(td, Icon.create(entry.icon, 0, null, a.href, null, null, null, null, true));
 
                 $WH.ae(td, a);
             },
@@ -79,7 +79,7 @@ Listview.templates.factionchange = {
                 $WH.ae(a, $WH.ct((entry && entry[nameCol]) ? entry[nameCol] : ('#' + t.horde)));
 
                 if (entry && entry.icon)
-                    $WH.ae(td, Icon.create(entry.icon, 0, null, a.href));
+                    $WH.ae(td, Icon.create(entry.icon, 0, null, a.href, null, null, null, null, true));
 
                 $WH.ae(td, a);
             },
