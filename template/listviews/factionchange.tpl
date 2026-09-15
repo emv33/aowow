@@ -39,6 +39,10 @@ Listview.templates.factionchange = {
                 a.className = 'q1';
                 a.href = '?' + file + '=' + t.alliance;
                 $WH.ae(a, $WH.ct((entry && entry[nameCol]) ? entry[nameCol] : ('#' + t.alliance)));
+
+                if (entry && entry.icon)
+                    $WH.ae(td, Icon.create(entry.icon, 0, null, a.href));
+
                 $WH.ae(td, a);
             },
             getVisibleText: function(t) {
@@ -73,6 +77,10 @@ Listview.templates.factionchange = {
                 a.className = 'q1';
                 a.href = '?' + file + '=' + t.horde;
                 $WH.ae(a, $WH.ct((entry && entry[nameCol]) ? entry[nameCol] : ('#' + t.horde)));
+
+                if (entry && entry.icon)
+                    $WH.ae(td, Icon.create(entry.icon, 0, null, a.href));
+
                 $WH.ae(td, a);
             },
             getVisibleText: function(t) {

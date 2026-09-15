@@ -73,7 +73,7 @@ class FactionchangeBaseResponse extends TemplateResponse
                 $a = (int)$r['a'];
                 $h = (int)$r['h'];
 
-                $data[] = array('type' => $type, 'alliance' => $a, 'horde' => $h);
+                $data[] = array('type' => $type, 'alliance' => $a, 'horde' => $h, 'id' => $a ?: $h);
 
                 if ($a)
                     $jsg[$type][$a] = $a;
