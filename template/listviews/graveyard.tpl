@@ -47,19 +47,47 @@ Listview.templates.graveyard = {
                     if (i)
                         $WH.ae(td, $WH.ct(', '));
 
-                    var z   = t.zones[i],
-                        a   = $WH.ce('a');
+                    var z     = t.zones[i],
+                        entry = g_gatheredzones ? g_gatheredzones[z] : null,
+                        name  = null,
+                        expansion = 0;
 
+                    if (entry) {
+                        var nameCol = 'name_' + Locale.getName();
+                        name = entry[nameCol] || entry.name || ('#' + z);
+                        expansion = entry.expansion || 0;
+                    }
+                    else
+                        name = (g_zones && g_zones[z]) ? g_zones[z] : ('#' + z);
+
+                    var a = $WH.ce('a');
                     a.className = 'q1';
                     a.href = '?zone=' + z;
-                    $WH.ae(a, $WH.ct((g_zones && g_zones[z]) ? g_zones[z] : ('#' + z)));
-                    $WH.ae(td, a);
+                    $WH.ae(a, $WH.ct(name));
+
+                    if (expansion) {
+                        var sp = $WH.ce('span');
+                        sp.className = g_GetExpansionClassName(expansion);
+                        $WH.ae(sp, a);
+                        $WH.ae(td, sp);
+                    }
+                    else
+                        $WH.ae(td, a);
                 }
             },
             getVisibleText: function(t) {
                 var out = [];
-                for (var i = 0; i < (t.zones || []).length; i++)
-                    out.push((g_zones && g_zones[t.zones[i]]) ? g_zones[t.zones[i]] : ('#' + t.zones[i]));
+                for (var i = 0; i < (t.zones || []).length; i++) {
+                    var z     = t.zones[i],
+                        entry = g_gatheredzones ? g_gatheredzones[z] : null;
+
+                    if (entry) {
+                        var nameCol = 'name_' + Locale.getName();
+                        out.push(entry[nameCol] || entry.name || ('#' + z));
+                    }
+                    else
+                        out.push((g_zones && g_zones[z]) ? g_zones[z] : ('#' + z));
+                }
 
                 return out.join(', ');
             },
@@ -73,11 +101,11 @@ Listview.templates.graveyard = {
             type: 'text',
             width: '12%',
             compute: function(t, td) {
-                var label = t.faction == 1 ? LANG.figraveyard.alliance : (t.faction == 2 ? LANG.figraveyard.horde : LANG.figraveyard.neutral);
+                var label = t.faction == 0 ? LANG.figraveyard.alliance : (t.faction == 1 ? LANG.figraveyard.horde : LANG.figraveyard.neutral);
                 $WH.ae(td, $WH.ct(label));
             },
             getVisibleText: function(t) {
-                return t.faction == 1 ? LANG.figraveyard.alliance : (t.faction == 2 ? LANG.figraveyard.horde : LANG.figraveyard.neutral);
+                return t.faction == 0 ? LANG.figraveyard.alliance : (t.faction == 1 ? LANG.figraveyard.horde : LANG.figraveyard.neutral);
             },
             sortFunc: function(a, b, col) {
                 return $WH.strcmp(this.getVisibleText(a), this.getVisibleText(b));
@@ -86,5 +114,12 @@ Listview.templates.graveyard = {
     ],
     getItemLink: function(t) {
         return t.zones && t.zones.length ? ('?zone=' + t.zones[0]) : '?graveyards';
+    },
+    onBeforeCreate: function() {
+        // hide the template's own id col when the debug id col is shown
+        if (this.debug || g_user?.debug) {
+            let colId = this.columns.findIndex(x => x.id == 'id');
+            this.visibility = this.visibility.filter(x => x != colId);
+        }
     }
 }

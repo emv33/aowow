@@ -65,8 +65,8 @@ class GraveyardsBaseResponse extends TemplateResponse
 
                 $positions[$id] = array(
                     'id'   => $id,
-                    'name' => trim((string)($lc['comment'] ?? '')),
-                    'map'  => (int)($lc['map'] ?? $lc['mapid'] ?? 0),
+                    'name' => trim((string)($lc['comment'] ?? $lc['name'] ?? '')),
+                    'map'  => (int)($lc['map'] ?? $lc['mapid'] ?? $lc['map_id'] ?? 0),
                     'x'    => (float)($lc['x'] ?? 0),
                     'y'    => (float)($lc['y'] ?? 0)
                 );
@@ -95,6 +95,7 @@ class GraveyardsBaseResponse extends TemplateResponse
         $ids = array_unique(array_merge(array_keys($positions), array_keys($links)));
         sort($ids);
 
+        $zoneIds = [];
         $data = [];
         foreach ($ids as $id)
         {
@@ -111,18 +112,26 @@ class GraveyardsBaseResponse extends TemplateResponse
                 'faction' => 0
             );
 
+            $firstLink = true;
             foreach ($links[$id] ?? [] as $link)
             {
                 $row['zones'][] = $link['zone'];
+                $zoneIds[$link['zone']] = $link['zone'];
 
                 // one graveyard can serve both factions through different ghost zones; the row
                 // keeps the first, the zone links themselves stay per-row
-                if (!$row['faction'])
+                if ($firstLink)
+                {
                     $row['faction'] = $link['faction'];
+                    $firstLink      = false;
+                }
             }
 
             $data[] = $row;
         }
+
+        if ($zoneIds)
+            $this->extendGlobalIds(Type::ZONE, ...array_values($zoneIds));
 
         return $data;
     }
