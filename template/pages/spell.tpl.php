@@ -345,7 +345,9 @@ if ($this->attributes):
 
 <?php $this->brick('markup', ['markup' => $this->xRef]);   // aowow - custom ?>
 
+<?php if ($this->hasLvTabs()): ?>
                 <h2 class="clear"><?=Lang::main('related');?></h2>
+<?php endif; ?>
             </div>
 
 <?php

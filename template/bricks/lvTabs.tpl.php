@@ -5,7 +5,7 @@
 ?>
 
 <?php
-if (($this->lvTabs && count($this->lvTabs)) || $this->charactersLvData || $this->profilesLvData || $this->contribute):
+if ($this->hasLvTabs()):
     if ($this->lvTabs?->isTabbed()):
 ?>
 

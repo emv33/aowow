@@ -56,7 +56,7 @@ endif;
               ?></div>
                 <script type="text/javascript">us_addDescription()</script>
 
-<?php if (count($this->lvTabs)): ?>
+<?php if ($this->hasLvTabs()): ?>
                 <h2 id="related" class="clear"><?=Lang::main('related'); ?></h2>
 
 <?php endif; ?>

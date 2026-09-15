@@ -197,6 +197,12 @@ class PageTemplate
             $this->localizedBrick($file, $localVars);
     }
 
+    // the lvTabs brick renders nothing at all when it has no tab to show, so a heading labelling it must not outlive it
+    private function hasLvTabs() : bool
+    {
+        return (bool)($this->lvTabs?->count() || $this->charactersLvData || $this->profilesLvData || $this->contribute);
+    }
+
 
     /****************/
     /* Util wrapper */
