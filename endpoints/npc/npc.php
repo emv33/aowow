@@ -381,39 +381,51 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         $sai = null;
         if ($this->subject->getField('ScriptOrAI') == 'SmartAI')
         {
-            $sai = new SmartAI(SmartAI::SRC_TYPE_CREATURE, $this->typeId);
-            if ($sai->prepare())
+            $sai        = new SmartAI(SmartAI::SRC_TYPE_CREATURE, $this->typeId);
+            $hasEntryAI = $sai->prepare();
+            if ($hasEntryAI)
             {
                 $this->extendGlobalData($sai->getJSGlobals());
                 $this->smartAI = $sai->getMarkup();
             }
-            else                                             // no smartAI found .. check per guid
-            {
-                $guids = DB::World()->selectCol('SELECT `guid` FROM creature WHERE `id` = %i', $this->typeId);
-                $found = [];
-                foreach ($guids as $g)
-                {
-                    $sai = new SmartAI(SmartAI::SRC_TYPE_CREATURE, -$g, ['uid' => 'sai-'.$g, 'title' => ' [small](for GUID: '.$g.')[/small]']);
-                    if ($sai->prepare())
-                        $found[] = $sai;
-                }
 
-                if ($found)                                 // multiple guid-specific tables collapsed by default; a single one stays open
-                {
-                    $collapsed = count($found) > 1;
-                    foreach ($found as $sai)
-                    {
-                        $this->extendGlobalData($sai->getJSGlobals());
-                        $body = $sai->getMarkupBody($collapsed);
-                        if (!$this->smartAI)
-                            $this->smartAI = new Markup($body, ['allow' => Markup::CLASS_ADMIN], 'smartai-generic');
-                        else
-                            $this->smartAI->append($body);
-                    }
-                }
-                else
-                    trigger_error('Creature has `AIName`: SmartAI set in template but no SmartAI defined.');
+            // a guid-specific script runs instead of the entry-level one for that particular
+            // spawn, so it can exist alongside an entry-level default - not only as a fallback
+            // for when the entry has no script of its own. Narrow to guids that actually carry
+            // an override before building a SmartAI instance per one, so a common entry with
+            // hundreds of plain spawns doesn't pay for hundreds of empty lookups.
+            $guids = DB::World()->selectCol(
+               'SELECT c.`guid`
+                FROM   creature c
+                JOIN   smart_scripts ss ON ss.`entryorguid` = -c.`guid` AND ss.`source_type` = %i
+                WHERE  c.`id` = %i
+                GROUP BY c.`guid`',
+                SmartAI::SRC_TYPE_CREATURE, $this->typeId
+            ) ?: [];
+
+            $found = [];
+            foreach ($guids as $g)
+            {
+                $sai = new SmartAI(SmartAI::SRC_TYPE_CREATURE, -$g, ['uid' => 'sai-'.$g, 'title' => ' [small](for GUID: '.$g.')[/small]']);
+                if ($sai->prepare())
+                    $found[] = $sai;
             }
+
+            if ($found)                                     // multiple guid-specific tables collapsed by default; a single one stays open unless there's already an entry-level table shown
+            {
+                $collapsed = $hasEntryAI || count($found) > 1;
+                foreach ($found as $sai)
+                {
+                    $this->extendGlobalData($sai->getJSGlobals());
+                    $body = $sai->getMarkupBody($collapsed);
+                    if (!$this->smartAI)
+                        $this->smartAI = new Markup($body, ['allow' => Markup::CLASS_ADMIN], 'smartai-generic');
+                    else
+                        $this->smartAI->append($body);
+                }
+            }
+            else if (!$hasEntryAI)
+                trigger_error('Creature has `AIName`: SmartAI set in template but no SmartAI defined.');
         }
 
         // aowow - custom start: gossip menus
