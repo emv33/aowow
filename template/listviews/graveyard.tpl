@@ -28,9 +28,27 @@ Listview.templates.graveyard = {
         {
             id: 'map',
             name: LANG.figraveyard.map,
-            type: 'num',
-            width: '10%',
-            value: 'map'
+            type: 'text',
+            width: '14%',
+            align: 'left',
+            compute: function(t, td) {
+                var label = t.mapName || ('#' + t.map);
+                if (t.mapLink) {
+                    var a = $WH.ce('a');
+                    a.className = 'q1';
+                    a.href = t.mapLink;
+                    $WH.ae(a, $WH.ct(label));
+                    $WH.ae(td, a);
+                }
+                else
+                    $WH.ae(td, $WH.ct(label));
+            },
+            getVisibleText: function(t) {
+                return t.mapName || ('#' + t.map);
+            },
+            sortFunc: function(a, b, col) {
+                return $WH.strcmp(this.getVisibleText(a), this.getVisibleText(b));
+            }
         },
         {
             id: 'zones',

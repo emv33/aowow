@@ -124,6 +124,15 @@ class GraveyardsBaseResponse extends TemplateResponse
             $name = $pos && $pos['name'] !== '' ? $pos['name'] : (string)($link['comment'] ?? '');
             $map  = $pos && $pos['map'] ? $pos['map'] : (isset($zones[0]) ? ($mapByZone[$zones[0]] ?? 0) : 0);
 
+            $mapName = match ($map)
+            {
+                0   => Lang::maps('EasternKingdoms'),
+                1   => Lang::maps('Kalimdor'),
+                530 => Lang::maps('Outland'),
+                571 => Lang::maps('Northrend'),
+                default => ''
+            };
+
             $faction = 0;
             if (!empty($link['ally']))
                 $faction |= 1;
@@ -134,6 +143,8 @@ class GraveyardsBaseResponse extends TemplateResponse
                 'id'      => $id,
                 'name'    => $name !== '' && $name[0] == '$' ? ' '.$name : $name,
                 'map'     => $map,
+                'mapName' => $mapName,
+                'mapLink' => isset($zones[0]) ? '?maps='.$zones[0] : '',
                 'zones'   => $zones,
                 'faction' => $faction
             );
