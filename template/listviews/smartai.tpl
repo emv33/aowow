@@ -24,16 +24,22 @@ Listview.templates.smartai = {
             name: LANG.fismartai.entity,
             type: 'text',
             align: 'left',
-            compute: function(sai, td) {
+            // sai.linkid/url/lookup/name describe the row's own entity (creature/object/areatrigger);
+            // sai.owners (only ever set for a Timed action list row, which has no page of its own)
+            // lists every entity - same shape minus linkid - whose script calls that list
+            resolveName: function(url, id, lookup, name) {
                 var nameCol = 'name_' + Locale.getName(),
-                    lookup  = sai.entrylookup ? window[sai.entrylookup] : null,
-                    entry   = lookup ? lookup[sai.linkid] : null,
-                    name    = (entry && entry[nameCol]) ? entry[nameCol] : sai.entryname;
+                    entry   = lookup ? (window[lookup] || {})[id] : null;
 
-                if (name && sai.entryurl) {
+                return (entry && entry[nameCol]) ? entry[nameCol] : (name || null);
+            },
+            compute: function(sai, td) {
+                var name = this.resolveName(sai.url, sai.linkid, sai.lookup, sai.name);
+
+                if (name && sai.url) {
                     var a = $WH.ce('a');
                     a.className = 'q1';
-                    a.href = '?' + sai.entryurl + '=' + sai.linkid;
+                    a.href = '?' + sai.url + '=' + sai.linkid;
                     $WH.ae(a, $WH.ct(name));
                     $WH.ae(td, a);
 
@@ -44,17 +50,33 @@ Listview.templates.smartai = {
                     $WH.ae(td, $WH.ct($WH.sprintf(LANG.smartai_guid, -sai.entry)));
                 else
                     $WH.ae(td, $WH.ct('#' + sai.entry));
+
+                if (sai.owners && sai.owners.length) {
+                    $WH.ae(td, $WH.ct(' ('));
+                    sai.owners.forEach(function(o, i) {
+                        if (i > 0)
+                            $WH.ae(td, $WH.ct(', '));
+
+                        var a = $WH.ce('a');
+                        a.className = 'q1';
+                        a.href = '?' + o.url + '=' + o.id;
+                        $WH.ae(a, $WH.ct(this.resolveName(o.url, o.id, o.lookup, o.name) || ('#' + o.id)));
+                        $WH.ae(td, a);
+                    }, this);
+                    $WH.ae(td, $WH.ct(')'));
+                }
             },
             getVisibleText: function(sai) {
-                var nameCol = 'name_' + Locale.getName(),
-                    lookup  = sai.entrylookup ? window[sai.entrylookup] : null,
-                    entry   = lookup ? lookup[sai.linkid] : null,
-                    name    = (entry && entry[nameCol]) ? entry[nameCol] : sai.entryname;
+                var name = this.resolveName(sai.url, sai.linkid, sai.lookup, sai.name),
+                    text = name ? (name + (sai.entry < 0 ? ' ' + $WH.sprintf(LANG.smartai_guid, -sai.entry) : ''))
+                                : (sai.entry < 0 ? $WH.sprintf(LANG.smartai_guid, -sai.entry) : String(sai.entry));
 
-                if (name)
-                    return name + (sai.entry < 0 ? ' ' + $WH.sprintf(LANG.smartai_guid, -sai.entry) : '');
+                if (sai.owners && sai.owners.length)
+                    text += ' (' + sai.owners.map(function(o) {
+                        return this.resolveName(o.url, o.id, o.lookup, o.name) || ('#' + o.id);
+                    }, this).join(', ') + ')';
 
-                return sai.entry < 0 ? $WH.sprintf(LANG.smartai_guid, -sai.entry) : String(sai.entry);
+                return text;
             },
             sortFunc: function(a, b, col) {
                 return $WH.strcmp(this.getVisibleText(a), this.getVisibleText(b));
@@ -105,6 +127,6 @@ Listview.templates.smartai = {
         }
     ],
     getItemLink: function(sai) {
-        return sai.entryurl && sai.linkid ? ('?' + sai.entryurl + '=' + sai.linkid) : 'javascript:;';
+        return sai.url && sai.linkid ? ('?' + sai.url + '=' + sai.linkid) : 'javascript:;';
     }
 }

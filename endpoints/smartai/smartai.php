@@ -115,6 +115,11 @@ class SmartaiBaseResponse extends TemplateResponse
         $data       = [];
         $guidLookup = self::resolveGuids($rows);            // negative entryorguid -> owning entry, keyed [srcType][entryorguid]
 
+        // a timed action list has no entity or page of its own - it only ever renders as an extra
+        // tab on whichever creature/object/areatrigger script calls it; look up all of them up front
+        $talIds    = array_column(array_filter($rows, fn($r) => $r['srcType'] == SmartAI::SRC_TYPE_ACTIONLIST), 'entry');
+        $talOwners = $talIds ? SmartAI::getActionListOwners($talIds) : [];
+
         foreach ($rows as $i => $r)
         {
             $row = array(
@@ -126,32 +131,31 @@ class SmartaiBaseResponse extends TemplateResponse
                 'actiontypes' => $r['actionTypes']
             );
 
-            $type = match ($r['srcType'])
+            if ($r['srcType'] == SmartAI::SRC_TYPE_ACTIONLIST)
             {
-                SmartAI::SRC_TYPE_CREATURE    => Type::NPC,
-                SmartAI::SRC_TYPE_OBJECT      => Type::OBJECT,
-                SmartAI::SRC_TYPE_AREATRIGGER => Type::AREATRIGGER,
-                default                       => 0
-            };
+                $owners = [];
+                foreach ($talOwners[$r['entry']] ?? [] as [$ownerType, $ownerEntry])
+                    $owners[] = ['id' => $ownerEntry] + $this->linkFields($ownerType, $ownerEntry, $jsg);
 
-            // a negative entryorguid is a spawn guid, not a template entry; resolve it through
-            // ::spawns so a guid-scoped script still links to the creature/object it overrides
-            $linkId = $r['entry'] > 0 ? $r['entry'] : ($guidLookup[$r['srcType']][$r['entry']] ?? 0);
-
-            if ($type && $linkId > 0)
+                if ($owners)
+                    $row['owners'] = $owners;
+            }
+            else
             {
-                $row['linkid']   = $linkId;
-                $row['entryurl'] = Type::getFileString($type);
-
-                // AreaTriggerList::getJSGlobals() is a stub (Type::AREATRIGGER has no g_* window
-                // global to pull a name from) - resolve the name here instead of client-side
-                if ($type == Type::AREATRIGGER)
-                    $row['entryname'] = (string)AreaTriggerList::getName($linkId);
-                else if ($_ = Type::getJSGlobalString($type))
+                $type = match ($r['srcType'])
                 {
-                    $row['entrylookup']  = $_;
-                    $jsg[$type][$linkId] = $linkId;
-                }
+                    SmartAI::SRC_TYPE_CREATURE    => Type::NPC,
+                    SmartAI::SRC_TYPE_OBJECT      => Type::OBJECT,
+                    SmartAI::SRC_TYPE_AREATRIGGER => Type::AREATRIGGER,
+                    default                       => 0
+                };
+
+                // a negative entryorguid is a spawn guid, not a template entry; resolve it through
+                // ::spawns so a guid-scoped script still links to the creature/object it overrides
+                $linkId = $r['entry'] > 0 ? $r['entry'] : ($guidLookup[$r['srcType']][$r['entry']] ?? 0);
+
+                if ($type && $linkId > 0)
+                    $row = array('linkid' => $linkId) + $this->linkFields($type, $linkId, $jsg) + $row;
             }
 
             $data[] = $row;
@@ -160,6 +164,24 @@ class SmartaiBaseResponse extends TemplateResponse
         $this->extendGlobalData($jsg);
 
         return $data;
+    }
+
+    /** @return array {url, lookup?, name?} - lookup keys into a window g_* global, name is a pre-resolved fallback for types (e.g. areatrigger) that carry none */
+    private function linkFields(int $type, int $entry, array &$jsg) : array
+    {
+        $out = ['url' => Type::getFileString($type)];
+
+        // AreaTriggerList::getJSGlobals() is a stub (Type::AREATRIGGER has no g_* window global to
+        // pull a name from) - resolve the name here instead of client-side
+        if ($type == Type::AREATRIGGER)
+            $out['name'] = (string)AreaTriggerList::getName($entry);
+        else if ($_ = Type::getJSGlobalString($type))
+        {
+            $out['lookup']  = $_;
+            $jsg[$type][$entry] = $entry;
+        }
+
+        return $out;
     }
 
     /** @return array [srcType][entryorguid (negative)] => resolved template entry */

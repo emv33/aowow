@@ -610,6 +610,91 @@ class SmartAI
 
         return self::resolveOwners($qParts, $typeFilter);
     }
+
+    /**
+     * every creature/object/areatrigger that calls a given timed action list, directly through
+     * ACTION_CALL_TIMED_ACTIONLIST or as one of the candidates of a random(-range) pick
+     *
+     * a SRC_TYPE_ACTIONLIST entry has no entity or page of its own - it only ever renders as an
+     * extra tab on whichever script calls it (see SmartAction::ACTION_CALL_TIMED_ACTIONLIST and
+     * its ACTION_CALL_RANDOM(_RANGE)_TIMED_ACTIONLIST siblings) - this answers "who calls this
+     * list" so a bare list id can still be linked to something
+     *
+     * @param  int[] $talIds
+     * @return array  [talId => [[Type::NPC|OBJECT|AREATRIGGER, entryId], ...]]
+     */
+    public static function getActionListOwners(array $talIds) : array
+    {
+        $talIds = array_values(array_unique(array_filter(array_map('intVal', $talIds), fn($x) => $x > 0)));
+        if (!$talIds)
+            return [];
+
+        $callers = DB::World()->selectAssoc(
+           'SELECT `source_type` AS "0", `entryorguid` AS "1", `action_type` AS "2",
+                   `action_param1` AS "3", `action_param2` AS "4", `action_param3` AS "5", `action_param4` AS "6", `action_param5` AS "7"
+            FROM   smart_scripts
+            WHERE  `source_type` IN %in AND `action_type` IN %in',
+            [self::SRC_TYPE_CREATURE, self::SRC_TYPE_OBJECT, self::SRC_TYPE_AREATRIGGER],
+            SmartAction::ACTION_ALL_TIMED_ACTION_LISTS
+        ) ?: [];
+
+        $hits      = [];                                    // talId => [srcType.':'.entryOrGuid => [srcType, entryOrGuid]]  - deduped, e.g. two rows of the same script calling the same list
+        $rangeRows = [];                                     // ACTION_CALL_RANDOM_RANGE_TIMED_ACTIONLIST is an interval, not a fixed set of ids
+        foreach ($callers as [$srcType, $eog, $actionType, $p1, $p2, $p3, $p4, $p5])
+        {
+            if ($actionType == SmartAction::ACTION_CALL_TIMED_ACTIONLIST)
+                $hits[$p1][$srcType.':'.$eog] = [$srcType, $eog];
+            else if ($actionType == SmartAction::ACTION_CALL_RANDOM_TIMED_ACTIONLIST)
+                foreach (array_unique(array_filter([$p1, $p2, $p3, $p4, $p5])) as $id)
+                    $hits[$id][$srcType.':'.$eog] = [$srcType, $eog];
+            else if ($actionType == SmartAction::ACTION_CALL_RANDOM_RANGE_TIMED_ACTIONLIST)
+                $rangeRows[] = [$srcType, $eog, $p1, $p2];
+        }
+
+        $hits = array_intersect_key($hits, array_flip($talIds));
+
+        foreach ($rangeRows as [$srcType, $eog, $lo, $hi])
+            foreach ($talIds as $id)
+                if ($id >= $lo && $id <= $hi)
+                    $hits[$id][$srcType.':'.$eog] = [$srcType, $eog];
+
+        if (!$hits)
+            return [];
+
+        // resolve guid-scoped callers (entryorguid < 0) through ::spawns, same as everywhere else in this class
+        $guidsByType = [];
+        foreach ($hits as $pairs)
+            foreach ($pairs as [$srcType, $eog])
+                if ($eog < 0)
+                    $guidsByType[$srcType == self::SRC_TYPE_CREATURE ? Type::NPC : Type::OBJECT][-$eog] = -$eog;
+
+        $guidLookup = [];                                   // [Type::NPC|OBJECT][guid] => typeId
+        foreach ($guidsByType as $type => $guids)
+            $guidLookup[$type] = DB::Aowow()->selectCol('SELECT `guid` AS ARRAY_KEY, `typeId` FROM ::spawns WHERE `type` = %i AND `guid` IN %in', $type, array_values($guids)) ?: [];
+
+        $out = [];
+        foreach ($hits as $talId => $pairs)
+        {
+            foreach ($pairs as [$srcType, $eog])
+            {
+                $type = match ($srcType)
+                {
+                    self::SRC_TYPE_CREATURE    => Type::NPC,
+                    self::SRC_TYPE_OBJECT      => Type::OBJECT,
+                    self::SRC_TYPE_AREATRIGGER => Type::AREATRIGGER,
+                    default                    => 0
+                };
+
+                $entry = $eog > 0 ? $eog : ($guidLookup[$type][-$eog] ?? 0);
+                if ($type && $entry > 0)
+                    $out[$talId][$type.':'.$entry] = [$type, $entry];      // two guids of the same entry can both reference the list
+            }
+
+            $out[$talId] = array_values($out[$talId] ?? []);
+        }
+
+        return $out;
+    }
     // aowow - custom end
 
 
