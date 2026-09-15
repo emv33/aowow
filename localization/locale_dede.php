@@ -1342,17 +1342,45 @@ $lang = array(
         'startsIn'      => "Starts in"
     ),
     'eventExtra' => array(
-        'title'            => "Progress and pools",
+        'title'            => "Progress, pools and holiday mechanics",
         'unnamedCondition' => 'Condition #%1$d',
         'required'         => 'required: [b]%1$s[/b]',
         'worldStates'      => 'world states %1$d / %2$d',
-        'pools'            => 'Spawn pools (%1$d)'
+        'pools'            => 'Spawn pools (%1$d)',
+        'seasonalQuests'   => "Seasonal quests",
+        'questCondition'   => 'condition #[b]%1$d[/b] needs %2$s',
+        'modelEquip'       => "Dresses as",
+        'modelEquipLine'   => 'model #[b]%1$d[/b] with equipment #[b]%2$d[/b]',
+        'eventMail'        => "Sends mail",
+        'mailFrom'        => "from",
+        'npcFlagSwap'      => "Creature flags",
+        'npcFlagSwapValue' => '%1$d spawn(s) set to %2$s',
+        'eventVendor'      => "Event vendors",
+        'eventVendorValue' => '%1$d item(s) on %2$d creature(s)'
     ),
     'rawRow' => array(
         'title'         => 'Template row (%1$s)'
     ),
     'teleport' => array(
         'title'         => "Named locations"
+    ),
+    'trainer' => array(
+        'title'         => "Trainers"
+    ),
+    'graveyard' => array(
+        'title'         => "Graveyards"
+    ),
+    'weather' => array(
+        'title'         => "Weather"
+    ),
+    'outdoorpvp' => array(
+        'title'         => "Outdoor PvP"
+    ),
+    'poi' => array(
+        'title'         => "Points of interest"
+    ),
+    'factionchange' => array(
+        'title'         => "Faction change"
     ),
     'gameText' => array(
         'title'         => "Game text",
@@ -1377,7 +1405,8 @@ $lang = array(
         'unnamedGroup'  => 'Group #%1$d',
         'respawnsWith'  => "Respawns with",
         'respawnGates'  => "Controls respawn of",
-        'equippedBy'    => "Equipped by"
+        'equippedBy'    => "Equipped by",
+        'leadsFormation'=> "Leads formation of",
     ),
     'spellOverride' => array(
         'title'         => "Server overrides",
@@ -1432,6 +1461,14 @@ $lang = array(
                                       'hint' => "instance_encounters.creditEntry has no creature_template. The boss can never be marked as killed."],
             'trainerOrphan'       => ['name' => "Trainer spells without a trainer",
                                       'hint' => "trainer_spell.TrainerId has no row in `trainer`; the spells are never taught."],
+            'eventVendorItem'     => ['name' => "Event vendors selling items that do not exist",
+                                      'hint' => "game_event_npc_vendor.item has no row in item_template. The item silently vanishes from the vendor list."],
+            'seasonalQuestOrphan' => ['name' => "Seasonal quest relations for a quest that does not exist",
+                                      'hint' => "game_event_seasonal_questrelation.questId has no row in quest_template."],
+            'eventQuestConditionOrphan' => ['name' => "Event quest conditions for a quest that does not exist",
+                                      'hint' => "game_event_quest_condition.quest has no row in quest_template."],
+            'eventPoolOrphan'     => ['name' => "Event pools pointing at a pool that does not exist",
+                                      'hint' => "game_event_pool.pool_entry has no row in pool_template; the pool never spawns."],
             'conditionGossip'     => ['name' => "Conditions on gossip options that do not exist",
                                       'hint' => "A CONDITION_SOURCE_TYPE_GOSSIP_MENU_OPTION row whose menu/option pair is not in gossip_menu_option."]
         )
@@ -1465,6 +1502,9 @@ $lang = array(
         'phases'        => "Phase mask",
         'questItems'    => "Quest items",
         'movement'      => "Movement",
+        'mount'         => "Mount",
+        'emote'         => "Emote",
+        'addonOverride' => '%1$d spawn(s) override it',
         'movementOverride' => '%1$d spawn(s) move differently',
         'armor'         => "Armor",
         'strength'      => "Strength",
@@ -1895,6 +1935,8 @@ $lang = array(
             6 => "Random"
         ),
         'battlemasters' => "Battlemasters",
+        'holiday'       => "Call to Arms",
+        'poi'           => "Points of interest",
         'hcAvailable'   => "Heroischer Modus verfügbar&nbsp;(%d)",
         'numPlayers'    => 'Anzahl an Spielern: %1$s',
         'numPlayersVs'  => 'Anzahl an Spielern: %1$dv%1$d',
@@ -2101,7 +2143,8 @@ $lang = array(
         'mailIn'        => " nach %s",
         'delay'         => "Verzögerung: %s",
         'sender'        => "Absender: %s",
-        'untitled'      => "Unbetitelter Brief #%d"
+        'untitled'      => "Unbetitelter Brief #%d",
+        'levelRewards'  => "Level rewards",
     ),
     'pet'      => array(
         'id'            => "Tierart-ID: ",

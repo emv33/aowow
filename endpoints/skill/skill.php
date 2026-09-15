@@ -297,7 +297,13 @@ class SkillBaseResponse extends TemplateResponse implements ICache
                 $this->typeId
             );
 
-            $list = $spellIds ? DB::World()->selectCol('SELECT cdt.`CreatureId` FROM creature_default_trainer cdt JOIN trainer_spell ts ON ts.`TrainerId` = cdt.`TrainerId` WHERE ts.`SpellID` IN %in', $spellIds) : [];
+            // newer cores split the trainer link out; 3.3.5 keeps it in one npc_trainer row
+            if ($spellIds && DB::World()->selectCell('SHOW TABLES LIKE %s', 'creature_default_trainer') && DB::World()->selectCell('SHOW TABLES LIKE %s', 'trainer_spell'))
+                $list = DB::World()->selectCol('SELECT cdt.`CreatureId` FROM creature_default_trainer cdt JOIN trainer_spell ts ON ts.`TrainerId` = cdt.`TrainerId` WHERE ts.`SpellID` IN %in', $spellIds);
+            else if ($spellIds && DB::World()->selectCell('SHOW TABLES LIKE %s', 'npc_trainer'))
+                $list = DB::World()->selectCol('SELECT DISTINCT `entry` FROM npc_trainer WHERE `spell` IN %in', $spellIds);
+            else
+                $list = [];
             if ($list)
             {
                 $trainer = new CreatureList(array(['ct.id', $list], ['s.guid', NULL, '!'], ['ct.npcflag', 0x10, '&']));

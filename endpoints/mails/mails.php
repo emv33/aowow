@@ -52,6 +52,36 @@ class MailsBaseResponse extends TemplateResponse implements ICache
 
         $this->lvTabs->addListviewTab(new Listview(['data' => $mails->getListviewData()], MailList::$brickFile, 'mail'));
 
+        // aowow - custom start: `mail_level_reward` - the mails the server sends for reaching a
+        // level, which the detail page could only ever resolve backwards
+        if (User::isInGroup(U_GROUP_STAFF) && DB::World()->selectCell('SHOW TABLES LIKE %s', 'mail_level_reward'))
+        {
+            $rewardRows = DB::World()->selectAssoc('SELECT `level`, `raceMask`, `mailTemplateId`, `senderEntry` FROM mail_level_reward ORDER BY `level` ASC') ?: [];
+            if ($rewardRows)
+            {
+                $data = [];
+                foreach ($rewardRows as $r)
+                {
+                    $id = (int)$r['mailTemplateId'];
+                    $data[] = array(
+                        'id'          => $id,
+                        'subject'     => Lang::mail('untitled', [$id]),
+                        'body'        => '',
+                        'attachments' => [],
+                        'level'       => (int)$r['level']
+                    );
+                }
+
+                $this->lvTabs->addListviewTab(new Listview(array(
+                    'data'      => $data,
+                    'name'      => Lang::mail('levelRewards'),
+                    'id'        => 'level-rewards',
+                    'extraCols' => ["\$Listview.funcBox.createSimpleCol('level', LANG.level, '8%', 'level')"]
+                ), 'mail', 'mail'));
+            }
+        }
+        // aowow - custom end
+
         parent::generate();
     }
 

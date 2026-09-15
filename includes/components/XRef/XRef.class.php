@@ -213,6 +213,27 @@ class XRef
         }
     }
 
+    /**
+     * `creature_formations` read backwards - who follows this creature
+     * the forward direction (this creature follows a leader) is in the npc infobox already
+     */
+    private function leadsFormation() : void
+    {
+        if ($this->type != Type::NPC || !self::hasTable('creature_formations'))
+            return;
+
+        $ids = DB::World()->selectCol(
+           'SELECT mc.`id`
+            FROM   creature_formations cf
+            JOIN   creature mc ON mc.`guid` = cf.`memberGUID`
+            JOIN   creature lc ON lc.`guid` = cf.`leaderGUID`
+            WHERE  lc.`id` = %i AND lc.`id` <> mc.`id`',
+            $this->typeId
+        ) ?: [];
+
+        $this->add(Lang::xRef('leadsFormation'), $this->linksFor([Type::NPC => $ids]));
+    }
+
     public function getMarkup() : ?Markup
     {
         $this->smartAI();
@@ -221,6 +242,7 @@ class XRef
         $this->spawnGroups();
         $this->linkedRespawn();
         $this->equippedBy();
+        $this->leadsFormation();
 
         if (!$this->rows)
             return null;

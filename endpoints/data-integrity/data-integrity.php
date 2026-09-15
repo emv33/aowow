@@ -180,6 +180,34 @@ class DataintegrityBaseResponse extends TemplateResponse
             WHERE    t.`Id` IS NULL
             GROUP BY ts.`TrainerId`', ''],
 
+        'eventVendorItem' => [['game_event_npc_vendor', 'item_template'],
+           'SELECT   genv.`guid` AS "id", CONCAT("item #", genv.`item`) AS "caption"
+            FROM     game_event_npc_vendor genv
+            LEFT JOIN item_template it ON it.`entry` = genv.`item`
+            WHERE    genv.`item` > 0 AND it.`entry` IS NULL
+            GROUP BY genv.`guid`, genv.`item`', ''],
+
+        'seasonalQuestOrphan' => [['game_event_seasonal_questrelation', 'quest_template'],
+           'SELECT   sq.`eventEntry` AS "id", CONCAT("quest #", sq.`questId`) AS "caption"
+            FROM     game_event_seasonal_questrelation sq
+            LEFT JOIN quest_template qt ON qt.`ID` = sq.`questId`
+            WHERE    qt.`ID` IS NULL
+            GROUP BY sq.`eventEntry`, sq.`questId`', 'event'],
+
+        'eventQuestConditionOrphan' => [['game_event_quest_condition', 'quest_template'],
+           'SELECT   gc.`eventEntry` AS "id", CONCAT("quest #", gc.`quest`) AS "caption"
+            FROM     game_event_quest_condition gc
+            LEFT JOIN quest_template qt ON qt.`ID` = gc.`quest`
+            WHERE    qt.`ID` IS NULL
+            GROUP BY gc.`eventEntry`, gc.`quest`', 'event'],
+
+        'eventPoolOrphan' => [['game_event_pool', 'pool_template'],
+           'SELECT   gp.`eventEntry` AS "id", CONCAT("pool #", gp.`pool_entry`) AS "caption"
+            FROM     game_event_pool gp
+            LEFT JOIN pool_template pt ON pt.`entry` = gp.`pool_entry`
+            WHERE    gp.`pool_entry` > 0 AND pt.`entry` IS NULL
+            GROUP BY gp.`eventEntry`, gp.`pool_entry`', 'event'],
+
         'conditionGossip' => [['conditions', 'gossip_menu_option'],
            'SELECT   c.`SourceGroup` AS "id", CONCAT("option #", c.`SourceEntry`) AS "caption"
             FROM     conditions c

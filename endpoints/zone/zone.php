@@ -223,6 +223,13 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
                 if (($sMin || $sMax) && ($sMin != $bg['minLevel'] || $sMax != $bg['maxLevel']))
                     $infobox[] = Lang::zone('bgBracketServer').Lang::main('colon').$sMin.' - '.$sMax;
             }
+
+            // `game_event_battleground_holiday` - the Call to Arms rotation, read nowhere
+            if ($holidays = self::getBattlegroundHoliday($bg['id']))
+            {
+                $this->extendGlobalIds(Type::WORLDEVENT, ...$holidays);
+                $infobox[] = Lang::zone('holiday').Lang::main('colon').Lang::concat(array_map(fn($x) => '[event='.$x.']', $holidays), Lang::CONCAT_NONE);
+            }
         }
 
         if ($lfg = self::getLFGDungeon($mapId))
@@ -654,6 +661,19 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
                     'id'   => 'battlemasters'
                 ), CreatureList::$brickFile));
             }
+        }
+        // aowow - custom end
+
+        // aowow - custom start: the points of interest this zone's gossip options mark on the map
+        // points_of_interest has no zone column; it is reached through the gossip menus of the
+        // NPCs that spawn here
+        if ($poiData = self::getPOIsForZone($this->typeId))
+        {
+            $this->lvTabs->addListviewTab(new Listview(array(
+                'data' => $poiData,
+                'name' => Lang::zone('poi'),
+                'id'   => 'poi'
+            ), 'poi', 'poi'));
         }
         // aowow - custom end
 
@@ -1150,6 +1170,82 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
         $ids = DB::World()->selectCol('SELECT `entry` FROM battlemaster_entry WHERE `bg_template` = %i', $bgTypeId) ?: [];
 
         return array_values(array_filter(array_map('intVal', $ids)));
+    }
+
+    /** `game_event_battleground_holiday` - which Call to Arms events rotate this battleground in */
+    private static function getBattlegroundHoliday(int $bgTypeId) : array
+    {
+        if ($bgTypeId <= 0 || !self::hasTable('game_event_battleground_holiday', false))
+            return [];
+
+        $rows = DB::World()->selectAssoc('SELECT * FROM game_event_battleground_holiday') ?: [];
+
+        $out = [];
+        foreach ($rows as $r)
+        {
+            $lc   = array_change_key_case($r, CASE_LOWER);
+            $flag = (int)($lc['bgflag'] ?? $lc['bg_flag'] ?? $lc['battleground'] ?? $lc['bg'] ?? 0);
+            if ($flag == $bgTypeId && ($ev = (int)($lc['evententry'] ?? $lc['event'] ?? 0)))
+                $out[$ev] = $ev;
+        }
+
+        return array_values($out);
+    }
+
+    /**
+     * `points_of_interest` has no zone column, so the ones a zone page can show are reached
+     * through the gossip menus of the NPCs that spawn there
+     */
+    private static function getPOIsForZone(int $areaId) : array
+    {
+        foreach (['points_of_interest', 'gossip_menu', 'gossip_menu_option', 'creature_template', 'creature'] as $tbl)
+            if (!self::hasTable($tbl, false))
+                return [];
+
+        $guids = DB::Aowow()->selectCol('SELECT `guid` FROM ::spawns WHERE `type` = %i AND `areaId` = %i AND `posX` > 0 AND `posY` > 0', Type::NPC, $areaId);
+        if (!$guids)
+            return [];
+
+        // 3.3.5 spells the columns differently from newer cores; both are tried, as in Gossip
+        $rows = DB::World()->selectAssoc(
+           'SELECT poi.`ID` AS "id", MIN(poi.`PositionX`) AS "x", MIN(poi.`PositionY`) AS "y", MIN(poi.`Icon`) AS "icon", MIN(poi.`Name`) AS "name"
+            FROM   creature c
+            JOIN   creature_template ct ON ct.`entry` = c.`id`
+            JOIN   gossip_menu gm ON gm.`MenuID` = ct.`gossip_menu_id`
+            JOIN   gossip_menu_option gmo ON gmo.`MenuID` = gm.`MenuID` AND gmo.`ActionPoiID` > 0
+            JOIN   points_of_interest poi ON poi.`ID` = gmo.`ActionPoiID`
+            WHERE  c.`guid` IN %in
+            GROUP BY poi.`ID`', $guids
+        );
+
+        if ($rows === null)
+        {
+            $rows = DB::World()->selectAssoc(
+               'SELECT poi.`entry` AS "id", MIN(poi.`x`) AS "x", MIN(poi.`y`) AS "y", MIN(poi.`icon`) AS "icon", MIN(poi.`icon_name`) AS "name"
+                FROM   creature c
+                JOIN   creature_template ct ON ct.`entry` = c.`id`
+                JOIN   gossip_menu gm ON gm.`MenuID` = ct.`gossip_menu_id`
+                JOIN   gossip_menu_option gmo ON gmo.`MenuID` = gm.`MenuID` AND gmo.`ActionPoiID` > 0
+                JOIN   points_of_interest poi ON poi.`entry` = gmo.`ActionPoiID`
+                WHERE  c.`guid` IN %in
+                GROUP BY poi.`entry`', $guids
+            ) ?: [];
+        }
+
+        $data = [];
+        foreach ($rows as $r)
+        {
+            $name = trim((string)$r['name']);
+            $data[] = array(
+                'id'   => (int)$r['id'],
+                'name' => $name !== '' && $name[0] == '$' ? ' '.$name : $name,
+                'x'    => (float)$r['x'],
+                'y'    => (float)$r['y'],
+                'icon' => (int)$r['icon']
+            );
+        }
+
+        return $data;
     }
     // aowow - custom end
 

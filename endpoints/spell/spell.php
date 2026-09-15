@@ -47,6 +47,15 @@ class SpellBaseResponse extends TemplateResponse implements ICache
     private array     $difficulties = [];
     private int       $mapType      = 0;
 
+    // aowow - custom start
+    private static function hasTable(string $tbl) : bool
+    {
+        static $known = [];
+
+        return $known[$tbl] ??= (bool)DB::World()->selectCell('SHOW TABLES LIKE %s', $tbl);
+    }
+    // aowow - custom end
+
     public function __construct(string $id)
     {
         parent::__construct($id);
@@ -1155,13 +1164,26 @@ class SpellBaseResponse extends TemplateResponse implements ICache
         if (!$this->subject->getRawSource(SRC_TRAINER))
             return null;
 
-        if (!($trainers = DB::World()->selectAssoc(
-           'SELECT  cdt.`CreatureId` AS ARRAY_KEY, ts.`ReqSkillLine` AS "reqSkillId", ts.`ReqSkillRank` AS "reqSkillValue", ts.`ReqLevel` AS "reqLevel", ts.`ReqAbility1` AS "reqSpellId1", ts.`reqAbility2` AS "reqSpellId2"
-            FROM    creature_default_trainer cdt
-            JOIN    trainer_spell ts ON ts.`TrainerId` = cdt.`TrainerId`
-            WHERE   ts.`SpellId` = %i',
-            $this->typeId
-        )))
+        // newer cores split the trainer link out; 3.3.5 keeps it in one npc_trainer row
+        if (self::hasTable('creature_default_trainer') && self::hasTable('trainer_spell'))
+            $trainers = DB::World()->selectAssoc(
+               'SELECT  cdt.`CreatureId` AS ARRAY_KEY, ts.`ReqSkillLine` AS "reqSkillId", ts.`ReqSkillRank` AS "reqSkillValue", ts.`ReqLevel` AS "reqLevel", ts.`ReqAbility1` AS "reqSpellId1", ts.`reqAbility2` AS "reqSpellId2"
+                FROM    creature_default_trainer cdt
+                JOIN    trainer_spell ts ON ts.`TrainerId` = cdt.`TrainerId`
+                WHERE   ts.`SpellId` = %i',
+                $this->typeId
+            );
+        else if (self::hasTable('npc_trainer'))
+            $trainers = DB::World()->selectAssoc(
+               'SELECT  `entry` AS ARRAY_KEY, `reqskill` AS "reqSkillId", `reqskillvalue` AS "reqSkillValue", `reqlevel` AS "reqLevel"
+                FROM    npc_trainer
+                WHERE   `spell` = %i',
+                $this->typeId
+            );
+        else
+            $trainers = null;
+
+        if (!$trainers)
             return null;
 
         if (($tbTrainer = new CreatureList(array(['ct.id', array_keys($trainers)], ['s.guid', null, '!'], ['ct.npcflag', NPC_FLAG_TRAINER, '&'])))->error)

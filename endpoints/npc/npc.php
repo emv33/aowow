@@ -227,6 +227,14 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         if ($_ = self::getMovement($this->typeId))
             $infobox[] = Lang::npcExtra('movement').Lang::main('colon').implode(', ', $_);
 
+        // `creature_template_addon` holds the mount a creature rides and the emote it stands in,
+        // beyond the auras the spell tab already reads from the same row
+        if ($_ = self::getAddon($this->typeId))
+        {
+            foreach ($_ as $line)
+                $infobox[] = $line;
+        }
+
         // `pet_levelstats` and `pet_name_generation` are keyed by creature entry, not by the pet
         // family `?pet=` is built on, so this is the only page they can hang off
         $this->levelCurve = self::buildPetTable($this->typeId);
@@ -649,13 +657,29 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         // tab: teaches
         if ($this->subject->getField('npcflag') & NPC_FLAG_TRAINER)
         {
-            $teachQuery =
-               'SELECT ts.`SpellId` AS ARRAY_KEY, ts.`MoneyCost` AS "cost", ts.`ReqSkillLine` AS "reqSkillId", ts.`ReqSkillRank` AS "reqSkillValue", ts.`ReqLevel` AS "reqLevel", ts.`ReqAbility1` AS "reqSpellId1", ts.`reqAbility2` AS "reqSpellId2"
-                FROM   trainer_spell ts
-                JOIN   creature_default_trainer cdt ON cdt.`TrainerId` = ts.`TrainerId`
-                WHERE  cdt.`Creatureid` = %i';
+            // newer cores split the trainer link out; 3.3.5 keeps it in one npc_trainer row
+            if (self::hasTable('creature_default_trainer') && self::hasTable('trainer_spell'))
+            {
+                $teachQuery =
+                   'SELECT ts.`SpellId` AS ARRAY_KEY, ts.`MoneyCost` AS "cost", ts.`ReqSkillLine` AS "reqSkillId", ts.`ReqSkillRank` AS "reqSkillValue", ts.`ReqLevel` AS "reqLevel", ts.`ReqAbility1` AS "reqSpellId1", ts.`reqAbility2` AS "reqSpellId2"
+                    FROM   trainer_spell ts
+                    JOIN   creature_default_trainer cdt ON cdt.`TrainerId` = ts.`TrainerId`
+                    WHERE  cdt.`Creatureid` = %i';
 
-            if ($tSpells = DB::World()->selectAssoc($teachQuery, $this->typeId))
+                $tSpells = DB::World()->selectAssoc($teachQuery, $this->typeId);
+            }
+            else if (self::hasTable('npc_trainer'))
+            {
+                $tSpells = DB::World()->selectAssoc(
+                   'SELECT `spell` AS ARRAY_KEY, `spellcost` AS "cost", `reqskill` AS "reqSkillId", `reqskillvalue` AS "reqSkillValue", `reqlevel` AS "reqLevel"
+                    FROM   npc_trainer
+                    WHERE  `entry` = %i', $this->typeId
+                );
+            }
+            else
+                $tSpells = null;
+
+            if ($tSpells)
             {
                 $teaches = new SpellList(array(['id', array_keys($tSpells)]));
                 if (!$teaches->error)
@@ -1494,6 +1518,49 @@ class NpcBaseResponse extends TemplateResponse implements ICache
 
         return new Markup('[pad][h3][toggler=hidden id=pet-stats]'.Lang::npcExtra('petStats').'[/toggler][/h3][div=hidden id=pet-stats clear=left]'.$body.'[/div]',
                           ['allow' => Markup::CLASS_ADMIN], 'level-curve-generic');
+    }
+
+    /**
+     * the mount a creature rides and the emote it stands in, from `creature_template_addon`
+     *
+     * the same row's auras are read by the spell tab already; these two columns were not. a
+     * per-spawn `creature_addon` row can override either, and the number of spawns that do is
+     * appended rather than listed.
+     */
+    private static function getAddon(int $npcId) : array
+    {
+        if (!self::hasTable('creature_template_addon'))
+            return [];
+
+        $row = DB::World()->selectRow('SELECT * FROM creature_template_addon WHERE `entry` = %i', $npcId);
+        if (!$row)
+            return [];
+
+        $lc  = array_change_key_case($row, CASE_LOWER);
+        $out = [];
+
+        if ($mount = (int)($lc['mount'] ?? 0))
+            $out[] = Lang::npcExtra('mount').Lang::main('colon').'[npc='.$mount.']';
+
+        if ($emote = (int)($lc['emote'] ?? 0))
+            $out[] = Lang::npcExtra('emote').Lang::main('colon').'[emote='.$emote.']';
+
+        if (!$out)
+            return [];
+
+        // per-spawn rows that say something different from the template
+        if (self::hasTable('creature_addon'))
+        {
+            $nOverride = (int)DB::World()->selectCell(
+               'SELECT COUNT(1) FROM creature_addon ca JOIN creature c ON c.`guid` = ca.`guid` WHERE c.`id` = %i AND (ca.`mount` <> %i OR ca.`emote` <> %i)',
+                $npcId, $mount, $emote
+            );
+
+            if ($nOverride)
+                $out[] = Lang::npcExtra('addonOverride', [$nOverride]);
+        }
+
+        return $out;
     }
 
     /** items only lootable by a player on the right quest */

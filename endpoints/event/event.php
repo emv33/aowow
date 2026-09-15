@@ -502,6 +502,107 @@ class EventBaseResponse extends TemplateResponse implements ICache
                 $rows[] = [Lang::eventExtra('pools', [$nPools]), Lang::concat($links, Lang::CONCAT_NONE)];
         }
 
+        // the holiday half of the event system, none of which was read anywhere
+        if (self::hasTable('game_event_seasonal_questrelation'))
+        {
+            $questIds = array_map('intVal', DB::World()->selectCol('SELECT `questId` FROM game_event_seasonal_questrelation WHERE `eventEntry` = %i', $this->typeId) ?: []);
+            if ($questIds)
+            {
+                $this->extendGlobalIds(Type::QUEST, ...$questIds);
+                $rows[] = [Lang::eventExtra('seasonalQuests'), Lang::concat(array_map(fn($x) => '[quest='.$x.']', $questIds), Lang::CONCAT_NONE)];
+            }
+        }
+
+        if (self::hasTable('game_event_quest_condition'))
+        {
+            $cndRows = DB::World()->selectAssoc('SELECT * FROM game_event_quest_condition WHERE `eventEntry` = %i', $this->typeId) ?: [];
+            foreach ($cndRows as $r)
+            {
+                $lc = array_change_key_case($r, CASE_LOWER);
+                $q  = (int)($lc['quest'] ?? $lc['questid'] ?? 0);
+                if (!$q)
+                    continue;
+
+                $this->extendGlobalIds(Type::QUEST, $q);
+                $value = Lang::eventExtra('questCondition', [
+                    (int)($lc['condition_id'] ?? 0),
+                    (string)(float)($lc['num'] ?? 0)
+                ]);
+
+                $rows[] = ['[quest='.$q.']', $value];
+            }
+        }
+
+        if (self::hasTable('game_event_model_equip'))
+        {
+            $eqRows = DB::World()->selectAssoc('SELECT * FROM game_event_model_equip WHERE `eventEntry` = %i', $this->typeId) ?: [];
+            if ($eqRows)
+            {
+                $parts = [];
+                foreach ($eqRows as $r)
+                {
+                    $lc = array_change_key_case($r, CASE_LOWER);
+                    $parts[] = Lang::eventExtra('modelEquipLine', [
+                        (int)($lc['modelid'] ?? 0),
+                        (int)($lc['equipment_id'] ?? 0)
+                    ]);
+                }
+
+                $rows[] = [Lang::eventExtra('modelEquip'), implode(', ', $parts)];
+            }
+        }
+
+        if (self::hasTable('game_event_mail'))
+        {
+            $mailRows = DB::World()->selectAssoc('SELECT * FROM game_event_mail WHERE `eventEntry` = %i', $this->typeId) ?: [];
+            foreach ($mailRows as $r)
+            {
+                $lc = array_change_key_case($r, CASE_LOWER);
+                $q  = (int)($lc['quest'] ?? 0);
+                $m  = (int)($lc['mailtemplateid'] ?? 0);
+                if (!$m)
+                    continue;
+
+                $value = '[url=?mail='.$m.']'.Lang::mail('untitled', [$m]).'[/url]';
+
+                if ($sender = (int)($lc['senderentry'] ?? 0))
+                {
+                    $this->extendGlobalIds(Type::NPC, $sender);
+                    $value .= ' '.Lang::eventExtra('mailFrom').' [npc='.$sender.']';
+                }
+
+                if ($q)
+                {
+                    $this->extendGlobalIds(Type::QUEST, $q);
+                    $rows[] = ['[quest='.$q.']', $value];
+                }
+                else
+                    $rows[] = [Lang::eventExtra('eventMail'), $value];
+            }
+        }
+
+        if (self::hasTable('game_event_npcflag'))
+        {
+            $flagRows = DB::World()->selectAssoc('SELECT * FROM game_event_npcflag WHERE `eventEntry` = %i', $this->typeId) ?: [];
+            if ($flagRows)
+            {
+                $nSpawns = count($flagRows);
+                $flags   = array_unique(array_map(fn($r) => (int)(array_change_key_case($r, CASE_LOWER)['npcflag'] ?? 0), $flagRows));
+                $rows[]  = [Lang::eventExtra('npcFlagSwap'), Lang::eventExtra('npcFlagSwapValue', [$nSpawns, implode(', ', array_map(fn($x) => '0x'.dechex($x), $flags))])];
+            }
+        }
+
+        if (self::hasTable('game_event_npc_vendor'))
+        {
+            $vRows = DB::World()->selectAssoc('SELECT * FROM game_event_npc_vendor WHERE `eventEntry` = %i', $this->typeId) ?: [];
+            if ($vRows)
+            {
+                $nItems   = count($vRows);
+                $nVendors = count(array_unique(array_map(fn($r) => (int)(array_change_key_case($r, CASE_LOWER)['guid'] ?? 0), $vRows)));
+                $rows[]   = [Lang::eventExtra('eventVendor'), Lang::eventExtra('eventVendorValue', [$nItems, $nVendors])];
+            }
+        }
+
         if (!$rows)
             return;
 

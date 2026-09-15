@@ -62,6 +62,12 @@ class Lang
     private static array $gameText;
     private static array $eventExtra;
     private static array $teleport;
+    private static array $trainer;
+    private static array $graveyard;
+    private static array $weather;
+    private static array $outdoorpvp;
+    private static array $poi;
+    private static array $factionchange;
     private static array $rawRow;
     private static array $dataIntegrity;
 

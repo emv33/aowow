@@ -1010,7 +1010,13 @@ var mn_database = [
     [109, 'Game text', '?texts', null, {requiredAccess: 1726}],    // aowow - custom
     [110, 'Achievement Criteria', '?achievement-criteria'],          // aowow - custom
     [110, 'Flight paths', '?taxipaths', null, {requiredAccess: 1726}],    // aowow - custom
-    [111, 'Named locations', '?teleports', null, {requiredAccess: 1726}]    // aowow - custom
+    [111, 'Named locations', '?teleports', null, {requiredAccess: 1726}],    // aowow - custom
+    [112, 'Trainers', '?trainers', null, {requiredAccess: 1726}],    // aowow - custom
+    [113, 'Graveyards', '?graveyards', null, {requiredAccess: 1726}],    // aowow - custom
+    [114, 'Weather', '?weather', null, {requiredAccess: 1726}],    // aowow - custom
+    [115, 'Outdoor PvP', '?outdoorpvp', null, {requiredAccess: 1726}],    // aowow - custom
+    [116, 'Points of interest', '?poi', null, {requiredAccess: 1726}],    // aowow - custom
+    [117, 'Faction change', '?factionchange', null, {requiredAccess: 1726}]    // aowow - custom
 ];
 
 var mn_guides = [
@@ -4550,6 +4556,51 @@ var LANG = {
         position:   "Position"
     },
     teleport_map: "Map $1",
+    fitrainer: {
+        trainer:    "Trainer",
+        spell:      "Spell",
+        cost:       "Cost",
+        reqSkill:   "Required skill",
+        rank:       "Rank",
+        level:      "Level"
+    },
+    figraveyard: {
+        name:       "Name",
+        map:        "Map",
+        zones:      "Zones",
+        faction:    "Faction",
+        alliance:   "Alliance",
+        horde:      "Horde",
+        neutral:    "Neutral"
+    },
+    fiweather: {
+        zone:       "Zone",
+        rain:       "Rain",
+        snow:       "Snow",
+        storm:      "Storm"
+    },
+    fioutdoorpvp: {
+        typeId:     "Type",
+        scriptName: "Script",
+        comment:    "Comment"
+    },
+    fipoi: {
+        name:       "Name",
+        position:   "Position",
+        icon:       "Icon"
+    },
+    fifactionchange: {
+        type:       "Type",
+        alliance:   "Alliance",
+        horde:      "Horde",
+        types: {
+            3: "Item",
+            5: "Quest",
+            6: "Spell",
+            8: "Faction",
+            11: "Title"
+        }
+    },
     fitext: {
         source:     "Source",
         owner:      "Owner",

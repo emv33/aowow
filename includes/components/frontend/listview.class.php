@@ -37,6 +37,12 @@ class Listview implements \JsonSerializable
         'smartai'           => ['template' => 'smartai',           'id' => 'smartai',                                             ], // aowow - custom
         'text'              => ['template' => 'text',              'id' => 'texts',                                               ], // aowow - custom
         'teleport'          => ['template' => 'teleport',          'id' => 'teleports',                                           ], // aowow - custom
+        'trainer'           => ['template' => 'trainer',           'id' => 'trainers',                                            ], // aowow - custom
+        'graveyard'         => ['template' => 'graveyard',         'id' => 'graveyards',                                          ], // aowow - custom
+        'weather'           => ['template' => 'weather',           'id' => 'weather',                                             ], // aowow - custom
+        'outdoorpvp'        => ['template' => 'outdoorpvp',        'id' => 'outdoorpvp',                                          ], // aowow - custom
+        'poi'               => ['template' => 'poi',               'id' => 'poi',                                                 ], // aowow - custom
+        'factionchange'     => ['template' => 'factionchange',     'id' => 'factionchange',                                       ], // aowow - custom
         'icongallery'       => ['template' => 'icongallery',       'id' => 'icons',                                               ],
         'item'              => ['template' => 'item',              'id' => 'items',           'name' => '$LANG.tab_items'         ],
         'itemset'           => ['template' => 'itemset',           'id' => 'itemsets',        'name' => '$LANG.tab_itemsets'      ],
