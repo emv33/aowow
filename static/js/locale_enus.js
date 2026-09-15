@@ -4589,6 +4589,7 @@ var LANG = {
     },
     fipoi: {
         name:       "Name",
+        zone:       "Zone",
         position:   "Position",
         icon:       "Icon"
     },

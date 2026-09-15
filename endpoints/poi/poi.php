@@ -57,20 +57,72 @@ class PoiBaseResponse extends TemplateResponse
         if (!$rows)
             $rows = DB::World()->selectAssoc('SELECT `entry` AS "ID", `x`, `y`, `icon`, `icon_name` AS "name" FROM points_of_interest ORDER BY `entry` ASC');
 
-        $data = [];
+        $pois = [];
         foreach ($rows ?: [] as $r)
         {
             $name = trim((string)$r['name']);
-            $data[] = array(
-                'id'    => (int)$r['ID'],
-                'name'  => $name !== '' && $name[0] == '$' ? ' '.$name : $name,
-                'x'     => (float)$r['x'],
-                'y'     => (float)$r['y'],
-                'icon'  => (int)$r['icon']
+            $pois[(int)$r['ID']] = array(
+                'id'   => (int)$r['ID'],
+                'name' => $name !== '' && $name[0] == '$' ? ' '.$name : $name,
+                'x'    => (float)$r['x'],
+                'y'    => (float)$r['y'],
+                'icon' => (int)$r['icon']
             );
         }
 
+        // the table carries no map id, so the map a point belongs to is reached through the
+        // gossip menus whose options point at it
+        $maps = $this->getPoiMaps(array_keys($pois));
+
+        $data = [];
+        foreach ($pois as $poi)
+        {
+            $mapId = $maps[$poi['id']] ?? 0;
+            if ($mapId && ($pt = WorldPosition::toZonePos($mapId, $poi['x'], $poi['y'])))
+            {
+                $poi['zone']    = (int)$pt[0]['areaId'];
+                $poi['maplink'] = '?maps='.$poi['zone'].':'.self::pinStr($pt[0]['posX']).self::pinStr($pt[0]['posY']);
+            }
+
+            $data[] = $poi;
+        }
+
         return $data;
+    }
+
+    /**
+     * @param int[] $poiIds
+     * @return array<int, int> poiId => mapId
+     */
+    private function getPoiMaps(array $poiIds) : array
+    {
+        foreach (['gossip_menu', 'gossip_menu_option', 'creature_template', 'creature'] as $tbl)
+            if (!DB::World()->selectCell('SHOW TABLES LIKE %s', $tbl))
+                return [];
+
+        // a menu can be shared by creatures on several maps; the lowest map id wins, which is
+        // enough to open a map the point is actually drawn on
+        $rows = DB::World()->selectAssoc(
+           'SELECT gmo.`ActionPoiID` AS "poi", MIN(c.`map`) AS "map"
+            FROM   gossip_menu_option gmo
+            JOIN   gossip_menu gm ON gm.`MenuID` = gmo.`MenuID`
+            JOIN   creature_template ct ON ct.`gossip_menu_id` = gm.`MenuID`
+            JOIN   creature c ON c.`id` = ct.`entry`
+            WHERE  gmo.`ActionPoiID` IN %in
+            GROUP BY gmo.`ActionPoiID`', $poiIds
+        ) ?: [];
+
+        $out = [];
+        foreach ($rows as $r)
+            $out[(int)$r['poi']] = (int)$r['map'];
+
+        return $out;
+    }
+
+    /** the three-digit pin block the Mapper link format uses per coordinate */
+    private static function pinStr(float $coord) : string
+    {
+        return sprintf('%03d', (int)round($coord * 10));
     }
 
     protected function generateMetadata(bool $useArticle = true) : void

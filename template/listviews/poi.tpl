@@ -25,10 +25,35 @@ Listview.templates.poi = {
             }
         },
         {
+            id: 'zone',
+            name: LANG.fipoi.zone,
+            type: 'text',
+            width: '20%',
+            align: 'left',
+            compute: function(t, td) {
+                if (!t.zone) {
+                    $WH.ae(td, $WH.ct('-'));
+                    return;
+                }
+
+                var a = $WH.ce('a');
+                a.className = 'q1';
+                a.href = t.maplink || ('?maps=' + t.zone);
+                $WH.ae(a, $WH.ct((g_zones && g_zones[t.zone]) ? g_zones[t.zone] : ('#' + t.zone)));
+                $WH.ae(td, a);
+            },
+            getVisibleText: function(t) {
+                return (g_zones && g_zones[t.zone]) ? g_zones[t.zone] : (t.zone ? ('#' + t.zone) : '');
+            },
+            sortFunc: function(a, b, col) {
+                return $WH.strcmp(this.getVisibleText(a), this.getVisibleText(b));
+            }
+        },
+        {
             id: 'pos',
             name: LANG.fipoi.position,
             type: 'text',
-            width: '22%',
+            width: '16%',
             compute: function(t, td) {
                 $WH.ae(td, $WH.ct((t.x || t.y) ? (t.x + ', ' + t.y) : '-'));
             },
@@ -53,5 +78,14 @@ Listview.templates.poi = {
             }
         }
     ],
-    clickable: false
+    getItemLink: function(t) {
+        return t.maplink || 'javascript:;';
+    },
+    onBeforeCreate: function() {
+        // hide the template's own id col when the debug id col is shown
+        if (this.debug || g_user?.debug) {
+            let colId = this.columns.findIndex(x => x.id == 'id');
+            this.visibility = this.visibility.filter(x => x != colId);
+        }
+    }
 }
