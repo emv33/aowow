@@ -111,8 +111,9 @@ class SmartaiBaseResponse extends TemplateResponse
 
     private function buildListviewData(array $rows) : array
     {
-        $jsg  = [];
-        $data = [];
+        $jsg        = [];
+        $data       = [];
+        $guidLookup = self::resolveGuids($rows);            // negative entryorguid -> owning entry, keyed [srcType][entryorguid]
 
         foreach ($rows as $i => $r)
         {
@@ -125,7 +126,6 @@ class SmartaiBaseResponse extends TemplateResponse
                 'actiontypes' => $r['actionTypes']
             );
 
-            // a negative entryorguid is a guid, not a template entry - there is nothing to link it to
             $type = match ($r['srcType'])
             {
                 SmartAI::SRC_TYPE_CREATURE    => Type::NPC,
@@ -134,11 +134,24 @@ class SmartaiBaseResponse extends TemplateResponse
                 default                       => 0
             };
 
-            if ($type && $r['entry'] > 0 && ($_ = Type::getJSGlobalString($type)))
+            // a negative entryorguid is a spawn guid, not a template entry; resolve it through
+            // ::spawns so a guid-scoped script still links to the creature/object it overrides
+            $linkId = $r['entry'] > 0 ? $r['entry'] : ($guidLookup[$r['srcType']][$r['entry']] ?? 0);
+
+            if ($type && $linkId > 0)
             {
-                $row['entrylookup'] = $_;
-                $row['entryurl']    = Type::getFileString($type);
-                $jsg[$type][$r['entry']] = $r['entry'];
+                $row['linkid']   = $linkId;
+                $row['entryurl'] = Type::getFileString($type);
+
+                // AreaTriggerList::getJSGlobals() is a stub (Type::AREATRIGGER has no g_* window
+                // global to pull a name from) - resolve the name here instead of client-side
+                if ($type == Type::AREATRIGGER)
+                    $row['entryname'] = (string)AreaTriggerList::getName($linkId);
+                else if ($_ = Type::getJSGlobalString($type))
+                {
+                    $row['entrylookup']  = $_;
+                    $jsg[$type][$linkId] = $linkId;
+                }
             }
 
             $data[] = $row;
@@ -147,6 +160,32 @@ class SmartaiBaseResponse extends TemplateResponse
         $this->extendGlobalData($jsg);
 
         return $data;
+    }
+
+    /** @return array [srcType][entryorguid (negative)] => resolved template entry */
+    private static function resolveGuids(array $rows) : array
+    {
+        $guidsByType = [];                                  // Type::NPC|Type::OBJECT => guid[] (positive)
+        foreach ($rows as $r)
+        {
+            if ($r['entry'] >= 0)
+                continue;
+
+            if ($r['srcType'] == SmartAI::SRC_TYPE_CREATURE)
+                $guidsByType[Type::NPC][] = -$r['entry'];
+            else if ($r['srcType'] == SmartAI::SRC_TYPE_OBJECT)
+                $guidsByType[Type::OBJECT][] = -$r['entry'];
+        }
+
+        $out = [];
+        foreach ($guidsByType as $type => $guids)
+        {
+            $srcType = $type == Type::NPC ? SmartAI::SRC_TYPE_CREATURE : SmartAI::SRC_TYPE_OBJECT;
+            foreach (DB::Aowow()->selectCol('SELECT `guid` AS ARRAY_KEY, `typeId` FROM ::spawns WHERE `type` = %i AND `guid` IN %in', $type, $guids) ?: [] as $guid => $typeId)
+                $out[$srcType][-$guid] = $typeId;
+        }
+
+        return $out;
     }
 }
 
