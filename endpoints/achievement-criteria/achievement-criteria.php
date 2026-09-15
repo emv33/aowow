@@ -17,16 +17,20 @@ class AchievementcriteriaBaseResponse extends TemplateResponse
 {
     use TrListPage;
 
-    protected  string $template   = 'list-page-generic';
+    protected  string $template   = 'achievement-criteria';
     protected  string $pageName   = 'achievement-criteria';
     protected ?int    $activeTab  = parent::TAB_DATABASE;
-    protected  array  $breadcrumb = [0, 9];
+    protected  array  $breadcrumb = [0, 110];
 
     protected  array  $expectedGET = array(
         'ac' => ['filter' => FILTER_VALIDATE_INT, 'flags' => FILTER_REQUIRE_SCALAR],
         'id' => ['filter' => FILTER_VALIDATE_INT, 'flags' => FILTER_REQUIRE_SCALAR],
-        'ty' => ['filter' => FILTER_VALIDATE_INT, 'flags' => FILTER_REQUIRE_SCALAR]
+        'ty' => ['filter' => FILTER_VALIDATE_INT, 'flags' => FILTER_REQUIRE_SCALAR],
+        'fl' => ['filter' => FILTER_VALIDATE_INT, 'flags' => FILTER_REQUIRE_SCALAR],
+        'na' => ['filter' => FILTER_CALLBACK, 'options' => [self::class, 'checkTextLine']]
     );
+
+    public array $formValues = [];                          // for the search form
 
     public function __construct(string $rawParam)
     {
@@ -51,18 +55,33 @@ class AchievementcriteriaBaseResponse extends TemplateResponse
 
         $this->redButtons[BUTTON_WOWHEAD] = false;
 
+        $this->formValues = array(
+            'id' => (int)($this->_get['id'] ?? 0),
+            'ac' => (int)($this->_get['ac'] ?? 0),
+            'ty' => (int)($this->_get['ty'] ?? 0),
+            'fl' => (int)($this->_get['fl'] ?? 0),
+            'na' => (string)($this->_get['na'] ?? '')
+        );
+
         $conditions = [Listview::DEFAULT_SIZE];
-        if ($ac = (int)($this->_get['ac'] ?? 0))
-            $conditions[] = ['refAchievementId', $ac];
-        if ($id = (int)($this->_get['id'] ?? 0))
-            $conditions[] = ['id', $id];
-        if ($ty = (int)($this->_get['ty'] ?? 0))
-            $conditions[] = ['type', $ty];
+        if ($this->formValues['id'])
+            $conditions[] = ['id', $this->formValues['id']];
+        if ($this->formValues['ac'])
+            $conditions[] = ['refAchievementId', $this->formValues['ac']];
+        if ($this->formValues['ty'])
+            $conditions[] = ['type', $this->formValues['ty']];
+        if ($this->formValues['fl'])
+            $conditions[] = [['completionFlags', $this->formValues['fl'], '&'], $this->formValues['fl']];
+        if ($this->formValues['na'])
+            $conditions[] = ['name_loc'.Lang::getLocale()->value, '%'.$this->formValues['na'].'%', 'LIKE'];
 
         $tabData = [];
         $crtList = new AchievementCriteriaList($conditions);
         if (!$crtList->error)
+        {
             $tabData['data'] = $crtList->getListviewData();
+            $this->extendGlobalData($crtList->getJSGlobals());
+        }
 
         $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"]);
         $this->lvTabs->addListviewTab(new Listview($tabData, 'achievementcriteria', 'achievementcriteria'));

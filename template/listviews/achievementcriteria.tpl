@@ -6,7 +6,7 @@ Listview.templates.achievementcriteria = {
         {
             id: 'id',
             name: 'ID',
-            width: '8%',
+            width: '7%',
             value: 'id',
             compute: function(data, td) {
                 if (data.id) {
@@ -18,7 +18,7 @@ Listview.templates.achievementcriteria = {
         },
         {
             id: 'achievement',
-            name: LANG.achievements,
+            name: LANG.tab_achievements,
             type: 'text',
             align: 'left',
             compute: function(crt, td) {
@@ -42,9 +42,22 @@ Listview.templates.achievementcriteria = {
         {
             id: 'type',
             name: LANG.type,
-            type: 'num',
-            width: '8%',
-            value: 'type'
+            type: 'text',
+            width: '16%',
+            compute: function(crt, td) {
+                var a = $WH.ce('a');
+                a.className = 'q1';
+                a.href = '?achievement-criteria&ty=' + crt.type;
+
+                $WH.ae(a, $WH.ct(crt.typename));
+                $WH.ae(td, a);
+            },
+            getVisibleText: function(crt) {
+                return crt.typename;
+            },
+            sortFunc: function(a, b, col) {
+                return $WH.strcmp(this.getVisibleText(a), this.getVisibleText(b));
+            }
         },
         {
             id: 'name',
@@ -60,25 +73,72 @@ Listview.templates.achievementcriteria = {
             }
         },
         {
-            id: 'value1',
+            id: 'asset',
             name: 'Asset',
-            type: 'num',
-            width: '10%',
-            value: 'value1'
+            type: 'text',
+            width: '14%',
+            compute: function(crt, td) {
+                if (!crt.asset)
+                    return -1;
+
+                var name = null;
+                if (crt.assettype && window[crt.assettype]) {
+                    var entry = window[crt.assettype][crt.asset];
+                    if (entry)
+                        name = entry['name_' + Locale.getName()] || entry.name;
+                }
+
+                if (crt.asseturl && name) {
+                    var a = $WH.ce('a');
+                    a.className = 'q1';
+                    a.href = crt.asseturl;
+
+                    $WH.ae(a, $WH.ct(name));
+                    $WH.ae(td, a);
+                }
+                else
+                    $WH.ae(td, $WH.ct('#' + crt.asset));
+            },
+            getVisibleText: function(crt) {
+                if (!crt.asset)
+                    return '';
+
+                if (crt.assettype && window[crt.assettype]) {
+                    var entry = window[crt.assettype][crt.asset];
+                    if (entry)
+                        return entry['name_' + Locale.getName()] || entry.name;
+                }
+
+                return '#' + crt.asset;
+            },
+            sortFunc: function(a, b, col) {
+                return $WH.strcmp(this.getVisibleText(a), this.getVisibleText(b));
+            }
         },
         {
             id: 'value2',
             name: 'Quantity',
             type: 'num',
-            width: '10%',
+            width: '9%',
             value: 'value2'
         },
         {
             id: 'flags',
             name: 'Flags',
-            type: 'num',
-            width: '10%',
-            value: 'flags'
+            type: 'text',
+            width: '16%',
+            compute: function(crt, td) {
+                if (crt.flagnames)
+                    $WH.ae(td, $WH.ct(crt.flagnames));
+                else
+                    return -1;
+            },
+            getVisibleText: function(crt) {
+                return crt.flagnames;
+            },
+            sortFunc: function(a, b, col) {
+                return $WH.strcmp(this.getVisibleText(a), this.getVisibleText(b));
+            }
         }
     ],
     getItemLink: function(crt) {
