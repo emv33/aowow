@@ -209,6 +209,20 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
         {
             if ($bg['minLevel'] || $bg['maxLevel'])
                 $infobox[] = Lang::zone('bgBracket').Lang::main('colon').$bg['minLevel'].' - '.$bg['maxLevel'];
+
+            // `battleground_template` was read nowhere, though it is what the server actually enforces
+            if ($bgt = self::getBattlegroundTemplate($bg['id']))
+            {
+                $tMin = (int)($bgt['minplayersperteam'] ?? 0);
+                $tMax = (int)($bgt['maxplayersperteam'] ?? 0);
+                if ($tMax)
+                    $infobox[] = Lang::zone('bgTeamSize').Lang::main('colon').($tMin && $tMin != $tMax ? $tMin.' - '.$tMax : $tMax);
+
+                $sMin = (int)($bgt['minlvl'] ?? 0);
+                $sMax = (int)($bgt['maxlvl'] ?? 0);
+                if (($sMin || $sMax) && ($sMin != $bg['minLevel'] || $sMax != $bg['maxLevel']))
+                    $infobox[] = Lang::zone('bgBracketServer').Lang::main('colon').$sMin.' - '.$sMax;
+            }
         }
 
         if ($lfg = self::getLFGDungeon($mapId))
@@ -218,6 +232,23 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
 
             if ($_ = Lang::zone('lfgTypes', $lfg['type']))
                 $infobox[] = Lang::zone('lfgType').Lang::main('colon').$_;
+
+            // `lfg_dungeon_rewards` - the reward quest a completed run hands out, which was read nowhere
+            foreach (self::getLFGRewards($lfg['id']) as $rw)
+            {
+                $quests = [];
+                foreach (['firstQuestId' => 'lfgRewardFirst', 'otherQuestId' => 'lfgRewardRepeat'] as $col => $label)
+                {
+                    if (!$rw[$col])
+                        continue;
+
+                    $this->extendGlobalIds(Type::QUEST, $rw[$col]);
+                    $quests[] = Lang::zone($label).Lang::main('colon').'[quest='.$rw[$col].']';
+                }
+
+                if ($quests)
+                    $infobox[] = Lang::zone('lfgReward', [$rw['maxLevel']]).Lang::main('colon').implode(', ', $quests);
+            }
         }
         // aowow - custom end
 
@@ -1060,9 +1091,38 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
             return null;
 
         // a map can hold several difficulties; the normal one carries the bracket players actually queue at
-        $r = DB::Aowow()->selectRow('SELECT `levelMin`, `levelMax`, `targetLevel`, `type`, `expansion` FROM dbc_lfgdungeons WHERE `mapId` = %i ORDER BY `difficulty` ASC LIMIT 1', $mapId);
+        $r = DB::Aowow()->selectRow('SELECT `id`, `levelMin`, `levelMax`, `targetLevel`, `type`, `expansion` FROM dbc_lfgdungeons WHERE `mapId` = %i ORDER BY `difficulty` ASC LIMIT 1', $mapId);
 
         return $r ? array_map('intVal', $r) : null;
+    }
+
+    /**
+     * `battleground_template` - what the server enforces, which the client's dbc does not know
+     * the bracket is in both, and it is the world DB one that decides who may queue
+     */
+    private static function getBattlegroundTemplate(int $bgTypeId) : array
+    {
+        if ($bgTypeId <= 0 || !self::hasTable('battleground_template', false))
+            return [];
+
+        // the columns were renamed across TC revisions, so the row is read whole and its keys matched lowercased
+        $r = DB::World()->selectRow('SELECT * FROM battleground_template WHERE `ID` = %i', $bgTypeId);
+
+        return $r ? array_change_key_case($r, CASE_LOWER) : [];
+    }
+
+    /** `lfg_dungeon_rewards` - the quest the Dungeon Finder hands out for a run, by level cap */
+    private static function getLFGRewards(int $dungeonId) : array
+    {
+        if ($dungeonId <= 0 || !self::hasTable('lfg_dungeon_rewards', false))
+            return [];
+
+        $rows = DB::World()->selectAssoc(
+           'SELECT `maxLevel`, `firstQuestId`, `otherQuestId` FROM lfg_dungeon_rewards WHERE `dungeonId` = %i ORDER BY `maxLevel` ASC',
+            $dungeonId
+        ) ?: [];
+
+        return array_map(fn($r) => array_map('intVal', $r), $rows);
     }
 
     private static function getBattlemastersFor(int $bgTypeId) : array

@@ -1846,7 +1846,12 @@ $lang = array(
             'snow'  => "snow",
             'storm' => "storms"
         ),
+        'bgTeamSize'    => "Players per team",
+        'bgBracketServer' => "Level bracket (server)",
         'lfgBracket'    => "Dungeon Finder bracket",
+        'lfgReward'     => 'Dungeon Finder reward (up to level %1$d)',
+        'lfgRewardFirst'  => "first run",
+        'lfgRewardRepeat' => "repeat",
         'lfgType'       => "Dungeon Finder type",
         'lfgTypes'      => array(
             1 => "Dungeon",
