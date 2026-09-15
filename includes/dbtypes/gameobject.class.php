@@ -252,8 +252,7 @@ class GameObjectListFilter extends Filter
     protected string $type  = 'objects';
     protected static array $enums = array(
          1 => parent::ENUM_ZONE,
-        16 => parent::ENUM_EVENT,
-        50 => [1, 2, 3, 4, 663, 883]
+        16 => parent::ENUM_EVENT
     );
 
     protected static array $genericFilter = array(
@@ -268,7 +267,7 @@ class GameObjectListFilter extends Filter
         15 => [parent::CR_NUMERIC,  'id',              NUM_CAST_INT              ], // id
         16 => [parent::CR_CALLBACK, 'cbRelEvent',      null,                 null], // relatedevent (ignore removed by event)
         18 => [parent::CR_FLAG,     'cuFlags',         CUSTOM_HAS_VIDEO          ], // hasvideos
-        50 => [parent::CR_ENUM,     'spellFocusId',    true,                 true], // spellfocus
+        50 => [parent::CR_NUMERIC,  'spellFocusId',    NUM_CAST_INT              ], // spellfocus - dbc_spellfocusobject / ?spellfocus names the id, no fixed list needed
     );
 
     protected static array $inputFields = array(

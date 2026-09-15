@@ -57,20 +57,24 @@ class SpellfocusBaseResponse extends TemplateResponse
 
         $rows = DB::Aowow()->selectAssoc('SELECT `id`, `name_loc0`, `name_loc'.Lang::getLocale()->value.'` FROM ::spellfocusobject ORDER BY `id` ASC') ?: [];
 
+        // read straight off the site's own objects table rather than trusting a fixed list of
+        // ids - GameObjectListFilter's cr=50 used to gate this off a hand-typed enum that never
+        // matched what a given core's gameobject_template actually has
+        $usedIds = array_flip(DB::Aowow()->selectCol('SELECT DISTINCT `spellFocusId` FROM ::objects WHERE `spellFocusId` != 0') ?: []);
+
         $data = [];
         foreach ($rows as $r)
         {
             $name = Util::localizedString($r, 'name');
+            $id   = (int)$r['id'];
 
             $row = array(
-                'id'   => (int)$r['id'],
+                'id'   => $id,
                 'name' => $name !== '' && $name[0] == '$' ? ' '.$name : $name
             );
 
-            // only ids an actual spawned gameobject uses validate against the objects filter;
-            // the DBC carries plenty more that nothing on this core ever references
-            if (!is_null(GameObjectListFilter::getCriteriaIndex(50, $row['id'])))
-                $row['objlink'] = '?objects&filter=cr=50;crs='.$row['id'].';crv=0';
+            if (isset($usedIds[$id]))
+                $row['objlink'] = '?objects&filter=cr=50;crs=3;crv='.$id;
 
             $data[] = $row;
         }
