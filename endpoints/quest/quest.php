@@ -48,6 +48,7 @@ class QuestBaseResponse extends TemplateResponse implements ICache
     protected function generate() : void
     {
         $this->applyXRef();                                 // aowow - custom
+        $this->rawRow = RawRow::buildFor($this->type, $this->typeId);   // aowow - custom
 
         $this->subject = new QuestList(array(['id', $this->typeId]));
         if ($this->subject->error)

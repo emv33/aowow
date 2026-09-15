@@ -62,6 +62,7 @@ class Lang
     private static array $gameText;
     private static array $eventExtra;
     private static array $teleport;
+    private static array $rawRow;
     private static array $dataIntegrity;
 
     private static ?Locale $locale = null;

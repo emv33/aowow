@@ -81,6 +81,8 @@ endif;
 $this->brick('book');
 
 $this->brick('markup', ['markup' => $this->xRef]);   // aowow - custom
+
+$this->brick('markup', ['markup' => $this->rawRow]);   // aowow - custom
 ?>
 
                 <h2 class="clear"><?=Lang::main('related'); ?></h2>

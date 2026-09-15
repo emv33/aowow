@@ -23,6 +23,7 @@ trait TrDetailPage
     public ?Markup        $xRef          = null;            // aowow - custom: what else in the world DB points at this entity
     public ?Markup        $eventProgress = null;            // aowow - custom: progress counters and spawn pools of a world event
     public ?Markup        $questGreeting = null;            // aowow - custom: the line an npc/object opens with when it holds several quests
+    public ?Markup        $rawRow        = null;            // aowow - custom: the entity's own template row, as the world DB stores it
     public ?array         $map           = null;
     public  array         $headIcons     = [];
 

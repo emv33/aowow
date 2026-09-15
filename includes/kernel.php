@@ -117,6 +117,9 @@ spl_autoload_register(function (string $class) : void
         case __NAMESPACE__.'\GameText':
             require_once 'includes/components/GameText/GameText.class.php';
             break;
+        case __NAMESPACE__.'\RawRow':
+            require_once 'includes/components/RawRow/RawRow.class.php';
+            break;
     }
 });
 

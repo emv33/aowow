@@ -39,6 +39,7 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
     protected function generate() : void
     {
         $this->applyXRef();                                 // aowow - custom
+        $this->rawRow = RawRow::buildFor($this->type, $this->typeId);   // aowow - custom
         $this->questGreeting = Gossip::buildGreetingFor(Type::OBJECT, $this->typeId);   // aowow - custom
 
         $this->subject = new GameObjectList(array(['id', $this->typeId]));

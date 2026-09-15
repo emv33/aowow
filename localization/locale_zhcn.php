@@ -1349,6 +1349,9 @@ $lang = array(
         'worldStates'      => 'world states %1$d / %2$d',
         'pools'            => 'Spawn pools (%1$d)'
     ),
+    'rawRow' => array(
+        'title'         => 'Template row (%1$s)'
+    ),
     'teleport' => array(
         'title'         => "Named locations"
     ),
