@@ -69,6 +69,7 @@ class Lang
     private static array $outdoorpvp;
     private static array $poi;
     private static array $factionchange;
+    private static array $spellfocus;
     private static array $rawRow;
     private static array $dataIntegrity;
 

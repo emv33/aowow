@@ -970,7 +970,8 @@ var mn_database = [
     [114, 'Weather', '?weather', null, {requiredAccess: 1726}],    // aowow - custom
     [115, 'Outdoor PvP', '?outdoorpvp', null, {requiredAccess: 1726}],    // aowow - custom
     [116, 'Points of interest', '?poi', null, {requiredAccess: 1726}],    // aowow - custom
-    [117, 'Faction change', '?factionchange', null, {requiredAccess: 1726}]    // aowow - custom
+    [117, 'Faction change', '?factionchange', null, {requiredAccess: 1726}],    // aowow - custom
+    [119, 'Spell Focuses', '?spellfocus', null, {requiredAccess: 1726}]    // aowow - custom
 ];
 
 var mn_guides = [
@@ -4561,6 +4562,11 @@ var LANG = {
             8: "Faction",
             11: "Title"
         }
+    },
+    fispellfocus: {
+        name:       "Name",
+        objects:    "Objects",
+        viewObjects: "View objects"
     },
     fitext: {
         source:     "Source",

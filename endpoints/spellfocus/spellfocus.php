@@ -1,0 +1,94 @@
+<?php
+
+namespace Aowow;
+
+if (!defined('AOWOW_REVISION'))
+    die('illegal access');
+
+
+/*
+ * Browser over `spellfocusobject.dbc`.
+ *
+ * A gameobject of type SPELLFOCUS (anvils, forges, altars, Runeforges, ...) names the focus it
+ * provides only by its numeric id (`spellFocusId`, generated from `gameobject_template.data0` -
+ * see objects.ss.php), and spells that require standing near one point at that same id through
+ * SpellCastingRequirements' `RequiresSpellFocus`. Neither side ever resolved the id to the name
+ * the DBC already carries.
+ */
+class SpellfocusBaseResponse extends TemplateResponse
+{
+    use TrListPage;
+
+    protected  int    $requiredUserGroup = U_GROUP_STAFF;
+
+    protected  string $template          = 'spellfocus';
+    protected  string $pageName          = 'spellfocus';
+    protected ?int    $activeTab         = parent::TAB_DATABASE;
+    protected  array  $breadcrumb        = [0, 119];
+
+    protected function generate() : void
+    {
+        $this->h1 = Util::ucFirst(Lang::spellfocus('title'));
+
+
+        /**************/
+        /* Page Title */
+        /**************/
+
+        array_unshift($this->title, $this->h1);
+
+
+        /****************/
+        /* Main Content */
+        /****************/
+
+        $this->redButtons[BUTTON_WOWHEAD] = false;
+
+        $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"]);
+        $this->lvTabs->addListviewTab(new Listview(['data' => $this->buildListviewData()], 'spellfocus', 'spellfocus'));
+
+        parent::generate();
+    }
+
+    private function buildListviewData() : array
+    {
+        if (!DB::Aowow()->selectCell('SHOW TABLES LIKE %s', 'aowow_spellfocusobject'))
+            return [];
+
+        $rows = DB::Aowow()->selectAssoc('SELECT `id`, `name_loc0`, `name_loc'.Lang::getLocale()->value.'` FROM ::spellfocusobject ORDER BY `id` ASC') ?: [];
+
+        $data = [];
+        foreach ($rows as $r)
+        {
+            $name = Util::localizedString($r, 'name');
+
+            $row = array(
+                'id'   => (int)$r['id'],
+                'name' => $name !== '' && $name[0] == '$' ? ' '.$name : $name
+            );
+
+            // only ids an actual spawned gameobject uses validate against the objects filter;
+            // the DBC carries plenty more that nothing on this core ever references
+            if (!is_null(GameObjectListFilter::getCriteriaIndex(50, $row['id'])))
+                $row['objlink'] = '?objects&filter=cr=50;crs='.$row['id'].';crv=0';
+
+            $data[] = $row;
+        }
+
+        return $data;
+    }
+
+    protected function generateMetadata(bool $useArticle = true) : void
+    {
+        $this->metaTags[] = ['property' => 'og:title', 'content' => $this->h1];
+        $this->metaTags[] = ['property' => 'og:type',  'content' => 'website'];
+
+        array_unshift($this->metaTags, ['name' => 'keywords', 'content' => [$this->h1, ...Lang::meta('tags', 'generic')]]);
+
+        $this->buildBasicMetadata(Lang::meta('description', 'genList', [$this->h1]));
+
+        $this->buildLdJson();
+    }
+}
+
+?>

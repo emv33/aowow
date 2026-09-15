@@ -43,6 +43,7 @@ class Listview implements \JsonSerializable
         'outdoorpvp'        => ['template' => 'outdoorpvp',        'id' => 'outdoorpvp',                                          ], // aowow - custom
         'poi'               => ['template' => 'poi',               'id' => 'poi',                                                 ], // aowow - custom
         'factionchange'     => ['template' => 'factionchange',     'id' => 'factionchange',                                       ], // aowow - custom
+        'spellfocus'        => ['template' => 'spellfocus',        'id' => 'spellfocus',                                          ], // aowow - custom
         'icongallery'       => ['template' => 'icongallery',       'id' => 'icons',                                               ],
         'item'              => ['template' => 'item',              'id' => 'items',           'name' => '$LANG.tab_items'         ],
         'itemset'           => ['template' => 'itemset',           'id' => 'itemsets',        'name' => '$LANG.tab_itemsets'      ],

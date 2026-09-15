@@ -1383,6 +1383,9 @@ $lang = array(
     'factionchange' => array(
         'title'         => "Faction change"
     ),
+    'spellfocus' => array(
+        'title'         => "Spell Focuses"
+    ),
     'gameText' => array(
         'title'         => "Game text",
         'term'          => "text contains",
