@@ -23,29 +23,33 @@ Listview.templates.text = {
             id: 'owner',
             name: LANG.fitext.owner,
             type: 'text',
-            width: '20%',
+            width: '22%',
             align: 'left',
+            // a creature or item resolves to a name through its g_* lookup; a gossip menu has none
+            // and a line nothing references has no page either, so both arrive pre-labelled.
+            // spelled out twice rather than shared: `this` is the Listview inside compute() and the
+            // column inside sortFunc(), so a helper hung off either one is reachable from only one
             compute: function(t, td) {
+                var lookup = t.ownerlookup ? window[t.ownerlookup] : null,
+                    entry  = lookup && t.ownerid ? lookup[t.ownerid] : null,
+                    text   = (entry ? entry['name_' + Locale.getName()] : null) || t.ownername || ('#' + (t.ownerid || t.entry));
+
                 if (!t.ownerid) {
-                    $WH.ae(td, $WH.ct('#' + t.entry));
+                    $WH.ae(td, $WH.ct(text));
                     return;
                 }
 
-                var lookup = t.ownerlookup ? window[t.ownerlookup] : null,
-                    entry  = lookup ? lookup[t.ownerid] : null,
-                    name   = entry ? entry['name_' + Locale.getName()] : null,
-                    a      = $WH.ce('a');
-
+                var a = $WH.ce('a');
                 a.className = 'q1';
                 a.href = '?' + t.ownerurl + '=' + t.ownerid;
-                $WH.ae(a, $WH.ct(name || ('#' + t.ownerid)));
+                $WH.ae(a, $WH.ct(text));
                 $WH.ae(td, a);
             },
             getVisibleText: function(t) {
                 var lookup = t.ownerlookup ? window[t.ownerlookup] : null,
                     entry  = lookup && t.ownerid ? lookup[t.ownerid] : null;
 
-                return (entry ? entry['name_' + Locale.getName()] : null) || ('#' + (t.ownerid || t.entry));
+                return (entry ? entry['name_' + Locale.getName()] : null) || t.ownername || ('#' + (t.ownerid || t.entry));
             },
             sortFunc: function(a, b, col) {
                 return $WH.strcmp(this.getVisibleText(a), this.getVisibleText(b));

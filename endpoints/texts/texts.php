@@ -88,6 +88,11 @@ class TextsBaseResponse extends TemplateResponse
                 'text'  => $r['text']
             );
 
+            // a gossip menu has no name of its own and a line nothing references has no page at
+            // all, so the component hands over a label for the cases a g_* lookup cannot cover
+            if ($r['ownerName'])
+                $row['ownername'] = $r['ownerName'];
+
             if ($r['ownerType'] && $r['ownerId'] > 0)
             {
                 $row['ownerid']  = $r['ownerId'];

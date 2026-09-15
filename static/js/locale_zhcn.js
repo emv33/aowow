@@ -4551,7 +4551,7 @@ var LANG = {
     teleport_map: "Map $1",
     fitext: {
         source:     "Source",
-        owner:      "Spoken by",
+        owner:      "Owner",
         text:       "Text"
     },
     text_sources: {
