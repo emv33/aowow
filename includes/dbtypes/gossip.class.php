@@ -35,7 +35,7 @@ class GossipList extends DBTypeList
                                   'o' => 'gm.`MenuID` ASC',
                                   's' => ', GROUP_CONCAT(DISTINCT gm.`TextID`) AS "textIds"'],
                         'gmo' => ['j' => ['gossip_menu_option gmo ON gmo.`MenuID` = gm.`MenuID`', true],
-                                  's' => ', COUNT(DISTINCT gmo.`OptionID`) AS "nOptions"']
+                                  's' => ', COUNT(DISTINCT gmo.`OptionID`) AS "nOptions", GROUP_CONCAT(DISTINCT gmo.`OptionIcon`) AS "optionIcons"']
                     );
 
     public function __construct(array $conditions = [], array $miscData = [])
@@ -47,6 +47,12 @@ class GossipList extends DBTypeList
             $_curTpl['textIds']  = $_curTpl['textIds'] ? array_map('intVal', explode(',', $_curTpl['textIds'])) : [];
             $_curTpl['nOptions'] = intVal($_curTpl['nOptions'] ?? 0);
             $_curTpl['name']     = Lang::gossip('menu', [$id]);
+
+            // the option css classes an option's icon resolves to (skipping the plain-chat/no-icon ones); same lookup GossipBaseResponse uses
+            $_curTpl['optIcons'] = array_values(array_unique(array_filter(array_map(
+                fn($i) => trim(Gossip::iconToCSS((int)$i)),
+                $_curTpl['optionIcons'] ? explode(',', $_curTpl['optionIcons']) : []
+            ))));
         }
     }
 
@@ -120,6 +126,9 @@ class GossipList extends DBTypeList
                 'textids'  => $this->curTpl['textIds'],
                 'noptions' => $this->curTpl['nOptions']
             );
+
+            if ($this->curTpl['optIcons'])
+                $data[$id]['opticons'] = $this->curTpl['optIcons'];
 
             if ($_ = ($sources[$id][Type::NPC] ?? []))
                 $data[$id]['npcs'] = array_values($_);

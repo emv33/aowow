@@ -61,7 +61,21 @@ Listview.templates.gossip = {
             name: LANG.gossip_options,
             type: 'num',
             width: '10%',
-            value: 'noptions'
+            value: 'noptions',
+            compute: function(gossip, td) {
+                $WH.ae(td, $WH.ct(gossip.noptions));
+
+                (gossip.opticons || []).forEach(function(cls) {
+                    $WH.ae(td, $WH.ce('div', {
+                        className: cls,
+                        title: cls.replace('gossip-', ''),
+                        style: { display: 'inline-block', width: '16px', height: '16px', marginLeft: '2px', verticalAlign: 'middle' }
+                    }));
+                });
+            },
+            sortFunc: function(a, b, col) {
+                return a.noptions - b.noptions;
+            }
         },
         {
             id: 'openedby',
