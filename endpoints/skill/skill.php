@@ -360,6 +360,26 @@ class SkillBaseResponse extends TemplateResponse implements ICache
                 $this->lvTabs->addListviewTab(new Listview(['data' => $races->getListviewData()], CharRaceList::$brickFile));
         }
 
+        // tab: criteria-of
+        $conditions = array(
+            DB::AND,
+            ['ac.type', [ACHIEVEMENT_CRITERIA_TYPE_REACH_SKILL_LEVEL,   ACHIEVEMENT_CRITERIA_TYPE_LEARN_SKILL_LEVEL,
+                         ACHIEVEMENT_CRITERIA_TYPE_LEARN_SKILLLINE_SPELLS, ACHIEVEMENT_CRITERIA_TYPE_LEARN_SKILL_LINE]],
+            ['ac.value1', $this->typeId]
+        );
+
+        $crtOf = new AchievementList($conditions);
+        if (!$crtOf->error)
+        {
+            $this->extendGlobalData($crtOf->getJSGlobals());
+
+            $this->lvTabs->addListviewTab(new Listview(array(
+                'data' => $crtOf->getListviewData(),
+                'name' => '$LANG.tab_criteriaof',
+                'id'   => 'criteria-of'
+            ), AchievementList::$brickFile));
+        }
+
         // tab: condition-for
         $cnd = new Conditions();
         $cnd->getByCondition(Type::SKILL, $this->typeId)->prepare();

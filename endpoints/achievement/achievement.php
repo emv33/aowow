@@ -97,7 +97,8 @@ class AchievementBaseResponse extends TemplateResponse implements ICache
             $infobox[] = Lang::achievement('points').Lang::main('colon').'[achievementpoints='.$_.']';
 
         // location
-            // todo (low)
+        if ($zones = $this->getCriteriaZones())
+            $infobox[] = Lang::zone('location').Lang::concat($zones, Lang::CONCAT_NONE);
 
         // faction
         $infobox[] = Lang::main('side') . match ($this->subject->getField('faction'))
@@ -271,7 +272,7 @@ class AchievementBaseResponse extends TemplateResponse implements ICache
                     break;
                 // link to area (by exploration overlay)
                 case ACHIEVEMENT_CRITERIA_TYPE_EXPLORE_AREA:
-                    $zoneId  = self::overlayToZoneId($obj);
+                    $zoneId  = ZoneList::getAreaForOverlay($obj);
                     $crtIcon = new IconElement(Type::ZONE, $zoneId, $crtName ?: ZoneList::getName($zoneId), size: IconElement::SIZE_SMALL, element: 'iconlist-icon');
                     break;
                 // link to skills
@@ -366,6 +367,15 @@ class AchievementBaseResponse extends TemplateResponse implements ICache
                     case ACHIEVEMENT_CRITERIA_DATA_TYPE_S_AREA:
                         $extraData[] = ZoneList::makeLink($xData['value1']);
                         break;
+                    // the target has to be of this level
+                    case ACHIEVEMENT_CRITERIA_DATA_TYPE_T_LEVEL:
+                        $extraData[] = Lang::game('level').' '.$xData['value1'];
+                        break;
+                    // 0 = male, as in the client
+                    case ACHIEVEMENT_CRITERIA_DATA_TYPE_T_GENDER:
+                        if ($_ = Lang::exist('main', 'sex', $xData['value1'] + 1))
+                            $extraData[] = $_;
+                        break;
                     case ACHIEVEMENT_CRITERIA_DATA_TYPE_SCRIPT:
                         if ($xData['ScriptName'] && User::isInGroup(U_GROUP_STAFF))
                             $extraData[] = 'Script '.$xData['ScriptName'];
@@ -373,6 +383,20 @@ class AchievementBaseResponse extends TemplateResponse implements ICache
                     case ACHIEVEMENT_CRITERIA_DATA_TYPE_HOLIDAY:
                         if ($we = new WorldEventList(array(['holidayId', $xData['value1']])))
                             $extraData[] = '<a href="?event='.$we->id.'">'.$we->getField('name', true).'</a>';
+                        break;
+                    // the instance has to be run on this difficulty; which one it is depends on the map,
+                    // so the naming that leaves both readings open is the one already used elsewhere
+                    case ACHIEVEMENT_CRITERIA_DATA_TYPE_MAP_DIFFICULTY:
+                        if ($_ = Lang::exist('game', 'modes', 0, $xData['value1']))
+                            $extraData[] = $_;
+                        break;
+                    case ACHIEVEMENT_CRITERIA_DATA_TYPE_MAP_PLAYER_COUNT:
+                        $extraData[] = $xData['value1'].' '.Lang::main('players');
+                        break;
+                    // faction ids, not the SIDE_* the rest of the page uses
+                    case ACHIEVEMENT_CRITERIA_DATA_TYPE_T_TEAM:
+                        if ($_ = FactionList::makeLink($xData['value1']))
+                            $extraData[] = $_;
                         break;
                     case ACHIEVEMENT_CRITERIA_DATA_TYPE_MAP_ID:
                         $extraData[] = match((int)$xData['value1'])
@@ -387,8 +411,20 @@ class AchievementBaseResponse extends TemplateResponse implements ICache
                             })($xData['value1'])
                         };
                         break;
+                    case ACHIEVEMENT_CRITERIA_DATA_TYPE_S_EQUIPED_ITEM:
+                        $_ = sprintf(Lang::item('itemLevel'), $xData['value1']);
+                        if ($q = Lang::exist('item', 'quality', $xData['value2']))
+                            $_ .= ' ('.$q.')';
+
+                        $extraData[] = $_;
+                        break;
                     case ACHIEVEMENT_CRITERIA_DATA_TYPE_S_KNOWN_TITLE:
                         $extraData[] = TitleList::makeLink($xData['value1']);
+                        break;
+                    // the quality of the item the criterion is about - the item filter lists them
+                    case ACHIEVEMENT_CRITERIA_DATA_TYPE_S_ITEM_QUALITY:
+                        if ($_ = Lang::exist('item', 'quality', $xData['value1']))
+                            $extraData[] = '<a href="?items&filter=qu='.(int)$xData['value1'].'">'.$_.'</a>';
                         break;
                     default:
                         if (User::isInGroup(U_GROUP_STAFF))
@@ -465,20 +501,91 @@ class AchievementBaseResponse extends TemplateResponse implements ICache
     }
 
     /**
-     * Exploration criteria reference a WorldMapOverlay, not an area: the overlay is the piece of the
-     * world map that is revealed on discovery and the area it carries is the one it is named after
-     * (see fields 3 and 2 of WorldMapOverlay.dbc). 0 if it cannot be resolved: no link then.
+     * The areas the criteria of this achievement take place in, as links.
+     *
+     * A criterion names its area in one of four ways - directly, as an exploration overlay, as the
+     * map an instance runs on, or in its extra data - and every way is asked here. Sub-areas are
+     * folded into their parent when more than one criterion falls into it: a criterion naming a
+     * sub-area says where in the zone something happens, and "Explore Alterac Mountains" is about
+     * one place, not the fifteen it is made of.
      */
-    private static function overlayToZoneId(int $overlayId) : int
+    private function getCriteriaZones() : array
     {
-        // aowow - custom: `dbc_worldmapoverlay` is written by the `img-maps` build step and stays in
-        // the aowow DB unless setup ran with --delete, so guard it as the zone page does
-        static $known = null;
+        $criteria = $this->subject->getCriteria();
+        if (!$criteria)
+            return [];
 
-        if (($known ??= (bool)DB::Aowow()->selectCell('SHOW TABLES LIKE %s', 'dbc_worldmapoverlay')) === false)
-            return 0;
+        $areas = $maps = [];
+        foreach ($criteria as $crt)
+        {
+            switch ($crt['type'])
+            {
+                case ACHIEVEMENT_CRITERIA_TYPE_COMPLETE_QUESTS_IN_ZONE:
+                case ACHIEVEMENT_CRITERIA_TYPE_HONORABLE_KILL_AT_AREA:
+                    $areas[] = (int)$crt['value1'];
+                    break;
+                case ACHIEVEMENT_CRITERIA_TYPE_EXPLORE_AREA:
+                    if ($_ = ZoneList::getAreaForOverlay((int)$crt['value1']))
+                        $areas[] = $_;
+                    break;
+                // these carry the map the instance runs on, as the criteria of a zone page do
+                case ACHIEVEMENT_CRITERIA_TYPE_WIN_BG:
+                case ACHIEVEMENT_CRITERIA_TYPE_WIN_ARENA:
+                case ACHIEVEMENT_CRITERIA_TYPE_PLAY_ARENA:
+                case ACHIEVEMENT_CRITERIA_TYPE_COMPLETE_BATTLEGROUND:
+                case ACHIEVEMENT_CRITERIA_TYPE_DEATH_AT_MAP:
+                    $maps[] = (int)$crt['value1'];
+                    break;
+            }
+        }
 
-        return (int)DB::Aowow()->selectCell('SELECT `areaTableId` FROM dbc_worldmapoverlay WHERE `id` = %i', $overlayId);
+        foreach (DB::World()->select('SELECT `type`, `value1` FROM achievement_criteria_data WHERE `criteria_id` IN %in AND `type` IN %in', array_column($criteria, 'id'), [ACHIEVEMENT_CRITERIA_DATA_TYPE_S_AREA, ACHIEVEMENT_CRITERIA_DATA_TYPE_MAP_ID]) as $_)
+        {
+            if ($_['type'] == ACHIEVEMENT_CRITERIA_DATA_TYPE_S_AREA)
+                $areas[] = (int)$_['value1'];
+            else
+                $maps[] = (int)$_['value1'];
+        }
+
+        if ($maps)
+            $areas = array_merge($areas, DB::Aowow()->selectCol('SELECT `id` FROM ::zones WHERE `mapId` IN %in', array_unique($maps)));
+
+        $areas = array_unique(array_filter($areas));
+        if (!$areas)
+            return [];
+
+        $zones = new ZoneList(array(['id', $areas]));
+        if ($zones->error)
+            return [];
+
+        $groups = [];
+        foreach ($zones->iterate() as $zId => $__)
+        {
+            // ids are collected under their parent, or under themselves where they have none
+            if ($parent = (int)$zones->getField('parentArea'))
+                $groups[$parent][] = $zId;
+            else
+                $groups[$zId][] = $zId;
+        }
+
+        $picked = [];
+        foreach ($groups as $parentId => $children)
+            $picked[] = count($children) > 1 ? $parentId : $children[0];
+
+        // the parents may not have been among the areas, so name the ones that survived in one go
+        $zones = new ZoneList(array(['id', $picked]));
+        if ($zones->error)
+            return [];
+
+        $links = [];
+        foreach ($zones->iterate() as $zId => $__)
+            $links[] = Lang::makeLink(Type::ZONE, $zId, $zones->getField('name', true), Lang::FMT_MARKUP);
+
+        // a row of forty dungeon names helps no one
+        if (count($links) > 6)
+            $links = array_merge(array_slice($links, 0, 6), [Lang::dataIntegrity('andMore', [count($links) - 6])]);
+
+        return $links;
     }
 
     private function createMail() : bool
