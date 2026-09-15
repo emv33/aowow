@@ -817,43 +817,21 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
         // tab: achievements
 
         // tab: criteria-of
-        $conditions = array(DB::OR,
-            array(
-                DB::AND,
-                ['ac.type', [ACHIEVEMENT_CRITERIA_TYPE_COMPLETE_QUESTS_IN_ZONE, ACHIEVEMENT_CRITERIA_TYPE_HONORABLE_KILL_AT_AREA]],
-                ['ac.value1', $this->typeId]
-            )
-        );
-
-        if ($extraCrt = DB::World()->selectCol('SELECT `criteria_id` FROM achievement_criteria_data WHERE `type` = %i AND `value1` = %i', ACHIEVEMENT_CRITERIA_DATA_TYPE_S_AREA, $this->typeId))
-            $conditions[] = ['ac.id', $extraCrt];
-
-        if ($this->subject->getField('category') != MAP_TYPE_ZONE)
-        {
-            $conditions[] = array (
-                DB::AND,
-                ['ac.type', [ACHIEVEMENT_CRITERIA_TYPE_WIN_BG,      ACHIEVEMENT_CRITERIA_TYPE_WIN_ARENA,
-                             ACHIEVEMENT_CRITERIA_TYPE_PLAY_ARENA,  ACHIEVEMENT_CRITERIA_TYPE_COMPLETE_BATTLEGROUND,
-                             ACHIEVEMENT_CRITERIA_TYPE_DEATH_AT_MAP]
-                ],
-                ['ac.value1', $this->subject->getField('mapId')]
-            );
-
-            if ($extraCrt = DB::World()->selectCol('SELECT `criteria_id` FROM achievement_criteria_data WHERE `type` = %i AND `value1` = %i', ACHIEVEMENT_CRITERIA_DATA_TYPE_MAP_ID, $this->subject->getField('mapId')))
-                $conditions[] = ['ac.id', $extraCrt];
-
-        }
-
-        $crtOf = new AchievementList($conditions);
+        $crtOf = new AchievementList(AchievementList::getLocationConditions($this->typeId, $this->subject->getField('category') != MAP_TYPE_ZONE ? $this->subject->getField('mapId') : 0));
         if (!$crtOf->error)
         {
-            $this->extendGlobalData($crtOf->getJSGlobals());
-
-            $this->lvTabs->addListviewTab(new Listview(array(
+            $tabData = array(
                 'data' => $crtOf->getListviewData(),
                 'name' => '$LANG.tab_criteriaof',
                 'id'   => 'criteria-of'
-            ), AchievementList::$brickFile));
+            );
+
+            if (!is_null(AchievementListFilter::getCriteriaIndex(4, $this->typeId)))
+                $tabData['note'] = sprintf(Util::$filterResultString, '?achievements&filter=cr=4;crs='.$this->typeId.';crv=0');
+
+            $this->extendGlobalData($crtOf->getJSGlobals());
+
+            $this->lvTabs->addListviewTab(new Listview($tabData, AchievementList::$brickFile));
         }
 
         // tab: fishing

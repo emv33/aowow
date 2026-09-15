@@ -101,6 +101,41 @@ class ZoneList extends DBTypeList
     }
 
     public function renderTooltip() : ?string { return null; }
+
+
+    // aowow - custom start: exploration overlays
+    // An exploration criterion names a WorldMapOverlay, not an area: the overlay is the piece of the
+    // world map that is revealed on discovery, and the area it carries is the one it is named after.
+    // Resolving the two is what lets "Explore <area>" link to `?zone=` and lets a zone name the
+    // explorers of it. The table is written by the `img-maps` build step and stays in the aowow DB
+    // unless setup ran with --delete, so it is probed before it is read.
+
+    /** the area an overlay reveals, 0 if it cannot be resolved */
+    public static function getAreaForOverlay(int $overlayId) : int
+    {
+        if ($overlayId <= 0 || !self::hasDBC('dbc_worldmapoverlay'))
+            return 0;
+
+        return (int)DB::Aowow()->selectCell('SELECT `areaTableId` FROM dbc_worldmapoverlay WHERE `id` = %i', $overlayId);
+    }
+
+    /** the overlays that reveal an area, empty if none or unknown */
+    public static function getOverlaysForArea(int $areaId) : array
+    {
+        if ($areaId <= 0 || !self::hasDBC('dbc_worldmapoverlay'))
+            return [];
+
+        return DB::Aowow()->selectCol('SELECT `id` FROM dbc_worldmapoverlay WHERE `areaTableId` = %i', $areaId);
+    }
+
+    private static function hasDBC(string $tbl) : bool
+    {
+        static $known = [];
+
+        return $known[$tbl] ??= (bool)DB::Aowow()->selectCell('SHOW TABLES LIKE %s', $tbl);
+    }
+
+    // aowow - custom end
 }
 
 ?>

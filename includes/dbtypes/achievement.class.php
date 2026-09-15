@@ -265,6 +265,71 @@ class AchievementList extends DBTypeList
 
         return $data;
     }
+
+    // aowow - custom start: achievements bound to a place
+    // A place is named by criteria in three different ways and only the first one is obvious:
+    //  - the plain criteria carry the area id in `value1` (or an overlay id, when exploring)
+    //  - the map-bound criteria carry a map id there instead, which is what a dungeon or
+    //    battleground page has to look for - the area id it knows is a different number
+    //  - the rest hide the place away in `achievement_criteria_data`, reachable only
+    //    through the criteria id it hangs off
+    // The zone page and the location filter ask the same question, so they ask it here.
+
+    /** conditions selecting the achievements that take place in the given area (and map) */
+    public static function getLocationConditions(int $areaId, int $mapId = 0) : array
+    {
+        if ($areaId <= 0)
+            return [];
+
+        $conditions = array(DB::OR,
+            array(
+                DB::AND,
+                ['ac.type', [ACHIEVEMENT_CRITERIA_TYPE_COMPLETE_QUESTS_IN_ZONE, ACHIEVEMENT_CRITERIA_TYPE_HONORABLE_KILL_AT_AREA]],
+                ['ac.value1', $areaId]
+            )
+        );
+
+        // exploration criteria name the overlay that is revealed, not the area it is named after
+        if ($overlays = ZoneList::getOverlaysForArea($areaId))
+            $conditions[] = array(
+                DB::AND,
+                ['ac.type', ACHIEVEMENT_CRITERIA_TYPE_EXPLORE_AREA],
+                ['ac.value1', $overlays]
+            );
+
+        $extraTypes = [ACHIEVEMENT_CRITERIA_DATA_TYPE_S_AREA => $areaId];
+
+        if ($mapId > 0)
+        {
+            $conditions[] = array(
+                DB::AND,
+                ['ac.type', [ACHIEVEMENT_CRITERIA_TYPE_WIN_BG,         ACHIEVEMENT_CRITERIA_TYPE_WIN_ARENA,
+                             ACHIEVEMENT_CRITERIA_TYPE_PLAY_ARENA,     ACHIEVEMENT_CRITERIA_TYPE_COMPLETE_BATTLEGROUND,
+                             ACHIEVEMENT_CRITERIA_TYPE_DEATH_AT_MAP]],
+                ['ac.value1', $mapId]
+            );
+
+            $extraTypes[ACHIEVEMENT_CRITERIA_DATA_TYPE_MAP_ID] = $mapId;
+        }
+
+        foreach ($extraTypes as $type => $value)
+            if ($extraCrt = DB::World()->selectCol('SELECT `criteria_id` FROM achievement_criteria_data WHERE `type` = %i AND `value1` = %i', $type, $value))
+                $conditions[] = ['ac.id', $extraCrt];
+
+        return $conditions;
+    }
+
+    /** the map to look at when asking after a zone: the area id only names one for map-bound zones */
+    public static function getMapForArea(int $areaId) : int
+    {
+        $zone = new ZoneList(array(['id', $areaId]));
+        if ($zone->error || $zone->getField('category') == MAP_TYPE_ZONE)
+            return 0;
+
+        return $zone->getField('mapId');
+    }
+
+    // aowow - custom end
 }
 
 
@@ -297,7 +362,7 @@ class AchievementListFilter extends Filter
     protected static array $genericFilter = array(
          2 => [parent::CR_BOOLEAN,   'reward_loc0', true                             ], // givesreward
          3 => [parent::CR_STRING,    'reward',      STR_LOCALIZED                    ], // rewardtext
-         4 => [parent::CR_NYI_PH,    null,          1,                               ], // location [enum]
+         4 => [parent::CR_CALLBACK,  'cbLocation',  null,                        null], // location [enum]
          5 => [parent::CR_CALLBACK,  'cbSeries',    ACHIEVEMENT_CU_FIRST_SERIES, null], // first in series [yn]
          6 => [parent::CR_CALLBACK,  'cbSeries',    ACHIEVEMENT_CU_LAST_SERIES,  null], // last in series [yn]
          7 => [parent::CR_BOOLEAN,   'chainId',                                      ], // partseries
@@ -388,6 +453,14 @@ class AchievementListFilter extends Filter
             return $crs ? [DB::AND, ['chainId', 0, '!'], ['cuFlags', $seriesFlag, '&']] : [DB::AND, ['chainId', 0, '!'], [['cuFlags', $seriesFlag, '&'], 0]];
 
         return null;
+    }
+
+    protected function cbLocation(int $cr, int $crs, string $crv) : ?array
+    {
+        if (!in_array($crs, self::$enums[$cr]))
+            return null;
+
+        return AchievementList::getLocationConditions($crs, AchievementList::getMapForArea($crs));
     }
 }
 
