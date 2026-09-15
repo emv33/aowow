@@ -25,7 +25,7 @@ class AchievementcriteriaBaseResponse extends TemplateResponse
     protected  array  $scripts    = [[SC_JS_FILE, 'js/filters.js']];   // fi_toggle(), used to (un)collapse the search form
 
     protected  array  $expectedGET = array(
-        'ac' => ['filter' => FILTER_VALIDATE_INT, 'flags' => FILTER_REQUIRE_SCALAR],
+        'ac' => ['filter' => FILTER_CALLBACK, 'options' => [self::class, 'checkTextLine']],
         'id' => ['filter' => FILTER_VALIDATE_INT, 'flags' => FILTER_REQUIRE_SCALAR],
         'ty' => ['filter' => FILTER_VALIDATE_INT, 'flags' => FILTER_REQUIRE_SCALAR],
         'fl' => ['filter' => FILTER_VALIDATE_INT, 'flags' => FILTER_REQUIRE_SCALAR],
@@ -59,7 +59,7 @@ class AchievementcriteriaBaseResponse extends TemplateResponse
 
         $this->formValues = array(
             'id' => (int)($this->_get['id'] ?? 0),
-            'ac' => (int)($this->_get['ac'] ?? 0),
+            'ac' => (string)($this->_get['ac'] ?? ''),
             'ty' => (int)($this->_get['ty'] ?? 0),
             'fl' => (int)($this->_get['fl'] ?? 0),
             'na' => (string)($this->_get['na'] ?? '')
@@ -70,8 +70,10 @@ class AchievementcriteriaBaseResponse extends TemplateResponse
         $conditions = [Listview::DEFAULT_SIZE];
         if ($this->formValues['id'])
             $conditions[] = ['id', $this->formValues['id']];
-        if ($this->formValues['ac'])
-            $conditions[] = ['refAchievementId', $this->formValues['ac']];
+        if (ctype_digit($this->formValues['ac']))
+            $conditions[] = ['refAchievementId', (int)$this->formValues['ac']];
+        else if ($this->formValues['ac'])
+            $conditions[] = ['a.name_loc'.Lang::getLocale()->value, '%'.$this->formValues['ac'].'%', 'LIKE'];
         if ($this->formValues['ty'])
             $conditions[] = ['type', $this->formValues['ty']];
         if ($this->formValues['fl'])

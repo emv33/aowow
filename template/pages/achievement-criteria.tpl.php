@@ -37,7 +37,7 @@
                             <td><?=$this->ucFirst(Lang::achievementCriteriaBrowser('id')).Lang::main('colon'); ?></td>
                             <td><input type="text" name="id" size="10" value="<?=($f['id'] ?: ''); ?>" /></td>
                             <td><?=$this->ucFirst(Lang::achievementCriteriaBrowser('achievement')).Lang::main('colon'); ?></td>
-                            <td><input type="text" name="ac" size="10" value="<?=($f['ac'] ?: ''); ?>" /></td>
+                            <td><input type="text" name="ac" size="20" value="<?=$this->escHTML($f['ac']); ?>" /></td>
                         </tr>
                         <tr>
                             <td><?=$this->ucFirst(Lang::achievementCriteriaBrowser('type')).Lang::main('colon'); ?></td>
