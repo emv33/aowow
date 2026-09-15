@@ -610,7 +610,8 @@ class ItemList extends DBTypeList
         else if ($this->curTpl['itemLimitCategory'])
         {
             $limit = DB::Aowow()->selectRow('SELECT * FROM ::itemlimitcategory WHERE `id` = %i', $this->curTpl['itemLimitCategory']);
-            $x .= '<br />'.sprintf(Lang::item($limit['isGem'] ? 'uniqueEquipped' : 'unique', 2), Util::localizedString($limit, 'name'), $limit['count']);
+            $catLink = '<a href="?items&filter=cr=202;crs=3;crv='.$this->curTpl['itemLimitCategory'].'" class="q1">'.Util::localizedString($limit, 'name').'</a>';
+            $x .= '<br />'.sprintf(Lang::item($limit['isGem'] ? 'uniqueEquipped' : 'unique', 2), $catLink, $limit['count']);
         }
 
         // required holiday
@@ -1971,8 +1972,9 @@ class ItemListFilter extends Filter
         172 => [parent::CR_CALLBACK,  'cbObtainedBy',           SRC_ACHIEVEMENT,         null              ], // rewardedbyachievement [yn]
         176 => [parent::CR_STAFFFLAG, 'flags'                                                              ], // flags
         177 => [parent::CR_STAFFFLAG, 'flagsExtra'                                                         ], // flags2
-        200 => [parent::CR_CALLBACK,  'cbHasItemVisual',        null,                    null              ]  // itemvisual [enum] (custom)
+        200 => [parent::CR_CALLBACK,  'cbHasItemVisual',        null,                    null              ], // itemvisual [enum] (custom)
      // 201 => [parent::CR_CALLBACK,  'cbHasSpellVisual',       null,                    null              ]  // spellvisual [str] (custom) - unused for now, looks like it's really only shooting/throwing animations for ranged weapons
+        202 => [parent::CR_NUMERIC,   'itemLimitCategory',      NUM_CAST_INT                                ]  // itemlimitcategory - dbc_itemlimitcategory, no fixed list needed
     );
 
     protected static array $inputFields   = array(
