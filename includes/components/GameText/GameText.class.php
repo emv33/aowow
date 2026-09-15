@@ -380,27 +380,112 @@ class GameText
         if ($rows === null)
             $rows = DB::World()->selectAssoc('SELECT `entry` AS "ID", `text` AS "Text" FROM page_text WHERE `text` LIKE %s ORDER BY `entry` ASC', $like) ?: [];
 
-        $ids     = array_map(fn($x) => (int)$x['ID'], $rows);
-        $items   = $objects = [];
-        if ($ids)
-        {
-            $items = DB::Aowow()->selectPairs('SELECT `pageTextId`, MIN(`id`) FROM ::items WHERE `pageTextId` IN %in GROUP BY `pageTextId`', $ids) ?: [];
-            // a page can hang off a sign or a plaque rather than an item
-            if ($rest = array_diff($ids, array_keys($items)))
-                $objects = DB::Aowow()->selectPairs('SELECT `pageTextId`, MIN(`id`) FROM ::objects WHERE `pageTextId` IN %in GROUP BY `pageTextId`', $rest) ?: [];
-        }
+        $owners = self::pageOwners(array_map(fn($x) => (int)$x['ID'], $rows));
 
         $out = [];
         foreach ($rows as $r)
         {
             $id = (int)$r['ID'];
-            if (isset($items[$id]))
-                $out[] = self::row(self::SRC_PAGE_TEXT, 'pt:'.$id, $id, (string)$r['Text'], Type::ITEM, (int)$items[$id]);
-            else if (isset($objects[$id]))
-                $out[] = self::row(self::SRC_PAGE_TEXT, 'pt:'.$id, $id, (string)$r['Text'], Type::OBJECT, (int)$objects[$id]);
-            else
-                $out[] = self::row(self::SRC_PAGE_TEXT, 'pt:'.$id, $id, (string)$r['Text']);
+            [$type, $entry] = $owners[$id] ?? [null, 0];
+
+            $out[] = self::row(self::SRC_PAGE_TEXT, 'pt:'.$id, $id, (string)$r['Text'], $type, $entry);
         }
+
+        return $out;
+    }
+
+    /**
+     * what holds each page
+     *
+     * a book is a chain: the item or object names its first page only, and every page after it is
+     * reached through NextPageID. Looking no further than the direct owner left every page but the
+     * first of every multi-page book unlinked, which is most of the table.
+     *
+     * @return array  pageId => [Type, entryId]
+     */
+    private static function pageOwners(array $ids) : array
+    {
+        if (!$ids)
+            return [];
+
+        $out     = self::directPageOwners($ids);
+        $pending = array_values(array_diff($ids, array_keys($out)));
+        if (!$pending)
+            return $out;
+
+        // the column pair is spelled ID/NextPageID on current revisions and entry/next_page on older
+        $cols = [['ID', 'NextPageID'], ['entry', 'next_page']];
+
+        $parent   = [];                                     // page => the page that precedes it
+        $seen     = array_flip($ids);                       // a corrupt chain can loop
+        $frontier = $pending;
+
+        while ($frontier)
+        {
+            $rows = null;
+            foreach ($cols as [$idCol, $nextCol])
+                if (($rows = DB::World()->selectAssoc('SELECT `'.$idCol.'` AS "id", `'.$nextCol.'` AS "next" FROM page_text WHERE `'.$nextCol.'` IN %in', $frontier)) !== null)
+                    break;
+
+            $next = [];
+            foreach ($rows ?: [] as $r)
+            {
+                $p = (int)$r['id'];
+                $c = (int)$r['next'];
+                if (isset($parent[$c]))                     // keep the first predecessor found
+                    continue;
+
+                $parent[$c] = $p;
+                if (!isset($seen[$p]))
+                {
+                    $seen[$p] = true;
+                    $next[]   = $p;
+                }
+            }
+
+            if ($next)
+                $out += self::directPageOwners($next);
+
+            $frontier = $next;
+        }
+
+        // every page inherits the owner of the first page above it that has one
+        // the walk keeps its own path: two pages pointing at each other is a chain with no head,
+        // and following it is an endless loop rather than a missing link
+        foreach ($pending as $id)
+        {
+            $cur  = $id;
+            $path = [$id => true];
+            while (isset($parent[$cur]) && !isset($path[$parent[$cur]]))
+            {
+                $cur        = $parent[$cur];
+                $path[$cur] = true;
+
+                if (isset($out[$cur]))
+                {
+                    $out[$id] = $out[$cur];
+                    break;
+                }
+            }
+        }
+
+        return $out;
+    }
+
+    /** the item or object that names these pages directly */
+    private static function directPageOwners(array $ids) : array
+    {
+        $out = [];
+        if (!$ids)
+            return $out;
+
+        foreach (DB::Aowow()->selectPairs('SELECT `pageTextId`, MIN(`id`) FROM ::items WHERE `pageTextId` IN %in GROUP BY `pageTextId`', $ids) ?: [] as $page => $entry)
+            $out[(int)$page] = [Type::ITEM, (int)$entry];
+
+        // a page can hang off a sign or a plaque rather than an item
+        if ($rest = array_diff($ids, array_keys($out)))
+            foreach (DB::Aowow()->selectPairs('SELECT `pageTextId`, MIN(`id`) FROM ::objects WHERE `pageTextId` IN %in GROUP BY `pageTextId`', array_values($rest)) ?: [] as $page => $entry)
+                $out[(int)$page] = [Type::OBJECT, (int)$entry];
 
         return $out;
     }
