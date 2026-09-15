@@ -111,6 +111,10 @@ class AchievementBaseResponse extends TemplateResponse implements ICache
         // id
         $infobox[] = Lang::achievement('id') . $this->typeId;
 
+        // criteria
+        if ($criteriaCount = count($this->subject->getCriteria()))
+            $infobox[] = Lang::achievement('criteria').Lang::main('colon').'[url=?achievement-criteria&ac='.$this->typeId.']'.$criteriaCount.'[/url]';
+
         // icon
         if ($_ = $this->subject->getField('iconId'))
         {
@@ -340,8 +344,7 @@ class AchievementBaseResponse extends TemplateResponse implements ICache
                     break;
             }
 
-            if (User::isInGroup(U_GROUP_STAFF))
-                $crtIcon->extraText .= ' [CriteriaId: '.$crt['id'].']';
+            $crtIcon->extraText .= ' [<a href="?achievement-criteria&amp;id='.$crt['id'].'">CriteriaId: '.$crt['id'].'</a>]';
 
             $extraData = [];
             foreach ($crtExtraData[$crt['id']] ?? [] as $xType => $xData)

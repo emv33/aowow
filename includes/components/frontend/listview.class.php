@@ -19,6 +19,7 @@ class Listview implements \JsonSerializable
 
     private const array TEMPLATES = array(
         'achievement'       => ['template' => 'achievement',       'id' => 'achievements',    'name' => '$LANG.tab_achievements'  ],
+        'achievementcriteria' => ['template' => 'achievementcriteria', 'id' => 'achievement-criteria',                           ], // aowow - custom
         'areatrigger'       => ['template' => 'areatrigger',       'id' => 'areatrigger',                                         ],
         'calendar'          => ['template' => 'holidaycal',        'id' => 'calendar',        'name' => '$LANG.tab_calendar'      ],
         'class'             => ['template' => 'classs',            'id' => 'classes',         'name' => '$LANG.tab_classes'       ],
