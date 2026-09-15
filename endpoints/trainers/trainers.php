@@ -137,6 +137,7 @@ class TrainersBaseResponse extends TemplateResponse
     private function normalizeRow(array $r) : array
     {
         return array(
+            'id'           => (int)$r['npc'],
             'npc'          => (int)$r['npc'],
             'spell'        => (int)$r['spell'],
             'cost'         => (int)$r['cost'],

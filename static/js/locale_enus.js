@@ -4564,7 +4564,7 @@ var LANG = {
         spell:      "Spell",
         cost:       "Cost",
         reqSkill:   "Required skill",
-        rank:       "Rank",
+        skillLevel: "Skill level",
         level:      "Level"
     },
     figraveyard: {

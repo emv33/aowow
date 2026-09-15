@@ -36,6 +36,10 @@ Listview.templates.trainer = {
             width: '30%',
             align: 'left',
             compute: function(t, td) {
+                var icon = g_spells.createIcon(t.spell, 0);
+                icon.style.cssFloat = icon.style.styleFloat = 'left';
+                $WH.ae(td, icon);
+
                 var nameCol = 'name_' + Locale.getName(),
                     entry   = g_spells[t.spell],
                     a       = $WH.ce('a');
@@ -83,6 +87,10 @@ Listview.templates.trainer = {
                     return;
                 }
 
+                var icon = g_skills.createIcon(t.reqSkill, 0);
+                icon.style.cssFloat = icon.style.styleFloat = 'left';
+                $WH.ae(td, icon);
+
                 var nameCol = 'name_' + Locale.getName(),
                     entry   = g_skills[t.reqSkill],
                     a       = $WH.ce('a');
@@ -104,7 +112,7 @@ Listview.templates.trainer = {
         },
         {
             id: 'reqSkillRank',
-            name: LANG.fitrainer.rank,
+            name: LANG.fitrainer.skillLevel,
             type: 'num',
             width: '7%',
             value: 'reqSkillRank',
