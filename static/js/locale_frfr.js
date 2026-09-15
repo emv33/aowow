@@ -962,7 +962,7 @@ var mn_database = [
     [107, 'Encounters', '?encounters', null, {requiredAccess: 1726}],    // aowow - custom
     [108, 'Transports', '?transports', null, {requiredAccess: 1726}],    // aowow - custom
     [109, 'Game text', '?texts', null, {requiredAccess: 1726}],    // aowow - custom
-    [110, 'Achievement Criteria', '?achievement-criteria'],          // aowow - custom
+    [118, 'Achievement Criteria', '?achievement-criteria'],          // aowow - custom
     [110, 'Flight paths', '?taxipaths', null, {requiredAccess: 1726}],    // aowow - custom
     [111, 'Named locations', '?teleports', null, {requiredAccess: 1726}],    // aowow - custom
     [112, 'Trainers', '?trainers', null, {requiredAccess: 1726}],    // aowow - custom
