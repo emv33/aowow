@@ -55,7 +55,8 @@ class XRef
         $out = [];
         foreach ($byType as $type => $ids)
         {
-            foreach (array_unique(array_filter(array_map('intVal', $ids))) as $id)
+            // a failed lookup answers null rather than an empty list, so it is not mapped over
+            foreach (array_unique(array_filter(array_map('intVal', $ids ?? []))) as $id)
             {
                 // not every type has a markup tag of its own
                 if ($tag = Markup::getTagForType($type))

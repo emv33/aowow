@@ -25,7 +25,7 @@ class TextsBaseResponse extends TemplateResponse
     protected  array  $breadcrumb        = [0, 109];
 
     protected  array  $expectedGET       = array(
-        'q'   => ['filter' => FILTER_UNSAFE_RAW, 'flags' => FILTER_REQUIRE_SCALAR],
+        'q'   => ['filter' => FILTER_CALLBACK,     'options' => [self::class, 'checkTextLine']],
         'src' => ['filter' => FILTER_VALIDATE_INT, 'flags' => FILTER_REQUIRE_SCALAR]
     );
 
