@@ -110,7 +110,7 @@ class ItemBaseResponse extends TemplateResponse implements ICache
         $this->tooltip    = [$this->subject->getField('iconString'), $this->subject->getField('stackable'), false];
         $this->redButtons = array(
             BUTTON_WOWHEAD => true,
-            BUTTON_VIEW3D  => $this->subject->isDisplayable() ? ['displayId' => $_displayId, 'slot' => $_slot, 'type' => Type::ITEM, 'typeId' => $this->typeId] : false,
+            BUTTON_VIEW3D  => /* $this->subject->isDisplayable() ? ['displayId' => $_displayId, 'slot' => $_slot, 'type' => Type::ITEM, 'typeId' => $this->typeId] : */ false, // disabled due to missing models+textures
             BUTTON_COMPARE => $canBeWeighted,
             BUTTON_EQUIP   => in_array($_class, [ITEM_CLASS_WEAPON, ITEM_CLASS_ARMOR]) && User::getCharacters(),
             BUTTON_UPGRADE => $canBeWeighted ? ['class' => $_class, 'slot' => $_slot] : false,
@@ -1274,7 +1274,7 @@ class ItemBaseResponse extends TemplateResponse implements ICache
                     $tokens[] = '+' . $ft  . '*';
 
         $lvData = [];
-        if ($tokens && !($byName = new ItemList(array(['nml.nName', $tokens, 'MATCH'])))->error)
+        if ($tokens && !($byName = new ItemList(array(DB::AND, ['id', $this->typeId, '!'], ['nml.nName', $tokens, 'MATCH'])))->error)
         {
             $this->extendGlobalData($byName->getJSGlobals(GLOBALINFO_SELF));
             $lvData += $byName->getListviewData();
