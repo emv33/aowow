@@ -304,15 +304,18 @@ final class UIText
                         return '';
                 }
 
+                // aowow - custom: vsprintf, as $spfVars is the argument list rather than one argument
+                // (upstream: sprintf) - PHP 8 makes the mismatch an ArgumentCountError instead of a
+                // warning, so any |H<type>:<id>|h<name>|h hyperlink in game text took the page down
                 switch ($fmt)
                 {
                     case Lang::FMT_HTML:
-                        return sprintf('<a href="?%s=%d">%s</a>', $spfVars);
+                        return vsprintf('<a href="?%s=%d">%s</a>', $spfVars);
                     case Lang::FMT_MARKUP:
-                        return sprintf('[%s=%d]', $spfVars);
+                        return vsprintf('[%s=%d]', $spfVars);
                     case Lang::FMT_RAW:
                     default:
-                        return sprintf('(%s #%d) %s', $spfVars);
+                        return vsprintf('(%s #%d) %s', $spfVars);
                 }
             }, $text);
 
