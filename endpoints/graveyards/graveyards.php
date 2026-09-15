@@ -113,7 +113,8 @@ class GraveyardsBaseResponse extends TemplateResponse
             foreach (DB::Aowow()->selectAssoc('SELECT `id` AS ARRAY_KEY, `mapId` FROM ::zones WHERE `id` IN %in', $zoneIds) ?: [] as $zId => $zRow)
                 $mapByZone[(int)$zId] = (int)$zRow['mapId'];
 
-        $data = [];
+        $rows = [];
+        $mapIds = [];
         foreach ($ids as $id)
         {
             $link  = $links[$id];
@@ -124,30 +125,50 @@ class GraveyardsBaseResponse extends TemplateResponse
             $name = $pos && $pos['name'] !== '' ? $pos['name'] : (string)($link['comment'] ?? '');
             $map  = $pos && $pos['map'] ? $pos['map'] : (isset($zones[0]) ? ($mapByZone[$zones[0]] ?? 0) : 0);
 
-            $mapName = match ($map)
-            {
-                0   => Lang::maps('EasternKingdoms'),
-                1   => Lang::maps('Kalimdor'),
-                530 => Lang::maps('Outland'),
-                571 => Lang::maps('Northrend'),
-                default => ''
-            };
-
             $faction = 0;
             if (!empty($link['ally']))
                 $faction |= 1;
             if (!empty($link['horde']))
                 $faction |= 2;
 
-            $data[] = array(
+            $mapIds[$map] = $map;
+
+            $rows[] = array(
                 'id'      => $id,
                 'name'    => $name !== '' && $name[0] == '$' ? ' '.$name : $name,
                 'map'     => $map,
-                'mapName' => $mapName,
                 'mapLink' => isset($zones[0]) ? '?maps='.$zones[0] : '',
                 'zones'   => $zones,
                 'faction' => $faction
             );
+        }
+
+        // Map.dbc is written into the aowow DB by the zones setup step and names every map, so
+        // the raw id only survives where the table is gone
+        $mapNameByMap = [];
+        if ($mapIds && DB::Aowow()->selectCell('SHOW TABLES LIKE %s', 'dbc_map'))
+            foreach (DB::Aowow()->selectAssoc('SELECT `id` AS ARRAY_KEY, `name_loc'.Lang::getLocale()->value.'` AS "name" FROM dbc_map WHERE `id` IN %in', array_values($mapIds)) ?: [] as $mId => $mRow)
+                $mapNameByMap[(int)$mId] = (string)$mRow['name'];
+
+        $data = [];
+        foreach ($rows as $row)
+        {
+            $mapName = $mapNameByMap[$row['map']] ?? '';
+
+            if ($mapName === '')
+            {
+                $mapName = match ($row['map'])
+                {
+                    0   => Lang::maps('EasternKingdoms'),
+                    1   => Lang::maps('Kalimdor'),
+                    530 => Lang::maps('Outland'),
+                    571 => Lang::maps('Northrend'),
+                    default => ''
+                };
+            }
+
+            $row['mapName'] = $mapName;
+            $data[] = $row;
         }
 
         if ($zoneIds)
