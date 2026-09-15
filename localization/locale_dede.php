@@ -1341,6 +1341,13 @@ $lang = array(
         'actionBar'     => "Action bar",
         'startsIn'      => "Starts in"
     ),
+    'eventExtra' => array(
+        'title'            => "Progress and pools",
+        'unnamedCondition' => 'Condition #%1$d',
+        'required'         => 'required: [b]%1$s[/b]',
+        'worldStates'      => 'world states %1$d / %2$d',
+        'pools'            => 'Spawn pools (%1$d)'
+    ),
     'gameText' => array(
         'title'         => "Game text",
         'term'          => "text contains",

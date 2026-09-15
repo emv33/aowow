@@ -104,6 +104,12 @@ class EventBaseResponse extends TemplateResponse implements ICache
             $this->extendGlobalIds(Type::ICON, $_);
         }
 
+        // aowow - custom start: the two event tables no page read
+        // `game_event_prerequisite` was the only one of them looked at, so an event's own progress
+        // counters and the spawn pools it switches on were invisible
+        $this->buildEventProgress();
+        // aowow - custom end
+
         // original name
         if (Lang::getLocale() != Locale::EN)
             $infobox[] = Util::ucFirst(Lang::lang(Locale::EN->value) . Lang::main('colon')) . '[copy button=false]'.$this->subject->getField('name_loc0').'[/copy][/li]';
@@ -421,6 +427,98 @@ class EventBaseResponse extends TemplateResponse implements ICache
         if ($endStr = \IntlDateFormatter::create(Lang::getLocale()->hreflang(), pattern: $p)?->format($end))
             $desc .= ' ' . $endStr;
     }
+
+    // aowow - custom start: progress conditions and spawn pools
+    private static function hasTable(string $tbl) : bool
+    {
+        static $known = [];
+
+        return $known[$tbl] ??= (bool)DB::World()->selectCell('SHOW TABLES LIKE %s', $tbl);
+    }
+
+    /**
+     * `game_event_condition` is how a staged event measures its own progress - the Ahn'Qiraj war
+     * effort turn-ins and the Scourge Invasion counters live here and nowhere else
+     * `game_event_pool` switches whole spawn pools on for the duration of the event
+     */
+    private function buildEventProgress() : void
+    {
+        // staff gated like the other world DB blocks - the world state ids are core internals
+        if (!User::isInGroup(U_GROUP_STAFF))
+            return;
+
+        $rows = [];
+
+        if (self::hasTable('game_event_condition'))
+        {
+            $cnd = DB::World()->selectAssoc(
+               'SELECT `condition_id`, `req_num`, `max_world_state`, `done_world_state`, `description`
+                FROM   game_event_condition WHERE `eventEntry` = %i ORDER BY `condition_id` ASC',
+                $this->typeId
+            ) ?: [];
+
+            foreach ($cnd as $c)
+            {
+                $label = (string)$c['description'] ?: Lang::eventExtra('unnamedCondition', [(int)$c['condition_id']]);
+                $value = Lang::eventExtra('required', [(string)(float)$c['req_num']]);
+
+                // the two world states are what the client's progress bar actually reads
+                $maxWS  = (int)$c['max_world_state'];
+                $doneWS = (int)$c['done_world_state'];
+                if ($maxWS || $doneWS)
+                    $value .= ' [small class=q0]'.Lang::eventExtra('worldStates', [$doneWS, $maxWS]).'[/small]';
+
+                $rows[] = [$label, $value];
+            }
+        }
+
+        if (self::hasTable('game_event_pool'))
+        {
+            $poolIds = array_map('intVal', DB::World()->selectCol('SELECT `pool_entry` FROM game_event_pool WHERE `eventEntry` = %i', $this->typeId) ?: []);
+            $nPools  = count($poolIds);
+
+            // an event usually switches on a mother pool, whose members are further pools rather
+            // than spawns, so the tree is walked before its leaves are read
+            if ($poolIds && self::hasTable('pool_pool'))
+            {
+                $open = $poolIds;
+                while ($open)
+                {
+                    $children = array_map('intVal', DB::World()->selectCol('SELECT `pool_id` FROM pool_pool WHERE `mother_pool` IN %in', $open) ?: []);
+                    $open     = array_values(array_diff($children, $poolIds));
+                    $poolIds  = array_merge($poolIds, $open);
+                }
+            }
+
+            $links = [];
+            foreach (Pool::getMembers($poolIds) as $type => $ids)
+            {
+                $this->extendGlobalIds($type, ...$ids);
+                foreach ($ids as $id)
+                    $links[] = '['.Markup::getTagForType($type).'='.$id.']';
+            }
+
+            if ($links)
+                $rows[] = [Lang::eventExtra('pools', [$nPools]), Lang::concat($links, Lang::CONCAT_NONE)];
+        }
+
+        if (!$rows)
+            return;
+
+        $tbl = '';
+        foreach ($rows as [$label, $value])
+            $tbl .= '[tr][td][b]'.$label.'[/b][/td][td]'.$value.'[/td][/tr]';
+
+        $css = '#event-progress-generic .grid { clear:left; display: grid; grid-template-columns: 280px auto; } ' .
+               '#event-progress-generic .grid thead, #event-progress-generic .grid tbody, #event-progress-generic .grid tr { display: contents; }';
+
+        $this->eventProgress = new Markup(
+            '[style]'.$css.'[/style][pad][h3][toggler id=event-progress]'.Lang::eventExtra('title').'[/toggler][/h3]' .
+            '[div id=event-progress clear=left][table class=grid]'.$tbl.'[/table][/div]',
+            ['allow' => Markup::CLASS_ADMIN], 'event-progress-generic'
+        );
+    }
+    // aowow - custom end
 }
 
 ?>

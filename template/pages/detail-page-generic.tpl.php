@@ -56,6 +56,8 @@
 
     $this->brick('markup', ['markup' => $this->xRef]);   // aowow - custom
 
+    $this->brick('markup', ['markup' => $this->eventProgress]);   // aowow - custom
+
 if ($this->zoneMusic):
 ?>
 

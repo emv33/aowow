@@ -21,6 +21,7 @@ trait TrDetailPage
     public ?Markup        $questPOI      = null;            // aowow - custom: quest objective blobs from quest_poi
     public ?Markup        $levelCurve    = null;            // aowow - custom: xp curve and per level stats of a class
     public ?Markup        $xRef          = null;            // aowow - custom: what else in the world DB points at this entity
+    public ?Markup        $eventProgress = null;            // aowow - custom: progress counters and spawn pools of a world event
     public ?array         $map           = null;
     public  array         $headIcons     = [];
 
