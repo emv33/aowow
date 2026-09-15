@@ -42,7 +42,5 @@ Listview.templates.outdoorpvp = {
             }
         }
     ],
-    getItemLink: function(t) {
-        return '?outdoorpvp';
-    }
+    clickable: false
 }

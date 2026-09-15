@@ -87,7 +87,5 @@ Listview.templates.factionchange = {
             }
         }
     ],
-    getItemLink: function(t) {
-        return '?factionchange';
-    }
+    clickable: false
 }

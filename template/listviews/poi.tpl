@@ -53,7 +53,5 @@ Listview.templates.poi = {
             }
         }
     ],
-    getItemLink: function(t) {
-        return '?poi';
-    }
+    clickable: false
 }
