@@ -392,21 +392,39 @@ class NpcBaseResponse extends TemplateResponse implements ICache
             // a guid-specific script runs instead of the entry-level one for that particular
             // spawn, so it can exist alongside an entry-level default - not only as a fallback
             // for when the entry has no script of its own. Narrow to guids that actually carry
-            // an override before building a SmartAI instance per one, so a common entry with
-            // hundreds of plain spawns doesn't pay for hundreds of empty lookups.
-            $guids = DB::World()->selectCol(
-               'SELECT c.`guid`
-                FROM   creature c
-                JOIN   smart_scripts ss ON ss.`entryorguid` = -c.`guid` AND ss.`source_type` = %i
-                WHERE  c.`id` = %i
-                GROUP BY c.`guid`',
+            // an override, and bucket the guids by script body - several spawns commonly carry
+            // the same override, which is rendered once with every affected guid named in the
+            // title instead of once per guid.
+            $rows = DB::World()->selectAssoc(
+               'SELECT   c.`guid`,
+                         ss.`id`, ss.`link`,
+                         ss.`event_type`,  ss.`event_param1`,  ss.`event_param2`,  ss.`event_param3`,  ss.`event_param4`,  ss.`event_param5`, ss.`event_phase_mask`, ss.`event_chance`, ss.`event_flags`,
+                         ss.`action_type`, ss.`action_param1`, ss.`action_param2`, ss.`action_param3`, ss.`action_param4`, ss.`action_param5`, ss.`action_param6`,
+                         ss.`target_type`, ss.`target_param1`, ss.`target_param2`, ss.`target_param3`, ss.`target_param4`, ss.`target_x`, ss.`target_y`, ss.`target_z`, ss.`target_o`
+                FROM     creature c
+                JOIN     smart_scripts ss ON ss.`entryorguid` = -c.`guid` AND ss.`source_type` = %i
+                WHERE    c.`id` = %i
+                ORDER BY c.`guid`, ss.`id` ASC',
                 SmartAI::SRC_TYPE_CREATURE, $this->typeId
             ) ?: [];
 
-            $found = [];
-            foreach ($guids as $g)
+            $buckets = [];                                  // sig (everything but the guid) => guids[]
+            foreach ($rows as $r)
             {
-                $sai = new SmartAI(SmartAI::SRC_TYPE_CREATURE, -$g, ['uid' => 'sai-'.$g, 'title' => ' [small](for GUID: '.$g.')[/small]']);
+                $guid = (int)$r['guid'];
+                unset($r['guid']);
+                $buckets[serialize($r)][] = $guid;
+            }
+
+            $found = [];
+            foreach ($buckets as $guids)
+            {
+                $g   = $guids[0];
+                $ttl = count($guids) > 1
+                    ? ' [small](for GUIDs: '.implode(', ', $guids).')[/small]'
+                    : ' [small](for GUID: '.$g.')[/small]';
+
+                $sai = new SmartAI(SmartAI::SRC_TYPE_CREATURE, -$g, ['uid' => 'sai-'.$g, 'title' => $ttl]);
                 if ($sai->prepare())
                     $found[] = $sai;
             }
