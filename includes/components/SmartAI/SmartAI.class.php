@@ -338,10 +338,25 @@ class SmartAI
         if (($_ = intVal($opts['actionType'] ?? -1)) >= 0)
             $where[] = ['s.`action_type` = %i', $_];
 
-        // "which scripts name this id" - action_param1..6 hold spell/creature/object/sound ids depending on action_type
+        // "which scripts name this id" - action_param1..6 hold spell/creature/object/sound ids depending on
+        // action_type, so a blind OR across all six columns for every row would also match on flags/timers/
+        // counts that merely happen to equal $_ under an unrelated action_type. Scope each param slot to the
+        // action_type(s) that actually declare it as carrying an id, same as SmartAI::getOwnerOfReference().
         if ($_ = intVal($opts['refId'] ?? 0))
-            $where[] = ['(s.`action_param1` = %i OR s.`action_param2` = %i OR s.`action_param3` = %i OR
-                          s.`action_param4` = %i OR s.`action_param5` = %i OR s.`action_param6` = %i)', $_, $_, $_, $_, $_, $_];
+        {
+            $refParts = [];
+            foreach (SmartAction::getParamTypes() as $actionType => $params)
+            {
+                $pq = [];
+                foreach ($params as $idx => $pType)
+                    $pq[] = ['s.`action_param'.$idx.'` = %i', $_];
+
+                $refParts[] = [DB::AND, [['s.`action_type` = %i', $actionType], [DB::OR, $pq]]];
+            }
+
+            if ($refParts)
+                $where[] = [DB::OR, $refParts];
+        }
 
         if (!$where)
             $where[] = ['1 = 1'];
