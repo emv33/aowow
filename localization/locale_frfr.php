@@ -1461,6 +1461,12 @@ $lang = array(
         'questItems'    => "Quest items",
         'movement'      => "Movement",
         'movementOverride' => '%1$d spawn(s) move differently',
+        'armor'         => "Armor",
+        'strength'      => "Strength",
+        'agility'       => "Agility",
+        'stamina'       => "Stamina",
+        'petStats'      => "As a pet",
+        'petNames'      => 'Generated names (%1$d)',
         'movementTypes' => array(               // only the values that depart from the default are named
             'ground' => [0 => "does not move on the ground", 1 => '',                 2 => "hovers"                    ],
             'swim'   => [0 => "cannot swim",                 1 => ''                                                  ],

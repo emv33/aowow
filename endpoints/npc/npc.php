@@ -225,6 +225,10 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         if ($_ = self::getMovement($this->typeId))
             $infobox[] = Lang::npcExtra('movement').Lang::main('colon').implode(', ', $_);
 
+        // `pet_levelstats` and `pet_name_generation` are keyed by creature entry, not by the pet
+        // family `?pet=` is built on, so this is the only page they can hang off
+        $this->levelCurve = self::buildPetTable($this->typeId);
+
         // the object side of this is imported by objects.ss.php; the creature side was not read at all
         if ($_ = self::getQuestItems($this->typeId))
         {
@@ -1434,6 +1438,60 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         }
 
         return $out;
+    }
+
+    /**
+     * `pet_levelstats` and `pet_name_generation`, neither of which was read anywhere
+     *
+     * the first is what a hunter or warlock pet of this entry actually has at each level - the
+     * creature's own stats are the ones it has while it is a creature, which is a different set
+     * the second is the pool the client draws a summoned pet's name from, two halves joined
+     */
+    private static function buildPetTable(int $npcId) : ?Markup
+    {
+        $stats = [];
+        if (self::hasTable('pet_levelstats'))
+            foreach (DB::World()->selectAssoc('SELECT * FROM pet_levelstats WHERE `creature_entry` = %i ORDER BY `level` ASC', $npcId) ?: [] as $r)
+            {
+                $lc = array_change_key_case($r, CASE_LOWER);
+                $stats[(int)($lc['level'] ?? 0)] = array_map('intVal', [$lc['hp'] ?? 0, $lc['mana'] ?? 0, $lc['armor'] ?? 0, $lc['str'] ?? 0, $lc['agi'] ?? 0, $lc['sta'] ?? 0]);
+            }
+
+        $names = [];
+        if (self::hasTable('pet_name_generation'))
+            foreach (DB::World()->selectAssoc('SELECT `word`, `half` FROM pet_name_generation WHERE `entry` = %i ORDER BY `half`, `word` ASC', $npcId) ?: [] as $r)
+                $names[(int)$r['half']][] = (string)$r['word'];
+
+        if (!$stats && !$names)
+            return null;
+
+        $body = '';
+
+        if ($stats)
+        {
+            // one row every ten levels, as with the class curve - eighty rows say no more than eight
+            $levels = array_values(array_filter(array_keys($stats), fn($l) => $l == 1 || $l % 10 == 0 || $l == MAX_LEVEL));
+
+            $head = [Lang::game('level'), Lang::levelCurve('baseHp'), Lang::levelCurve('baseMana'), Lang::npcExtra('armor'),
+                     Lang::npcExtra('strength'), Lang::npcExtra('agility'), Lang::npcExtra('stamina')];
+
+            $tbl = '[tr][td header]'.implode('[/td][td header]', $head).'[/td][/tr]';
+            foreach ($levels as $lv)
+                $tbl .= '[tr][td]'.$lv.'[/td][td]'.implode('[/td][td]', array_map(fn($x) => $x ?: '-', $stats[$lv])).'[/td][/tr]';
+
+            $body .= '[table class=grid]'.$tbl.'[/table]';
+        }
+
+        if ($names)
+        {
+            // the client joins one word of each half, so the pool is the product of the two
+            $body .= '[br]'.Lang::npcExtra('petNames', [count($names[0] ?? []) * count($names[1] ?? [])]).Lang::main('colon');
+            foreach ($names as $half)
+                $body .= '[br][small class=q0]'.implode(', ', $half).'[/small]';
+        }
+
+        return new Markup('[pad][h3][toggler=hidden id=pet-stats]'.Lang::npcExtra('petStats').'[/toggler][/h3][div=hidden id=pet-stats clear=left]'.$body.'[/div]',
+                          ['allow' => Markup::CLASS_ADMIN], 'level-curve-generic');
     }
 
     /** items only lootable by a player on the right quest */
