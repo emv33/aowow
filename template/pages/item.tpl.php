@@ -66,7 +66,7 @@ if ($this->subItems):
 
 <?php
         foreach ($columns as $k => ['name' => $name, 'enchantment' => $enchantment, 'chance' => $chance]):
-            echo '                        <li><div><span title="ID'.Lang::main('colon').$this->subItems['randIds'][$k].'" class="tip q'.$this->subItems['quality'].'">...'.$name.'</span> <small class="q0">'.Lang::item('_chance', [$chance]).'</small><br />';
+            echo '                        <li><div><a href="?items&filter=cr=124;crs=0;crv='.urlencode($name).'"><span title="ID'.Lang::main('colon').$this->subItems['randIds'][$k].'" class="tip q'.$this->subItems['quality'].'">...'.$name.'</span></a> <small class="q0">'.Lang::item('_chance', [$chance]).'</small><br />';
             echo Lang::concat($enchantment, Lang::CONCAT_NONE, fn($txt, $eId) => '<a style="text-decoration:none; color:#CCCCCC;" href="?enchantment='.$eId.'">'.$txt.'</a>').'</div></li>'.PHP_EOL;
         endforeach;
 ?>
