@@ -54,6 +54,6 @@ Listview.templates.teleport = {
         }
     ],
     getItemLink: function(t) {
-        return t.zone ? ('?zone=' + t.zone) : '?teleports';
+        return t.maplink || (t.zone ? ('?zone=' + t.zone) : '?teleports');
     }
 }
