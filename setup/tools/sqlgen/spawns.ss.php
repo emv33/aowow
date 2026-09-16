@@ -299,11 +299,13 @@ CLISetup::registerSetup("sql", new class extends SetupScript
         // space, so REPLACE INTO dedupes a path that happens to be both.
         // `kind` 1 rows are `script_waypoint` escort paths, keyed by the creature entry itself
         // (see LegacyScript::SRC_ESCORT_PATH) - a distinct id space from `waypoint_data.id`.
+        // some cores/TDBs no longer ship `script_waypoint` at all (LegacyScript::tableExists()
+        // guards the same table for the same reason), so that branch is skipped if it's missing.
         //
         // in every case only one representative creature is used to resolve the map/zone a path
         // renders on - `creature_template_addon`/direct-guid cases already pin down exactly one,
         // the others (a shared template entry) pick an arbitrary spawn of it via MIN(`guid`).
-        return DB::World()->selectAssoc(
+        $sql =
            'SELECT c.`guid`, -w.`id` AS `creatureOrPath`, 0 AS `kind`, w.`point`, c.`zoneId` AS `areaId`, c.`map`, w.`delay` AS `wait`, w.`position_x` AS `posX`, w.`position_y` AS `posY`
             FROM   creature c
             JOIN   creature_addon ca ON ca.`guid` = c.`guid`
@@ -321,11 +323,24 @@ CLISetup::registerSetup("sql", new class extends SetupScript
             SELECT c.`guid`, -w.`id` AS `creatureOrPath`, 0 AS `kind`, w.`point`, c.`zoneId` AS `areaId`, c.`map`, w.`delay` AS `wait`, w.`position_x` AS `posX`, w.`position_y` AS `posY`
             FROM   creature c
             JOIN   (SELECT DISTINCT `entryorguid`, `action_param2` AS `pathId` FROM smart_scripts WHERE `source_type` = '.SmartAI::SRC_TYPE_CREATURE.' AND `action_type` = '.SmartAction::ACTION_WP_START.' AND `action_param2` > 0 AND `entryorguid` < 0) ss ON c.`guid` = -ss.`entryorguid`
-            JOIN   waypoint_data w ON w.`id` = ss.`pathId` UNION
-            SELECT c.`guid`, -sw.`entry` AS `creatureOrPath`, 1 AS `kind`, sw.`pointid` AS `point`, c.`zoneId` AS `areaId`, c.`map`, sw.`waittime` AS `wait`, sw.`location_x` AS `posX`, sw.`location_y` AS `posY`
-            FROM   (SELECT `id`, MIN(`guid`) AS `guid`, MIN(`map`) AS `map`, MIN(`zoneId`) AS `zoneId` FROM creature GROUP BY `id`) c
-            JOIN   script_waypoint sw ON sw.`entry` = c.`id`'
-        );
+            JOIN   waypoint_data w ON w.`id` = ss.`pathId`';
+
+        if ($this->hasTable('script_waypoint'))
+            $sql .=
+               ' UNION
+                SELECT c.`guid`, -sw.`entry` AS `creatureOrPath`, 1 AS `kind`, sw.`pointid` AS `point`, c.`zoneId` AS `areaId`, c.`map`, sw.`waittime` AS `wait`, sw.`location_x` AS `posX`, sw.`location_y` AS `posY`
+                FROM   (SELECT `id`, MIN(`guid`) AS `guid`, MIN(`map`) AS `map`, MIN(`zoneId`) AS `zoneId` FROM creature GROUP BY `id`) c
+                JOIN   script_waypoint sw ON sw.`entry` = c.`id`';
+
+        return DB::World()->selectAssoc($sql);
+    }
+
+    /** some cores/TDBs don't ship every optional table (see LegacyScript::tableExists() for the same check) */
+    private function hasTable(string $tbl) : bool
+    {
+        static $known = [];
+
+        return $known[$tbl] ??= (bool)DB::World()->selectCell('SHOW TABLES LIKE %s', $tbl);
     }
 
     private function transformPoint(array $point, int $type, ?string &$notice = '') : ?array
