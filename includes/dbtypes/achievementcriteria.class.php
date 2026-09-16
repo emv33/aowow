@@ -18,7 +18,7 @@ class AchievementCriteriaList extends DBTypeList
                         'a'  => ['j' => ['::achievement a ON a.`id` = ac.`refAchievementId`', true], 's' => ', a.`name_loc0` AS "achievementName_loc0", a.`name_loc2` AS "achievementName_loc2", a.`name_loc3` AS "achievementName_loc3", a.`name_loc4` AS "achievementName_loc4", a.`name_loc6` AS "achievementName_loc6", a.`name_loc8` AS "achievementName_loc8"']
                     );
 
-    private const array TYPE_NAMES = array(
+    public const array TYPE_NAMES = array(
         ACHIEVEMENT_CRITERIA_TYPE_KILL_CREATURE        => 'Kill creature',
         ACHIEVEMENT_CRITERIA_TYPE_WIN_BG               => 'Win battleground',
         ACHIEVEMENT_CRITERIA_TYPE_REACH_LEVEL          => 'Reach level',

@@ -33,6 +33,7 @@ class AchievementcriteriaBaseResponse extends TemplateResponse
     );
 
     public array $formValues = [];                          // for the search form
+    public array $typeList   = [];                          // for the form in the template
 
     public function __construct(string $rawParam)
     {
@@ -60,12 +61,13 @@ class AchievementcriteriaBaseResponse extends TemplateResponse
         $this->formValues = array(
             'id' => (int)($this->_get['id'] ?? 0),
             'ac' => (string)($this->_get['ac'] ?? ''),
-            'ty' => (int)($this->_get['ty'] ?? 0),
+            'ty' => is_int($this->_get['ty'] ?? null) ? $this->_get['ty'] : null,   // 0 is a valid criteria type, so unset must stay null, not 0
             'fl' => (int)($this->_get['fl'] ?? 0),
             'na' => (string)($this->_get['na'] ?? '')
         );
 
-        $this->pageTemplate['filter'] = array_filter($this->formValues) ? 1 : 0;
+        $this->pageTemplate['filter'] = ($this->formValues['id'] || $this->formValues['ac'] || $this->formValues['ty'] !== null || $this->formValues['fl'] || $this->formValues['na']) ? 1 : 0;
+        $this->typeList = AchievementCriteriaList::TYPE_NAMES;
 
         $conditions = [Listview::DEFAULT_SIZE];
         if ($this->formValues['id'])
@@ -74,7 +76,7 @@ class AchievementcriteriaBaseResponse extends TemplateResponse
             $conditions[] = ['refAchievementId', (int)$this->formValues['ac']];
         else if ($this->formValues['ac'])
             $conditions[] = ['a.name_loc'.Lang::getLocale()->value, $this->formValues['ac'], 'LIKE'];
-        if ($this->formValues['ty'])
+        if ($this->formValues['ty'] !== null)
             $conditions[] = ['type', $this->formValues['ty']];
         if ($this->formValues['fl'])
             $conditions[] = [['completionFlags', $this->formValues['fl'], '&'], $this->formValues['fl']];

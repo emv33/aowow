@@ -1856,7 +1856,8 @@ $lang = array(
         'id'            => "ID",
         'achievement'   => "Achievement",
         'type'          => "Type",
-        'flags'         => "Flags"
+        'flags'         => "Flags",
+        'anyType'       => "Any type"
     ),
     'chrClass' => array(
         'id'            => "Klassen-ID: ",

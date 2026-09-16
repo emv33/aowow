@@ -41,7 +41,14 @@
                         </tr>
                         <tr>
                             <td><?=$this->ucFirst(Lang::achievementCriteriaBrowser('type')).Lang::main('colon'); ?></td>
-                            <td><input type="text" name="ty" size="10" value="<?=($f['ty'] ?: ''); ?>" /></td>
+                            <td>
+                                <select name="ty">
+                                    <option value=""<?=($f['ty'] === null ? ' selected="selected"' : ''); ?>><?=Lang::achievementCriteriaBrowser('anyType'); ?></option>
+<?php foreach ($this->typeList as $id => $name): ?>
+                                    <option value="<?=$id; ?>"<?=($f['ty'] === $id ? ' selected="selected"' : ''); ?>><?=$this->escHTML($name); ?></option>
+<?php endforeach; ?>
+                                </select>
+                            </td>
                             <td><?=$this->ucFirst(Lang::achievementCriteriaBrowser('flags')).Lang::main('colon'); ?></td>
                             <td><input type="text" name="fl" size="10" value="<?=($f['fl'] ?: ''); ?>" /></td>
                         </tr>
