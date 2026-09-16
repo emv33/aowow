@@ -2509,7 +2509,7 @@ var g_condition_sources = {
     19: [['Spieler', null],       'Wenn die Bedingung erfüllt ist kann [quest=$2] angenommen werden.'],
     20: [['Spieler', null],       'Wenn die Bedingung erfüllt ist wird ein [icon name=quest_startend]&nbsp;[/icon] für [quest=$2] angezeigt.'],
     21: [['Spieler', 'Kreatur'],  'Fahrzeug [npc=$1] verfügt über [spell=$2], wenn $Tder %:es; die Bedingung erfüllt.'],
-    22: [['Auslöser', 'Entität'], 'Wenn $Tder %:die %; die Bedingung erfüllt kann die KI zusätzliche Handlungen durchführen.'],
+    22: [['Auslöser', 'Entität'], 'Wenn $Tder %:die %; die Bedingung erfüllt, kann die KI von $2 zusätzliche Handlungen durchführen.'],
     23: [['Spieler', 'Kreatur'],  'Wenn $Tder %:die %; die Bedingung erfüllt hat [npc=$1] [item=$2] im Sortiment.'],
     24: [['Zauberer', 'Ziel'],    'Wenn $Tder %:das %; die Bedingung erfüllt kann [spell=$2] auslösen.'],
     30: [['Spieler', null],       'Wenn die Bedingung erfüllt ist kann [url=?areatrigger=$2]Areatrigger #$2[/url] ausgelöst werden.']

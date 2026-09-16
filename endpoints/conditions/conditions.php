@@ -91,6 +91,21 @@ class ConditionsBaseResponse extends TemplateResponse
         $jsg      = [];
         $data     = [];
 
+        // CND_SRC_SMART_EVENT's entry is smart_scripts.entryorguid; a negative one is a spawn guid rather
+        // than a template entry - resolve every one of them through ::spawns up front, batched by type,
+        // same as Conditions::smartEventOwner() does per-row for the entity's own Conditions tab
+        $guidsByType = [];
+        foreach ($rows as $r)
+            if ($r['srcType'] == Conditions::SRC_SMART_EVENT && $r['entry'] < 0 && $r['srcId'] <= 1)
+            {
+                $type = $r['srcId'] == 0 ? Type::NPC : Type::OBJECT;
+                $guidsByType[$type][-$r['entry']] = -$r['entry'];
+            }
+
+        $guidLookup = [];
+        foreach ($guidsByType as $type => $guids)
+            $guidLookup[$type] = DB::Aowow()->selectCol('SELECT `guid` AS ARRAY_KEY, `typeId` FROM ::spawns WHERE `type` = %i AND `guid` IN %in', $type, array_values($guids)) ?: [];
+
         foreach ($rows as $i => $r)
         {
             [$grpType, $entryType, ] = $srcTypes[$r['srcType']] ?? [null, null, null];
@@ -113,7 +128,28 @@ class ConditionsBaseResponse extends TemplateResponse
                 $jsg[$grpType][$r['group']] = $r['group'];
             }
 
-            if (is_int($entryType) && $r['entry'] > 0 && ($_ = Type::getJSGlobalString($entryType)))
+            if ($r['srcType'] == Conditions::SRC_SMART_EVENT)
+            {
+                // SourceId names the owner's type (0 creature, 1 gameobject, 2 areatrigger); anything else
+                // (action list, gossip, quest, spell, ...) has no entity page of its own to link
+                $type = match ($r['srcId'])
+                {
+                    0       => Type::NPC,
+                    1       => Type::OBJECT,
+                    2       => Type::AREATRIGGER,
+                    default => 0
+                };
+
+                $entry = $r['entry'] > 0 ? $r['entry'] : ($guidLookup[$type][-$r['entry']] ?? 0);
+                if ($type && $entry > 0 && ($_ = Type::getJSGlobalString($type)))
+                {
+                    $row['entry']       = $entry;           // overwrite the raw guid with the entity it resolves to
+                    $row['entrylookup'] = $_;
+                    $row['entryurl']    = Type::getFileString($type);
+                    $jsg[$type][$entry] = $entry;
+                }
+            }
+            else if (is_int($entryType) && $r['entry'] > 0 && ($_ = Type::getJSGlobalString($entryType)))
             {
                 $row['entrylookup'] = $_;
                 $row['entryurl']    = Type::getFileString($entryType);

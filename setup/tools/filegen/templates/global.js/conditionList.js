@@ -228,6 +228,22 @@ var ConditionList = new function() {
 
                 // resolve targeting
                 let src  = desc.replace(/\$T([^:]*):([^;]*);/, (_, t1, t2) => (target ? t2 : t1).replace('%', targets[target]));
+
+                // CND_SRC_SMART_EVENT - srcEntry is smart_scripts.entryorguid, srcId is its source_type;
+                // link the owning creature/gameobject/areatrigger where that identifies one
+                if (g == 22)
+                {
+                    var owner = 'this script';
+                    if (srcId == 0)
+                        owner = '[npc=' + srcEntry + ']';
+                    else if (srcId == 1)
+                        owner = '[object=' + srcEntry + ']';
+                    else if (srcId == 2)
+                        owner = '[url=?areatrigger=' + srcEntry + ']Areatrigger #' + srcEntry + '[/url]';
+
+                    srcEntry = owner;
+                }
+
                 let rand = $WH.rs();
 
                 buff += '[h3][toggler' + (k ? '=hidden' : '') + ' id=' + rand + ']' + $WH.sprintfa(src, srcGroup, srcEntry, srcId) + '[/toggler][/h3][div' + (k++ ? '=hidden' : '') + ' id=' + rand + ']';

@@ -2556,7 +2556,7 @@ var g_condition_sources = {
     19: [['player', null],       'The Player can accept [quest=$2], if the condition is met.'],
     20: [['player', null],       'A [icon name=quest_startend]&nbsp;[/icon] will be shown for [quest=$2], if the condition is met.'],
     21: [['player', 'creature'], 'If the $T%s:%s; conditions are met, vehicle [npc=$1] has [spell=$2] available.'],
-    22: [['invoker', 'entity'],  'If the conditions for the $T%:%; are met, the AI may perform additional actions.'],
+    22: [['invoker', 'entity'],  'If the conditions for the $T%:%; are met, the AI of $2 may perform additional actions.'],
     23: [['player', 'creature'], 'If the conditions for the $T%:%; are met, [npc=$1] will have [item=$2] for sale.'],
     24: [['caster', 'target'],   'If the conditions for the $Tspell%:%; are met, the [spell=$2] is allowed to proc.'],
     30: [['player', null],       'If the conditions are met, [url=?areatrigger=$2]Areatrigger #$2[/url] is allowed to trigger.']

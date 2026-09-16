@@ -158,7 +158,7 @@ class Conditions
         self::SRC_QUEST_AVAILABLE             => [null,         Type::QUEST,       null, null],
         self::SRC_QUEST_SHOW_MARK             => [null,         Type::QUEST,       null, null],
         self::SRC_VEHICLE_SPELL               => [Type::NPC,    Type::SPELL,       null, null],
-        self::SRC_SMART_EVENT                 => [true,         true,              true, null],
+        self::SRC_SMART_EVENT                 => [true,         true,              true, 'smartEventOwner'],
         self::SRC_NPC_VENDOR                  => [Type::NPC,    Type::ITEM,        null, null],
         self::SRC_SPELL_PROC                  => [null,         Type::SPELL,       null, null],
         self::SRC_AREATRIGGER_CLIENT          => [null,         Type::AREATRIGGER, null, null]
@@ -859,6 +859,42 @@ class Conditions
 
         trigger_error('Conditions::SkinLootToNpc - skinning_loot_template #'.$sGroup.' unreferenced?', E_USER_WARNING);
         return false;
+    }
+
+    // SourceEntry is smart_scripts.entryorguid, SourceId is smart_scripts.source_type (0 creature, 1 gameobject,
+    // 2 areatrigger, everything else has no entity page of its own - see SmartAI::getActionListOwners())
+    // a negative entryorguid is a spawn guid rather than a template entry and needs resolving through ::spawns,
+    // same as everywhere else that reads a SmartAI entryorguid
+    private function smartEventOwner(int $sType, int $sGroup, int $sEntry, int $sId, int $cTarget) : bool
+    {
+        $type = match ($sId)
+        {
+            0       => Type::NPC,
+            1       => Type::OBJECT,
+            2       => Type::AREATRIGGER,
+            default => 0
+        };
+
+        if (!$type)
+            return true;                                     // action list / gossip / quest / spell / .. smart event - nothing to link
+
+        $entry = $sEntry;
+        if ($entry < 0 && $type != Type::AREATRIGGER)
+            $entry = (int)DB::Aowow()->selectCell('SELECT `typeId` FROM ::spawns WHERE `type` = %i AND `guid` = %i', $type, -$sEntry);
+
+        if ($entry <= 0)
+            return true;
+
+        $this->jsGlobals[$type][$entry] = $entry;
+
+        if ($entry != $sEntry)
+        {
+            $target = min(1, max(0, $cTarget));
+            $group  = $sGroup . ':' . $sEntry . ':' . $sId . ':' . $target;
+            $this->resultExtra[$sType][$group][] = $sGroup . ':' . $entry . ':' . $sId . ':' . $target;
+        }
+
+        return true;
     }
 }
 

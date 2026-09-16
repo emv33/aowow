@@ -2509,7 +2509,7 @@ var g_condition_sources = {
     19: [['player', null],       'El jugador puede aceptar [quest=$2] si se cumple la condición.'],
     20: [['player', null],       'Se mostrará un [icon name=quest_startend]&nbsp;[/icon] para [quest=$2] si se cumple la condición.'],
     21: [['player', 'creature'], 'Si se cumplen las condiciones, el vehículo [npc=$1] tendrá disponible [spell=$2].'],
-    22: [['invoker', 'entity'],  'Si se cumplen las condiciones para el $T%:%;, la IA puede realizar acciones adicionales.'],
+    22: [['invoker', 'entity'],  'Si se cumplen las condiciones para el $T%:%;, la IA de $2 puede realizar acciones adicionales.'],
     23: [['player', 'creature'], 'Si se cumplen las condiciones para el $T%:%;, [npc=$1] tendrá [item=$2] a la venta.'],
     24: [['caster', 'target'],   'Si se cumplen las condiciones para el hechizo, se permite que [spell=$2] se active.'],
     30: [['player', null],       'Si se cumplen las condiciones, se permite activar [url=?areatrigger=$2]Areatrigger #$2[/url].']
