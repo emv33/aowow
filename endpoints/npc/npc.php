@@ -408,13 +408,17 @@ class NpcBaseResponse extends TemplateResponse implements ICache
                 SmartAI::SRC_TYPE_CREATURE, $this->typeId
             ) ?: [];
 
-            $buckets = [];                                  // sig (everything but the guid) => guids[]
+            $byGuid = [];                                   // guid => [row, row, ...]
             foreach ($rows as $r)
             {
                 $guid = (int)$r['guid'];
                 unset($r['guid']);
-                $buckets[serialize($r)][] = $guid;
+                $byGuid[$guid][] = $r;
             }
+
+            $buckets = [];                                  // sig (the whole script body) => guids[]
+            foreach ($byGuid as $guid => $script)
+                $buckets[serialize($script)][] = $guid;
 
             $found = [];
             foreach ($buckets as $guids)
