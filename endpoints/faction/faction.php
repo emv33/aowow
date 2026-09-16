@@ -99,17 +99,17 @@ class FactionBaseResponse extends TemplateResponse implements ICache
         // friendly/hostile factions if any (outgoing declarations, plus incoming ones not
         // already covered by an outgoing one of the same kind, since the relation isn't
         // necessarily declared on both sides)
-        $friendIds  = $this->subject->getField('friendFactionIds')  ?: [];
-        $enemyIds   = $this->subject->getField('enemyFactionIds')   ?: [];
-        $likedById  = array_diff($this->subject->getField('likedByFactionIds') ?: [], $friendIds);
-        $hatedById  = array_diff($this->subject->getField('hatedByFactionIds') ?: [], $enemyIds);
+        $friendIds   = $this->subject->getField('friendFactionIds')  ?: [];
+        $enemyIds    = $this->subject->getField('enemyFactionIds')   ?: [];
+        $likedByIds  = $this->subject->getField('likedByFactionIds') ?: [];
+        $hatedByIds  = $this->subject->getField('hatedByFactionIds') ?: [];
 
         foreach (array(
-            'friendlyWith' => $friendIds,
-            'hostileTo'    => $enemyIds,
-            'likedBy'      => $likedById,
-            'hatedBy'      => $hatedById
-        ) as $langKey => $ids)
+            'friendlyWith' => [$friendIds,                             array_intersect($friendIds, $likedByIds)],
+            'hostileTo'    => [$enemyIds,                               array_intersect($enemyIds,  $hatedByIds)],
+            'likedBy'      => [array_diff($likedByIds, $friendIds),    []],
+            'hatedBy'      => [array_diff($hatedByIds, $enemyIds),     []]
+        ) as $langKey => [$ids, $mutualIds])
         {
             if (!$ids)
                 continue;
@@ -118,12 +118,15 @@ class FactionBaseResponse extends TemplateResponse implements ICache
 
             $buff = Lang::faction($langKey);
             if (count($ids) == 1)
-                $buff .= '[faction='.reset($ids).']';
+            {
+                $id    = reset($ids);
+                $buff .= '[faction='.$id.']'.(in_array($id, $mutualIds) ? Lang::faction('mutual') : '');
+            }
             else
             {
                 $buff .= '[ul]';
                 foreach ($ids as $id)
-                    $buff .= '[li][faction='.$id.'][/li]';
+                    $buff .= '[li][faction='.$id.']'.(in_array($id, $mutualIds) ? Lang::faction('mutual') : '').'[/li]';
 
                 $buff .= '[/ul]';
             }

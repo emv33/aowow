@@ -2175,6 +2175,7 @@ $lang = array(
         'hostileTo'     => "Hostile to: ",
         'likedBy'       => "Liked by: ",
         'hatedBy'       => "Hated by: ",
+        'mutual'        => " (mutual)",
         'customRewRate' => "Индивидуальная ставка вознаграждения",
         '_transfer'     => 'Репутация у этой фракции будет преобразована в <a href="?faction=%d" class="q1">%s</a> если вы перейдете в <span class="icon-%s">%s</span>.',
         'cat'           => array(

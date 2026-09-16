@@ -2175,6 +2175,7 @@ $lang = array(
         'hostileTo'     => "Hostile to: ",
         'likedBy'       => "Liked by: ",
         'hatedBy'       => "Hated by: ",
+        'mutual'        => " (mutual)",
         'customRewRate' => "Custom Reward Rate",
         '_transfer'     => 'The reputation with this faction will be converted to <a href="?faction=%d" class="q1">%s</a> if you transfer to <span class="icon-%s">%s</span>.',
         'cat'           => array(

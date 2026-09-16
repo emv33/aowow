@@ -2174,6 +2174,7 @@ $lang = array(
         'hostileTo'     => "Hostile to: ",
         'likedBy'       => "Liked by: ",
         'hatedBy'       => "Hated by: ",
+        'mutual'        => " (mutual)",
         'customRewRate' => "Abweichende Belohnungsraten",
         '_transfer'     => 'Die Reputation mit dieser Fraktion wird mit dem für <a href="?faction=%d" class="q1">%s</a> vertauscht, wenn Ihr zur <span class="icon-%s">%s</span> wechselt.',
         'cat'           => array(
