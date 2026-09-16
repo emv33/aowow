@@ -103,7 +103,7 @@ class AreatriggerBaseResponse extends TemplateResponse implements ICache
             $infobox[] = '[span class=q2]'.Lang::areatrigger('isTavern').'[/span]';
 
         if ($_ = self::getScriptName($this->typeId))
-            $infobox[] = Lang::areatrigger('scriptName').Lang::main('colon').'[small]'.$_.'[/small]';
+            $infobox[] = Lang::areatrigger('scriptName').Lang::main('colon').$_;
 
         if ($dest = self::getTeleportTarget($this->typeId))
         {
