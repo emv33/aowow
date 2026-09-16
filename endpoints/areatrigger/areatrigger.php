@@ -115,7 +115,15 @@ class AreatriggerBaseResponse extends TemplateResponse implements ICache
             else
                 $infobox[] = Lang::areatrigger('teleportsTo').Lang::main('colon').Lang::areatrigger('map', [$dest['mapId']]);
 
-            $infobox[] = Lang::areatrigger('destination').Lang::main('colon').'[small class=q0]'.sprintf('%.1f, %.1f, %.1f', $dest['x'], $dest['y'], $dest['z']).'[/small]';
+            $destText = sprintf('%.1f, %.1f, %.1f', $dest['x'], $dest['y'], $dest['z']);
+            if ($points = WorldPosition::toZonePos($dest['mapId'], $dest['x'], $dest['y']))
+            {
+                $pin  = count($points) > 1 ? WorldPosition::checkZonePos($points) : $points[0];
+                $pins = str_pad((int)round($pin['posX'] * 10), 3, '0', STR_PAD_LEFT).str_pad((int)round($pin['posY'] * 10), 3, '0', STR_PAD_LEFT);
+                $destText = '[lightbox=map zone='.$pin['areaId'].($pin['floor'] > 0 ? ' floor='.$pin['floor'] : '').' pins='.$pins.']'.$destText.'[/lightbox]';
+            }
+
+            $infobox[] = Lang::areatrigger('destination').Lang::main('colon').$destText;
 
             if ($dest['reqLevel'])
                 $infobox[] = Lang::main('_reqLevel').Lang::main('colon').$dest['reqLevel'];
