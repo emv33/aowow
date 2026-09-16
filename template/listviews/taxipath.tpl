@@ -8,7 +8,14 @@ Listview.templates.taxipath = {
             name: 'ID',
             type: 'num',
             width: '7%',
-            value: 'id'
+            value: 'id',
+            compute: function(data, td) {
+                if (data.id) {
+                    let pre = $WH.ce('pre', { style: { display: 'inline', margin: '0' }}, $WH.ct(data.id));
+                    $WH.clickToCopy(pre);
+                    $WH.ae(td, pre);
+                }
+            }
         },
         {
             id: 'route',
@@ -121,5 +128,12 @@ Listview.templates.taxipath = {
     ],
     getItemLink: function(tp) {
         return '?taxipath=' + tp.id;
+    },
+    onBeforeCreate : function() {
+        // hide duplicate id col
+        if (this.debug || g_user?.debug) {
+            let colId = this.columns.findIndex(x => x.id == 'id');
+            this.visibility = this.visibility.filter(x => x != colId);
+        }
     }
 }
