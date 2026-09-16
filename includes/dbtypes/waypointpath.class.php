@@ -87,14 +87,22 @@ class WaypointPathList extends DBTypeList
         $npcOwner = [];
 
         // kind 0 paths are walked by whichever creature(s) reference this path id as their default
+        // (*_addon), or that a SmartAI ACTION_WP_START assigns it to at runtime - same three
+        // sources spawns.ss.php's waypoints() step and getPathIdsForNPC() already read
         if ($sourceIds = array_column(array_filter($this->templates, fn($t) => $t['kind'] == self::KIND_MOVEMENT), 'sourceId'))
         {
             $rows = DB::World()->selectCol(
                'SELECT `path_id` AS ARRAY_KEY, `entry` FROM (
                     SELECT ca.`path_id`, c.`id` AS "entry" FROM creature_addon ca JOIN creature c ON c.`guid` = ca.`guid` WHERE ca.`path_id` IN %in UNION
-                    SELECT cta.`path_id`, cta.`entry` FROM creature_template_addon cta WHERE cta.`path_id` IN %in
+                    SELECT cta.`path_id`, cta.`entry` FROM creature_template_addon cta WHERE cta.`path_id` IN %in UNION
+                    SELECT ss.`action_param2` AS "path_id", ss.`entryorguid` AS "entry" FROM smart_scripts ss
+                        WHERE ss.`source_type` = %i AND ss.`action_type` = %i AND ss.`action_param2` IN %in AND ss.`entryorguid` > 0 UNION
+                    SELECT ss.`action_param2` AS "path_id", c.`id` AS "entry" FROM smart_scripts ss JOIN creature c ON c.`guid` = -ss.`entryorguid`
+                        WHERE ss.`source_type` = %i AND ss.`action_type` = %i AND ss.`action_param2` IN %in AND ss.`entryorguid` < 0
                 ) x',
-                $sourceIds, $sourceIds
+                $sourceIds, $sourceIds,
+                SmartAI::SRC_TYPE_CREATURE, SmartAction::ACTION_WP_START, $sourceIds,
+                SmartAI::SRC_TYPE_CREATURE, SmartAction::ACTION_WP_START, $sourceIds
             ) ?: [];
 
             foreach ($rows as $pathId => $entry)
