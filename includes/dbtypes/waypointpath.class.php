@@ -128,6 +128,13 @@ class WaypointPathListFilter extends Filter
         'crv' => [parent::V_REGEX, parent::PATTERN_INT, true], // criteria values - all criteria are numeric here
         'ma'  => [parent::V_EQUAL, 1,         false]  // match any / all filter
     );
+
+    // id/kind/foundin are all plain criteria rows handled generically via $genericFilter above -
+    // there are no dedicated form fields (e.g. a name search box) of their own to translate here
+    protected function createSQLForValues() : array
+    {
+        return [];
+    }
 }
 
 ?>
