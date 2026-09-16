@@ -60,6 +60,27 @@ class WaypointPathList extends DBTypeList
         ) ?: [];
     }
 
+    /** every path (movement or escort) tied to a given creature, so its own page can link to them */
+    public static function getPathIdsForNPC(int $npcId) : array
+    {
+        if ($npcId <= 0)
+            return [];
+
+        $ids = DB::World()->selectCol(
+           'SELECT DISTINCT ca.`path_id`  FROM creature_addon ca JOIN creature c ON c.`guid` = ca.`guid` WHERE c.`id` = %i AND ca.`path_id` > 0 UNION
+            SELECT DISTINCT cta.`path_id` FROM creature_template_addon cta WHERE cta.`entry` = %i AND cta.`path_id` > 0 UNION
+            SELECT DISTINCT ss.`action_param2` FROM smart_scripts ss WHERE ss.`source_type` = %i AND ss.`action_type` = %i AND ss.`action_param2` > 0 AND ss.`entryorguid` = %i',
+            $npcId, $npcId, SmartAI::SRC_TYPE_CREATURE, SmartAction::ACTION_WP_START, $npcId
+        ) ?: [];
+
+        $out = array_values(array_unique(array_map('intVal', $ids)));
+
+        if (LegacyScript::exists(LegacyScript::SRC_ESCORT_PATH, $npcId))
+            $out[] = self::encodeId(self::KIND_ESCORT, $npcId);
+
+        return $out;
+    }
+
     public function getListviewData() : array
     {
         $data     = [];

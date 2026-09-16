@@ -535,6 +535,25 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         }
         // aowow - custom end
 
+        // aowow - custom start: waypoint paths
+        if ($wpIds = WaypointPathList::getPathIdsForNPC($this->typeId))
+        {
+            $wpList = new WaypointPathList([['id', $wpIds]]);
+            if (!$wpList->error)
+            {
+                $wpData = $wpList->getListviewData();
+                if ($areaIds = array_unique(array_filter(array_column($wpData, 'areaId'))))
+                    $this->extendGlobalIds(Type::ZONE, ...$areaIds);
+
+                $this->lvTabs->addListviewTab(new Listview(array(
+                    'data' => $wpData,
+                    'name' => Lang::game('waypointpaths'),
+                    'id'   => 'waypointpaths'
+                ), WaypointPathList::$brickFile, 'waypointpath'));
+            }
+        }
+        // aowow - custom end
+
 
         // tab: abilities / tab_controlledabilities (dep: VehicleId)
         $tplSpells  = [];
