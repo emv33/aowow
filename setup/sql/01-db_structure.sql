@@ -906,6 +906,8 @@ CREATE TABLE `aowow_factions` (
   `templateIds` text NOT NULL COMMENT 'space separated',
   `friendFactionIds` varchar(255) NOT NULL DEFAULT '' COMMENT 'space separated',
   `enemyFactionIds` varchar(255) NOT NULL DEFAULT '' COMMENT 'space separated',
+  `likedByFactionIds` varchar(255) NOT NULL DEFAULT '' COMMENT 'space separated',
+  `hatedByFactionIds` varchar(255) NOT NULL DEFAULT '' COMMENT 'space separated',
   `cuFlags` int(10) unsigned NOT NULL DEFAULT 0 COMMENT 'see defines.php for flags',
   `parentFactionId` smallint(5) unsigned NOT NULL,
   `spilloverRateIn` float(8,2) NOT NULL,

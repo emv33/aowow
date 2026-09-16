@@ -96,17 +96,29 @@ class FactionBaseResponse extends TemplateResponse implements ICache
         if ($_ = $this->subject->getField('side'))
             $infobox[] = Lang::main('side').'[span class=icon-'.($_ == SIDE_ALLIANCE ? 'alliance' : 'horde').']'.Lang::game('si', $_).'[/span]';
 
-        // friendly/hostile factions if any
-        foreach (['friendFactionIds' => 'friendlyWith', 'enemyFactionIds' => 'hostileTo'] as $field => $langKey)
+        // friendly/hostile factions if any (outgoing declarations, plus incoming ones not
+        // already covered by an outgoing one of the same kind, since the relation isn't
+        // necessarily declared on both sides)
+        $friendIds  = $this->subject->getField('friendFactionIds')  ?: [];
+        $enemyIds   = $this->subject->getField('enemyFactionIds')   ?: [];
+        $likedById  = array_diff($this->subject->getField('likedByFactionIds') ?: [], $friendIds);
+        $hatedById  = array_diff($this->subject->getField('hatedByFactionIds') ?: [], $enemyIds);
+
+        foreach (array(
+            'friendlyWith' => $friendIds,
+            'hostileTo'    => $enemyIds,
+            'likedBy'      => $likedById,
+            'hatedBy'      => $hatedById
+        ) as $langKey => $ids)
         {
-            if (!($ids = $this->subject->getField($field)))
+            if (!$ids)
                 continue;
 
             $this->extendGlobalIds(Type::FACTION, ...$ids);
 
             $buff = Lang::faction($langKey);
             if (count($ids) == 1)
-                $buff .= '[faction='.$ids[0].']';
+                $buff .= '[faction='.reset($ids).']';
             else
             {
                 $buff .= '[ul]';

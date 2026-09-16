@@ -37,6 +37,8 @@ CLISetup::registerSetup("sql", new class extends SetupScript
                         "",                                -- factionTemplateIds
                         "",                                -- friendFactionIds
                         "",                                -- enemyFactionIds
+                        "",                                -- likedByFactionIds
+                        "",                                -- hatedByFactionIds
                         0,                                 -- cuFlags
                         `parentFaction`,
                         `spilloverRateIn`, `spilloverRateOut`, `spilloverMaxRank`,
@@ -91,6 +93,33 @@ CLISetup::registerSetup("sql", new class extends SetupScript
                     WHERE     `relId` <> `factionId`
                     GROUP BY  `factionId`) temp ON f.`id` = temp.`factionId`
             SET    f.`enemyFactionIds` = temp.`relIds`'
+        );
+
+        // ... and the reverse: who lists *this* faction as their friend/enemy, since the
+        // relation isn't declared symmetrically (e.g. Honor Hold names Stormwind a friend,
+        // Stormwind's own templates don't necessarily name Honor Hold back)
+        DB::Aowow()->qry(
+           'UPDATE ::factions f
+            JOIN   (SELECT   `relId` AS "factionId", GROUP_CONCAT(DISTINCT `srcId` ORDER BY `srcId` SEPARATOR " ") AS "relIds"
+                    FROM      (SELECT `factionId` AS "srcId", `friendFactionId1` AS "relId" FROM ::factiontemplate WHERE `friendFactionId1` > 0 UNION
+                               SELECT `factionId`,           `friendFactionId2`        FROM ::factiontemplate WHERE `friendFactionId2` > 0 UNION
+                               SELECT `factionId`,           `friendFactionId3`        FROM ::factiontemplate WHERE `friendFactionId3` > 0 UNION
+                               SELECT `factionId`,           `friendFactionId4`        FROM ::factiontemplate WHERE `friendFactionId4` > 0) x
+                    WHERE     `srcId` <> `relId`
+                    GROUP BY  `relId`) temp ON f.`id` = temp.`factionId`
+            SET    f.`likedByFactionIds` = temp.`relIds`'
+        );
+
+        DB::Aowow()->qry(
+           'UPDATE ::factions f
+            JOIN   (SELECT   `relId` AS "factionId", GROUP_CONCAT(DISTINCT `srcId` ORDER BY `srcId` SEPARATOR " ") AS "relIds"
+                    FROM      (SELECT `factionId` AS "srcId", `enemyFactionId1` AS "relId" FROM ::factiontemplate WHERE `enemyFactionId1` > 0 UNION
+                               SELECT `factionId`,           `enemyFactionId2`        FROM ::factiontemplate WHERE `enemyFactionId2` > 0 UNION
+                               SELECT `factionId`,           `enemyFactionId3`        FROM ::factiontemplate WHERE `enemyFactionId3` > 0 UNION
+                               SELECT `factionId`,           `enemyFactionId4`        FROM ::factiontemplate WHERE `enemyFactionId4` > 0) x
+                    WHERE     `srcId` <> `relId`
+                    GROUP BY  `relId`) temp ON f.`id` = temp.`factionId`
+            SET    f.`hatedByFactionIds` = temp.`relIds`'
         );
 
         DB::Aowow()->qry(

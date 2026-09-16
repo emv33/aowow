@@ -2173,6 +2173,8 @@ $lang = array(
         'quartermaster' => "Intendente: ",
         'friendlyWith'  => "Friendly with: ",
         'hostileTo'     => "Hostile to: ",
+        'likedBy'       => "Liked by: ",
+        'hatedBy'       => "Hated by: ",
         'customRewRate' => "Radio de recompenza personalizado",
         '_transfer'     => 'La reputación de esta facción sera convertida a <a href="?faction=%d" class="q1">%s</a> Si te transfieres a <span class="icon-%s">%s</span>.',
         'cat'           => array(

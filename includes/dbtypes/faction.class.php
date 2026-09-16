@@ -36,8 +36,10 @@ class FactionList extends DBTypeList
             $_curTpl['qmNpcIds'] = $_curTpl['qmNpcIds'] ? explode(' ', $_curTpl['qmNpcIds']) : [];
 
             // prepare faction relations
-            $_curTpl['friendFactionIds'] = $_curTpl['friendFactionIds'] ? explode(' ', $_curTpl['friendFactionIds']) : [];
-            $_curTpl['enemyFactionIds']  = $_curTpl['enemyFactionIds']  ? explode(' ', $_curTpl['enemyFactionIds'])  : [];
+            $_curTpl['friendFactionIds']  = $_curTpl['friendFactionIds']  ? explode(' ', $_curTpl['friendFactionIds'])  : [];
+            $_curTpl['enemyFactionIds']   = $_curTpl['enemyFactionIds']   ? explode(' ', $_curTpl['enemyFactionIds'])   : [];
+            $_curTpl['likedByFactionIds'] = $_curTpl['likedByFactionIds'] ? explode(' ', $_curTpl['likedByFactionIds']) : [];
+            $_curTpl['hatedByFactionIds'] = $_curTpl['hatedByFactionIds'] ? explode(' ', $_curTpl['hatedByFactionIds']) : [];
         }
     }
 

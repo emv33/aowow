@@ -2173,6 +2173,8 @@ $lang = array(
         'quartermaster' => "军需官：",
         'friendlyWith'  => "Friendly with: ",
         'hostileTo'     => "Hostile to: ",
+        'likedBy'       => "Liked by: ",
+        'hatedBy'       => "Hated by: ",
         'customRewRate' => "自定义奖励率",
         '_transfer'     => '这个阵营的声望将被转换到<a href="?faction=%d" class="q1">%s</a>，如果你转移到<span class="icon-%s">%s</span>。',
         'cat'           => array(
