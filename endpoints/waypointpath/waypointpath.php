@@ -77,8 +77,6 @@ class WaypointpathBaseResponse extends TemplateResponse
             $infobox[] = Lang::waypointpath('walkedBy').Lang::main('colon').'[npc='.$npcId.']';
         }
 
-        $this->infobox = new InfoboxMarkup($infobox, ['allow' => Markup::CLASS_STAFF, 'dbpage' => true], 'infobox-contents0');
-
         $this->redButtons = [BUTTON_LINKS => false, BUTTON_WOWHEAD => false];
 
         // full route on the map - unlike the capped, per-NPC pins on an NPC's own spawn map
@@ -86,13 +84,22 @@ class WaypointpathBaseResponse extends TemplateResponse
         // is shown, connected in walking order
         if ($points = WaypointPathList::getPoints($kind, $sourceId))
         {
-            $data = [];
-            $prev = null;
+            $data    = [];
+            $areaIds = [];
+            $prev    = null;
 
             foreach ($points as $point => $p)
             {
+                if ($p['areaId'])
+                    $areaIds[$p['areaId']] = $p['areaId'];
+
+                // a creature on a map with no explorable world map (e.g. most instances) gets
+                // its point placed with a zone but no coordinates - nothing to draw a pin at
                 if (!$p['posX'] && !$p['posY'])
+                {
+                    $prev = null;
                     continue;
+                }
 
                 $label = [Lang::npc('waypoint').Lang::main('colon').$point];
                 if ($p['wait'])
@@ -107,21 +114,32 @@ class WaypointpathBaseResponse extends TemplateResponse
                 $prev = $p;
             }
 
-            foreach ($data as &$areas)
-                foreach ($areas as &$floor)
-                    $floor['count'] = count($floor['coords']);
-            unset($areas, $floor);
+            if ($data)
+            {
+                foreach ($data as &$areas)
+                    foreach ($areas as &$floor)
+                        $floor['count'] = count($floor['coords']);
+                unset($areas, $floor);
 
-            $this->addDataLoader('zones');
-            $this->map = array(
-                ['parent' => 'mapper-generic'],
-                $data,
-                null,
-                [Lang::waypointpath('foundIn')]
-            );
-            foreach ($data as $areaId => $__)
-                $this->map[3][$areaId] = ZoneList::getName($areaId);
+                $this->addDataLoader('zones');
+                $this->map = array(
+                    ['parent' => 'mapper-generic'],
+                    $data,
+                    null,
+                    [Lang::waypointpath('foundIn')]
+                );
+                foreach ($data as $areaId => $__)
+                    $this->map[3][$areaId] = ZoneList::getName($areaId);
+            }
+            else if ($areaIds)
+            {
+                // no world map to pin on at all (e.g. an instance) - name the zone(s) instead
+                $this->extendGlobalIds(Type::ZONE, ...array_values($areaIds));
+                $infobox[] = Lang::waypointpath('foundIn').Lang::main('colon').implode(', ', array_map(fn($a) => '[zone='.$a.']', $areaIds));
+            }
         }
+
+        $this->infobox = new InfoboxMarkup($infobox, ['allow' => Markup::CLASS_STAFF, 'dbpage' => true], 'infobox-contents0');
 
 
         /**************/
