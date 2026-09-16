@@ -54,6 +54,7 @@ class Lang
     private static array $encounter;
     private static array $transport;
     private static array $taxipath;
+    private static array $waypointpath;
     private static array $pool;
     private static array $levelCurve;
     private static array $npcExtra;
