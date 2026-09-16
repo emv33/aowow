@@ -531,6 +531,7 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         // tab: abilities / tab_controlledabilities (dep: VehicleId)
         $tplSpells  = [];
         $genSpells  = [];
+        $auraSpells = [];
         $spellClick = [];
         $conditions = [DB::OR];
 
@@ -541,13 +542,14 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         if ($tplSpells)
             $conditions[] = ['id', $tplSpells];
 
-        if ($smartSpells = SmartAI::getSpellCastsForOwner($this->typeId, SmartAI::SRC_TYPE_CREATURE))
-            $genSpells = $smartSpells;
+        $smartSpells = SmartAI::getSpellCastsForOwner($this->typeId, SmartAI::SRC_TYPE_CREATURE) ?: [];
+        $genSpells   = $smartSpells;
 
         if ($auras = DB::World()->selectCell('SELECT `auras` FROM creature_template_addon WHERE `entry` = %i', $this->typeId))
         {
             $auras = preg_replace('/[^\d ]/', ' ', $auras);  // remove erroneous chars from string
-            $genSpells = array_merge($genSpells, array_filter(explode(' ', $auras)));
+            $auraSpells = array_filter(explode(' ', $auras));
+            $genSpells  = array_merge($genSpells, $auraSpells);
         }
 
         if ($genSpells)
@@ -601,6 +603,18 @@ class NpcBaseResponse extends TemplateResponse implements ICache
 
                     if (in_array($id, $genSpells))
                     {
+                        $src = [];
+                        if (in_array($id, $tplSpells))
+                            $src[] = Lang::npc('srcSpellbook');
+                        if (in_array($id, $smartSpells))
+                            $src[] = Lang::npc('srcSmartai');
+                        if (in_array($id, $auraSpells))
+                            $src[] = Lang::npc('srcSpawnaura');
+                        if (isset($spellClick[$id]))
+                            $src[] = Lang::npc('srcSpellclick');
+
+                        $values['source'] = implode(', ', $src);
+
                         $normal[$id] = $values;
                         if (!in_array($id, $tplSpells))
                             unset($controled[$id]);
@@ -614,9 +628,10 @@ class NpcBaseResponse extends TemplateResponse implements ICache
 
                 if ($normal)
                     $this->lvTabs->addListviewTab(new Listview(array(
-                        'data' => $normal,
-                        'name' => '$LANG.tab_abilities',
-                        'id'   => 'abilities'
+                        'data'      => $normal,
+                        'name'      => '$LANG.tab_abilities',
+                        'id'        => 'abilities',
+                        'extraCols' => ["\$Listview.funcBox.createSimpleCol('source', '".Lang::npc('srcColumn')."', '15%', 'source')"]
                     ), SpellList::$brickFile));
 
                 if ($controled)
