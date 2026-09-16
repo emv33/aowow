@@ -2171,6 +2171,8 @@ $lang = array(
         'spilloverDesc' => "Ganar reputación con esta facción tambien una proporción ganada con las facciones listadas a continuación.",
         'maxStanding'   => "Posición máxima",
         'quartermaster' => "Intendente: ",
+        'friendlyWith'  => "Friendly with: ",
+        'hostileTo'     => "Hostile to: ",
         'customRewRate' => "Radio de recompenza personalizado",
         '_transfer'     => 'La reputación de esta facción sera convertida a <a href="?faction=%d" class="q1">%s</a> Si te transfieres a <span class="icon-%s">%s</span>.',
         'cat'           => array(

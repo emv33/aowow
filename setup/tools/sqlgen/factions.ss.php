@@ -51,7 +51,9 @@ CLISetup::registerSetup("sql", new class extends SetupScript
                         IF(`friendFactionId1` = 1 OR `friendFactionId2` = 1 OR `friendFactionId3` = 1 OR `friendFactionId4` = 1 OR `friendlyMask` & 0x3,  1,
                         IF(`enemyFactionId1`  = 1 OR `enemyFactionId2`  = 1 OR `enemyFactionId3`  = 1 OR `enemyFactionId4`  = 1 OR `hostileMask`  & 0x3, -1, 0)),
                         IF(`friendFactionId1` = 2 OR `friendFactionId2` = 2 OR `friendFactionId3` = 2 OR `friendFactionId4` = 2 OR `friendlyMask` & 0x5,  1,
-                        IF(`enemyFactionId1`  = 2 OR `enemyFactionId2`  = 2 OR `enemyFactionId3`  = 2 OR `enemyFactionId4`  = 2 OR `hostileMask`  & 0x5, -1, 0))
+                        IF(`enemyFactionId1`  = 2 OR `enemyFactionId2`  = 2 OR `enemyFactionId3`  = 2 OR `enemyFactionId4`  = 2 OR `hostileMask`  & 0x5, -1, 0)),
+                        `friendFactionId1`, `friendFactionId2`, `friendFactionId3`, `friendFactionId4`,
+                        `enemyFactionId1`,  `enemyFactionId2`,  `enemyFactionId3`,  `enemyFactionId4`
             FROM        dbc_factiontemplate'
         );
 
@@ -59,6 +61,34 @@ CLISetup::registerSetup("sql", new class extends SetupScript
            'UPDATE ::factions f
             JOIN   (SELECT ft.`factionId`, GROUP_CONCAT(ft.`id` SEPARATOR " ") AS "tplIds" FROM dbc_factiontemplate ft GROUP BY ft.`factionId`) temp ON f.`id` = temp.`factionId`
             SET    f.`templateIds` = temp.`tplIds`'
+        );
+
+        // faction-to-faction relations: friendFactionId*/enemyFactionId* on factiontemplate reference
+        // other factions directly (TrinityCore's FactionTemplateEntry::IsFriendlyTo() matches them
+        // against the target template's factionId, not its own template id), so collapse them up to
+        // the faction level, deduped and excluding self
+        DB::Aowow()->qry(
+           'UPDATE ::factions f
+            JOIN   (SELECT   `factionId`, GROUP_CONCAT(DISTINCT `relId` ORDER BY `relId` SEPARATOR " ") AS "relIds"
+                    FROM      (SELECT `factionId`, `friendFactionId1` AS "relId" FROM ::factiontemplate WHERE `friendFactionId1` > 0 UNION
+                               SELECT `factionId`, `friendFactionId2`        FROM ::factiontemplate WHERE `friendFactionId2` > 0 UNION
+                               SELECT `factionId`, `friendFactionId3`        FROM ::factiontemplate WHERE `friendFactionId3` > 0 UNION
+                               SELECT `factionId`, `friendFactionId4`        FROM ::factiontemplate WHERE `friendFactionId4` > 0) x
+                    WHERE     `relId` <> `factionId`
+                    GROUP BY  `factionId`) temp ON f.`id` = temp.`factionId`
+            SET    f.`friendFactionIds` = temp.`relIds`'
+        );
+
+        DB::Aowow()->qry(
+           'UPDATE ::factions f
+            JOIN   (SELECT   `factionId`, GROUP_CONCAT(DISTINCT `relId` ORDER BY `relId` SEPARATOR " ") AS "relIds"
+                    FROM      (SELECT `factionId`, `enemyFactionId1` AS "relId" FROM ::factiontemplate WHERE `enemyFactionId1` > 0 UNION
+                               SELECT `factionId`, `enemyFactionId2`        FROM ::factiontemplate WHERE `enemyFactionId2` > 0 UNION
+                               SELECT `factionId`, `enemyFactionId3`        FROM ::factiontemplate WHERE `enemyFactionId3` > 0 UNION
+                               SELECT `factionId`, `enemyFactionId4`        FROM ::factiontemplate WHERE `enemyFactionId4` > 0) x
+                    WHERE     `relId` <> `factionId`
+                    GROUP BY  `factionId`) temp ON f.`id` = temp.`factionId`
+            SET    f.`enemyFactionIds` = temp.`relIds`'
         );
 
         DB::Aowow()->qry(

@@ -96,6 +96,29 @@ class FactionBaseResponse extends TemplateResponse implements ICache
         if ($_ = $this->subject->getField('side'))
             $infobox[] = Lang::main('side').'[span class=icon-'.($_ == SIDE_ALLIANCE ? 'alliance' : 'horde').']'.Lang::game('si', $_).'[/span]';
 
+        // friendly/hostile factions if any
+        foreach (['friendFactionIds' => 'friendlyWith', 'enemyFactionIds' => 'hostileTo'] as $field => $langKey)
+        {
+            if (!($ids = $this->subject->getField($field)))
+                continue;
+
+            $this->extendGlobalIds(Type::FACTION, ...$ids);
+
+            $buff = Lang::faction($langKey);
+            if (count($ids) == 1)
+                $buff .= '[faction='.$ids[0].']';
+            else
+            {
+                $buff .= '[ul]';
+                foreach ($ids as $id)
+                    $buff .= '[li][faction='.$id.'][/li]';
+
+                $buff .= '[/ul]';
+            }
+
+            $infobox[] = $buff;
+        }
+
         // id
         $infobox[] = Lang::faction('id') . $this->typeId;
 

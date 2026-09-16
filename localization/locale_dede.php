@@ -2170,6 +2170,8 @@ $lang = array(
         'spilloverDesc' => "Für diese Fraktion erhaltener Ruf wird zusätzlich mit den unten aufgeführten Fraktionen anteilig verrechnet.",
         'maxStanding'   => "Max. Ruf",
         'quartermaster' => "Rüstmeister: ",
+        'friendlyWith'  => "Friendly with: ",
+        'hostileTo'     => "Hostile to: ",
         'customRewRate' => "Abweichende Belohnungsraten",
         '_transfer'     => 'Die Reputation mit dieser Fraktion wird mit dem für <a href="?faction=%d" class="q1">%s</a> vertauscht, wenn Ihr zur <span class="icon-%s">%s</span> wechselt.',
         'cat'           => array(

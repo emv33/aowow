@@ -2171,6 +2171,8 @@ $lang = array(
         'spilloverDesc' => "Получение репутации у этой фракции также дает пропорциональный выигрыш по отношению к фракциям, перечисленным ниже.",
         'maxStanding'   => "Макс Уровень",
         'quartermaster' => "Интендант: ",
+        'friendlyWith'  => "Friendly with: ",
+        'hostileTo'     => "Hostile to: ",
         'customRewRate' => "Индивидуальная ставка вознаграждения",
         '_transfer'     => 'Репутация у этой фракции будет преобразована в <a href="?faction=%d" class="q1">%s</a> если вы перейдете в <span class="icon-%s">%s</span>.',
         'cat'           => array(

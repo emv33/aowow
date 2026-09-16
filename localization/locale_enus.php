@@ -2171,6 +2171,8 @@ $lang = array(
         'spilloverDesc' => "Gaining reputation with this faction also yields a proportional gain with the factions listed below.",
         'maxStanding'   => "Max. Standing",
         'quartermaster' => "Quartermaster: ",
+        'friendlyWith'  => "Friendly with: ",
+        'hostileTo'     => "Hostile to: ",
         'customRewRate' => "Custom Reward Rate",
         '_transfer'     => 'The reputation with this faction will be converted to <a href="?faction=%d" class="q1">%s</a> if you transfer to <span class="icon-%s">%s</span>.',
         'cat'           => array(
