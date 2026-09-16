@@ -471,6 +471,10 @@ class NpcBaseResponse extends TemplateResponse implements ICache
             $lsJSG = [];
             $this->legacyScript = LegacyScript::buildMarkupFor($lsSources, 'lscript-npc-'.$this->typeId, $lsJSG);
             $this->extendGlobalData($lsJSG);
+
+            // the escort table above is just commands - link to the full route on a map
+            if ($this->legacyScript && LegacyScript::exists(LegacyScript::SRC_ESCORT_PATH, $this->typeId))
+                $this->legacyScript->append('[pad][url=?waypointpath='.WaypointPathList::encodeId(WaypointPathList::KIND_ESCORT, $this->typeId).']'.Lang::waypointpath('viewFullRoute').'[/url][/pad]');
         }
         // aowow - custom end
 

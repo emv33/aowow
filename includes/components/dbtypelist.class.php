@@ -649,7 +649,7 @@ trait spawnHelper
             // we will get a nice clusterfuck of dots if we do this for more GUIDs, than we have colors though
             if (!$skipWPs && count($spawns) < 6 && $s['type'] == Type::NPC)
             {
-                if ($wPoints = DB::Aowow()->selectAssoc('SELECT * FROM ::creature_waypoints WHERE creatureOrPath = %i AND floor = %i', $s['pathId'] ? -$s['pathId'] : $this->id, $s['floor']))
+                if ($wPoints = DB::Aowow()->selectAssoc('SELECT * FROM ::creature_waypoints WHERE kind = %i AND creatureOrPath = %i AND floor = %i', WaypointPathList::KIND_MOVEMENT, $s['pathId'] ? -$s['pathId'] : $this->id, $s['floor']))
                 {
                     foreach ($wPoints as $i => $p)
                     {
@@ -662,6 +662,10 @@ trait spawnHelper
                             'label' => "\0$<br /><span class=\"q0\">".implode('<br />', $label).'</span>',
                             'type'  => $wpIdx
                         );
+
+                        // a waypoint pin, unlike every other pin here, has nowhere else to link to - give it the full route
+                        if ($s['pathId'])
+                            $opts['url'] = '?waypointpath='.WaypointPathList::encodeId(WaypointPathList::KIND_MOVEMENT, $s['pathId']);
 
                         // connective line
                         if ($i > 0 && $wPoints[$i - 1]['areaId'] == $p['areaId'])

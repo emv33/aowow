@@ -77,6 +77,7 @@ abstract class Type
     public const int MAIL =                       504;
     public const int GOSSIP =                     505;
     public const int ENCOUNTER =                  506;
+    public const int WAYPOINT_PATH =              507;
     // Blizzard API things
     //               MOUNT =                    -1000;
     //               RECIPE =                   -1001;
@@ -123,7 +124,8 @@ abstract class Type
         self::AREATRIGGER => [AreatriggerList::class, 'areatrigger', '',                     self::FLAG_FILTRABLE | self::FLAG_DB_TYPE],
         self::MAIL        => [MailList::class,        'mail',        '',                     self::FLAG_RANDOM_SEARCHABLE | self::FLAG_DB_TYPE],
         self::GOSSIP      => [GossipList::class,      'gossip',      '',                     self::FLAG_FILTRABLE],  // no FLAG_DB_TYPE: world DB type, Type::validateIds() has no aowow table to check against
-        self::ENCOUNTER   => [EncounterList::class,   'encounter',   'g_encounters',         self::FLAG_FILTRABLE]   // ditto - backed by world `instance_encounters`
+        self::ENCOUNTER   => [EncounterList::class,   'encounter',   'g_encounters',         self::FLAG_FILTRABLE],  // ditto - backed by world `instance_encounters`
+        self::WAYPOINT_PATH => [WaypointPathList::class, 'waypointpath', '',                 self::FLAG_FILTRABLE]   // no FLAG_DB_TYPE: id is a synthetic kind+sourceId encoding, not a literal column - see WaypointPathList::decodeId()
     );
 
 

@@ -603,6 +603,13 @@ var fi_filters = {
         { id: 3, name: 'foundin',   type: 'zone' }
     ],
 
+    waypointpath: [
+        { id: 1, name: 'sepgeneral'              },
+        { id: 2, name: 'id',        type: 'num'  },
+        { id: 3, name: 'kind',      type: 'num'  },
+        { id: 4, name: 'foundin',   type: 'zone' }
+    ],
+
     gossip: [
         { id: 1, name: 'sepgeneral'             },
         { id: 2, name: 'id',       type: 'num'  },

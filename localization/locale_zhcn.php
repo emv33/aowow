@@ -443,6 +443,8 @@ $lang = array(
         'transports'   => "Transports",
         'taxipath'     => "flight path",
         'taxipaths'    => "Flight paths",
+        'waypointpath'  => "waypoint path",
+        'waypointpaths' => "Waypoint Paths",
 
         'cooldown'      => "%s冷却时间",
         'difficulty'    => "难度：",
@@ -832,7 +834,7 @@ $lang = array(
 /* 50*/     SmartAction::ACTION_SUMMON_GO                          => ['Summon [object=%1$d](%2$d)? for %11$s:; at #target#.', 'Despawn not linked to summoner'],
             SmartAction::ACTION_KILL_UNIT                          => ['#target# dies!', ''],
             SmartAction::ACTION_ACTIVATE_TAXI                      => ['[url=?taxipath=%1$d]Fly from [span class=q1]%11$s[/span] to [span class=q1]%12$s[/span][/url]', ''],
-            SmartAction::ACTION_WP_START                           => ['(%1$d)?Run:Walk; on waypoint path #[b]%2$d[/b](%4$d)? and be bound to [quest=%4$d]:;.(%5$d)? Despawn after %11$s:;', 'Repeatable(%12$s)? [DEPRECATED] React %12$s on path:;'],
+            SmartAction::ACTION_WP_START                           => ['(%1$d)?Run:Walk; on [url=?waypointpath=%2$d]waypoint path #%2$d[/url](%4$d)? and be bound to [quest=%4$d]:;.(%5$d)? Despawn after %11$s:;', 'Repeatable(%12$s)? [DEPRECATED] React %12$s on path:;'],
             SmartAction::ACTION_WP_PAUSE                           => ['Pause waypoint path for %11$s', ''],
             SmartAction::ACTION_WP_STOP                            => ['End waypoint path(%1$d)? and despawn after %11$s:.; (%2$d)?[quest=%2$d]:quest from start action; (%3$d)?fails:is completed;.', ''],
             SmartAction::ACTION_ADD_ITEM                           => ['Give %2$d [item=%1$d] to #target#.', ''],
@@ -1488,6 +1490,19 @@ $lang = array(
         'sentBySpell'   => "Sent by spell",
         'sentByScript'  => "Sent by script",
         'usedByObject'  => "Used by transport"
+    ),
+    'waypointpath' => array(
+        'notFound'     => "This waypoint path doesn't exist.",
+        'title'        => "Waypoint path #%d",
+        'id'           => "ID",
+        'kind'         => "Type",
+        'kinds'        => ['Movement path', 'Escort path'],
+        'points'       => "Points",
+        'totalWait'    => "Total wait time",
+        'foundIn'      => "This path runs through",
+        'walkedBy'     => "Walked by",
+        'usedByScript' => "Triggered by script",
+        'viewFullRoute' => "View full route on map"
     ),
     'pool' => array(
         'pooled'        => 'Pooled spawn: %1$d of %2$d points active',

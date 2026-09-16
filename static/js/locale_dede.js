@@ -971,7 +971,8 @@ var mn_database = [
     [115, 'Outdoor PvP', '?outdoorpvp', null, {requiredAccess: 1726}],    // aowow - custom
     [116, 'Points of interest', '?poi', null, {requiredAccess: 1726}],    // aowow - custom
     [117, 'Faction change', '?factionchange', null, {requiredAccess: 1726}],    // aowow - custom
-    [119, 'Spell Focuses', '?spellfocus', null, {requiredAccess: 1726}]    // aowow - custom
+    [119, 'Spell Focuses', '?spellfocus', null, {requiredAccess: 1726}],    // aowow - custom
+    [120, 'Waypoint Paths', '?waypointpaths', null, {requiredAccess: 1726}]    // aowow - custom
 ];
 
 var mn_guides = [
@@ -4617,6 +4618,15 @@ var LANG = {
     taxipath_nspells:  "$1 spell(s)",
     taxipath_nscripts: "$1 script(s)",
     taxipath_nobjects: "$1 transport(s)",
+    fiwaypointpath: {
+        sepgeneral: "General",
+        id:         "ID",
+        kind:       "Type",
+        foundin:    "Found in..."
+    },
+    waypointpath_kindmovement: "Movement path",
+    waypointpath_kindescort:   "Escort path",
+    waypointpath_points:       "Points",
     // end aowow custom
 
     pr_notice:     'Zum ersten Mal hier? &ndash; Seid nicht schüchtern! Schaut ruhig mal auf unserer <a href="?help=profiler" target="_blank">Hilfeseite</a> (zurzeit noch unübersetzt) nach! &nbsp; <small class="q0"><a href="javascript:;">Schließen</a></small>',

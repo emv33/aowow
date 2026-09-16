@@ -224,7 +224,7 @@ class SmartAction
         self::ACTION_SUMMON_GO                          => [Type::OBJECT, ['formatTime', 10, false], null, null, null, null, 0],  // GameObjectID, DespawnTime in s
         self::ACTION_KILL_UNIT                          => [null, null, null, null, null, null, 0],  //
         self::ACTION_ACTIVATE_TAXI                      => [null, null, null, null, null, null, 0],  // TaxiID
-        self::ACTION_WP_START                           => [null, null, null, Type::QUEST, ['formatTime', 10, true], ['reactState', 11, false], 0],  // run/walk, pathID, canRepeat, quest, despawntime
+        self::ACTION_WP_START                           => [null, Type::WAYPOINT_PATH, null, Type::QUEST, ['formatTime', 10, true], ['reactState', 11, false], 0],  // run/walk, pathID, canRepeat, quest, despawntime
         self::ACTION_WP_PAUSE                           => [['formatTime', 10, true], null, null, null, null, null, 0],  // time
         self::ACTION_WP_STOP                            => [['formatTime', 10, true], Type::QUEST, null, null, null, null, 0],  // despawnTime, quest, fail?
         self::ACTION_ADD_ITEM                           => [Type::ITEM, null, null, null, null, null, 0],  // itemID, count

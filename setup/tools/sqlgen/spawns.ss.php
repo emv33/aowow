@@ -24,7 +24,7 @@ CLISetup::registerSetup("sql", new class extends SetupScript
    );
 
     protected array $dbcSourceFiles  = ['worldmaparea', 'map', 'taxipathnode', 'soundemitters', 'areatrigger', 'areatable'];
-    protected array $worldDependency = ['creature', 'creature_addon', 'creature_template_addon', 'gameobject', 'gameobject_template', 'vehicle_accessory', 'vehicle_accessory_template', 'waypoint_data', 'smart_scripts', 'areatrigger_teleport'];
+    protected array $worldDependency = ['creature', 'creature_addon', 'creature_template_addon', 'gameobject', 'gameobject_template', 'vehicle_accessory', 'vehicle_accessory_template', 'waypoint_data', 'script_waypoint', 'smart_scripts', 'areatrigger_teleport'];
     protected array $setupAfter      = [['dungeonmap', 'worldmaparea', 'zones'], ['img-maps']];
 
     private array $transports   = [];
@@ -292,21 +292,39 @@ CLISetup::registerSetup("sql", new class extends SetupScript
 
     private function waypoints() : array
     {
-        // todo (med): `waypoint_data` can contain paths that do not belong to a creature but get assigned by SmartAI (or script) during runtime
-        // in the future guid should be optional and additional parameters substituting guid should be passed down from NpcPage after SmartAI has been evaluated
-
         // assume that creature_template_addon data isn't stupid and only creatures with a single spawn are referenced here
+        //
+        // `kind` 0 rows are `waypoint_data` paths: a creature's default path (via *_addon), or one
+        // a SmartAI ACTION_WP_START assigns it at runtime - both share the `waypoint_data.id` id
+        // space, so REPLACE INTO dedupes a path that happens to be both.
+        // `kind` 1 rows are `script_waypoint` escort paths, keyed by the creature entry itself
+        // (see LegacyScript::SRC_ESCORT_PATH) - a distinct id space from `waypoint_data.id`.
+        //
+        // in every case only one representative creature is used to resolve the map/zone a path
+        // renders on - `creature_template_addon`/direct-guid cases already pin down exactly one,
+        // the others (a shared template entry) pick an arbitrary spawn of it via MIN(`guid`).
         return DB::World()->selectAssoc(
-           'SELECT c.`guid`, -w.`id` AS `creatureOrPath`, w.`point`, c.`zoneId` AS `areaId`, c.`map`, w.`delay` AS `wait`, w.`position_x` AS `posX`, w.`position_y` AS `posY`
+           'SELECT c.`guid`, -w.`id` AS `creatureOrPath`, 0 AS `kind`, w.`point`, c.`zoneId` AS `areaId`, c.`map`, w.`delay` AS `wait`, w.`position_x` AS `posX`, w.`position_y` AS `posY`
             FROM   creature c
             JOIN   creature_addon ca ON ca.`guid` = c.`guid`
             JOIN   waypoint_data w ON w.`id` = ca.`path_id`
             WHERE  ca.`path_id` <> 0 UNION
-            SELECT  c.`guid`, -w.`id` AS `creatureOrPath`, w.`point`, c.`zoneId` AS `areaId`, c.`map`, w.`delay` AS `wait`, w.`position_x` AS `posX`, w.`position_y` AS `posY`
+            SELECT  c.`guid`, -w.`id` AS `creatureOrPath`, 0 AS `kind`, w.`point`, c.`zoneId` AS `areaId`, c.`map`, w.`delay` AS `wait`, w.`position_x` AS `posX`, w.`position_y` AS `posY`
             FROM   creature c
             JOIN   creature_template_addon cta ON cta.`entry` = c.`id`
             JOIN   waypoint_data w ON w.`id` = cta.`path_id`
-            WHERE  cta.`path_id` <> 0'
+            WHERE  cta.`path_id` <> 0 UNION
+            SELECT c.`guid`, -w.`id` AS `creatureOrPath`, 0 AS `kind`, w.`point`, c.`zoneId` AS `areaId`, c.`map`, w.`delay` AS `wait`, w.`position_x` AS `posX`, w.`position_y` AS `posY`
+            FROM   (SELECT `id`, MIN(`guid`) AS `guid`, MIN(`map`) AS `map`, MIN(`zoneId`) AS `zoneId` FROM creature GROUP BY `id`) c
+            JOIN   (SELECT DISTINCT `entryorguid`, `action_param2` AS `pathId` FROM smart_scripts WHERE `source_type` = '.SmartAI::SRC_TYPE_CREATURE.' AND `action_type` = '.SmartAction::ACTION_WP_START.' AND `action_param2` > 0 AND `entryorguid` > 0) ss ON ss.`entryorguid` = c.`id`
+            JOIN   waypoint_data w ON w.`id` = ss.`pathId` UNION
+            SELECT c.`guid`, -w.`id` AS `creatureOrPath`, 0 AS `kind`, w.`point`, c.`zoneId` AS `areaId`, c.`map`, w.`delay` AS `wait`, w.`position_x` AS `posX`, w.`position_y` AS `posY`
+            FROM   creature c
+            JOIN   (SELECT DISTINCT `entryorguid`, `action_param2` AS `pathId` FROM smart_scripts WHERE `source_type` = '.SmartAI::SRC_TYPE_CREATURE.' AND `action_type` = '.SmartAction::ACTION_WP_START.' AND `action_param2` > 0 AND `entryorguid` < 0) ss ON c.`guid` = -ss.`entryorguid`
+            JOIN   waypoint_data w ON w.`id` = ss.`pathId` UNION
+            SELECT c.`guid`, -sw.`entry` AS `creatureOrPath`, 1 AS `kind`, sw.`pointid` AS `point`, c.`zoneId` AS `areaId`, c.`map`, sw.`waittime` AS `wait`, sw.`location_x` AS `posX`, sw.`location_y` AS `posY`
+            FROM   (SELECT `id`, MIN(`guid`) AS `guid`, MIN(`map`) AS `map`, MIN(`zoneId`) AS `zoneId` FROM creature GROUP BY `id`) c
+            JOIN   script_waypoint sw ON sw.`entry` = c.`id`'
         );
     }
 

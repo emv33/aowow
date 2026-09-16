@@ -85,7 +85,7 @@ class AdminSpawnoverrideResponse extends TextResponse
                             'floor'  => $point[0]['floor']
                         );
 
-                        DB::Aowow()->qry('UPDATE ::creature_waypoints SET %a WHERE `creatureOrPath` = %i AND `point` = %i', $p, $w['entry'], $w['pointId']);
+                        DB::Aowow()->qry('UPDATE ::creature_waypoints SET %a WHERE `kind` = %i AND `creatureOrPath` = %i AND `point` = %i', $p, WaypointPathList::KIND_MOVEMENT, $w['entry'], $w['pointId']);
                     }
                 }
             }

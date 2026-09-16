@@ -664,13 +664,14 @@ DROP TABLE IF EXISTS `aowow_creature_waypoints`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `aowow_creature_waypoints` (
   `creatureOrPath` int(11) NOT NULL,
+  `kind` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '0: waypoint_data path, 1: script_waypoint escort path',
   `point` smallint(5) unsigned NOT NULL,
   `areaId` smallint(5) unsigned NOT NULL,
   `floor` tinyint(4) NOT NULL DEFAULT -1,
   `posX` float unsigned NOT NULL,
   `posY` float unsigned NOT NULL,
   `wait` int(10) unsigned NOT NULL DEFAULT 0,
-  PRIMARY KEY (`creatureOrPath`,`point`,`areaId`,`floor`)
+  PRIMARY KEY (`kind`,`creatureOrPath`,`point`,`areaId`,`floor`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
