@@ -668,19 +668,6 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
         }
         // aowow - custom end
 
-        // aowow - custom start: the points of interest this zone's gossip options mark on the map
-        // points_of_interest has no zone column; it is reached through the gossip menus of the
-        // NPCs that spawn here
-        if ($poiData = self::getPOIsForZone($this->typeId))
-        {
-            $this->lvTabs->addListviewTab(new Listview(array(
-                'data' => $poiData,
-                'name' => Lang::zone('poi'),
-                'id'   => 'poi'
-            ), 'poi', 'poi'));
-        }
-        // aowow - custom end
-
         // tab: drops
         if (in_array($this->subject->getField('category'), [MAP_TYPE_DUNGEON, MAP_TYPE_RAID]))
         {
@@ -1017,6 +1004,19 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
             $this->extendGlobalData($cnd->getJSGlobals());
             $this->lvTabs->addDataTab(...$tab);
         }
+
+        // aowow - custom start: the points of interest this zone's gossip options mark on the map
+        // points_of_interest has no zone column; it is reached through the gossip menus of the
+        // NPCs that spawn here
+        if ($poiData = self::getPOIsForZone($this->typeId))
+        {
+            $this->lvTabs->addListviewTab(new Listview(array(
+                'data' => $poiData,
+                'name' => Lang::zone('poi'),
+                'id'   => 'poi'
+            ), 'poi', 'poi'));
+        }
+        // aowow - custom end
     }
 
     private function addMoveLocationMenu(int $_parentArea, int $parentFloor) : void
@@ -1260,6 +1260,7 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
             $data[] = array(
                 'id'   => (int)$r['id'],
                 'name' => $name !== '' && $name[0] == '$' ? ' '.$name : $name,
+                'zone' => $areaId,
                 'x'    => (float)$r['x'],
                 'y'    => (float)$r['y'],
                 'icon' => (int)$r['icon']
