@@ -35,6 +35,8 @@ CLISetup::registerSetup("sql", new class extends SetupScript
                         0,                                 -- expansion
                         "",                                -- quartermasterNpcIds
                         "",                                -- factionTemplateIds
+                        "",                                -- friendFactionIds
+                        "",                                -- enemyFactionIds
                         0,                                 -- cuFlags
                         `parentFaction`,
                         `spilloverRateIn`, `spilloverRateOut`, `spilloverMaxRank`,
