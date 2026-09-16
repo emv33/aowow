@@ -115,15 +115,7 @@ class AreatriggerBaseResponse extends TemplateResponse implements ICache
             else
                 $infobox[] = Lang::areatrigger('teleportsTo').Lang::main('colon').Lang::areatrigger('map', [$dest['mapId']]);
 
-            $destText = sprintf('%.1f, %.1f, %.1f', $dest['x'], $dest['y'], $dest['z']);
-            if ($points = WorldPosition::toZonePos($dest['mapId'], $dest['x'], $dest['y']))
-            {
-                $pin  = count($points) > 1 ? WorldPosition::checkZonePos($points) : $points[0];
-                $pins = str_pad((int)round($pin['posX'] * 10), 3, '0', STR_PAD_LEFT).str_pad((int)round($pin['posY'] * 10), 3, '0', STR_PAD_LEFT);
-                $destText = '[lightbox=map zone='.$pin['areaId'].($pin['floor'] > 0 ? ' floor='.$pin['floor'] : '').' pins='.$pins.']'.$destText.'[/lightbox]';
-            }
-
-            $infobox[] = Lang::areatrigger('destination').Lang::main('colon').$destText;
+            $infobox[] = Lang::areatrigger('destination').Lang::main('colon').sprintf('%.1f, %.1f, %.1f', $dest['x'], $dest['y'], $dest['z']);
 
             if ($dest['reqLevel'])
                 $infobox[] = Lang::main('_reqLevel').Lang::main('colon').$dest['reqLevel'];
@@ -226,12 +218,21 @@ class AreatriggerBaseResponse extends TemplateResponse implements ICache
             return null;
 
         $mapId = (int)$r['mapId'];
+        $x     = (float)$r['x'];
+        $y     = (float)$r['y'];
+
+        // the zone actually containing the destination point, not just some zone of the map -
+        // a map can (and mostly does) hold several
+        if ($points = WorldPosition::toZonePos($mapId, $x, $y))
+            $areaId = (int)(count($points) > 1 ? WorldPosition::checkZonePos($points) : $points[0])['areaId'];
+        else
+            $areaId = (int)DB::Aowow()->selectCell('SELECT `id` FROM ::zones WHERE `mapId` = %i AND `parentArea` = 0 AND (`cuFlags` & %i) = 0 LIMIT 1', $mapId, CUSTOM_EXCLUDE_FOR_LISTVIEW);
 
         return array(
             'mapId'    => $mapId,
-            'areaId'   => (int)DB::Aowow()->selectCell('SELECT `id` FROM ::zones WHERE `mapId` = %i AND `parentArea` = 0 AND (`cuFlags` & %i) = 0 LIMIT 1', $mapId, CUSTOM_EXCLUDE_FOR_LISTVIEW),
-            'x'        => (float)$r['x'],
-            'y'        => (float)$r['y'],
+            'areaId'   => $areaId,
+            'x'        => $x,
+            'y'        => $y,
             'z'        => (float)$r['z'],
             'reqLevel' => (int)$r['reqLevel'],
             'reqItem'  => (int)$r['reqItem']
