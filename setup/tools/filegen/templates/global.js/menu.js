@@ -530,12 +530,18 @@ var Menu = new function()
             var start = nItemsAdded;
             var end   = start + nItemsToAdd;
 
+            // a separator (heading) is always immediately followed by the items it heads (see
+            // createMenuItems()) - don't let the column break land right after one, stranding
+            // the heading at the bottom of this column while its items start the next
+            while(end < nItems && end > start + 1 && $menuItems.eq(end - 1).hasClass('separator'))
+                --end;
+
             $menuItems.slice(start, end).each(function() { $innerDiv.append(this) });
             $outerDiv.append($innerDiv);
             $holder.append($outerDiv);
 
-            nItemsAdded     += nItemsToAdd;
-            nItemsRemaining -= nItemsToAdd;
+            nItemsAdded     += (end - start);
+            nItemsRemaining -= (end - start);
         }
 
         return $holder;
