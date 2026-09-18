@@ -104,7 +104,13 @@ class TextBaseResponse extends TemplateResponse
         // item/object page makes for the identical row); every other source renders as the plain,
         // already-resolved excerpt browse() built
         if ($row['src'] == GameText::SRC_PAGE_TEXT)
-            $this->book = Game::getBook($row['entry']);
+        {
+            if ($this->book = Game::getBook($row['entry']))
+                $this->addScript(
+                    [SC_JS_FILE,  'js/Book.js'],
+                    [SC_CSS_FILE, 'css/Book.css']
+                );
+        }
         else
             $this->extraText = new Markup($row['text'], ['allow' => Markup::CLASS_STAFF], 'text-contents0');
 
