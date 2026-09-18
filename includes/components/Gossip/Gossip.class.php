@@ -471,7 +471,7 @@ class Gossip
             }
 
             $first = true;
-            foreach ($text['slots'] as $slot)
+            foreach ($text['slots'] as $i => $slot)
             {
                 if ($slot['prob'] && $slot['prob'] != 1.0)
                     $hasProb = true;
@@ -494,11 +494,18 @@ class Gossip
                     $body[] = '[i][small class=q0]'.Lang::gossip('emotes').Lang::main('colon').Lang::concat($em).'[/small][/i]';
                 }
 
+                // the same ct:/bt:/nt: composite id GameText::browse() hands out for this exact
+                // slot - a plain [url], not a tag: neither of these is a Type Markup knows about
+                $gender     = $slot['male'] ? 0 : 1;
+                $textLinkId = $slot['bct']
+                    ? 'bt:'.$slot['bct'].':'.GameText::SRC_NPC_TEXT.':'.$this->menuId
+                    : 'nt:'.$textId.':'.$i.':'.$gender.':'.$this->menuId;
+
                 if ($slot['bct'])
-                    $body[] = '[i][small class=q0]'.Lang::gossip('fromBroadcastText', [$slot['bct']]).'[/small][/i]';
+                    $body[] = '[i][small class=q0][url=?text='.$textLinkId.']'.Lang::gossip('fromBroadcastText', [$slot['bct']]).'[/url][/small][/i]';
 
                 $rows[] = array(
-                    $first ? '#[b]'.$textId.'[/b]' : '',
+                    $first ? '[url=?text='.$textLinkId.']#[b]'.$textId.'[/b][/url]' : '',
                     implode('[br]', $body),
                     $slot['prob'] ? self::formatWeight($slot['prob']) : '',
                     $first ? $cndTag : ''

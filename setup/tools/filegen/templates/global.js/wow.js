@@ -266,7 +266,10 @@ var g_types = {
    501: 'emote',
    502: 'enchantment',
    503: 'areatrigger',
-   504: 'mail'
+   504: 'mail',
+   505: 'gossip',
+   506: 'encounter',
+   507: 'waypointpath'
 };
 
 var g_completion_categories = {
