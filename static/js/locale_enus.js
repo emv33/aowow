@@ -1014,10 +1014,10 @@ var mn_database = [
     [112, 'Trainers', '?trainers', null, {requiredAccess: 1726}],    // aowow - custom
     [113, 'Graveyards', '?graveyards', null, {requiredAccess: 1726}],    // aowow - custom
     [114, 'Weather', '?weather', null, {requiredAccess: 1726}],    // aowow - custom
-    [115, 'Outdoor PvP', '?outdoorpvp', null, {requiredAccess: 1726}],    // aowow - custom
-    [116, 'Points of interest', '?poi', null, {requiredAccess: 1726}],    // aowow - custom
+    [115, 'Outdoor PvP', '?outdoorpvps', null, {requiredAccess: 1726}],    // aowow - custom
+    [116, 'Points of interest', '?pois', null, {requiredAccess: 1726}],    // aowow - custom
     [117, 'Faction change', '?factionchange', null, {requiredAccess: 1726}],    // aowow - custom
-    [119, 'Spell Focuses', '?spellfocus', null, {requiredAccess: 1726}],    // aowow - custom
+    [119, 'Spell Focuses', '?spellfocuses', null, {requiredAccess: 1726}],    // aowow - custom
     [120, 'Waypoint Paths', '?waypointpaths', null, {requiredAccess: 1726}]    // aowow - custom
 ];
 

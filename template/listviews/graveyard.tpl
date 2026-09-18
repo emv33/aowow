@@ -131,7 +131,7 @@ Listview.templates.graveyard = {
         }
     ],
     getItemLink: function(t) {
-        return t.zones && t.zones.length ? ('?zone=' + t.zones[0]) : '?graveyards';
+        return '?graveyard=' + t.id;
     },
     onBeforeCreate: function() {
         // hide the template's own id col when the debug id col is shown

@@ -516,6 +516,165 @@ class GameText
 
         return $out;
     }
+
+    /**
+     * one row of browse(), fetched directly by its composite id rather than by scanning every
+     * source table - the ?text=<id> detail page's only query.
+     *
+     * @param  string $id  the composite key browse() hands out: 'ct:creature:group:row',
+     *                     'bt:id[:src:ownerId]', 'nt:id:slot:gender:menu', 'go:menu:option:col',
+     *                     'pt:id'
+     */
+    public static function getOne(string $id) : ?array
+    {
+        $pos = strpos($id, ':');
+        if ($pos === false)
+            return null;
+
+        $kind = substr($id, 0, $pos);
+        $rest = explode(':', substr($id, $pos + 1));
+
+        return match ($kind)
+        {
+            'ct'    => self::oneCreatureText($id, $rest),
+            'bt'    => self::oneBroadcastText($id, $rest),
+            'nt'    => self::oneNpcText($id, $rest),
+            'go'    => self::oneGossipOption($id, $rest),
+            'pt'    => self::onePageText($id, $rest),
+            default => null
+        };
+    }
+
+    private static function oneCreatureText(string $id, array $p) : ?array
+    {
+        if (count($p) != 3 || !self::hasTable('creature_text'))
+            return null;
+
+        [$creatureId, $groupId, $rowId] = array_map('intval', $p);
+
+        $txt = DB::World()->selectCell(
+           'SELECT `Text` FROM creature_text WHERE `CreatureID` = %i AND `GroupID` = %i AND `ID` = %i',
+            $creatureId, $groupId, $rowId
+        );
+
+        if ($txt === null)
+            return null;
+
+        return self::row(self::SRC_CREATURE_TEXT, $id, $creatureId, (string)$txt, Type::NPC, $creatureId);
+    }
+
+    private static function oneBroadcastText(string $id, array $p) : ?array
+    {
+        if (!$p || !self::hasTable('broadcast_text'))
+            return null;
+
+        $btId = (int)$p[0];
+        if (!$btId)
+            return null;
+
+        // spelled Text/Text1 on some revisions and MaleText/FemaleText on others, as browse() tries
+        $row = null;
+        foreach ([['Text', 'Text1'], ['MaleText', 'FemaleText']] as [$male, $female])
+        {
+            $row = DB::World()->selectRow('SELECT `'.$male.'` AS "Text", `'.$female.'` AS "Text1" FROM broadcast_text WHERE `ID` = %i', $btId);
+            if ($row !== null)
+                break;
+        }
+
+        if (!$row)
+            return null;
+
+        $txt = (string)$row['Text'] ?: (string)$row['Text1'];
+        if ((string)$row['Text1'] && (string)$row['Text'] && $row['Text'] != $row['Text1'])
+            $txt = $row['Text'].' / '.$row['Text1'];
+
+        // a specific referrer was encoded into the id; reconstruct its owner rather than re-walking
+        // every referrer table for the one that matches
+        if (count($p) >= 3)
+        {
+            $encSrc    = (int)$p[1];
+            $ownerId   = (int)$p[2];
+            $ownerType = match ($encSrc)
+            {
+                self::SRC_CREATURE_TEXT => Type::NPC,
+                self::SRC_NPC_TEXT      => ($ownerId ? Type::GOSSIP : null),
+                self::SRC_GOSSIP_OPTION => Type::GOSSIP,
+                default                 => null
+            };
+
+            return self::row($encSrc, $id, $btId, $txt, $ownerType, $ownerId);
+        }
+
+        return self::row(self::SRC_BROADCAST, $id, $btId, $txt);
+    }
+
+    private static function oneNpcText(string $id, array $p) : ?array
+    {
+        if (count($p) != 4 || !self::hasTable('npc_text'))
+            return null;
+
+        $ntId   = (int)$p[0];
+        $slot   = (int)$p[1];
+        $gender = (int)$p[2];
+        $menuId = (int)$p[3];
+
+        // $slot/$gender pick the column name and are attacker-controlled (url param), so they are
+        // bound-checked before ever touching the query text rather than passed through as a value
+        if ($slot < 0 || $slot >= GOSSIP_TEXT_SLOT_COUNT || ($gender != 0 && $gender != 1))
+            return null;
+
+        $txt = DB::World()->selectCell('SELECT `text'.$slot.'_'.$gender.'` FROM npc_text WHERE `ID` = %i', $ntId);
+        if ($txt === null || (string)$txt === '')
+            return null;
+
+        return self::row(self::SRC_NPC_TEXT, $id, $ntId, (string)$txt, $menuId ? Type::GOSSIP : null, $menuId);
+    }
+
+    private static function oneGossipOption(string $id, array $p) : ?array
+    {
+        if (count($p) != 3 || !self::hasTable('gossip_menu_option'))
+            return null;
+
+        $menuId = (int)$p[0];
+        $optId  = (int)$p[1];
+        $col    = $p[2];
+
+        // $col is attacker-controlled (url param) and lands in the query text, not a value - a
+        // strict whitelist keeps it to the two real columns rather than any world DB column at all
+        if ($col !== 'OptionText' && $col !== 'BoxText')
+            return null;
+
+        $txt = DB::World()->selectCell('SELECT `'.$col.'` FROM gossip_menu_option WHERE `MenuID` = %i AND `OptionID` = %i', $menuId, $optId);
+        if ($txt === null || (string)$txt === '')
+            return null;
+
+        return self::row(self::SRC_GOSSIP_OPTION, $id, $menuId, (string)$txt, Type::GOSSIP, $menuId);
+    }
+
+    private static function onePageText(string $id, array $p) : ?array
+    {
+        if (!$p || !self::hasTable('page_text'))
+            return null;
+
+        $ptId = (int)$p[0];
+        if (!$ptId)
+            return null;
+
+        $row = null;
+        foreach ([['ID', 'Text'], ['entry', 'text']] as [$idCol, $txtCol])
+        {
+            $row = DB::World()->selectRow('SELECT `'.$txtCol.'` AS "Text" FROM page_text WHERE `'.$idCol.'` = %i', $ptId);
+            if ($row !== null)
+                break;
+        }
+
+        if (!$row)
+            return null;
+
+        [$type, $entry] = self::pageOwners([$ptId])[$ptId] ?? [null, 0];
+
+        return self::row(self::SRC_PAGE_TEXT, $id, $ptId, (string)$row['Text'], $type, $entry);
+    }
 }
 
 ?>

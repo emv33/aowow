@@ -90,7 +90,7 @@ Listview.templates.poi = {
         }
     ],
     getItemLink: function(t) {
-        return t.maplink || 'javascript:;';
+        return '?poi=' + t.id;
     },
     onBeforeCreate: function() {
         // hide the template's own id col when the debug id col is shown
