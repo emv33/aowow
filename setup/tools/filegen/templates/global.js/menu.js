@@ -456,9 +456,13 @@ var Menu = new function()
             menuItems.push($a);
         });
 
-        var $menuItems = $(menuItems);
+        // menuItems holds the jQuery-wrapped <a> from createMenuItem(), not the raw element -
+        // $(menuItems) would then wrap each of THOSE jQuery objects as an opaque "element" of
+        // its own, so any later .hasClass()/other native DOM access on $menuItems silently
+        // no-ops (createMenu()'s separator-detection included). Unwrap to the real node first.
+        var $menuItems = $($.map(menuItems, function($el) { return $el[0]; }));
 
-        menuItemsCache[menu] = $menuItems;
+        menuItemsCache[uid] = $menuItems;
         return $menuItems;
     }
 
