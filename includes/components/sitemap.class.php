@@ -134,6 +134,14 @@ class Sitemap
         $url->addChild('priority', 0.7);
         $url->addChild('changefreq', 'yearly');
 
+        // achievement criteria browser - aowow - custom
+        // a single search/filter tool, not a per-row detail page (a criterion's own detail lives
+        // on its achievement's page), so it belongs here rather than in $validPages
+        $url = $root->addChild('url');
+        $url->addChild('loc', Cfg::get('HOST_URL').'/?achievement-criteria');
+        $url->addChild('priority', 0.3);
+        $url->addChild('changefreq', 'monthly');
+
         return $root->asXML();
     }
 
