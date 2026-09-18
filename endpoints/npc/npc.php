@@ -235,6 +235,15 @@ class NpcBaseResponse extends TemplateResponse implements ICache
                 $infobox[] = $line;
         }
 
+        // the reverse of the Mount: line above - who rides this creature's model
+        if ($_ = self::getMountOf($this->typeId))
+        {
+            foreach ($_ as $id)
+                $this->extendGlobalIds(Type::NPC, $id);
+
+            $infobox[] = Lang::npcExtra('mountOf').Lang::main('colon').Lang::concat(array_map(fn($x) => '[npc='.$x.']', $_), Lang::CONCAT_NONE);
+        }
+
         // `pet_levelstats` and `pet_name_generation` are keyed by creature entry, not by the pet
         // family `?pet=` is built on, so this is the only page they can hang off
         $this->levelCurve = self::buildPetTable($this->typeId);
@@ -1686,6 +1695,34 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         }
 
         return Lang::npcExtra('mountDisplayId', [$displayId]);
+    }
+
+    /**
+     * the reverse of formatMount() - every npc that rides this one's model as a mount
+     *
+     * `creature_template_addon`/`creature_addon`.mount is a CreatureDisplayID (see getAddon()),
+     * so this matches against this creature's own modelid1-4 rather than its entry
+     */
+    private static function getMountOf(int $npcId) : array
+    {
+        if (!self::hasTable('creature_template_addon'))
+            return [];
+
+        $models = array_values(array_unique(array_filter(array_map('intVal',
+            DB::World()->selectRow('SELECT `modelid1`, `modelid2`, `modelid3`, `modelid4` FROM creature_template WHERE `entry` = %i', $npcId) ?: []
+        ))));
+        if (!$models)
+            return [];
+
+        $ids = DB::World()->selectCol('SELECT DISTINCT `entry` FROM creature_template_addon WHERE `mount` IN %in', $models) ?: [];
+
+        if (self::hasTable('creature_addon'))
+            $ids = array_merge($ids, DB::World()->selectCol(
+               'SELECT DISTINCT c.`id` FROM creature_addon ca JOIN creature c ON c.`guid` = ca.`guid` WHERE ca.`mount` IN %in',
+                $models
+            ) ?: []);
+
+        return array_values(array_diff(array_unique(array_map('intVal', $ids)), [$npcId]));
     }
 
     /** items only lootable by a player on the right quest */
