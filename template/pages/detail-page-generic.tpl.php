@@ -39,6 +39,8 @@
 
     $this->brick('mapper');
 
+    $this->brick('book');
+
     if ($this->transfer):
         echo '    <div class="pad"></div>'.PHP_EOL;
         echo '    '.$this->transfer.PHP_EOL;

@@ -103,7 +103,12 @@ class GameText
      */
     private static function excerpt(string $text) : string
     {
-        $text = Lang::trimTextClean(UIText::format($text, Lang::FMT_RAW), 0);
+        // UIText::format() only turns the html subset page_text carries into bbcode under
+        // Lang::FMT_MARKUP - under FMT_RAW a recognized tag (its <HTML>/<BODY>/<BR>, or any other
+        // tag UIText considers valid) survives untouched, and this excerpt lands in the listing as
+        // a plain text node, so anything still tag-shaped after formatting is stripped here first
+        $text = strip_tags(UIText::format($text, Lang::FMT_RAW));
+        $text = Lang::trimTextClean($text, 0);
 
         return $text !== '' && $text[0] == '$' ? ' '.$text : $text;
     }
@@ -660,10 +665,17 @@ class GameText
         if (!$ptId)
             return null;
 
+        // the locale table too, same as Game::getBook() - a book page rendered here should read
+        // exactly like the one on the item/object page that owns it
         $row = null;
         foreach ([['ID', 'Text'], ['entry', 'text']] as [$idCol, $txtCol])
         {
-            $row = DB::World()->selectRow('SELECT `'.$txtCol.'` AS "Text" FROM page_text WHERE `'.$idCol.'` = %i', $ptId);
+            $row = DB::World()->selectRow(
+               'SELECT pt.`'.$txtCol.'` AS "Text", ptl.`Text` AS "Text_loc'.Lang::getLocale()->value.'"
+                FROM   page_text pt LEFT JOIN page_text_locale ptl ON pt.`'.$idCol.'` = ptl.`ID` AND ptl.`locale` = %s
+                WHERE  pt.`'.$idCol.'` = %i',
+                Lang::getLocale()->json(), $ptId
+            );
             if ($row !== null)
                 break;
         }
@@ -671,9 +683,18 @@ class GameText
         if (!$row)
             return null;
 
+        $raw = Util::localizedString($row, 'Text');
+
         [$type, $entry] = self::pageOwners([$ptId])[$ptId] ?? [null, 0];
 
-        return self::row(self::SRC_PAGE_TEXT, $id, $ptId, (string)$row['Text'], $type, $entry);
+        $out = self::row(self::SRC_PAGE_TEXT, $id, $ptId, $raw, $type, $entry);
+
+        // the excerpt() plain-text version above is fine for the infobox line, but the body needs
+        // the untouched original - it goes through UIText::format(..., Lang::FMT_HTML) instead,
+        // the same pipeline Book already uses, rather than the FMT_RAW one browse() excerpts with
+        $out['raw'] = $raw;
+
+        return $out;
     }
 }
 

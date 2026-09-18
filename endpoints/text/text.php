@@ -25,6 +25,8 @@ class TextBaseResponse extends TemplateResponse
     protected ?int    $activeTab         = parent::TAB_DATABASE;
     protected  array  $breadcrumb        = [0, 109];
 
+    public ?Book $book = null;
+
     private string $rowId = '';
 
     public function __construct(string $id)
@@ -58,12 +60,13 @@ class TextBaseResponse extends TemplateResponse
 
         $this->redButtons = [BUTTON_LINKS => false, BUTTON_WOWHEAD => false];
 
-        $infobox = [Lang::gameText('source').Lang::main('colon').$srcLabel];
+        $infobox = [Util::ucFirst(Lang::gameText('source')).Lang::main('colon').$srcLabel];
 
         if ($row['ownerType'] && $row['ownerId'] > 0)
         {
             // only the types Markup's own tag set can render as a link; a gossip menu (the only
-            // other owner GameText ever names) prints its label plainly instead
+            // other owner GameText ever names) has no tag of its own - it gets a real link below
+            // instead, as a one-row related tab, the same way every other cross-reference here does
             $tag = match ($row['ownerType'])
             {
                 Type::NPC    => 'npc',
@@ -76,13 +79,34 @@ class TextBaseResponse extends TemplateResponse
 
             $this->extendGlobalIds($row['ownerType'], $row['ownerId']);
         }
-        else
-            $infobox[] = Lang::gameText('noOwner');
 
         $this->infobox = new InfoboxMarkup($infobox, ['allow' => Markup::CLASS_STAFF, 'dbpage' => true], 'infobox-contents0');
 
-        // the full line; the listing itself only ever showed a 400-character excerpt of this
-        $this->extraText = new Markup($row['text'], ['allow' => Markup::CLASS_STAFF], 'text-contents0');
+
+        /**************/
+        /* Extra Tabs */
+        /**************/
+
+        if ($row['ownerType'] == Type::GOSSIP)
+        {
+            $menu = new GossipList(array(['id', $row['ownerId']]));
+            if (!$menu->error)
+            {
+                $this->extendGlobalData($menu->getJSGlobals());
+
+                $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"], 'tabsRelated', true);
+                $this->lvTabs->addListviewTab(new Listview(['data' => $menu->getListviewData(), 'name' => Lang::gameText('owner')], GossipList::$brickFile));
+            }
+        }
+
+        // a page_text row is BBCode's own [tag]-based Markup only in name - the format it actually
+        // carries is the html subset UIText::format(..., Lang::FMT_HTML) understands, the same
+        // pipeline Game::getBook() feeds the item/object page's book widget with; every other
+        // source renders as the plain, already-resolved excerpt browse() built
+        if ($row['src'] == GameText::SRC_PAGE_TEXT)
+            $this->book = new Book([$row['raw']], 'book-generic');
+        else
+            $this->extraText = new Markup($row['text'], ['allow' => Markup::CLASS_STAFF], 'text-contents0');
 
         parent::generate();
     }
