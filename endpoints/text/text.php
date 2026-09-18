@@ -64,10 +64,9 @@ class TextBaseResponse extends TemplateResponse
 
         if ($row['ownerType'] && $row['ownerId'] > 0)
         {
-            // Markup's own tag set covers npc/object/item; a gossip menu has no tag of its own, and
-            // a raw <a href> in its place doesn't work either - Markup.js escapes the whole string
-            // first and only unescapes its own recognized [tag] syntax, so hand-written HTML comes
-            // out as literal, dead text
+            // every source's composite id already bakes in exactly one owner (or none) - browse()
+            // splits a text shared by several npcs/menus into one row per owner rather than
+            // listing several on one row - so there is never more than a single reference here
             $tag = match ($row['ownerType'])
             {
                 Type::NPC    => 'npc',
@@ -77,34 +76,18 @@ class TextBaseResponse extends TemplateResponse
             };
 
             if ($tag)
-            {
-                $infobox[] = Lang::gameText('owner').Lang::main('colon').'['.$tag.'='.$row['ownerId'].']';
-                $this->extendGlobalIds($row['ownerType'], $row['ownerId']);
-            }
+                $ownerLink = '['.$tag.'='.$row['ownerId'].']';
+            else if ($row['ownerType'] == Type::GOSSIP)
+                // no [gossip=id] tag exists, but Markup's generic [url] one does - no need for a
+                // Type-specific tag (and the g_* lookup that would come with it) just for this
+                $ownerLink = '[url=?gossip='.$row['ownerId'].']'.$row['ownerName'].'[/url]';
             else
-            {
-                $infobox[] = Lang::gameText('owner').Lang::main('colon').($row['ownerName'] ?: ('#'.$row['ownerId']));
+                $ownerLink = $row['ownerName'] ?: ('#'.$row['ownerId']);
 
-                // a gossip menu is the one owner type left without a link - GossipList enumerates
-                // off gossip_menu, and per its own doc comment a menu built only from
-                // gossip_menu_option rows has no such row even though its detail page resolves
-                // fine regardless; a hand-built one-row tab still links there through the same
-                // getItemLink() every other listview already uses, no bbcode or raw html involved
-                //
-                // unlike npc/object/quest/zone, 'gossip' isn't one of the templates baked into the
-                // static Listview.templates bundle - it only exists as template/listviews/gossip.tpl,
-                // which needs the 3rd (addIn) constructor arg to get inlined onto the page at all;
-                // without it Listview.templates.gossip is undefined and the tab silently never
-                // registers, which is what every existing use of that .tpl file already does
-                if ($row['ownerType'] == Type::GOSSIP)
-                {
-                    $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"], 'tabsRelated', true);
-                    $this->lvTabs->addListviewTab(new Listview(array(
-                        'data' => [['id' => $row['ownerId'], 'name' => $row['ownerName'], 'noptions' => 0]],
-                        'name' => Lang::gameText('owner')
-                    ), GossipList::$brickFile, GossipList::$brickFile));
-                }
-            }
+            $infobox[] = Lang::gameText('owner').Lang::main('colon').$ownerLink;
+
+            if ($tag)
+                $this->extendGlobalIds($row['ownerType'], $row['ownerId']);
         }
 
         $this->infobox = new InfoboxMarkup($infobox, ['allow' => Markup::CLASS_STAFF, 'dbpage' => true], 'infobox-contents0');
