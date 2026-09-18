@@ -74,8 +74,6 @@ Listview.templates.text = {
         }
     ],
     getItemLink: function(t) {
-        // clicking a row navigates here, so it always has to be a real page - a broadcast text
-        // nothing speaks and a page no item holds have no owner to go to
-        return t.ownerid ? ('?' + t.ownerurl + '=' + t.ownerid) : ('?texts&src=' + t.src);
+        return '?text=' + encodeURIComponent(t.id);
     }
 }

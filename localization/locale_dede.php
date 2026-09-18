@@ -1364,35 +1364,66 @@ $lang = array(
         'title'         => 'Template row (%1$s)'
     ),
     'teleport' => array(
-        'title'         => "Named locations"
+        'title'         => "Named locations",
+        'notFound'      => "This location doesn't exist.",
+        'id'            => "ID",
+        'zone'          => "Zone",
+        'map'           => 'Map [b]%1$d[/b]',
+        'position'      => "Position"
     ),
     'trainer' => array(
         'title'         => "Trainers"
     ),
     'graveyard' => array(
-        'title'         => "Graveyards"
+        'title'         => "Graveyards",
+        'notFound'      => "This graveyard doesn't exist.",
+        'id'            => "ID",
+        'map'           => "Map",
+        'resurrects'    => "Resurrects players from",
+        'faction'       => "Faction",
+        'alliance'      => "Alliance",
+        'horde'         => "Horde",
+        'both'          => "Both factions",
+        'neutral'       => "Neutral"
     ),
     'weather' => array(
         'title'         => "Weather"
     ),
     'outdoorpvp' => array(
-        'title'         => "Outdoor PvP"
+        'title'         => "Outdoor PvP",
+        'notFound'      => "This outdoor PvP zone doesn't exist.",
+        'id'            => "Type ID",
+        'scriptName'    => "Script",
+        'comment'       => "Comment"
     ),
     'poi' => array(
-        'title'         => "Points of interest"
+        'title'         => "Points of interest",
+        'notFound'      => "This point of interest doesn't exist.",
+        'id'            => "ID",
+        'zone'          => "Zone",
+        'position'      => "Position",
+        'icon'          => "Icon",
+        'presentedBy'   => "Presented by"
     ),
     'factionchange' => array(
         'title'         => "Faction change"
     ),
     'spellfocus' => array(
-        'title'         => "Spell Focuses"
+        'title'         => "Spell Focuses",
+        'notFound'      => "This spell focus doesn't exist.",
+        'id'            => "ID",
+        'objects'       => "Objects providing this focus",
+        'noObjects'     => "No gameobject in the world DB provides this focus."
     ),
     'gameText' => array(
         'title'         => "Game text",
+        'notFound'      => "This text doesn't exist.",
         'term'          => "text contains",
         'source'        => "source",
         'anySource'     => "Any source",
         'tooShort'      => "Enter at least three characters.",
+        'owner'         => "Owner",
+        'noOwner'       => "Nothing in the world DB references this line.",
         'sources'       => array(
             GameText::SRC_CREATURE_TEXT => "Creature text",
             GameText::SRC_BROADCAST     => "Broadcast text",

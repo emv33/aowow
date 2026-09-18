@@ -7,91 +7,80 @@ if (!defined('AOWOW_REVISION'))
 
 
 /*
- * Browser over `spellfocusobject.dbc`.
+ * A single row of `spellfocusobject.dbc` - see spellfocuses.php for the table's story.
  *
- * A gameobject of type SPELLFOCUS (anvils, forges, altars, Runeforges, ...) names the focus it
- * provides only by its numeric id (`spellFocusId`, generated from `gameobject_template.data0` -
- * see objects.ss.php), and spells that require standing near one point at that same id through
- * SpellCastingRequirements' `RequiresSpellFocus`. Neither side ever resolved the id to the name
- * the DBC already carries.
+ * The listing could only send a click to a pre-filtered objects listing; this gives the focus its
+ * own page, with that same filtered set rendered directly as a related tab instead of a redirect.
  */
 class SpellfocusBaseResponse extends TemplateResponse
 {
-    use TrListPage;
+    use TrDetailPage;
 
     protected  int    $requiredUserGroup = U_GROUP_STAFF;
 
-    protected  string $template          = 'spellfocus';
+    protected  string $template          = 'detail-page-generic';
     protected  string $pageName          = 'spellfocus';
     protected ?int    $activeTab         = parent::TAB_DATABASE;
     protected  array  $breadcrumb        = [0, 119];
 
+    public int $typeId = 0;
+
+    public function __construct(string $id)
+    {
+        parent::__construct($id);
+
+        $this->typeId = intVal($id);
+    }
+
     protected function generate() : void
     {
-        $this->h1 = Util::ucFirst(Lang::spellfocus('title'));
+        if (!$this->typeId || !DB::Aowow()->selectCell('SHOW TABLES LIKE %s', 'aowow_spellfocusobject'))
+            $this->generateNotFound(Lang::spellfocus('title'), Lang::spellfocus('notFound'));
+
+        $row = DB::Aowow()->selectRow(
+           'SELECT `id`, `name_loc0`, `name_loc'.Lang::getLocale()->value.'` FROM ::spellfocusobject WHERE `id` = %i',
+            $this->typeId
+        );
+
+        if (!$row)
+            $this->generateNotFound(Lang::spellfocus('title'), Lang::spellfocus('notFound'));
+
+        $name = Util::localizedString($row, 'name');
 
 
         /**************/
         /* Page Title */
         /**************/
 
-        array_unshift($this->title, $this->h1);
+        $this->h1 = $name !== '' ? ($name[0] == '$' ? ' '.$name : $name) : ('Spell focus #'.$this->typeId);
+
+        array_unshift($this->title, $this->h1, Util::ucFirst(Lang::spellfocus('title')));
 
 
         /****************/
         /* Main Content */
         /****************/
 
-        $this->redButtons[BUTTON_WOWHEAD] = false;
+        $this->redButtons = [BUTTON_LINKS => false, BUTTON_WOWHEAD => false];
 
-        $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"]);
-        $this->lvTabs->addListviewTab(new Listview(['data' => $this->buildListviewData()], 'spellfocus', 'spellfocus'));
+        $infobox = [Lang::spellfocus('id').Lang::main('colon').$this->typeId];
+        $this->infobox = new InfoboxMarkup($infobox, ['allow' => Markup::CLASS_STAFF, 'dbpage' => true], 'infobox-contents0');
 
-        parent::generate();
-    }
 
-    private function buildListviewData() : array
-    {
-        if (!DB::Aowow()->selectCell('SHOW TABLES LIKE %s', 'aowow_spellfocusobject'))
-            return [];
+        /**************/
+        /* Extra Tabs */
+        /**************/
 
-        $rows = DB::Aowow()->selectAssoc('SELECT `id`, `name_loc0`, `name_loc'.Lang::getLocale()->value.'` FROM ::spellfocusobject ORDER BY `id` ASC') ?: [];
+        $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"], 'tabsRelated', true);
 
-        // read straight off the site's own objects table rather than trusting a fixed list of
-        // ids - GameObjectListFilter's cr=50 used to gate this off a hand-typed enum that never
-        // matched what a given core's gameobject_template actually has
-        $usedIds = array_flip(DB::Aowow()->selectCol('SELECT DISTINCT `spellFocusId` FROM ::objects WHERE `spellFocusId` != 0') ?: []);
-
-        $data = [];
-        foreach ($rows as $r)
+        $objects = new GameObjectList(array(['spellFocusId', $this->typeId]));
+        if (!$objects->error)
         {
-            $name = Util::localizedString($r, 'name');
-            $id   = (int)$r['id'];
-
-            $row = array(
-                'id'   => $id,
-                'name' => $name !== '' && $name[0] == '$' ? ' '.$name : $name
-            );
-
-            if (isset($usedIds[$id]))
-                $row['objlink'] = '?objects&filter=cr=50;crs=3;crv='.$id;
-
-            $data[] = $row;
+            $this->extendGlobalData($objects->getJSGlobals());
+            $this->lvTabs->addListviewTab(new Listview(['data' => $objects->getListviewData(), 'name' => Lang::spellfocus('objects')], GameObjectList::$brickFile));
         }
 
-        return $data;
-    }
-
-    protected function generateMetadata(bool $useArticle = true) : void
-    {
-        $this->metaTags[] = ['property' => 'og:title', 'content' => $this->h1];
-        $this->metaTags[] = ['property' => 'og:type',  'content' => 'website'];
-
-        array_unshift($this->metaTags, ['name' => 'keywords', 'content' => [$this->h1, ...Lang::meta('tags', 'generic')]]);
-
-        $this->buildBasicMetadata(Lang::meta('description', 'genList', [$this->h1]));
-
-        $this->buildLdJson();
+        parent::generate();
     }
 }
 

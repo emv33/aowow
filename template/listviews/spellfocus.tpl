@@ -48,7 +48,7 @@ Listview.templates.spellfocus = {
         }
     ],
     getItemLink: function(t) {
-        return t.objlink || 'javascript:;';
+        return '?spellfocus=' + t.id;
     },
     onBeforeCreate: function() {
         // hide the template's own id col when the debug id col is shown
