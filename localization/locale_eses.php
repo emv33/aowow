@@ -1552,6 +1552,7 @@ $lang = array(
         'questItems'    => "Quest items",
         'movement'      => "Movement",
         'mount'         => "Mount",
+        'mountOf'       => "Mount of",
         'mountDisplayId' => "Display ID #%1$d",
         'noMount'       => "No mount",
         'noEmote'       => "No emote",
