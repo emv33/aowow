@@ -1424,7 +1424,6 @@ $lang = array(
         'anySource'     => "Any source",
         'tooShort'      => "Enter at least three characters.",
         'owner'         => "Owner",
-        'noOwner'       => "Nothing in the world DB references this line.",
         'sources'       => array(
             GameText::SRC_CREATURE_TEXT => "Creature text",
             GameText::SRC_BROADCAST     => "Broadcast text",
