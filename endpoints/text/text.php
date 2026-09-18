@@ -64,11 +64,10 @@ class TextBaseResponse extends TemplateResponse
 
         if ($row['ownerType'] && $row['ownerId'] > 0)
         {
-            // Markup's own tag set covers npc/object/item; a gossip menu has no tag of its own,
-            // but its detail page resolves regardless of whether GossipList can enumerate it (a
-            // menu built from gossip_menu_option rows alone has no gossip_menu row to list) - so
-            // this links straight to it with a plain href instead, the same way item.class.php
-            // and friends already build a raw <a href="?type=id"> when there is no bbcode tag for it
+            // Markup's own tag set covers npc/object/item; a gossip menu has no tag of its own, and
+            // a raw <a href> in its place doesn't work either - Markup.js escapes the whole string
+            // first and only unescapes its own recognized [tag] syntax, so hand-written HTML comes
+            // out as literal, dead text
             $tag = match ($row['ownerType'])
             {
                 Type::NPC    => 'npc',
@@ -79,15 +78,27 @@ class TextBaseResponse extends TemplateResponse
 
             if ($tag)
             {
-                $ownerLink = '['.$tag.'='.$row['ownerId'].']';
+                $infobox[] = Lang::gameText('owner').Lang::main('colon').'['.$tag.'='.$row['ownerId'].']';
                 $this->extendGlobalIds($row['ownerType'], $row['ownerId']);
             }
-            else if ($row['ownerType'] == Type::GOSSIP)
-                $ownerLink = '<a href="?gossip='.$row['ownerId'].'">'.$row['ownerName'].'</a>';
             else
-                $ownerLink = $row['ownerName'] ?: ('#'.$row['ownerId']);
+            {
+                $infobox[] = Lang::gameText('owner').Lang::main('colon').($row['ownerName'] ?: ('#'.$row['ownerId']));
 
-            $infobox[] = Lang::gameText('owner').Lang::main('colon').$ownerLink;
+                // a gossip menu is the one owner type left without a link - GossipList enumerates
+                // off gossip_menu, and per its own doc comment a menu built only from
+                // gossip_menu_option rows has no such row even though its detail page resolves
+                // fine regardless; a hand-built one-row tab still links there through the same
+                // getItemLink() every other listview already uses, no bbcode or raw html involved
+                if ($row['ownerType'] == Type::GOSSIP)
+                {
+                    $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"], 'tabsRelated', true);
+                    $this->lvTabs->addListviewTab(new Listview(array(
+                        'data' => [['id' => $row['ownerId'], 'name' => $row['ownerName'], 'noptions' => 0]],
+                        'name' => Lang::gameText('owner')
+                    ), GossipList::$brickFile));
+                }
+            }
         }
 
         $this->infobox = new InfoboxMarkup($infobox, ['allow' => Markup::CLASS_STAFF, 'dbpage' => true], 'infobox-contents0');
@@ -105,7 +116,13 @@ class TextBaseResponse extends TemplateResponse
                 );
         }
         else
-            $this->extraText = new Markup($row['text'], ['allow' => Markup::CLASS_STAFF], 'text-contents0');
+        {
+            // browse()'s excerpt() collapses line breaks to spaces for the listing preview - the
+            // full body instead formats the untouched original the same way Gossip's own page
+            // renders this exact text: UIText::format(..., Lang::FMT_MARKUP), wrapped the same
+            $body = '[span class=gossip-text]'.UIText::format($row['raw'], Lang::FMT_MARKUP).'[/span]';
+            $this->extraText = new Markup($body, ['allow' => Markup::CLASS_STAFF], 'text-contents0');
+        }
 
         parent::generate();
     }
