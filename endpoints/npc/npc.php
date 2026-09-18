@@ -229,7 +229,7 @@ class NpcBaseResponse extends TemplateResponse implements ICache
 
         // `creature_template_addon` holds the mount a creature rides and the emote it stands in,
         // beyond the auras the spell tab already reads from the same row
-        if ($_ = self::getAddon($this->typeId))
+        if ($_ = self::getAddon($this, $this->typeId))
         {
             foreach ($_ as $line)
                 $infobox[] = $line;
@@ -1595,10 +1595,14 @@ class NpcBaseResponse extends TemplateResponse implements ICache
      * the mount a creature rides and the emote it stands in, from `creature_template_addon`
      *
      * the same row's auras are read by the spell tab already; these two columns were not. a
-     * per-spawn `creature_addon` row can override either, and the number of spawns that do is
-     * appended rather than listed.
+     * per-spawn `creature_addon` row can override either, and every spawn that does is listed
+     * by GUID in a collapsed disclosure, the same shape as the ScriptName/StringId one above.
+     *
+     * `mount` is a CreatureDisplayID, not a creature_template entry - [npc=$mount] would only
+     * ever match by coincidence. Resolve it to a real template that actually uses that model
+     * so the tag has something real to link/tooltip; fall back to the bare id if none does.
      */
-    private static function getAddon(int $npcId) : array
+    private static function getAddon(self $resp, int $npcId) : array
     {
         if (!self::hasTable('creature_template_addon'))
             return [];
@@ -1607,14 +1611,19 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         if (!$row)
             return [];
 
-        $lc  = array_change_key_case($row, CASE_LOWER);
-        $out = [];
+        $lc     = array_change_key_case($row, CASE_LOWER);
+        $mount  = (int)($lc['mount'] ?? 0);
+        $emote  = (int)($lc['emote'] ?? 0);
+        $out    = [];
 
-        if ($mount = (int)($lc['mount'] ?? 0))
-            $out[] = Lang::npcExtra('mount').Lang::main('colon').'[npc='.$mount.']';
+        if ($mount)
+            $out[] = Lang::npcExtra('mount').Lang::main('colon').self::formatMount($resp, $mount);
 
-        if ($emote = (int)($lc['emote'] ?? 0))
+        if ($emote)
+        {
+            $resp->extendGlobalIds(Type::EMOTE, $emote);
             $out[] = Lang::npcExtra('emote').Lang::main('colon').'[emote='.$emote.']';
+        }
 
         if (!$out)
             return [];
@@ -1622,16 +1631,61 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         // per-spawn rows that say something different from the template
         if (self::hasTable('creature_addon'))
         {
-            $nOverride = (int)DB::World()->selectCell(
-               'SELECT COUNT(1) FROM creature_addon ca JOIN creature c ON c.`guid` = ca.`guid` WHERE c.`id` = %i AND (ca.`mount` <> %i OR ca.`emote` <> %i)',
+            $rows = DB::World()->selectAssoc(
+               'SELECT   c.`guid` AS ARRAY_KEY, ca.`mount`, ca.`emote`
+                FROM     creature_addon ca
+                JOIN     creature c ON c.`guid` = ca.`guid`
+                WHERE    c.`id` = %i AND (ca.`mount` <> %i OR ca.`emote` <> %i)
+                ORDER BY c.`guid` ASC',
                 $npcId, $mount, $emote
-            );
+            ) ?: [];
 
-            if ($nOverride)
-                $out[] = Lang::npcExtra('addonOverride', [$nOverride]);
+            if ($rows)
+            {
+                $items = '';
+                foreach ($rows as $guid => $r)
+                {
+                    $bits = [];
+
+                    if (($m = (int)$r['mount']) !== $mount)
+                        $bits[] = Lang::npcExtra('mount').Lang::main('colon').($m ? self::formatMount($resp, $m) : '-');
+
+                    if (($e = (int)$r['emote']) !== $emote)
+                    {
+                        if ($e)
+                            $resp->extendGlobalIds(Type::EMOTE, $e);
+                        $bits[] = Lang::npcExtra('emote').Lang::main('colon').($e ? '[emote='.$e.']' : '-');
+                    }
+
+                    $items .= sprintf('[li]GUID: %d - %s[/li]', $guid, implode(', ', $bits));
+                }
+
+                $out[] = '[toggler=hidden id=addonOverride]'.Lang::npcExtra('addonOverride', [count($rows)]).
+                          '[/toggler][div=hidden id=addonOverride][ul]'.$items.'[/ul][/div]';
+            }
         }
 
         return $out;
+    }
+
+    /** resolve a CreatureDisplayID to a real npc that uses it, for linking/tooltip purposes */
+    private static function formatMount(self $resp, int $displayId) : string
+    {
+        static $cache = [];
+
+        if (!array_key_exists($displayId, $cache))
+            $cache[$displayId] = (int)DB::World()->selectCell(
+               'SELECT `entry` FROM creature_template WHERE `modelid1` = %i OR `modelid2` = %i OR `modelid3` = %i OR `modelid4` = %i ORDER BY `entry` ASC LIMIT 1',
+                $displayId, $displayId, $displayId, $displayId
+            );
+
+        if ($cache[$displayId])
+        {
+            $resp->extendGlobalIds(Type::NPC, $cache[$displayId]);
+            return '[npc='.$cache[$displayId].']';
+        }
+
+        return Lang::npcExtra('mountDisplayId', [$displayId]);
     }
 
     /** items only lootable by a player on the right quest */
