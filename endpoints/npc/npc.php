@@ -1648,13 +1648,13 @@ class NpcBaseResponse extends TemplateResponse implements ICache
                     $bits = [];
 
                     if (($m = (int)$r['mount']) !== $mount)
-                        $bits[] = Lang::npcExtra('mount').Lang::main('colon').($m ? self::formatMount($resp, $m) : '-');
+                        $bits[] = Lang::npcExtra('mount').Lang::main('colon').($m ? self::formatMount($resp, $m) : Lang::npcExtra('noMount'));
 
                     if (($e = (int)$r['emote']) !== $emote)
                     {
                         if ($e)
                             $resp->extendGlobalIds(Type::EMOTE, $e);
-                        $bits[] = Lang::npcExtra('emote').Lang::main('colon').($e ? '[emote='.$e.']' : '-');
+                        $bits[] = Lang::npcExtra('emote').Lang::main('colon').($e ? '[emote='.$e.']' : Lang::npcExtra('noEmote'));
                     }
 
                     $items .= sprintf('[li]GUID: %d - %s[/li]', $guid, implode(', ', $bits));
