@@ -90,13 +90,19 @@ class TextBaseResponse extends TemplateResponse
                 // gossip_menu_option rows has no such row even though its detail page resolves
                 // fine regardless; a hand-built one-row tab still links there through the same
                 // getItemLink() every other listview already uses, no bbcode or raw html involved
+                //
+                // unlike npc/object/quest/zone, 'gossip' isn't one of the templates baked into the
+                // static Listview.templates bundle - it only exists as template/listviews/gossip.tpl,
+                // which needs the 3rd (addIn) constructor arg to get inlined onto the page at all;
+                // without it Listview.templates.gossip is undefined and the tab silently never
+                // registers, which is what every existing use of that .tpl file already does
                 if ($row['ownerType'] == Type::GOSSIP)
                 {
                     $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"], 'tabsRelated', true);
                     $this->lvTabs->addListviewTab(new Listview(array(
                         'data' => [['id' => $row['ownerId'], 'name' => $row['ownerName'], 'noptions' => 0]],
                         'name' => Lang::gameText('owner')
-                    ), GossipList::$brickFile));
+                    ), GossipList::$brickFile, GossipList::$brickFile));
                 }
             }
         }
