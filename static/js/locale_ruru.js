@@ -4478,6 +4478,7 @@ var LANG = {
     },
     gossip_options:  "Options",
     gossip_openedby: "Opened by",
+    gossip_menu:     "Gossip menu #$1",
     ficondition: {
         srctype:    "Source type",
         gates:      "Gates",

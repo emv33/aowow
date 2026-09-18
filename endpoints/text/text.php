@@ -72,19 +72,11 @@ class TextBaseResponse extends TemplateResponse
                 Type::NPC    => 'npc',
                 Type::OBJECT => 'object',
                 Type::ITEM   => 'item',
+                Type::GOSSIP => 'gossip',
                 default      => null
             };
 
-            if ($tag)
-                $ownerLink = '['.$tag.'='.$row['ownerId'].']';
-            else if ($row['ownerType'] == Type::GOSSIP)
-                // no [gossip=id] tag exists, but Markup's generic [url] one does - no need for a
-                // Type-specific tag (and the g_* lookup that would come with it) just for this
-                $ownerLink = '[url=?gossip='.$row['ownerId'].']'.$row['ownerName'].'[/url]';
-            else
-                $ownerLink = $row['ownerName'] ?: ('#'.$row['ownerId']);
-
-            $infobox[] = Lang::gameText('owner').Lang::main('colon').$ownerLink;
+            $infobox[] = Lang::gameText('owner').Lang::main('colon').($tag ? '['.$tag.'='.$row['ownerId'].']' : ($row['ownerName'] ?: ('#'.$row['ownerId'])));
 
             if ($tag)
                 $this->extendGlobalIds($row['ownerType'], $row['ownerId']);

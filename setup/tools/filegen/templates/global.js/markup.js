@@ -881,6 +881,38 @@ var Markup = {
                 return '<b><span class="icontiny" style="background-image: url(' + g_staticUrl + '/images/icons/favicon.gif)"><a href="http://www.wowhead.com/forums&topic=2">forum rules</a></span></b>';
             }
         },
+        gossip:
+        {
+            empty: true,
+            allowInReplies: true,
+            attr:
+            {
+                unnamed: { req: true,  valid: /^[0-9]+$/ },
+                domain:  { req: false, valid: MarkupDomainRegexMap.lang },
+                site:    { req: false, valid: MarkupDomainRegexMap.lang }
+            },
+            validate: function(attr)
+            {
+                if ((attr.domain || attr.site) && Markup.dbpage)
+                    return false;
+                return true;
+            },
+            // a gossip menu has no name of its own - there is no g_gossip lookup to try, unlike
+            // every other db-type tag here; this always renders the same #id label the site
+            // already falls back to everywhere else a menu is referenced without one
+            toHtml: function(attr)
+            {
+                var id = attr.unnamed;
+                var domainInfo = Markup._getDatabaseDomainInfo(attr);
+                var url = domainInfo[0];
+
+                return '<a href="' + url + '?gossip=' + id + '"' + Markup._addGlobalAttributes(attr) + '>' + $WH.sprintf(LANG.gossip_menu, id) + '</a>';
+            },
+            toText: function(attr)
+            {
+                return $WH.sprintf(LANG.gossip_menu, attr.unnamed);
+            }
+        },
         hr:
         {
             empty: true,
