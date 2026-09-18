@@ -664,14 +664,13 @@ DROP TABLE IF EXISTS `aowow_creature_waypoints`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `aowow_creature_waypoints` (
   `creatureOrPath` int(11) NOT NULL,
-  `kind` tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '0: waypoint_data path, 1: script_waypoint escort path',
   `point` smallint(5) unsigned NOT NULL,
   `areaId` smallint(5) unsigned NOT NULL,
   `floor` tinyint(4) NOT NULL DEFAULT -1,
   `posX` float unsigned NOT NULL,
   `posY` float unsigned NOT NULL,
   `wait` int(10) unsigned NOT NULL DEFAULT 0,
-  PRIMARY KEY (`kind`,`creatureOrPath`,`point`,`areaId`,`floor`)
+  PRIMARY KEY (`creatureOrPath`,`point`,`areaId`,`floor`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -905,10 +904,6 @@ CREATE TABLE `aowow_factions` (
   `expansion` tinyint(3) unsigned NOT NULL,
   `qmNpcIds` varchar(12) NOT NULL COMMENT 'space separated',
   `templateIds` text NOT NULL COMMENT 'space separated',
-  `friendFactionIds` varchar(255) NOT NULL DEFAULT '' COMMENT 'space separated',
-  `enemyFactionIds` varchar(255) NOT NULL DEFAULT '' COMMENT 'space separated',
-  `likedByFactionIds` varchar(255) NOT NULL DEFAULT '' COMMENT 'space separated',
-  `hatedByFactionIds` varchar(255) NOT NULL DEFAULT '' COMMENT 'space separated',
   `cuFlags` int(10) unsigned NOT NULL DEFAULT 0 COMMENT 'see defines.php for flags',
   `parentFactionId` smallint(5) unsigned NOT NULL,
   `spilloverRateIn` float(8,2) NOT NULL,
@@ -936,14 +931,6 @@ CREATE TABLE `aowow_factiontemplate` (
   `factionId` smallint(5) unsigned NOT NULL,
   `A` tinyint(4) NOT NULL COMMENT 'Aliance: -1 - hostile, 1 - friendly, 0 - neutral',
   `H` tinyint(4) NOT NULL COMMENT 'Horde: -1 - hostile, 1 - friendly, 0 - neutral',
-  `friendFactionId1` smallint(5) unsigned NOT NULL DEFAULT 0,
-  `friendFactionId2` smallint(5) unsigned NOT NULL DEFAULT 0,
-  `friendFactionId3` smallint(5) unsigned NOT NULL DEFAULT 0,
-  `friendFactionId4` smallint(5) unsigned NOT NULL DEFAULT 0,
-  `enemyFactionId1` smallint(5) unsigned NOT NULL DEFAULT 0,
-  `enemyFactionId2` smallint(5) unsigned NOT NULL DEFAULT 0,
-  `enemyFactionId3` smallint(5) unsigned NOT NULL DEFAULT 0,
-  `enemyFactionId4` smallint(5) unsigned NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
