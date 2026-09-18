@@ -565,7 +565,10 @@ class GameText
         if ($txt === null)
             return null;
 
-        return self::row(self::SRC_CREATURE_TEXT, $id, $creatureId, (string)$txt, Type::NPC, $creatureId);
+        $out = self::row(self::SRC_CREATURE_TEXT, $id, $creatureId, (string)$txt, Type::NPC, $creatureId);
+        $out['raw'] = (string)$txt;
+
+        return $out;
     }
 
     private static function oneBroadcastText(string $id, array $p) : ?array
@@ -607,10 +610,14 @@ class GameText
                 default                 => null
             };
 
-            return self::row($encSrc, $id, $btId, $txt, $ownerType, $ownerId);
+            $out = self::row($encSrc, $id, $btId, $txt, $ownerType, $ownerId);
         }
+        else
+            $out = self::row(self::SRC_BROADCAST, $id, $btId, $txt);
 
-        return self::row(self::SRC_BROADCAST, $id, $btId, $txt);
+        $out['raw'] = $txt;
+
+        return $out;
     }
 
     private static function oneNpcText(string $id, array $p) : ?array
@@ -632,7 +639,10 @@ class GameText
         if ($txt === null || (string)$txt === '')
             return null;
 
-        return self::row(self::SRC_NPC_TEXT, $id, $ntId, (string)$txt, $menuId ? Type::GOSSIP : null, $menuId);
+        $out = self::row(self::SRC_NPC_TEXT, $id, $ntId, (string)$txt, $menuId ? Type::GOSSIP : null, $menuId);
+        $out['raw'] = (string)$txt;
+
+        return $out;
     }
 
     private static function oneGossipOption(string $id, array $p) : ?array
@@ -653,7 +663,10 @@ class GameText
         if ($txt === null || (string)$txt === '')
             return null;
 
-        return self::row(self::SRC_GOSSIP_OPTION, $id, $menuId, (string)$txt, Type::GOSSIP, $menuId);
+        $out = self::row(self::SRC_GOSSIP_OPTION, $id, $menuId, (string)$txt, Type::GOSSIP, $menuId);
+        $out['raw'] = (string)$txt;
+
+        return $out;
     }
 
     private static function onePageText(string $id, array $p) : ?array
