@@ -536,6 +536,12 @@ var Menu = new function()
             while(end < nItems && end > start + 1 && $menuItems.eq(end - 1).hasClass('separator'))
                 --end;
 
+            // shrinking can't go below 1 item - if that lone item is the separator itself
+            // (nItemsPerColumn == 1), grow forward instead so the heading is never stranded
+            // alone in its own column either
+            if(end < nItems && end == start + 1 && $menuItems.eq(start).hasClass('separator'))
+                ++end;
+
             $menuItems.slice(start, end).each(function() { $innerDiv.append(this) });
             $outerDiv.append($innerDiv);
             $holder.append($outerDiv);
