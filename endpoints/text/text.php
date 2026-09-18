@@ -100,11 +100,11 @@ class TextBaseResponse extends TemplateResponse
         }
 
         // a page_text row is BBCode's own [tag]-based Markup only in name - the format it actually
-        // carries is the html subset UIText::format(..., Lang::FMT_HTML) understands, the same
-        // pipeline Game::getBook() feeds the item/object page's book widget with; every other
-        // source renders as the plain, already-resolved excerpt browse() built
+        // carries is the html subset Game::getBook() already knows how to read (same call the
+        // item/object page makes for the identical row); every other source renders as the plain,
+        // already-resolved excerpt browse() built
         if ($row['src'] == GameText::SRC_PAGE_TEXT)
-            $this->book = new Book([$row['raw']], 'book-generic');
+            $this->book = Game::getBook($row['entry']);
         else
             $this->extraText = new Markup($row['text'], ['allow' => Markup::CLASS_STAFF], 'text-contents0');
 
