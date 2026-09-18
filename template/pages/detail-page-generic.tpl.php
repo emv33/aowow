@@ -39,7 +39,9 @@
 
     $this->brick('mapper');
 
-    $this->brick('book');
+    // no floated content precedes this here, unlike on item/object's own templates - the
+    // brick's usual clearing div would just be dead space
+    $this->brick('book', ['noClear' => true]);
 
     if ($this->transfer):
         echo '    <div class="pad"></div>'.PHP_EOL;
