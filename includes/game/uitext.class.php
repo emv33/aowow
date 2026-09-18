@@ -54,6 +54,12 @@ final class UIText
         if (!$text)
             return '';
 
+        // world db text is free-form and may contain literal '[' of its own (e.g. stray, mismatched
+        // bbcode pasted into gossip/npc text); escape it so Markup.js treats it as text instead of
+        // getting misparsed as (the start of) a tag, which desyncs the parser for everything after it
+        if ($fmt == Lang::FMT_MARKUP && strpos($text, '[') !== false)
+            $text = str_replace('[', '\[', $text);
+
         if (strpos($text, '|') !== false)
             $text = self::unescapeUISequences($text, $fmt);
 
