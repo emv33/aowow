@@ -64,9 +64,11 @@ class TextBaseResponse extends TemplateResponse
 
         if ($row['ownerType'] && $row['ownerId'] > 0)
         {
-            // only the types Markup's own tag set can render as a link; a gossip menu (the only
-            // other owner GameText ever names) has no tag of its own - it gets a real link below
-            // instead, as a one-row related tab, the same way every other cross-reference here does
+            // Markup's own tag set covers npc/object/item; a gossip menu has no tag of its own,
+            // but its detail page resolves regardless of whether GossipList can enumerate it (a
+            // menu built from gossip_menu_option rows alone has no gossip_menu row to list) - so
+            // this links straight to it with a plain href instead, the same way item.class.php
+            // and friends already build a raw <a href="?type=id"> when there is no bbcode tag for it
             $tag = match ($row['ownerType'])
             {
                 Type::NPC    => 'npc',
@@ -75,29 +77,20 @@ class TextBaseResponse extends TemplateResponse
                 default      => null
             };
 
-            $infobox[] = Lang::gameText('owner').Lang::main('colon').($tag ? '['.$tag.'='.$row['ownerId'].']' : ($row['ownerName'] ?: ('#'.$row['ownerId'])));
+            if ($tag)
+            {
+                $ownerLink = '['.$tag.'='.$row['ownerId'].']';
+                $this->extendGlobalIds($row['ownerType'], $row['ownerId']);
+            }
+            else if ($row['ownerType'] == Type::GOSSIP)
+                $ownerLink = '<a href="?gossip='.$row['ownerId'].'">'.$row['ownerName'].'</a>';
+            else
+                $ownerLink = $row['ownerName'] ?: ('#'.$row['ownerId']);
 
-            $this->extendGlobalIds($row['ownerType'], $row['ownerId']);
+            $infobox[] = Lang::gameText('owner').Lang::main('colon').$ownerLink;
         }
 
         $this->infobox = new InfoboxMarkup($infobox, ['allow' => Markup::CLASS_STAFF, 'dbpage' => true], 'infobox-contents0');
-
-
-        /**************/
-        /* Extra Tabs */
-        /**************/
-
-        if ($row['ownerType'] == Type::GOSSIP)
-        {
-            $menu = new GossipList(array(['id', $row['ownerId']]));
-            if (!$menu->error)
-            {
-                $this->extendGlobalData($menu->getJSGlobals());
-
-                $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"], 'tabsRelated', true);
-                $this->lvTabs->addListviewTab(new Listview(['data' => $menu->getListviewData(), 'name' => Lang::gameText('owner')], GossipList::$brickFile));
-            }
-        }
 
         // a page_text row is BBCode's own [tag]-based Markup only in name - the format it actually
         // carries is the html subset Game::getBook() already knows how to read (same call the
