@@ -27,6 +27,7 @@ class Markup implements \JsonSerializable
         'enchantment'       => [Type::ENCHANTMENT, true,  self::STRIP_NONE, null],
         'event'             => [Type::WORLDEVENT,  true,  self::STRIP_NONE, null],
         'faction'           => [Type::FACTION,     true,  self::STRIP_NONE, null],
+        'gossip'            => [Type::GOSSIP,      true,  self::STRIP_NONE, null],   // aowow - custom: no g_* lookup, always the #id fallback (see markup.js)
         'icondb'            => [Type::ICON,        true,  self::STRIP_NONE, null],
         'item'              => [Type::ITEM,        true,  self::STRIP_NONE, null],
         'itemset'           => [Type::ITEMSET,     true,  self::STRIP_NONE, null],

@@ -4518,6 +4518,7 @@ var LANG = {
     },
     gossip_options:  "选项",
     gossip_openedby: "打开者",
+    gossip_menu:     "Gossip menu #$1",
     ficondition: {
         srctype:    "Source type",
         gates:      "Gates",
