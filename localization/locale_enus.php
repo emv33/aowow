@@ -1552,6 +1552,7 @@ $lang = array(
         'questItems'    => "Quest items",
         'movement'      => "Movement",
         'mount'         => "Mount",
+        'mountDisplayId' => "Display ID #%1$d",
         'emote'         => "Emote",
         'addonOverride' => '%1$d spawn(s) override it',
         'movementOverride' => '%1$d spawn(s) move differently',
