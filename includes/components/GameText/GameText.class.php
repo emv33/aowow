@@ -665,17 +665,10 @@ class GameText
         if (!$ptId)
             return null;
 
-        // the locale table too, same as Game::getBook() - a book page rendered here should read
-        // exactly like the one on the item/object page that owns it
         $row = null;
         foreach ([['ID', 'Text'], ['entry', 'text']] as [$idCol, $txtCol])
         {
-            $row = DB::World()->selectRow(
-               'SELECT pt.`'.$txtCol.'` AS "Text", ptl.`Text` AS "Text_loc'.Lang::getLocale()->value.'"
-                FROM   page_text pt LEFT JOIN page_text_locale ptl ON pt.`'.$idCol.'` = ptl.`ID` AND ptl.`locale` = %s
-                WHERE  pt.`'.$idCol.'` = %i',
-                Lang::getLocale()->json(), $ptId
-            );
+            $row = DB::World()->selectRow('SELECT `'.$txtCol.'` AS "Text" FROM page_text WHERE `'.$idCol.'` = %i', $ptId);
             if ($row !== null)
                 break;
         }
@@ -683,18 +676,9 @@ class GameText
         if (!$row)
             return null;
 
-        $raw = Util::localizedString($row, 'Text');
-
         [$type, $entry] = self::pageOwners([$ptId])[$ptId] ?? [null, 0];
 
-        $out = self::row(self::SRC_PAGE_TEXT, $id, $ptId, $raw, $type, $entry);
-
-        // the excerpt() plain-text version above is fine for the infobox line, but the body needs
-        // the untouched original - it goes through UIText::format(..., Lang::FMT_HTML) instead,
-        // the same pipeline Book already uses, rather than the FMT_RAW one browse() excerpts with
-        $out['raw'] = $raw;
-
-        return $out;
+        return self::row(self::SRC_PAGE_TEXT, $id, $ptId, (string)$row['Text'], $type, $entry);
     }
 }
 
