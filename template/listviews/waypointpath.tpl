@@ -1,9 +1,48 @@
 Listview.templates.waypointpath = {
-    sort: [1],
+    sort: [3],                                              // 1-based index into columns[] below - 'zone', unchanged by the 'npc' column moving to the front
     searchable: 1,
     filtrable: 1,
 
     columns: [
+        {
+            // a path's 'npc' is always exactly one entry (see WaypointPathList::getListviewData() -
+            // it's a scalar, never a list), so this is always "NPC", never "NPCs"
+            id: 'npc',
+            name: LANG.waypointpath_npc,
+            type: 'text',
+            width: '25%',
+            compute: function(wp, td) {
+                var nameCol = 'name_' + Locale.getName(),
+                    e       = wp.npc && g_npcs[wp.npc];
+
+                if (!e || !e[nameCol])
+                    return -1;
+
+                var a = $WH.ce('a');
+                a.className = 'q1';
+                a.href = '?npc=' + wp.npc;
+                $WH.ae(a, $WH.ct(e[nameCol]));
+                $WH.ae(td, a);
+
+                // empty for every path that applies to every spawn of the npc; set only for one
+                // pinned to a specific spawn (creature_addon, or a SmartAI action keyed to a
+                // negative entryorguid)
+                if (wp.guid) {
+                    var sm = $WH.ce('small');
+                    sm.className = 'q0';
+                    $WH.ae(sm, $WH.ct(' (GUID: ' + wp.guid + ')'));
+                    $WH.ae(td, sm);
+                }
+            },
+            getVisibleText: function(wp) {
+                var nameCol = 'name_' + Locale.getName(),
+                    e       = wp.npc && g_npcs[wp.npc];
+                return e ? (e[nameCol] || '') : '';
+            },
+            sortFunc: function(a, b, col) {
+                return $WH.strcmp(this.getVisibleText(a), this.getVisibleText(b));
+            }
+        },
         {
             id: 'id',
             name: 'ID',
@@ -58,50 +97,6 @@ Listview.templates.waypointpath = {
             getVisibleText: function(wp) {
                 return wp.viaSmartAI ? LANG.waypointpath_sourcesmartai : LANG.waypointpath_sourcedefault;
             }
-        },
-        {
-            id: 'npc',
-            name: LANG.tab_npcs,
-            type: 'text',
-            width: '22%',
-            compute: function(wp, td) {
-                var nameCol = 'name_' + Locale.getName(),
-                    e       = wp.npc && g_npcs[wp.npc];
-
-                if (!e || !e[nameCol])
-                    return -1;
-
-                var a = $WH.ce('a');
-                a.className = 'q1';
-                a.href = '?npc=' + wp.npc;
-                $WH.ae(a, $WH.ct(e[nameCol]));
-                $WH.ae(td, a);
-            },
-            getVisibleText: function(wp) {
-                var nameCol = 'name_' + Locale.getName(),
-                    e       = wp.npc && g_npcs[wp.npc];
-                return e ? (e[nameCol] || '') : '';
-            },
-            sortFunc: function(a, b, col) {
-                return $WH.strcmp(this.getVisibleText(a), this.getVisibleText(b));
-            }
-        },
-        {
-            // empty for every path that applies to every spawn of the npc; set only for one
-            // pinned to a specific spawn (creature_addon, or a SmartAI action keyed to a negative
-            // entryorguid) - see e7df82c2 for why this is worth a column of its own rather than
-            // folded into 'npc', which a page embedding this listview for one npc hides
-            id: 'guid',
-            name: 'GUID',
-            type: 'num',
-            width: '10%',
-            compute: function(wp, td) {
-                if (!wp.guid)
-                    return -1;
-
-                $WH.ae(td, $WH.ct(wp.guid));
-            },
-            value: 'guid'
         }
     ],
     getItemLink: function(wp) {
