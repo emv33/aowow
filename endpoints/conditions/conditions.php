@@ -140,7 +140,11 @@ class ConditionsBaseResponse extends TemplateResponse implements ICache
                 'entry'       => $r['entry'],
                 'srcid'       => $r['srcId'],
                 'nconditions' => $r['nConditions'],
-                'cndtypes'    => $r['cndTypes']
+                'cndtypes'    => $r['cndTypes'],
+                // ?condition='s own id - raw SourceGroup/Entry/Id, taken before 'entry' below is
+                // possibly overwritten for display (SRC_SMART_EVENT); a resolved, positive display
+                // id would look up the wrong row (or none) once ?condition re-queries `conditions`
+                'cid'         => $r['srcType'].':'.$r['group'].':'.$r['entry'].':'.$r['srcId']
             );
 
             // the listview cannot map a Type to its g_* lookup on its own, so name both here

@@ -1284,6 +1284,16 @@ $lang = array(
         'colCount'      => "Conditions",
         'colTypes'      => "Condition types"
     ),
+    'condition' => array(
+        'notFound'   => "This condition doesn't exist.",
+        'title'      => '%1$s: %2$s',
+        'titleRaw'   => '%1$s #%2$d',
+        'conditions' => "Conditions",
+        'source'     => "Source",
+        'srcGroup'   => "Source group",
+        'srcEntry'   => "Source entry",
+        'srcId'      => "Source ID"
+    ),
     'smartaiBrowser' => array(
         'srcType'       => "Source type",
         'eventType'     => "Event",
