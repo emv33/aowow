@@ -14,10 +14,11 @@ if (!defined('AOWOW_REVISION'))
  * Nothing enumerated it: a spell page knew it could be trained, but not by whom, and a trainer
  * NPC had no list of its lessons. One row per trainer-spell pair, filtered by `spell` or `npc`.
  */
-class TrainersBaseResponse extends TemplateResponse
+class TrainersBaseResponse extends TemplateResponse implements ICache
 {
-    use TrListPage;
+    use TrListPage, TrCache;
 
+    protected  int    $cacheType  = CACHE_TYPE_LIST_PAGE;
     protected  string $template   = 'trainers';
     protected  string $pageName   = 'trainers';
     protected  int    $requiredUserGroup = U_GROUP_STAFF;
@@ -33,6 +34,13 @@ class TrainersBaseResponse extends TemplateResponse
     public function __construct(string $rawParam)
     {
         parent::__construct($rawParam);
+    }
+
+    // no single Type:: - a browser over the world DB trainer tables, filtered by ?spell/?npc
+    // rather than a Filter object that TrListPage's default key would pick up on its own
+    public function getCacheKeyComponents() : array
+    {
+        return array(-13, -1, User::$groups, md5(serialize($this->_get)));
     }
 
     protected function generate() : void

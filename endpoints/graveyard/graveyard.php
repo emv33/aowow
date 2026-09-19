@@ -14,10 +14,11 @@ if (!defined('AOWOW_REVISION'))
  * several zones has no single zone to represent it, and the zone page it did land on had no way
  * to say which of its (possibly several) graveyards this even was. This gives the row its own page.
  */
-class GraveyardBaseResponse extends TemplateResponse
+class GraveyardBaseResponse extends TemplateResponse implements ICache
 {
-    use TrDetailPage;
+    use TrDetailPage, TrCache;
 
+    protected  int    $cacheType         = CACHE_TYPE_DETAIL_PAGE;
     protected  int    $requiredUserGroup = U_GROUP_STAFF;
 
     protected  string $template          = 'detail-page-generic';
@@ -25,6 +26,7 @@ class GraveyardBaseResponse extends TemplateResponse
     protected ?int    $activeTab         = parent::TAB_DATABASE;
     protected  array  $breadcrumb        = [0, 113];
 
+    public int $type   = -2;    // no Type:: entry - no DBTypeList backs this ad hoc table read; shared sentinel with GraveyardsBaseResponse
     public int $typeId = 0;
 
     public function __construct(string $id)

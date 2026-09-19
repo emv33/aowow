@@ -14,10 +14,12 @@ if (!defined('AOWOW_REVISION'))
  * Cores without the position table keep everything in the link table: `Comment` carries the
  * name and the map is derived from the ghost zone.
  */
-class GraveyardsBaseResponse extends TemplateResponse
+class GraveyardsBaseResponse extends TemplateResponse implements ICache
 {
-    use TrListPage;
+    use TrListPage, TrCache;
 
+    protected  int    $type       = -2;    // no Type:: entry - no DBTypeList backs this ad hoc table read; shared sentinel with GraveyardBaseResponse
+    protected  int    $cacheType  = CACHE_TYPE_LIST_PAGE;
     protected  string $template   = 'graveyards';
     protected  string $pageName   = 'graveyards';
     protected  int    $requiredUserGroup = U_GROUP_STAFF;

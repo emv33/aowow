@@ -6,10 +6,11 @@ if (!defined('AOWOW_REVISION'))
     die('illegal access');
 
 
-class WaypointpathBaseResponse extends TemplateResponse
+class WaypointpathBaseResponse extends TemplateResponse implements ICache
 {
-    use TrDetailPage;
+    use TrDetailPage, TrCache;
 
+    protected  int    $cacheType         = CACHE_TYPE_DETAIL_PAGE;
     protected  int    $requiredUserGroup = U_GROUP_STAFF;
 
     protected  string $template          = 'detail-page-generic';

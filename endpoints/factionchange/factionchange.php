@@ -13,10 +13,12 @@ if (!defined('AOWOW_REVISION'))
  * spell, item, quest, reputation and title is on the other side. Nothing enumerated them; the
  * faction page only ever resolved its own pendant.
  */
-class FactionchangeBaseResponse extends TemplateResponse
+class FactionchangeBaseResponse extends TemplateResponse implements ICache
 {
-    use TrListPage;
+    use TrListPage, TrCache;
 
+    protected  int    $type       = -12;   // no single Type:: - a browser over several unrelated player_factionchange_* tables
+    protected  int    $cacheType  = CACHE_TYPE_LIST_PAGE;
     protected  string $template   = 'factionchange';
     protected  string $pageName   = 'factionchange';
     protected  int    $requiredUserGroup = U_GROUP_STAFF;

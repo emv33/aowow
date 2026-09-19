@@ -13,10 +13,11 @@ if (!defined('AOWOW_REVISION'))
  * addressable through the achievement. This enumerates them by id and links each row
  * back to the achievement it belongs to.
  */
-class AchievementcriteriaBaseResponse extends TemplateResponse
+class AchievementcriteriaBaseResponse extends TemplateResponse implements ICache
 {
-    use TrListPage;
+    use TrListPage, TrCache;
 
+    protected  int    $cacheType  = CACHE_TYPE_LIST_PAGE;
     protected  string $template   = 'achievement-criteria';
     protected  string $pageName   = 'achievement-criteria';
     protected ?int    $activeTab  = parent::TAB_DATABASE;
@@ -38,6 +39,13 @@ class AchievementcriteriaBaseResponse extends TemplateResponse
     public function __construct(string $rawParam)
     {
         parent::__construct($rawParam);
+    }
+
+    // no single Type:: - a browser over the aowow `achievementcriteria` table, filtered by
+    // ?ac/?id/?ty/?fl/?na rather than a Filter object that TrListPage's default key would pick up
+    public function getCacheKeyComponents() : array
+    {
+        return array(-11, -1, User::$groups, md5(serialize($this->_get)));
     }
 
     protected function generate() : void

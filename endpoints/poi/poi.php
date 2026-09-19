@@ -14,10 +14,11 @@ if (!defined('AOWOW_REVISION'))
  * at it, found the same way pois.php resolves a map for the listing (menu -> ancestor menus ->
  * whichever creature/object/SmartAI script sends one of them).
  */
-class PoiBaseResponse extends TemplateResponse
+class PoiBaseResponse extends TemplateResponse implements ICache
 {
-    use TrDetailPage;
+    use TrDetailPage, TrCache;
 
+    protected  int    $cacheType         = CACHE_TYPE_DETAIL_PAGE;
     protected  int    $requiredUserGroup = U_GROUP_STAFF;
 
     protected  string $template          = 'detail-page-generic';
@@ -25,6 +26,7 @@ class PoiBaseResponse extends TemplateResponse
     protected ?int    $activeTab         = parent::TAB_DATABASE;
     protected  array  $breadcrumb        = [0, 116];
 
+    public int $type   = -4;    // no Type:: entry - no DBTypeList backs this ad hoc table read; shared sentinel with PoisBaseResponse
     public int $typeId = 0;
 
     public function __construct(string $id)

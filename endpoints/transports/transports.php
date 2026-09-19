@@ -17,10 +17,12 @@ if (!defined('AOWOW_REVISION'))
  * The world `transports` table lists the instances that are actually spawned; a template without a
  * row there exists but never runs.
  */
-class TransportsBaseResponse extends TemplateResponse
+class TransportsBaseResponse extends TemplateResponse implements ICache
 {
-    use TrListPage;
+    use TrListPage, TrCache;
 
+    protected  int    $type              = -14;   // no single Type:: - transports are gameobjects (see the doc comment above); this is a view over them, not a new type
+    protected  int    $cacheType         = CACHE_TYPE_LIST_PAGE;
     protected  int    $requiredUserGroup = U_GROUP_STAFF;
 
     protected  string $template          = 'transports';

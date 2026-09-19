@@ -12,10 +12,11 @@ if (!defined('AOWOW_REVISION'))
  * The listing pinned every row on the general maps page; this gives each one its own address,
  * with the same single-point mapper pin an areatrigger or a waypoint gets.
  */
-class TeleportBaseResponse extends TemplateResponse
+class TeleportBaseResponse extends TemplateResponse implements ICache
 {
-    use TrDetailPage;
+    use TrDetailPage, TrCache;
 
+    protected  int    $cacheType         = CACHE_TYPE_DETAIL_PAGE;
     protected  int    $requiredUserGroup = U_GROUP_STAFF;
 
     protected  string $template          = 'detail-page-generic';
@@ -23,6 +24,7 @@ class TeleportBaseResponse extends TemplateResponse
     protected ?int    $activeTab         = parent::TAB_DATABASE;
     protected  array  $breadcrumb        = [0, 111];
 
+    public int $type   = -7;    // no Type:: entry - no DBTypeList backs this ad hoc table read; shared sentinel with TeleportsBaseResponse
     public int $typeId = 0;
 
     public function __construct(string $id)

@@ -14,10 +14,11 @@ if (!defined('AOWOW_REVISION'))
  * see which source types carry conditions at all. This enumerates the distinct sources; rendering
  * the conditions of one source stays with Conditions::getBySource() on that entity's own page.
  */
-class ConditionsBaseResponse extends TemplateResponse
+class ConditionsBaseResponse extends TemplateResponse implements ICache
 {
-    use TrListPage;
+    use TrListPage, TrCache;
 
+    protected  int    $cacheType         = CACHE_TYPE_LIST_PAGE;
     protected  int    $requiredUserGroup = U_GROUP_STAFF;
 
     protected  string $template          = 'conditions';
@@ -38,6 +39,13 @@ class ConditionsBaseResponse extends TemplateResponse
     public array $srcTypeList = [];                         // for the form in the template
     public array $cndTypeList = [];
     public array $formValues  = [];
+
+    // no single Type:: - a browser over `conditions`, filtered by ?src/?cnd/?val/?ent rather than
+    // a Filter object that TrListPage's default key would pick up on its own
+    public function getCacheKeyComponents() : array
+    {
+        return array(-9, -1, User::$groups, md5(serialize($this->_get)));
+    }
 
     protected function generate() : void
     {
