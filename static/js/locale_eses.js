@@ -4623,11 +4623,14 @@ var LANG = {
         sepgeneral: "General",
         id:         "ID",
         points:     "Points",
-        foundin:    "Found in..."
+        foundin:    "Found in...",
+        viasmartai: "Assigned by SmartAI"
     },
     waypointpath_kindmovement: "Movement path",
     waypointpath_kindescort:   "Escort path",
     waypointpath_points:       "Points",
+    waypointpath_sourcedefault: "Default",
+    waypointpath_sourcesmartai: "SmartAI",
     // end aowow custom
 
     pr_notice:     '¿La primera vez? &ndash; ¡No temas! ¡Visita nuestra <a href="?help=profiler" target="_blank">página de ayuda</a>! &nbsp; <small class="q0"><a href="javascript:;">cerrar</a></small>',

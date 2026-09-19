@@ -32,7 +32,7 @@ class WaypointPathList extends DBTypeList
     protected string $queryBase =
        'SELECT x.*, x.id AS ARRAY_KEY FROM (
             SELECT (CASE `kind` WHEN 0 THEN -`creatureOrPath` ELSE '.self::KIND_OFFSET.' - `creatureOrPath` END) AS "id",
-                   `kind`, -`creatureOrPath` AS "sourceId", COUNT(1) AS "numPoints", SUM(`wait`) AS "totalWait", MIN(NULLIF(`areaId`, 0)) AS "areaId"
+                   `kind`, -`creatureOrPath` AS "sourceId", COUNT(1) AS "numPoints", SUM(`wait`) AS "totalWait", MIN(NULLIF(`areaId`, 0)) AS "areaId", MAX(`viaSmartAI`) AS "viaSmartAI"
             FROM   ::creature_waypoints
             GROUP BY `kind`, `creatureOrPath`
         ) x';
@@ -68,10 +68,15 @@ class WaypointPathList extends DBTypeList
 
         $ids = DB::World()->selectCol(
            'SELECT DISTINCT ca.`path_id`  FROM creature_addon ca JOIN creature c ON c.`guid` = ca.`guid` WHERE c.`id` = %i AND ca.`path_id` > 0 UNION
-            SELECT DISTINCT cta.`path_id` FROM creature_template_addon cta WHERE cta.`entry` = %i AND cta.`path_id` > 0 UNION
-            SELECT DISTINCT ss.`action_param2` FROM smart_scripts ss WHERE ss.`source_type` = %i AND ss.`action_type` = %i AND ss.`action_param2` > 0 AND ss.`entryorguid` = %i',
-            $npcId, $npcId, SmartAI::SRC_TYPE_CREATURE, SmartAction::ACTION_WP_START, $npcId
+            SELECT DISTINCT cta.`path_id` FROM creature_template_addon cta WHERE cta.`entry` = %i AND cta.`path_id` > 0',
+            $npcId, $npcId
         ) ?: [];
+
+        // covers every ACTION_WP_START assignment - guid-pinned or not, direct or through a timed
+        // action list - see SmartAI::getWaypointStartOwners()
+        foreach (SmartAI::getWaypointStartOwners() as $pathId => $owner)
+            if ($owner['entry'] == $npcId)
+                $ids[] = $pathId;
 
         $out = array_values(array_unique(array_map('intVal', $ids)));
 
@@ -87,31 +92,32 @@ class WaypointPathList extends DBTypeList
         $npcOwner = [];
 
         // kind 0 paths are walked by whichever creature(s) reference this path id as their default
-        // (*_addon), or that a SmartAI ACTION_WP_START assigns it to at runtime - same three
-        // sources spawns.ss.php's waypoints() step and getPathIdsForNPC() already read
+        // (*_addon), or that a SmartAI ACTION_WP_START assigns it to at runtime - directly or
+        // through a timed action list it calls (SmartAI::getWaypointStartOwners(), shared with
+        // spawns.ss.php's waypoints() step and ::getPathIdsForNPC())
         //
         // `guid` is only non-zero for a source that pins the path to one specific spawn
         // (creature_addon, or a SmartAI entry tied to a negative entryorguid) rather than every
-        // spawn of the entry (creature_template_addon, or a positive entryorguid) - worth
-        // surfacing, since the latter reads as "every X walks this" when only one does
+        // spawn of the entry (creature_template_addon, a positive entryorguid, or a timed action
+        // list call) - worth surfacing, since the latter reads as "every X walks this" when only
+        // one does
         if ($sourceIds = array_column(array_filter($this->templates, fn($t) => $t['kind'] == self::KIND_MOVEMENT), 'sourceId'))
         {
             $rows = DB::World()->selectAssoc(
                'SELECT `path_id` AS ARRAY_KEY, `entry`, `guid` FROM (
                     SELECT ca.`path_id`, c.`id` AS "entry", c.`guid` AS "guid" FROM creature_addon ca JOIN creature c ON c.`guid` = ca.`guid` WHERE ca.`path_id` IN %in UNION
-                    SELECT cta.`path_id`, cta.`entry`, 0 AS "guid" FROM creature_template_addon cta WHERE cta.`path_id` IN %in UNION
-                    SELECT ss.`action_param2` AS "path_id", ss.`entryorguid` AS "entry", 0 AS "guid" FROM smart_scripts ss
-                        WHERE ss.`source_type` = %i AND ss.`action_type` = %i AND ss.`action_param2` IN %in AND ss.`entryorguid` > 0 UNION
-                    SELECT ss.`action_param2` AS "path_id", c.`id` AS "entry", c.`guid` AS "guid" FROM smart_scripts ss JOIN creature c ON c.`guid` = -ss.`entryorguid`
-                        WHERE ss.`source_type` = %i AND ss.`action_type` = %i AND ss.`action_param2` IN %in AND ss.`entryorguid` < 0
+                    SELECT cta.`path_id`, cta.`entry`, 0 AS "guid" FROM creature_template_addon cta WHERE cta.`path_id` IN %in
                 ) x',
-                $sourceIds, $sourceIds,
-                SmartAI::SRC_TYPE_CREATURE, SmartAction::ACTION_WP_START, $sourceIds,
-                SmartAI::SRC_TYPE_CREATURE, SmartAction::ACTION_WP_START, $sourceIds
+                $sourceIds, $sourceIds
             ) ?: [];
 
             foreach ($rows as $pathId => $row)
                 $npcOwner[self::KIND_MOVEMENT][$pathId] = ['npc' => (int)$row['entry'], 'guid' => (int)$row['guid']];
+
+            // a SmartAI assignment on the same pathId wins over a stale *_addon default, same
+            // priority spawns.ss.php's REPLACE INTO gives it
+            foreach (array_intersect_key(SmartAI::getWaypointStartOwners(), array_flip($sourceIds)) as $pathId => $o)
+                $npcOwner[self::KIND_MOVEMENT][$pathId] = ['npc' => $o['entry'], 'guid' => $o['guid']];
         }
 
         foreach ($this->iterate() as $__)
@@ -124,7 +130,8 @@ class WaypointPathList extends DBTypeList
                 'kind'       => $kind,
                 'numpoints'  => (int)$this->curTpl['numPoints'],
                 'totalwait'  => (int)$this->curTpl['totalWait'],
-                'areaId'     => (int)$this->curTpl['areaId']
+                'areaId'     => (int)$this->curTpl['areaId'],
+                'viaSmartAI' => (int)$this->curTpl['viaSmartAI']
             );
 
             // kind 1 escort paths are keyed by the creature entry itself
@@ -153,21 +160,22 @@ class WaypointPathListFilter extends Filter
     );
 
     protected static array $genericFilter = array(
-        2 => [parent::CR_NUMERIC, 'id',        NUM_CAST_INT      ], // id
-        3 => [parent::CR_NUMERIC, 'numPoints', NUM_CAST_INT      ], // points
-        4 => [parent::CR_ENUM,    'areaId',    false,        true]  // foundin
+        2 => [parent::CR_NUMERIC, 'id',         NUM_CAST_INT      ], // id
+        3 => [parent::CR_NUMERIC, 'numPoints',  NUM_CAST_INT      ], // points
+        4 => [parent::CR_ENUM,    'areaId',     false,        true], // foundin
+        5 => [parent::CR_BOOLEAN, 'viaSmartAI'                    ]  // smartai
     );
 
     // fieldId => [checkType, checkValue[, fieldIsArray]]
     protected static array $inputFields = array(
-        'cr'  => [parent::V_LIST,  [2, 3, 4], true ], // criteria ids
-        'crs' => [parent::V_RANGE, [1, 4987], true ], // criteria operators
+        'cr'  => [parent::V_LIST,  [2, 3, 4, 5], true ], // criteria ids
+        'crs' => [parent::V_RANGE, [1, 4987],    true ], // criteria operators
         'crv' => [parent::V_REGEX, parent::PATTERN_INT, true], // criteria values - all criteria are numeric here
         'ma'  => [parent::V_EQUAL, 1,         false]  // match any / all filter
     );
 
-    // id/points/foundin are all plain criteria rows handled generically via $genericFilter above -
-    // there are no dedicated form fields (e.g. a name search box) of their own to translate here
+    // id/points/foundin/smartai are all plain criteria rows handled generically via $genericFilter
+    // above - there are no dedicated form fields (e.g. a name search box) of their own to translate here
     protected function createSQLForValues() : array
     {
         return [];

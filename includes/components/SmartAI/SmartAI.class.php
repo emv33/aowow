@@ -710,6 +710,54 @@ class SmartAI
 
         return $out;
     }
+
+    /**
+     * every ACTION_WP_START-assigned `waypoint_data` path, and which npc starts it - directly on
+     * its own script (guid-pinned via a negative `entryorguid`, or every spawn of the entry via a
+     * positive one), or indirectly through a timed action list it calls (see
+     * getActionListOwners()) - shared by spawns.ss.php's waypoints() step and
+     * WaypointPathList::getListviewData()/getPathIdsForNPC(), so a path only ever assigned through
+     * a timed action list isn't invisible to any of the three
+     *
+     * @return array  [pathId => ['entry' => int, 'guid' => int]]  `guid` is 0 unless the
+     *                assignment pins the path to one specific spawn rather than every spawn of the
+     *                entry - a timed action list call can never pin one, getActionListOwners()
+     *                already collapses that down to the entry
+     */
+    public static function getWaypointStartOwners() : array
+    {
+        $out = [];
+
+        $direct = DB::World()->selectAssoc(
+           'SELECT `action_param2` AS "path_id", `entryorguid` AS "entry", 0 AS "guid" FROM smart_scripts
+                WHERE `source_type` = %i AND `action_type` = %i AND `action_param2` > 0 AND `entryorguid` > 0 UNION
+            SELECT ss.`action_param2` AS "path_id", c.`id` AS "entry", c.`guid` AS "guid" FROM smart_scripts ss JOIN creature c ON c.`guid` = -ss.`entryorguid`
+                WHERE ss.`source_type` = %i AND ss.`action_type` = %i AND ss.`action_param2` > 0 AND ss.`entryorguid` < 0',
+            self::SRC_TYPE_CREATURE, SmartAction::ACTION_WP_START,
+            self::SRC_TYPE_CREATURE, SmartAction::ACTION_WP_START
+        ) ?: [];
+
+        foreach ($direct as $row)
+            $out[(int)$row['path_id']] = ['entry' => (int)$row['entry'], 'guid' => (int)$row['guid']];
+
+        $talActions = DB::World()->selectAssoc(
+           'SELECT `entryorguid` AS `talId`, `action_param2` AS `pathId`
+            FROM   smart_scripts
+            WHERE  `source_type` = %i AND `action_type` = %i AND `action_param2` > 0',
+            self::SRC_TYPE_ACTIONLIST, SmartAction::ACTION_WP_START
+        ) ?: [];
+
+        if ($talActions)
+        {
+            $owners = self::getActionListOwners(array_unique(array_column($talActions, 'talId')));
+            foreach ($talActions as ['talId' => $talId, 'pathId' => $pathId])
+                foreach ($owners[$talId] ?? [] as [$srcType, $entry])
+                    if ($srcType == Type::NPC)
+                        $out[(int)$pathId] = ['entry' => $entry, 'guid' => 0];
+        }
+
+        return $out;
+    }
     // aowow - custom end
 
 

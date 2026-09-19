@@ -48,6 +48,18 @@ Listview.templates.waypointpath = {
             value: 'numpoints'
         },
         {
+            id: 'source',
+            name: LANG.fiwaypointpath.viasmartai,
+            type: 'text',
+            width: '12%',
+            compute: function(wp, td) {
+                $WH.ae(td, $WH.ct(wp.viaSmartAI ? LANG.waypointpath_sourcesmartai : LANG.waypointpath_sourcedefault));
+            },
+            getVisibleText: function(wp) {
+                return wp.viaSmartAI ? LANG.waypointpath_sourcesmartai : LANG.waypointpath_sourcedefault;
+            }
+        },
+        {
             id: 'npc',
             name: LANG.tab_npcs,
             type: 'text',

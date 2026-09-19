@@ -294,115 +294,91 @@ CLISetup::registerSetup("sql", new class extends SetupScript
     {
         // assume that creature_template_addon data isn't stupid and only creatures with a single spawn are referenced here
         //
-        // `kind` 0 rows are `waypoint_data` paths: a creature's default path (via *_addon), or one
-        // a SmartAI ACTION_WP_START assigns it at runtime - directly, or from inside a timed
-        // action list the creature calls (resolved further down via getActionListOwners(), since
-        // a SRC_TYPE_ACTIONLIST script isn't itself tied to any `entryorguid` this query can join
-        // on) - all share the `waypoint_data.id` id space, so REPLACE INTO dedupes a path that
-        // happens to be assigned more than one of these ways.
-        // `kind` 1 rows are `script_waypoint` escort paths, keyed by the creature entry itself
-        // (see LegacyScript::SRC_ESCORT_PATH) - a distinct id space from `waypoint_data.id`.
-        // some cores/TDBs no longer ship `script_waypoint` at all (LegacyScript::tableExists()
-        // guards the same table for the same reason), so that branch is skipped if it's missing.
+        // `kind` 0 rows are `waypoint_data` paths: a creature's default path (via *_addon, always
+        // `viaSmartAI` = 0), or one a SmartAI ACTION_WP_START assigns it at runtime (always
+        // `viaSmartAI` = 1) - directly, or from inside a timed action list the creature calls
+        // (resolved further down via SmartAI::getWaypointStartOwners(), since neither a
+        // SRC_TYPE_ACTIONLIST script nor its owner is tied to the `waypoint_data.id` this query
+        // could otherwise join on) - both share the `waypoint_data.id` id space, so REPLACE INTO
+        // dedupes a path that happens to be assigned both ways (keeping whichever classification
+        // was written last).
+        // `kind` 1 rows are `script_waypoint` escort paths (`viaSmartAI` = 0, SmartAI plays no
+        // part in them), keyed by the creature entry itself (see LegacyScript::SRC_ESCORT_PATH) -
+        // a distinct id space from `waypoint_data.id`. Some cores/TDBs no longer ship
+        // `script_waypoint` at all (LegacyScript::tableExists() guards the same table for the same
+        // reason), so that branch is skipped if it's missing.
         //
         // in every case only one representative creature is used to resolve the map/zone a path
         // renders on - `creature_template_addon`/direct-guid cases already pin down exactly one,
         // the others (a shared template entry) pick an arbitrary spawn of it via MIN(`guid`).
         $sql =
-           'SELECT c.`guid`, -w.`id` AS `creatureOrPath`, 0 AS `kind`, w.`point`, c.`zoneId` AS `areaId`, c.`map`, w.`delay` AS `wait`, w.`position_x` AS `posX`, w.`position_y` AS `posY`
+           'SELECT c.`guid`, -w.`id` AS `creatureOrPath`, 0 AS `kind`, w.`point`, c.`zoneId` AS `areaId`, c.`map`, w.`delay` AS `wait`, w.`position_x` AS `posX`, w.`position_y` AS `posY`, 0 AS `viaSmartAI`
             FROM   creature c
             JOIN   creature_addon ca ON ca.`guid` = c.`guid`
             JOIN   waypoint_data w ON w.`id` = ca.`path_id`
             WHERE  ca.`path_id` <> 0 UNION
-            SELECT  c.`guid`, -w.`id` AS `creatureOrPath`, 0 AS `kind`, w.`point`, c.`zoneId` AS `areaId`, c.`map`, w.`delay` AS `wait`, w.`position_x` AS `posX`, w.`position_y` AS `posY`
+            SELECT  c.`guid`, -w.`id` AS `creatureOrPath`, 0 AS `kind`, w.`point`, c.`zoneId` AS `areaId`, c.`map`, w.`delay` AS `wait`, w.`position_x` AS `posX`, w.`position_y` AS `posY`, 0 AS `viaSmartAI`
             FROM   creature c
             JOIN   creature_template_addon cta ON cta.`entry` = c.`id`
             JOIN   waypoint_data w ON w.`id` = cta.`path_id`
-            WHERE  cta.`path_id` <> 0 UNION
-            SELECT c.`guid`, -w.`id` AS `creatureOrPath`, 0 AS `kind`, w.`point`, c.`zoneId` AS `areaId`, c.`map`, w.`delay` AS `wait`, w.`position_x` AS `posX`, w.`position_y` AS `posY`
-            FROM   (SELECT `id`, MIN(`guid`) AS `guid`, MIN(`map`) AS `map`, MIN(`zoneId`) AS `zoneId` FROM creature GROUP BY `id`) c
-            JOIN   (SELECT DISTINCT `entryorguid`, `action_param2` AS `pathId` FROM smart_scripts WHERE `source_type` = '.SmartAI::SRC_TYPE_CREATURE.' AND `action_type` = '.SmartAction::ACTION_WP_START.' AND `action_param2` > 0 AND `entryorguid` > 0) ss ON ss.`entryorguid` = c.`id`
-            JOIN   waypoint_data w ON w.`id` = ss.`pathId` UNION
-            SELECT c.`guid`, -w.`id` AS `creatureOrPath`, 0 AS `kind`, w.`point`, c.`zoneId` AS `areaId`, c.`map`, w.`delay` AS `wait`, w.`position_x` AS `posX`, w.`position_y` AS `posY`
-            FROM   creature c
-            JOIN   (SELECT DISTINCT `entryorguid`, `action_param2` AS `pathId` FROM smart_scripts WHERE `source_type` = '.SmartAI::SRC_TYPE_CREATURE.' AND `action_type` = '.SmartAction::ACTION_WP_START.' AND `action_param2` > 0 AND `entryorguid` < 0) ss ON c.`guid` = -ss.`entryorguid`
-            JOIN   waypoint_data w ON w.`id` = ss.`pathId`';
+            WHERE  cta.`path_id` <> 0';
 
         if ($this->hasTable('script_waypoint'))
             $sql .=
                ' UNION
-                SELECT c.`guid`, -sw.`entry` AS `creatureOrPath`, 1 AS `kind`, sw.`pointid` AS `point`, c.`zoneId` AS `areaId`, c.`map`, sw.`waittime` AS `wait`, sw.`location_x` AS `posX`, sw.`location_y` AS `posY`
+                SELECT c.`guid`, -sw.`entry` AS `creatureOrPath`, 1 AS `kind`, sw.`pointid` AS `point`, c.`zoneId` AS `areaId`, c.`map`, sw.`waittime` AS `wait`, sw.`location_x` AS `posX`, sw.`location_y` AS `posY`, 0 AS `viaSmartAI`
                 FROM   (SELECT `id`, MIN(`guid`) AS `guid`, MIN(`map`) AS `map`, MIN(`zoneId`) AS `zoneId` FROM creature GROUP BY `id`) c
                 JOIN   script_waypoint sw ON sw.`entry` = c.`id`';
 
         $rows = DB::World()->selectAssoc($sql) ?: [];
 
-        // a WP_START issued from inside a timed action list (SRC_TYPE_ACTIONLIST) is invisible to
-        // the direct source_type = SRC_TYPE_CREATURE joins above - resolve it through whichever
-        // creature(s) actually call that list; SmartAI::getActionListOwners() already accounts for
-        // ACTION_CALL_TIMED_ACTIONLIST and its ACTION_CALL_RANDOM(_RANGE)_TIMED_ACTIONLIST siblings
-        $talActions = DB::World()->selectAssoc(
-           'SELECT `entryorguid` AS `talId`, `action_param2` AS `pathId`
-            FROM   smart_scripts
-            WHERE  `source_type` = %i AND `action_type` = %i AND `action_param2` > 0',
-            SmartAI::SRC_TYPE_ACTIONLIST, SmartAction::ACTION_WP_START
-        ) ?: [];
-
-        if ($talActions)
+        // every SmartAI-assigned kind0 path - directly on a creature's own script, guid-pinned or
+        // not, or indirectly through a timed action list it calls - shares one resolution
+        // (SmartAI::getWaypointStartOwners()) with WaypointPathList::getListviewData() (npc name)
+        // and ::getPathIdsForNPC() (its own Waypoints tab), so a path assigned only through a
+        // timed action list shows up consistently in all three places instead of just here
+        if ($owners = SmartAI::getWaypointStartOwners())
         {
-            $owners = SmartAI::getActionListOwners(array_unique(array_column($talActions, 'talId')));
+            $creatures = [];
+            foreach (DB::World()->selectAssoc(
+               'SELECT `id`, MIN(`guid`) AS `guid`, MIN(`map`) AS `map`, MIN(`zoneId`) AS `zoneId`
+                FROM   creature WHERE `id` IN %in GROUP BY `id`',
+                array_unique(array_column($owners, 'entry'))
+            ) ?: [] as $c)
+                $creatures[$c['id']] = $c;
 
-            $entries = [];
-            foreach ($owners as $pairs)
-                foreach ($pairs as [$srcType, $entry])
-                    if ($srcType == Type::NPC)
-                        $entries[$entry] = $entry;
+            $guidRows = [];
+            if ($pinnedGuids = array_unique(array_filter(array_column($owners, 'guid'))))
+                foreach (DB::World()->selectAssoc('SELECT `guid`, `map`, `zoneId` FROM creature WHERE `guid` IN %in', $pinnedGuids) ?: [] as $g)
+                    $guidRows[$g['guid']] = $g;
 
-            $pathIds = array_unique(array_column($talActions, 'pathId'));
+            $points = [];
+            foreach (DB::World()->selectAssoc(
+               'SELECT `id`, `point`, `delay` AS `wait`, `position_x` AS `posX`, `position_y` AS `posY`
+                FROM   waypoint_data WHERE `id` IN %in',
+                array_keys($owners)
+            ) ?: [] as $w)
+                $points[$w['id']][] = $w;
 
-            if ($entries && $pathIds)
+            foreach ($owners as $pathId => $o)
             {
-                $creatures = [];
-                foreach (DB::World()->selectAssoc(
-                   'SELECT `id`, MIN(`guid`) AS `guid`, MIN(`map`) AS `map`, MIN(`zoneId`) AS `zoneId`
-                    FROM   creature WHERE `id` IN %in GROUP BY `id`',
-                    array_values($entries)
-                ) ?: [] as $c)
-                    $creatures[$c['id']] = $c;
+                $c = $o['guid'] ? ($guidRows[$o['guid']] ?? null) : ($creatures[$o['entry']] ?? null);
+                if (!$c || empty($points[$pathId]))
+                    continue;
 
-                $points = [];
-                foreach (DB::World()->selectAssoc(
-                   'SELECT `id`, `point`, `delay` AS `wait`, `position_x` AS `posX`, `position_y` AS `posY`
-                    FROM   waypoint_data WHERE `id` IN %in',
-                    array_values($pathIds)
-                ) ?: [] as $w)
-                    $points[$w['id']][] = $w;
-
-                foreach ($talActions as ['talId' => $talId, 'pathId' => $pathId])
-                {
-                    if (empty($points[$pathId]))
-                        continue;
-
-                    foreach ($owners[$talId] ?? [] as [$srcType, $entry])
-                    {
-                        if ($srcType != Type::NPC || empty($creatures[$entry]))
-                            continue;
-
-                        $c = $creatures[$entry];
-                        foreach ($points[$pathId] as $w)
-                            $rows[] = [
-                                'guid'           => $c['guid'],
-                                'creatureOrPath' => -$pathId,
-                                'kind'           => 0,
-                                'point'          => $w['point'],
-                                'areaId'         => $c['zoneId'],
-                                'map'            => $c['map'],
-                                'wait'           => $w['wait'],
-                                'posX'           => $w['posX'],
-                                'posY'           => $w['posY'],
-                            ];
-                    }
-                }
+                foreach ($points[$pathId] as $w)
+                    $rows[] = [
+                        'guid'           => $o['guid'] ?: $creatures[$o['entry']]['guid'],
+                        'creatureOrPath' => -$pathId,
+                        'kind'           => 0,
+                        'point'          => $w['point'],
+                        'areaId'         => $c['zoneId'],
+                        'map'            => $c['map'],
+                        'wait'           => $w['wait'],
+                        'posX'           => $w['posX'],
+                        'posY'           => $w['posY'],
+                        'viaSmartAI'     => 1,
+                    ];
             }
         }
 
