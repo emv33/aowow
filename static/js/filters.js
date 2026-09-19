@@ -607,7 +607,8 @@ var fi_filters = {
         { id: 1, name: 'sepgeneral'              },
         { id: 2, name: 'id',        type: 'num'  },
         { id: 3, name: 'points',    type: 'num'  },
-        { id: 4, name: 'foundin',   type: 'zone' }
+        { id: 4, name: 'foundin',   type: 'zone' },
+        { id: 5, name: 'viasmartai',type: 'yn'   }
     ],
 
     gossip: [
