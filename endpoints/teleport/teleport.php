@@ -47,7 +47,12 @@ class TeleportBaseResponse extends TemplateResponse implements ICache
         if (!$row)
             $this->generateNotFound(Lang::teleport('title'), Lang::teleport('notFound'));
 
-        $name = trim((string)$row['name']);
+        $name  = trim((string)$row['name']);
+        $mapId = (int)$row['map'];
+
+        // the same axis-swapping conversion the spawn importer and the listing use
+        $pt     = WorldPosition::toZonePos($mapId, (float)$row['position_x'], (float)$row['position_y']);
+        $areaId = $pt ? (int)$pt[0]['areaId'] : 0;
 
 
         /**************/
@@ -55,7 +60,14 @@ class TeleportBaseResponse extends TemplateResponse implements ICache
         /**************/
 
         // Util::toJSON() emits any string starting with a $ as raw JavaScript, same guard the listing uses
-        $this->h1 = $name !== '' ? ($name[0] == '$' ? ' '.$name : $name) : ('Teleport #'.$this->typeId);
+        // an unnamed row falls back to whatever zone it sits in rather than a bare id, same reasoning
+        // as taxipath's zone-based title
+        $this->h1 = match (true)
+        {
+            $name !== ''                          => ($name[0] == '$' ? ' '.$name : $name),
+            $areaId && ($_ = ZoneList::getName($areaId)) => Lang::teleport('unnamed', [(string)$_]),
+            default                                => 'Teleport #'.$this->typeId
+        };
 
         array_unshift($this->title, $this->h1, Util::ucFirst(Lang::teleport('title')));
 
@@ -66,15 +78,11 @@ class TeleportBaseResponse extends TemplateResponse implements ICache
 
         $this->redButtons = [BUTTON_LINKS => false, BUTTON_WOWHEAD => false];
 
-        $mapId = (int)$row['map'];
         $infobox = [Lang::teleport('id').Lang::main('colon').$this->typeId];
 
-        // the same axis-swapping conversion the spawn importer and the listing use
-        $pt = WorldPosition::toZonePos($mapId, (float)$row['position_x'], (float)$row['position_y']);
         if ($pt)
         {
-            $p      = $pt[0];
-            $areaId = (int)$p['areaId'];
+            $p = $pt[0];
 
             $this->extendGlobalIds(Type::ZONE, $areaId);
             $infobox[] = Lang::teleport('zone').Lang::main('colon').'[zone='.$areaId.']';

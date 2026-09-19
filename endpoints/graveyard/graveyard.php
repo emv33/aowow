@@ -106,7 +106,15 @@ class GraveyardBaseResponse extends TemplateResponse implements ICache
         /* Page Title */
         /**************/
 
-        $this->h1 = $name !== '' ? ($name[0] == '$' ? ' '.$name : $name) : ('Graveyard #'.$this->typeId);
+        // a graveyard can resurrect several zones at once - unlike taxipath/teleport's single zone,
+        // an unnamed row here falls back to the whole list rather than picking just one
+        if ($name !== '')
+            $this->h1 = $name[0] == '$' ? ' '.$name : $name;
+        else
+        {
+            $zoneNames = array_values(array_filter(array_map(fn($z) => (string)(ZoneList::getName($z) ?? ''), $zones)));
+            $this->h1  = $zoneNames ? Lang::graveyard('unnamed', [implode(', ', $zoneNames)]) : ('Graveyard #'.$this->typeId);
+        }
 
         array_unshift($this->title, $this->h1, Util::ucFirst(Lang::graveyard('title')));
 

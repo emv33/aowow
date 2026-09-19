@@ -36,7 +36,16 @@ class TaxipathBaseResponse extends TemplateResponse implements ICache
         if (!$this->path)
             $this->generateNotFound(Lang::game('taxipath'), Lang::taxipath('notFound'));
 
-        $this->h1 = Lang::taxipath('route', [$this->path['from'], $this->path['to']]);
+        // two flight masters, not one - unlike waypointpath there is no single npc to name the page
+        // after, so the zones the path actually connects stand in instead (falling back to the raw
+        // node label where a side has none, e.g. a boat dock with no explorable world map)
+        $fromArea = $this->path['fromArea'];
+        $toArea   = $this->path['toArea'];
+
+        $fromLabel = ($fromArea && ($_ = ZoneList::getName($fromArea))) ? (string)$_ : $this->path['from'];
+        $toLabel   = ($toArea   && ($_ = ZoneList::getName($toArea)))   ? (string)$_ : $this->path['to'];
+
+        $this->h1 = ($fromArea && $fromArea == $toArea) ? $fromLabel : Lang::taxipath('route', [$fromLabel, $toLabel]);
 
         $this->gPageInfo += ['type' => 0, 'typeId' => $this->typeId, 'name' => $this->h1];
 

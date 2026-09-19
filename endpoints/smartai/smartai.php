@@ -50,7 +50,33 @@ class SmartaiBaseResponse extends TemplateResponse implements ICache
 
     protected function generate() : void
     {
+        // FILTER_VALIDATE_INT yields false - not null - for the empty string the "Any" option submits,
+        // and false == 0 in a loose comparison, so anything but a real int has to become null here or
+        // the template marks event/action type 0 as the selected one
+        $asInt = fn(string $k) : ?int => is_int($this->_get[$k] ?? null) ? $this->_get[$k] : null;
+
+        $this->formValues  = array(
+            'src' => $asInt('src'),
+            'evt' => $asInt('evt'),
+            'act' => $asInt('act'),
+            'ref' => $asInt('ref') ?? 0,
+            'ent' => $asInt('ent') ?? 0
+        );
+
+        // filtered down to one creature's own scripts - name the page after it instead of the
+        // generic listing title; a negative entry is a spawn guid, resolved the same way
+        // buildListviewData()/resolveGuids() do for the same field on every row
         $this->h1 = Util::ucFirst(Lang::game('smartAI'));
+
+        if ($this->formValues['src'] === SmartAI::SRC_TYPE_CREATURE && $this->formValues['ent'])
+        {
+            $npcId = $this->formValues['ent'];
+            if ($npcId < 0)
+                $npcId = self::resolveGuids([['srcType' => SmartAI::SRC_TYPE_CREATURE, 'entry' => $npcId]])[SmartAI::SRC_TYPE_CREATURE][$npcId] ?? 0;
+
+            if ($npcId > 0 && ($npcName = CreatureList::getName($npcId)))
+                $this->h1 = Lang::smartaiBrowser('titleNpc', [(string)$npcName]);
+        }
 
 
         /**************/
@@ -69,18 +95,6 @@ class SmartaiBaseResponse extends TemplateResponse implements ICache
         $this->srcTypeList = Lang::smartaiBrowser('srcTypes');
         $this->evtTypeList = self::nameList(Lang::smartAI('events'));
         $this->actTypeList = self::nameList(Lang::smartAI('actions'));
-        // FILTER_VALIDATE_INT yields false - not null - for the empty string the "Any" option submits,
-        // and false == 0 in a loose comparison, so anything but a real int has to become null here or
-        // the template marks event/action type 0 as the selected one
-        $asInt = fn(string $k) : ?int => is_int($this->_get[$k] ?? null) ? $this->_get[$k] : null;
-
-        $this->formValues  = array(
-            'src' => $asInt('src'),
-            'evt' => $asInt('evt'),
-            'act' => $asInt('act'),
-            'ref' => $asInt('ref') ?? 0,
-            'ent' => $asInt('ent') ?? 0
-        );
 
         $this->pageTemplate['filter'] = ($this->formValues['src'] !== null || $this->formValues['evt'] !== null ||
             $this->formValues['act'] !== null || $this->formValues['ref'] || $this->formValues['ent']) ? 1 : 0;

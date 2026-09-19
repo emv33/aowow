@@ -49,7 +49,28 @@ class ConditionsBaseResponse extends TemplateResponse implements ICache
 
     protected function generate() : void
     {
+        $this->formValues  = array(
+            'src' => (int)($this->_get['src'] ?? 0),
+            'cnd' => (int)($this->_get['cnd'] ?? 0),
+            'val' => (int)($this->_get['val'] ?? 0),
+            'ent' => (int)($this->_get['ent'] ?? 0)
+        );
+
+        // filtered to one entity's own gating conditions - name the page after it when that entity
+        // is a creature; getSourceTypes() is the same [group, entry] type mapping buildListviewData()
+        // below already trusts to link a row, so this only ever fires where that same lookup would.
+        // ?ent matches either SourceGroup or SourceEntry (browse()'s WHERE is an OR of both), so
+        // either side resolving to Type::NPC is enough - SRC_SMART_EVENT is excluded since its
+        // owner type comes from SourceId, not from this mapping
         $this->h1 = Util::ucFirst(Lang::game('conditions'));
+
+        if ($this->formValues['src'] && $this->formValues['ent'] && $this->formValues['src'] != Conditions::SRC_SMART_EVENT)
+        {
+            [$grpType, $entryType] = Conditions::getSourceTypes()[$this->formValues['src']] ?? [null, null, null];
+
+            if (($grpType == Type::NPC || $entryType == Type::NPC) && ($npcName = CreatureList::getName($this->formValues['ent'])))
+                $this->h1 = Lang::conditionBrowser('titleNpc', [(string)$npcName]);
+        }
 
 
         /**************/
@@ -67,12 +88,6 @@ class ConditionsBaseResponse extends TemplateResponse implements ICache
 
         $this->srcTypeList = Lang::conditionBrowser('srcTypes');
         $this->cndTypeList = Lang::conditionBrowser('cndTypes');
-        $this->formValues  = array(
-            'src' => (int)($this->_get['src'] ?? 0),
-            'cnd' => (int)($this->_get['cnd'] ?? 0),
-            'val' => (int)($this->_get['val'] ?? 0),
-            'ent' => (int)($this->_get['ent'] ?? 0)
-        );
 
         $this->pageTemplate['filter'] = array_filter($this->formValues) ? 1 : 0;
 
