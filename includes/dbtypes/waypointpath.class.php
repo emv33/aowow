@@ -153,9 +153,9 @@ class WaypointPathListFilter extends Filter
     );
 
     protected static array $genericFilter = array(
-        2 => [parent::CR_NUMERIC, 'id',      NUM_CAST_INT      ], // id
-        3 => [parent::CR_NUMERIC, 'kind',    NUM_CAST_INT      ], // kind
-        4 => [parent::CR_ENUM,    'areaId',  false,        true]  // foundin
+        2 => [parent::CR_NUMERIC, 'id',        NUM_CAST_INT      ], // id
+        3 => [parent::CR_NUMERIC, 'numPoints', NUM_CAST_INT      ], // points
+        4 => [parent::CR_ENUM,    'areaId',    false,        true]  // foundin
     );
 
     // fieldId => [checkType, checkValue[, fieldIsArray]]
@@ -166,7 +166,7 @@ class WaypointPathListFilter extends Filter
         'ma'  => [parent::V_EQUAL, 1,         false]  // match any / all filter
     );
 
-    // id/kind/foundin are all plain criteria rows handled generically via $genericFilter above -
+    // id/points/foundin are all plain criteria rows handled generically via $genericFilter above -
     // there are no dedicated form fields (e.g. a name search box) of their own to translate here
     protected function createSQLForValues() : array
     {

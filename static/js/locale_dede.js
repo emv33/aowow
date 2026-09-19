@@ -4622,7 +4622,7 @@ var LANG = {
     fiwaypointpath: {
         sepgeneral: "General",
         id:         "ID",
-        kind:       "Type",
+        points:     "Points",
         foundin:    "Found in..."
     },
     waypointpath_kindmovement: "Movement path",
