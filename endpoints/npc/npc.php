@@ -1128,8 +1128,8 @@ class NpcBaseResponse extends TemplateResponse implements ICache
                     $this->extendGlobalIds(Type::ZONE, ...$areaIds);
 
                 $hiddenCols = ['npc'];                    // every row already walks this npc; its own name says nothing new
-                if (count(array_unique(array_map(fn($d) => $d['guid'] ?? 0, $wpData))) <= 1)
-                    $hiddenCols[] = 'guid';                // every row is pinned to the same spawn (or none is) - the column has nothing to add
+                if (!array_filter(array_column($wpData, 'guid')))
+                    $hiddenCols[] = 'guid';                // no row is pinned to a specific spawn - the column would be empty throughout
 
                 $this->lvTabs->addListviewTab(new Listview(array(
                     'data'       => $wpData,

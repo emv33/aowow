@@ -46,7 +46,8 @@ Listview.templates.waypointpath = {
         {
             // hidden by default (see waypointpaths.php) since ?waypointpaths already folds this
             // into 'npc' above - an npc's own Waypoints tab hides 'npc' instead (own name is
-            // redundant there) and shows this one instead, when it has more than one distinct guid
+            // redundant there) and shows this one instead, when at least one of its own paths is
+            // pinned to a specific spawn
             id: 'guid',
             name: 'GUID',
             type: 'num',
