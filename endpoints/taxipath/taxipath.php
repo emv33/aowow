@@ -80,25 +80,57 @@ class TaxipathBaseResponse extends TemplateResponse implements ICache
 
         $this->redButtons = [BUTTON_LINKS => false, BUTTON_WOWHEAD => false];
 
-        // start/end pins, connected by a line when both ends share a zone; a node with no
-        // coords (e.g. a boat's dock) just drops its own pin rather than blocking the other
-        $nodes = array(
-            'from' => ['area' => $this->path['fromArea'], 'x' => $this->path['fromAreaX'], 'y' => $this->path['fromAreaY'], 'type' => 'start', 'label' => Lang::taxipath('startsAt')],
-            'to'   => ['area' => $this->path['toArea'],   'x' => $this->path['toAreaX'],   'y' => $this->path['toAreaY'],   'type' => 'end',   'label' => Lang::taxipath('endsAt')]
-        );
+        // the full route as pinned, curve and all, when `taxi` has computed it; each point
+        // connects to the previous one by a line as long as both fall in the same zone
+        $data   = [];
+        $points = TaxiPath::getPoints($this->typeId);
+        $first  = array_key_first($points);
+        $last   = array_key_last($points);
+        $prev   = null;
 
-        $data = [];
-        foreach ($nodes as $n)
+        foreach ($points as $point => $p)
         {
-            if (!$n['area'] || (!$n['x'] && !$n['y']))
+            if (!$p['areaId'] || (!$p['posX'] && !$p['posY']))
+            {
+                $prev = null;
                 continue;
+            }
 
-            $opts = ['label' => "\0$<br /><span class=\"q0\">".$n['label'].'</span>', 'type' => $n['type']];
+            $opts = [];
+            if ($point == $first)
+                $opts = ['label' => "\0$<br /><span class=\"q0\">".Lang::taxipath('startsAt').'</span>', 'type' => 'start'];
+            else if ($point == $last)
+                $opts = ['label' => "\0$<br /><span class=\"q0\">".Lang::taxipath('endsAt').'</span>', 'type' => 'end'];
 
-            if ($n['type'] == 'end' && $nodes['from']['area'] == $nodes['to']['area'] && ($nodes['from']['x'] || $nodes['from']['y']))
-                $opts['lines'] = [[$nodes['from']['x'], $nodes['from']['y']]];
+            if ($prev && $prev['areaId'] == $p['areaId'])
+                $opts['lines'] = [[$prev['posX'], $prev['posY']]];
 
-            $data[$n['area']][0]['coords'][] = [$n['x'], $n['y'], $opts];
+            $data[$p['areaId']][0]['coords'][] = [$p['posX'], $p['posY'], $opts];
+            $prev = $p;
+        }
+
+        // fallback: no route computed for this path (e.g. `php aowow --sync=taxi` hasn't run since
+        // this feature was added, or TaxiPathNode.dbc coverage is missing for it) - just the two
+        // endpoint nodes, connected when they share a zone, same as before this route existed
+        if (!$data)
+        {
+            $nodes = array(
+                'from' => ['area' => $this->path['fromArea'], 'x' => $this->path['fromAreaX'], 'y' => $this->path['fromAreaY'], 'type' => 'start', 'label' => Lang::taxipath('startsAt')],
+                'to'   => ['area' => $this->path['toArea'],   'x' => $this->path['toAreaX'],   'y' => $this->path['toAreaY'],   'type' => 'end',   'label' => Lang::taxipath('endsAt')]
+            );
+
+            foreach ($nodes as $n)
+            {
+                if (!$n['area'] || (!$n['x'] && !$n['y']))
+                    continue;
+
+                $opts = ['label' => "\0$<br /><span class=\"q0\">".$n['label'].'</span>', 'type' => $n['type']];
+
+                if ($n['type'] == 'end' && $nodes['from']['area'] == $nodes['to']['area'] && ($nodes['from']['x'] || $nodes['from']['y']))
+                    $opts['lines'] = [[$nodes['from']['x'], $nodes['from']['y']]];
+
+                $data[$n['area']][0]['coords'][] = [$n['x'], $n['y'], $opts];
+            }
         }
 
         if ($data)

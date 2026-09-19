@@ -15,7 +15,7 @@ CLISetup::registerSetup("sql", new class extends SetupScript
         'taxi' => [[], CLISetup::ARGV_PARAM, 'Compiles supplemental data for type: NPC from dbc and world db.']
     );
 
-    protected array $dbcSourceFiles  = ['taxipath', 'taxinodes', 'worldmaparea', 'worldmaptransforms', 'factiontemplate'];
+    protected array $dbcSourceFiles  = ['taxipath', 'taxinodes', 'taxipathnode', 'worldmaparea', 'worldmaptransforms', 'factiontemplate'];
     protected array $worldDependency = ['creature', 'creature_template'];
     protected array $setupAfter      = [['dungeonmap', 'worldmaparea'], []]; // accessed by WorldPosition::toZonePos
 
@@ -23,6 +23,7 @@ CLISetup::registerSetup("sql", new class extends SetupScript
     {
         DB::Aowow()->qry('TRUNCATE ::taxipath');
         DB::Aowow()->qry('TRUNCATE ::taxinodes');
+        DB::Aowow()->qry('TRUNCATE ::taxipath_points');
 
         /*********/
         /* paths */
@@ -144,6 +145,23 @@ CLISetup::registerSetup("sql", new class extends SetupScript
 
             DB::Aowow()->qry('INSERT INTO ::taxinodes VALUES %l', $n);
         }
+
+
+        /**********************************************/
+        /* points along each path (for the route map) */
+        /**********************************************/
+
+        // every node of every surviving (deduped, see above) path, in flight order
+        $rawPoints = DB::Aowow()->selectAssoc(
+           'SELECT pn.`pathId`, pn.`nodeIdx`, pn.`mapId`, pn.`posX`, pn.`posY`
+            FROM   dbc_taxipathnode pn
+            JOIN   ::taxipath tp ON tp.`id` = pn.`pathId`
+            ORDER  BY pn.`pathId` ASC, pn.`nodeIdx` ASC'
+        ) ?: [];
+
+        foreach ($rawPoints as $p)
+            if ($points = WorldPosition::toZonePos($p['mapId'], $p['posX'], $p['posY']))
+                DB::Aowow()->qry('INSERT INTO ::taxipath_points VALUES %l', [$p['pathId'], $p['nodeIdx'], $points[0]['areaId'], $points[0]['posX'], $points[0]['posY']]);
 
         return true;
     }
