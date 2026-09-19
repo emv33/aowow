@@ -1128,9 +1128,10 @@ class NpcBaseResponse extends TemplateResponse implements ICache
                     $this->extendGlobalIds(Type::ZONE, ...$areaIds);
 
                 $this->lvTabs->addListviewTab(new Listview(array(
-                    'data' => $wpData,
-                    'name' => Lang::game('waypointpaths'),
-                    'id'   => 'waypointpaths'
+                    'data'       => $wpData,
+                    'name'       => Lang::game('waypointpaths'),
+                    'id'         => 'waypointpaths',
+                    'hiddenCols' => ['npc']              // every row already walks this npc; only the guid-pin (when set) says anything new
                 ), WaypointPathList::$brickFile, 'waypointpath'));
             }
         }
