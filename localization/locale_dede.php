@@ -1524,7 +1524,8 @@ $lang = array(
         'flightMasters' => "Flight masters",
         'sentBySpell'   => "Sent by spell",
         'sentByScript'  => "Sent by script",
-        'usedByObject'  => "Used by transport"
+        'usedByObject'  => "Used by transport",
+        'foundIn'       => "This route runs through"
     ),
     'waypointpath' => array(
         'notFound'     => "This waypoint path doesn't exist.",
