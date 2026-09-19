@@ -56,6 +56,18 @@ class ConditionBaseResponse extends TemplateResponse implements ICache
 
     protected function generate() : void
     {
+        // existence is checked against the raw table, not against whether prepare() produced any
+        // markup below - a source like SRC_CREATURE_LOOT_TEMPLATE resolves through a lookup
+        // (lootIdToNpc() et al.) that can legitimately come up empty (loot template not currently
+        // tied to any imported creature) while the row itself is real; that must not read as 404
+        $exists = (bool)DB::World()->selectCell(
+           'SELECT 1 FROM conditions WHERE `SourceTypeOrReferenceId` = %i AND `SourceGroup` = %i AND `SourceEntry` = %i AND `SourceId` = %i LIMIT 1',
+            $this->srcType, $this->group, $this->entry, $this->srcId
+        );
+
+        if (!$exists)
+            $this->generateNotFound(Util::ucFirst(Lang::game('conditions')), Lang::condition('notFound'));
+
         // arrays, not plain ints: getBySource() treats an int 0 as "no filter", which would pull
         // in every SourceGroup/Entry/Id rather than just the (possibly legitimately 0) one this
         // row's own key names - see Gossip::buildTextTable()'s identical guard
@@ -63,8 +75,6 @@ class ConditionBaseResponse extends TemplateResponse implements ICache
         $cnd->getBySource([$this->srcType], [$this->group], [$this->entry], [$this->srcId])->prepare();
 
         $cndTag = $cnd->toMarkupTag();
-        if (!$cndTag)
-            $this->generateNotFound(Util::ucFirst(Lang::game('conditions')), Lang::condition('notFound'));
 
         $this->extendGlobalData($cnd->getJSGlobals());
 
@@ -102,7 +112,8 @@ class ConditionBaseResponse extends TemplateResponse implements ICache
 
         $this->infobox = new InfoboxMarkup($infobox, ['allow' => Markup::CLASS_STAFF, 'dbpage' => true], 'infobox-contents0');
 
-        $this->extraText = new Markup('[h3 class=clear]'.Lang::condition('conditions').'[/h3]'.$cndTag, ['allow' => Markup::CLASS_STAFF], 'text-generic');
+        if ($cndTag)
+            $this->extraText = new Markup('[h3]'.Lang::condition('conditions').'[/h3]'.$cndTag, ['allow' => Markup::CLASS_STAFF], 'text-generic');
 
         parent::generate();
     }
