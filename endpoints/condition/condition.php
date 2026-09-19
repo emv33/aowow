@@ -79,10 +79,11 @@ class ConditionBaseResponse extends TemplateResponse implements ICache
         $this->extendGlobalData($cnd->getJSGlobals());
 
         $srcTypeLabel = Lang::conditionBrowser('srcTypes')[$this->srcType] ?? ('#'.$this->srcType);
-        [$label, $link] = $this->resolveSource();
+        $src          = $this->resolveSource();                // ['group' => [label, link]|null, 'entry' => [label, link]|null]
+        $primary      = $src['entry'] ?? $src['group'];
 
-        $this->h1 = $label !== null
-            ? Lang::condition('title', [Util::ucFirst($srcTypeLabel), $label])
+        $this->h1 = $primary
+            ? Lang::condition('title', [Util::ucFirst($srcTypeLabel), $primary[0]])
             : Lang::condition('titleRaw', [Util::ucFirst($srcTypeLabel), $this->entry ?: ($this->group ?: $this->srcId)]);
 
 
@@ -101,11 +102,18 @@ class ConditionBaseResponse extends TemplateResponse implements ICache
 
         $infobox = [Lang::conditionBrowser('srcType').Lang::main('colon').$srcTypeLabel];
 
-        if ($link)
-            $infobox[] = Lang::condition('source').Lang::main('colon').$link;
+        // one combined line for whichever of group/entry resolved to something - a source that
+        // names two independent entities (e.g. SRC_NPC_VENDOR: the vendor and the item it sells)
+        // gets both, not just whichever happened to resolve first; each side that DIDN'T resolve
+        // falls back to its own raw-number line instead of repeating a number already shown linked
+        if ($resolved = array_filter([$src['group'][1] ?? null, $src['entry'][1] ?? null]))
+            $infobox[] = Lang::condition('source').Lang::main('colon').implode(" \u{2013} ", $resolved);
 
-        $infobox[] = Lang::condition('srcGroup').Lang::main('colon').$this->group;
-        $infobox[] = Lang::condition('srcEntry').Lang::main('colon').$this->entry;
+        if (!$src['group'] && $this->group)
+            $infobox[] = Lang::condition('srcGroup').Lang::main('colon').$this->group;
+
+        if (!$src['entry'] && $this->entry)
+            $infobox[] = Lang::condition('srcEntry').Lang::main('colon').$this->entry;
 
         if ($this->srcId)
             $infobox[] = Lang::condition('srcId').Lang::main('colon').$this->srcId;
@@ -118,7 +126,30 @@ class ConditionBaseResponse extends TemplateResponse implements ICache
         parent::generate();
     }
 
-    /** @return array{0: ?string, 1: ?string} [plain label, markup to link it - both null if this source can't be named] */
+    // Conditions::$source's group column isn't always a direct id of the type it's paired with -
+    // for these six, it's an internal loot-template id that only resolves to an owner (possibly
+    // several) through the matching lookup in Conditions::prepareSource() (lootIdToNpc() et al.).
+    // Treating it as a direct CreatureList/ItemList/... id here would either miss or misname the
+    // owner, so it's left as a raw value instead - the conditions list below still renders fine,
+    // as that goes through the real lookup
+    private const array GROUP_NEEDS_LOOKUP = array(
+        Conditions::SRC_CREATURE_LOOT_TEMPLATE,
+        Conditions::SRC_DISENCHANT_LOOT_TEMPLATE,
+        Conditions::SRC_GAMEOBJECT_LOOT_TEMPLATE,
+        Conditions::SRC_MAIL_LOOT_TEMPLATE,
+        Conditions::SRC_PICKPOCKETING_LOOT_TEMPLATE,
+        Conditions::SRC_SKINNING_LOOT_TEMPLATE
+    );
+
+    /**
+     * group and entry each independently name something for several source types (e.g.
+     * SRC_NPC_VENDOR: the vendor AND the item it sells) - resolving only whichever came first
+     * would silently drop the other
+     *
+     * @return array{group: ?array{0: string, 1: string}, entry: ?array{0: string, 1: string}}
+     *         each slot is [plain label, markup to link it], or null if that column isn't a
+     *         (directly) nameable entity for this source type
+     */
     private function resolveSource() : array
     {
         // SourceEntry is smart_scripts.entryorguid, SourceId its source_type (0 creature, 1 gameobject,
@@ -135,34 +166,37 @@ class ConditionBaseResponse extends TemplateResponse implements ICache
             };
 
             if (!$ownerType)
-                return [null, null];
+                return ['group' => null, 'entry' => null];
 
             $ownerId = $this->entry;
             if ($ownerId < 0 && $ownerType != Type::AREATRIGGER)
                 $ownerId = (int)DB::Aowow()->selectCell('SELECT `typeId` FROM ::spawns WHERE `type` = %i AND `guid` = %i', $ownerType, -$ownerId);
 
             if ($ownerId <= 0 || !($name = self::nameFor($ownerType, $ownerId)))
-                return [null, null];
+                return ['group' => null, 'entry' => null];
 
-            return [$name, $this->linkFor($ownerType, $ownerId, $name)];
+            return ['group' => null, 'entry' => [$name, $this->linkFor($ownerType, $ownerId, $name)]];
         }
 
-        // a gossip menu has no name of its own and no g_* lookup - same fallback GameText::row() uses
+        // a gossip menu has no name of its own and no g_* lookup - same fallback GameText::row() uses;
+        // OptionId/TextId (entry) is just a slot inside it, not a separately nameable thing
         if (($this->srcType == Conditions::SRC_GOSSIP_MENU || $this->srcType == Conditions::SRC_GOSSIP_MENU_OPTION) && $this->group > 0)
         {
             $name = (string)Lang::gossip('menu', [$this->group]);
-            return [$name, '[url=?gossip='.$this->group.']'.$name.'[/url]'];
+            return ['group' => [$name, '[url=?gossip='.$this->group.']'.$name.'[/url]'], 'entry' => null];
         }
 
         [$grpType, $entryType, ] = Conditions::getSourceTypes()[$this->srcType] ?? [null, null, null];
 
+        $group = $entry = null;
+
+        if (is_int($grpType) && $this->group > 0 && !in_array($this->srcType, self::GROUP_NEEDS_LOOKUP, true) && ($name = self::nameFor($grpType, $this->group)))
+            $group = [$name, $this->linkFor($grpType, $this->group, $name)];
+
         if (is_int($entryType) && $this->entry > 0 && ($name = self::nameFor($entryType, $this->entry)))
-            return [$name, $this->linkFor($entryType, $this->entry, $name)];
+            $entry = [$name, $this->linkFor($entryType, $this->entry, $name)];
 
-        if (is_int($grpType) && $this->group > 0 && ($name = self::nameFor($grpType, $this->group)))
-            return [$name, $this->linkFor($grpType, $this->group, $name)];
-
-        return [null, null];
+        return ['group' => $group, 'entry' => $entry];
     }
 
     /** areatrigger has no [tag=id] markup support (no g_* lookup - see Type::getJSGlobalString()); every other type here does */
