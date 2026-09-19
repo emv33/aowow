@@ -528,6 +528,43 @@ class Conditions
         };
     }
 
+    /**
+     * the real owner(s) a loot-template style source's SourceGroup names, for callers that need
+     * that outside of prepare()'s own per-row expansion (jsGlobals there mixes a resolved owner id
+     * in with the raw, unresolved SourceGroup value itself - prepareSource() adds the latter
+     * unconditionally after a resolver already ran, so it can't be told apart there)
+     *
+     * same lookups lootIdToNpc()/disenchantIdToItem()/lootIdToGObject()/RewardTemplateToQuest()/
+     * PickpocketLootToNpc()/SkinLootToNpc() use internally; every other source type's group either
+     * needs no resolving or has no owner of its own
+     *
+     * @return array{0: int, 1: int[]} [Type:: the owners are, their ids - both empty if $srcType
+     *                                   isn't one of the six loot-template sources]
+     */
+    public static function resolveGroupOwners(int $srcType, int $group) : array
+    {
+        if (!$group)
+            return [0, []];
+
+        [$type, $col] = match ($srcType)
+        {
+            self::SRC_CREATURE_LOOT_TEMPLATE      => [Type::NPC,    ['creature', 'lootId']           ],
+            self::SRC_PICKPOCKETING_LOOT_TEMPLATE => [Type::NPC,    ['creature', 'pickpocketLootId']  ],
+            self::SRC_SKINNING_LOOT_TEMPLATE      => [Type::NPC,    ['creature', 'skinLootId']        ],
+            self::SRC_DISENCHANT_LOOT_TEMPLATE    => [Type::ITEM,   ['items',    'disenchantId']      ],
+            self::SRC_GAMEOBJECT_LOOT_TEMPLATE    => [Type::OBJECT, ['objects',  'lootId']             ],
+            self::SRC_MAIL_LOOT_TEMPLATE          => [Type::QUEST,  ['quests',   'rewardMailTemplateId']],
+            default                                => [0, null]
+        };
+
+        if (!$col)
+            return [0, []];
+
+        [$table, $column] = $col;
+
+        return [$type, DB::Aowow()->selectCol('SELECT `id` FROM ::'.$table.' WHERE `'.$column.'` = %i', $group) ?: []];
+    }
+
     public static function extendListviewRow(array &$lvRow, int $srcType, int $groupKey, array $condition) : bool
     {
         if (!isset(self::$source[$srcType]))
