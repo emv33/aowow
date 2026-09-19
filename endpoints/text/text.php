@@ -52,12 +52,38 @@ class TextBaseResponse extends TemplateResponse implements ICache
 
         $srcLabel = Lang::gameText('sources', $row['src']) ?: ('#'.$row['src']);
 
+        // every source's composite id already bakes in exactly one owner (or none) - browse()
+        // splits a text shared by several npcs/menus into one row per owner rather than listing
+        // several on one row - so there is never more than a single reference here
+        $tag = null;
+        if ($row['ownerType'] && $row['ownerId'] > 0)
+            $tag = match ($row['ownerType'])
+            {
+                Type::NPC    => 'npc',
+                Type::OBJECT => 'object',
+                Type::ITEM   => 'item',
+                Type::GOSSIP => 'gossip',
+                default      => null
+            };
+
+        // the infobox links the owner ([npc=Id] etc.); the title needs its plain name instead
+        $ownerLabel = match (true)
+        {
+            $tag === 'npc'    => (string)(CreatureList::getName($row['ownerId']) ?? ''),
+            $tag === 'object' => (string)(GameObjectList::getName($row['ownerId']) ?? ''),
+            $tag === 'item'   => (string)(ItemList::getName($row['ownerId']) ?? ''),
+            $tag === 'gossip' => $row['ownerName'],
+            default           => ''
+        };
+
 
         /**************/
         /* Page Title */
         /**************/
 
-        $this->h1 = Util::ucFirst($srcLabel).' #'.$row['entry'];
+        $this->h1 = $ownerLabel !== ''
+            ? Lang::gameText('titleOwner', [Util::ucFirst($srcLabel), $row['entry'], $ownerLabel])
+            : Util::ucFirst($srcLabel).' #'.$row['entry'];
 
         array_unshift($this->title, $this->h1, Util::ucFirst(Lang::gameText('title')));
 
@@ -72,18 +98,6 @@ class TextBaseResponse extends TemplateResponse implements ICache
 
         if ($row['ownerType'] && $row['ownerId'] > 0)
         {
-            // every source's composite id already bakes in exactly one owner (or none) - browse()
-            // splits a text shared by several npcs/menus into one row per owner rather than
-            // listing several on one row - so there is never more than a single reference here
-            $tag = match ($row['ownerType'])
-            {
-                Type::NPC    => 'npc',
-                Type::OBJECT => 'object',
-                Type::ITEM   => 'item',
-                Type::GOSSIP => 'gossip',
-                default      => null
-            };
-
             $infobox[] = Lang::gameText('owner').Lang::main('colon').($tag ? '['.$tag.'='.$row['ownerId'].']' : ($row['ownerName'] ?: ('#'.$row['ownerId'])));
 
             if ($tag)

@@ -38,7 +38,15 @@ class WaypointpathBaseResponse extends TemplateResponse implements ICache
 
         [$kind, $sourceId] = WaypointPathList::decodeId($this->typeId);
 
-        $this->h1 = Lang::waypointpath('title', [$this->typeId]);
+        // curTpl only carries the raw aggregate columns - numpoints/totalwait/npc are derived,
+        // same as every listview row; reuse that instead of re-deriving the npc owner here
+        $row   = $this->subject->getListviewData()[$this->typeId] ?? [];
+        $npcId = $row['npc']  ?? 0;
+        $guid  = $row['guid'] ?? 0;
+
+        $this->h1 = ($npcId && ($npcName = CreatureList::getName($npcId)))
+            ? Lang::waypointpath('titleNpc', [$this->typeId, (string)$npcName])
+            : Lang::waypointpath('title', [$this->typeId]);
 
         $this->gPageInfo += array(
             'type'   => $this->type,
@@ -57,12 +65,6 @@ class WaypointpathBaseResponse extends TemplateResponse implements ICache
         /****************/
         /* Main Content */
         /****************/
-
-        // curTpl only carries the raw aggregate columns - numpoints/totalwait/npc are derived,
-        // same as every listview row; reuse that instead of re-deriving the npc owner here
-        $row   = $this->subject->getListviewData()[$this->typeId] ?? [];
-        $npcId = $row['npc']  ?? 0;
-        $guid  = $row['guid'] ?? 0;
 
         $infobox = array(
             Lang::waypointpath('id').Lang::main('colon').$this->typeId,

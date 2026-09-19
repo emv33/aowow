@@ -45,7 +45,14 @@ class TrainersBaseResponse extends TemplateResponse implements ICache
 
     protected function generate() : void
     {
-        $this->h1 = Util::ucFirst(Lang::trainer('title'));
+        $spellFilter = (int)($this->_get['spell'] ?? 0);
+        $npcFilter   = (int)($this->_get['npc']   ?? 0);
+
+        // filtered to one npc's own lesson list rather than the whole table - name it after that
+        // npc instead of the generic listing title, same reasoning as waypointpath's owner
+        $this->h1 = ($npcFilter && ($npcName = CreatureList::getName($npcFilter)))
+            ? Lang::trainer('titleNpc', [(string)$npcName])
+            : Util::ucFirst(Lang::trainer('title'));
 
 
         /**************/
@@ -60,9 +67,6 @@ class TrainersBaseResponse extends TemplateResponse implements ICache
         /****************/
 
         $this->redButtons[BUTTON_WOWHEAD] = false;
-
-        $spellFilter = (int)($this->_get['spell'] ?? 0);
-        $npcFilter   = (int)($this->_get['npc']   ?? 0);
 
         $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"]);
         $this->lvTabs->addListviewTab(new Listview(['data' => $this->buildListviewData($spellFilter, $npcFilter)], 'trainer', 'trainer'));
