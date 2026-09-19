@@ -4624,13 +4624,14 @@ var LANG = {
         id:         "ID",
         points:     "Points",
         foundin:    "Found in...",
-        viasmartai: "Assigned by SmartAI"
+        viasmartai: "Type"
     },
     waypointpath_kindmovement: "Movement path",
     waypointpath_kindescort:   "Escort path",
     waypointpath_points:       "Points",
     waypointpath_sourcedefault: "Default",
     waypointpath_sourcesmartai: "SmartAI",
+    waypointpath_npc: "NPC",
     // end aowow custom
 
     pr_notice:     'Première fois? Ne soyez pas gêné! Visitez notre <a href="?help=profiler" target="_blank">page d\'aide</a>! &nbsp; <small class="q0"><a href="javascript:;">close</a></small>',

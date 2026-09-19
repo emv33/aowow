@@ -1127,15 +1127,13 @@ class NpcBaseResponse extends TemplateResponse implements ICache
                 if ($areaIds = array_unique(array_filter(array_column($wpData, 'areaId'))))
                     $this->extendGlobalIds(Type::ZONE, ...$areaIds);
 
-                $hiddenCols = ['npc'];                    // every row already walks this npc; only the guid-pin (when set) says anything new
-                if (count(array_unique(array_map(fn($d) => $d['guid'] ?? 0, $wpData))) <= 1)
-                    $hiddenCols[] = 'guid';                // every row is pinned to the same spawn (or none is) - the column has nothing to add
-
+                // the 'npc' column now carries the guid-pin (when set) as part of its own cell -
+                // it can't be hidden here just because every row already walks this npc without
+                // also hiding that, so it stays visible despite the repetition
                 $this->lvTabs->addListviewTab(new Listview(array(
                     'data'       => $wpData,
                     'name'       => Lang::game('waypointpaths'),
-                    'id'         => 'waypointpaths',
-                    'hiddenCols' => $hiddenCols
+                    'id'         => 'waypointpaths'
                 ), WaypointPathList::$brickFile, 'waypointpath'));
             }
         }
