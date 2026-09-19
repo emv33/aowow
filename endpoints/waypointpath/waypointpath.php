@@ -68,9 +68,15 @@ class WaypointpathBaseResponse extends TemplateResponse implements ICache
 
         $infobox = array(
             Lang::waypointpath('id').Lang::main('colon').$this->typeId,
-            Lang::waypointpath('kind').Lang::main('colon').Lang::waypointpath('kinds', $kind),
-            Lang::waypointpath('points').Lang::main('colon').($row['numpoints'] ?? 0)
+            Lang::waypointpath('kind').Lang::main('colon').Lang::waypointpath('kinds', $kind)
         );
+
+        // escort paths (script_waypoint) have no SmartAI involvement to begin with - the
+        // distinction only exists for kind 0 (waypoint_data) paths
+        if ($kind == WaypointPathList::KIND_MOVEMENT)
+            $infobox[] = Lang::waypointpath('source').Lang::main('colon').Lang::waypointpath('sources', $row['viaSmartAI'] ?? 0);
+
+        $infobox[] = Lang::waypointpath('points').Lang::main('colon').($row['numpoints'] ?? 0);
 
         if ($_ = ($row['totalwait'] ?? 0))
             $infobox[] = Lang::waypointpath('totalWait').Lang::main('colon').DateTime::formatTimeElapsedFloat($_);
