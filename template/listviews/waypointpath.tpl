@@ -1,5 +1,5 @@
 Listview.templates.waypointpath = {
-    sort: [3],                                              // 1-based index into columns[] below - 'zone', unchanged by the 'npc' column moving to the front
+    sort: [4],                                              // 1-based index into columns[] below - 'zone'
     searchable: 1,
     filtrable: 1,
 
@@ -42,6 +42,22 @@ Listview.templates.waypointpath = {
             sortFunc: function(a, b, col) {
                 return $WH.strcmp(this.getVisibleText(a), this.getVisibleText(b));
             }
+        },
+        {
+            // hidden by default (see waypointpaths.php) since ?waypointpaths already folds this
+            // into 'npc' above - an npc's own Waypoints tab hides 'npc' instead (own name is
+            // redundant there) and shows this one instead, when it has more than one distinct guid
+            id: 'guid',
+            name: 'GUID',
+            type: 'num',
+            width: '10%',
+            compute: function(wp, td) {
+                if (!wp.guid)
+                    return -1;
+
+                $WH.ae(td, $WH.ct(wp.guid));
+            },
+            value: 'guid'
         },
         {
             id: 'id',

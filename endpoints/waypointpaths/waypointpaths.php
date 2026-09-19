@@ -76,6 +76,10 @@ class WaypointpathsBaseResponse extends TemplateResponse implements ICache
             }
         }
 
+        // 'guid' is folded into 'npc' here already (see waypointpath.tpl) - it only stands on its
+        // own on an npc's own Waypoints tab, where 'npc' itself is redundant and hidden instead
+        $tabData['hiddenCols'] = ['guid'];
+
         $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"]);
         $this->lvTabs->addListviewTab(new Listview($tabData, WaypointPathList::$brickFile, 'waypointpath'));
 
