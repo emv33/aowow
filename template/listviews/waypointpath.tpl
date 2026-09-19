@@ -1,6 +1,6 @@
 Listview.templates.waypointpath = {
     sort: [1],
-    searchable: 0,
+    searchable: 1,
     filtrable: 1,
 
     columns: [
@@ -16,21 +16,6 @@ Listview.templates.waypointpath = {
                     $WH.clickToCopy(pre);
                     $WH.ae(td, pre);
                 }
-            }
-        },
-        {
-            id: 'kind',
-            name: LANG.fiwaypointpath.kind,
-            type: 'text',
-            width: '15%',
-            compute: function(wp, td) {
-                var a = $WH.ce('a');
-                a.href = this.getItemLink(wp);
-                $WH.ae(a, $WH.ct(wp.kind ? LANG.waypointpath_kindescort : LANG.waypointpath_kindmovement));
-                $WH.ae(td, a);
-            },
-            getVisibleText: function(wp) {
-                return wp.kind ? LANG.waypointpath_kindescort : LANG.waypointpath_kindmovement;
             }
         },
         {
@@ -79,11 +64,18 @@ Listview.templates.waypointpath = {
                 a.href = '?npc=' + wp.npc;
                 $WH.ae(a, $WH.ct(e[nameCol]));
                 $WH.ae(td, a);
+
+                if (wp.guid) {
+                    var sm = $WH.ce('small');
+                    sm.className = 'q0';
+                    $WH.ae(sm, $WH.ct(' (GUID: ' + wp.guid + ')'));
+                    $WH.ae(td, sm);
+                }
             },
             getVisibleText: function(wp) {
                 var nameCol = 'name_' + Locale.getName(),
                     e       = wp.npc && g_npcs[wp.npc];
-                return e ? (e[nameCol] || '') : '';
+                return (e ? (e[nameCol] || '') : '') + (wp.guid ? ' ' + wp.guid : '');
             },
             sortFunc: function(a, b, col) {
                 return $WH.strcmp(this.getVisibleText(a), this.getVisibleText(b));

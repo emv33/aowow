@@ -60,7 +60,8 @@ class WaypointpathBaseResponse extends TemplateResponse
         // curTpl only carries the raw aggregate columns - numpoints/totalwait/npc are derived,
         // same as every listview row; reuse that instead of re-deriving the npc owner here
         $row   = $this->subject->getListviewData()[$this->typeId] ?? [];
-        $npcId = $row['npc'] ?? 0;
+        $npcId = $row['npc']  ?? 0;
+        $guid  = $row['guid'] ?? 0;
 
         $infobox = array(
             Lang::waypointpath('id').Lang::main('colon').$this->typeId,
@@ -74,7 +75,11 @@ class WaypointpathBaseResponse extends TemplateResponse
         if ($npcId)
         {
             $this->extendGlobalIds(Type::NPC, $npcId);
-            $infobox[] = Lang::waypointpath('walkedBy').Lang::main('colon').'[npc='.$npcId.']';
+            $walkedBy = Lang::waypointpath('walkedBy').Lang::main('colon').'[npc='.$npcId.']';
+            if ($guid)                                      // pinned to this one spawn, not every spawn of the npc
+                $walkedBy .= ' [small class=q0](GUID: '.$guid.')[/small]';
+
+            $infobox[] = $walkedBy;
         }
 
         $this->redButtons = [BUTTON_LINKS => false, BUTTON_WOWHEAD => false];
