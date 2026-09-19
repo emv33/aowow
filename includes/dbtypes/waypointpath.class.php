@@ -89,15 +89,20 @@ class WaypointPathList extends DBTypeList
         // kind 0 paths are walked by whichever creature(s) reference this path id as their default
         // (*_addon), or that a SmartAI ACTION_WP_START assigns it to at runtime - same three
         // sources spawns.ss.php's waypoints() step and getPathIdsForNPC() already read
+        //
+        // `guid` is only non-zero for a source that pins the path to one specific spawn
+        // (creature_addon, or a SmartAI entry tied to a negative entryorguid) rather than every
+        // spawn of the entry (creature_template_addon, or a positive entryorguid) - worth
+        // surfacing, since the latter reads as "every X walks this" when only one does
         if ($sourceIds = array_column(array_filter($this->templates, fn($t) => $t['kind'] == self::KIND_MOVEMENT), 'sourceId'))
         {
-            $rows = DB::World()->selectCol(
-               'SELECT `path_id` AS ARRAY_KEY, `entry` FROM (
-                    SELECT ca.`path_id`, c.`id` AS "entry" FROM creature_addon ca JOIN creature c ON c.`guid` = ca.`guid` WHERE ca.`path_id` IN %in UNION
-                    SELECT cta.`path_id`, cta.`entry` FROM creature_template_addon cta WHERE cta.`path_id` IN %in UNION
-                    SELECT ss.`action_param2` AS "path_id", ss.`entryorguid` AS "entry" FROM smart_scripts ss
+            $rows = DB::World()->selectAssoc(
+               'SELECT `path_id` AS ARRAY_KEY, `entry`, `guid` FROM (
+                    SELECT ca.`path_id`, c.`id` AS "entry", c.`guid` AS "guid" FROM creature_addon ca JOIN creature c ON c.`guid` = ca.`guid` WHERE ca.`path_id` IN %in UNION
+                    SELECT cta.`path_id`, cta.`entry`, 0 AS "guid" FROM creature_template_addon cta WHERE cta.`path_id` IN %in UNION
+                    SELECT ss.`action_param2` AS "path_id", ss.`entryorguid` AS "entry", 0 AS "guid" FROM smart_scripts ss
                         WHERE ss.`source_type` = %i AND ss.`action_type` = %i AND ss.`action_param2` IN %in AND ss.`entryorguid` > 0 UNION
-                    SELECT ss.`action_param2` AS "path_id", c.`id` AS "entry" FROM smart_scripts ss JOIN creature c ON c.`guid` = -ss.`entryorguid`
+                    SELECT ss.`action_param2` AS "path_id", c.`id` AS "entry", c.`guid` AS "guid" FROM smart_scripts ss JOIN creature c ON c.`guid` = -ss.`entryorguid`
                         WHERE ss.`source_type` = %i AND ss.`action_type` = %i AND ss.`action_param2` IN %in AND ss.`entryorguid` < 0
                 ) x',
                 $sourceIds, $sourceIds,
@@ -105,8 +110,8 @@ class WaypointPathList extends DBTypeList
                 SmartAI::SRC_TYPE_CREATURE, SmartAction::ACTION_WP_START, $sourceIds
             ) ?: [];
 
-            foreach ($rows as $pathId => $entry)
-                $npcOwner[self::KIND_MOVEMENT][$pathId] = (int)$entry;
+            foreach ($rows as $pathId => $row)
+                $npcOwner[self::KIND_MOVEMENT][$pathId] = ['npc' => (int)$row['entry'], 'guid' => (int)$row['guid']];
         }
 
         foreach ($this->iterate() as $__)
@@ -123,9 +128,12 @@ class WaypointPathList extends DBTypeList
             );
 
             // kind 1 escort paths are keyed by the creature entry itself
-            $npcId = $kind == self::KIND_ESCORT ? $sourceId : ($npcOwner[self::KIND_MOVEMENT][$sourceId] ?? 0);
+            $npcId = $kind == self::KIND_ESCORT ? $sourceId : ($npcOwner[self::KIND_MOVEMENT][$sourceId]['npc'] ?? 0);
             if ($npcId)
                 $data[$this->id]['npc'] = $npcId;
+
+            if ($kind == self::KIND_MOVEMENT && ($guid = $npcOwner[self::KIND_MOVEMENT][$sourceId]['guid'] ?? 0))
+                $data[$this->id]['guid'] = $guid;
         }
 
         return $data;
