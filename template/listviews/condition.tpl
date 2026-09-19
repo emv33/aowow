@@ -102,6 +102,6 @@ Listview.templates.condition = {
         }
     ],
     getItemLink: function(cnd) {
-        return '?condition=' + encodeURIComponent(cnd.cid);
+        return '?condition=' + encodeURIComponent(cnd.id);
     }
 }
