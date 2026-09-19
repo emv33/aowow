@@ -12,10 +12,12 @@ if (!defined('AOWOW_REVISION'))
  * The zone page summarises a zone's weather into one line; this enumerates every row, so the
  * seasonal chances can be compared across zones without opening each zone page.
  */
-class WeatherBaseResponse extends TemplateResponse
+class WeatherBaseResponse extends TemplateResponse implements ICache
 {
-    use TrListPage;
+    use TrListPage, TrCache;
 
+    protected  int    $type       = -15;   // no single Type:: - a plain browser over game_weather
+    protected  int    $cacheType  = CACHE_TYPE_LIST_PAGE;
     protected  string $template   = 'weather';
     protected  string $pageName   = 'weather';
     protected  int    $requiredUserGroup = U_GROUP_STAFF;

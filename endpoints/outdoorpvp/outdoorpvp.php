@@ -13,10 +13,11 @@ if (!defined('AOWOW_REVISION'))
  * the id, script name and comment, so that is all this shows - but it is now a real, linkable page
  * rather than a dead end.
  */
-class OutdoorpvpBaseResponse extends TemplateResponse
+class OutdoorpvpBaseResponse extends TemplateResponse implements ICache
 {
-    use TrDetailPage;
+    use TrDetailPage, TrCache;
 
+    protected  int    $cacheType         = CACHE_TYPE_DETAIL_PAGE;
     protected  int    $requiredUserGroup = U_GROUP_STAFF;
 
     protected  string $template          = 'detail-page-generic';
@@ -24,6 +25,7 @@ class OutdoorpvpBaseResponse extends TemplateResponse
     protected ?int    $activeTab         = parent::TAB_DATABASE;
     protected  array  $breadcrumb        = [0, 115];
 
+    public int $type   = -3;    // no Type:: entry - no DBTypeList backs this ad hoc table read; shared sentinel with OutdoorpvpsBaseResponse
     public int $typeId = 0;
 
     public function __construct(string $id)

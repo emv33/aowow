@@ -6,10 +6,12 @@ if (!defined('AOWOW_REVISION'))
     die('illegal access');
 
 
-class TaxipathsBaseResponse extends TemplateResponse
+class TaxipathsBaseResponse extends TemplateResponse implements ICache
 {
-    use TrListPage;
+    use TrListPage, TrCache;
 
+    protected  int    $type              = -6;    // no Type:: entry - no DBTypeList backs this ad hoc table read; shared sentinel with TaxipathBaseResponse
+    protected  int    $cacheType         = CACHE_TYPE_LIST_PAGE;
     protected  int    $requiredUserGroup = U_GROUP_STAFF;
 
     protected  string $template          = 'taxipaths';

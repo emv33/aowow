@@ -6,10 +6,11 @@ if (!defined('AOWOW_REVISION'))
     die('illegal access');
 
 
-class TaxipathBaseResponse extends TemplateResponse
+class TaxipathBaseResponse extends TemplateResponse implements ICache
 {
-    use TrDetailPage;
+    use TrDetailPage, TrCache;
 
+    protected  int    $cacheType         = CACHE_TYPE_DETAIL_PAGE;
     protected  int    $requiredUserGroup = U_GROUP_STAFF;
 
     protected  string $template          = 'detail-page-generic';
@@ -17,6 +18,7 @@ class TaxipathBaseResponse extends TemplateResponse
     protected ?int    $activeTab         = parent::TAB_DATABASE;
     protected  array  $breadcrumb        = [0, 110];
 
+    public int $type   = -6;    // no Type:: entry - no DBTypeList backs this ad hoc table read; shared sentinel with TaxipathsBaseResponse
     public int $typeId = 0;
 
     private array $path = [];

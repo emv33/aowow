@@ -15,10 +15,12 @@ if (!defined('AOWOW_REVISION'))
  * SpellCastingRequirements' `RequiresSpellFocus`. Neither side ever resolved the id to the name
  * the DBC already carries.
  */
-class SpellfocusesBaseResponse extends TemplateResponse
+class SpellfocusesBaseResponse extends TemplateResponse implements ICache
 {
-    use TrListPage;
+    use TrListPage, TrCache;
 
+    protected  int    $type              = -5;    // no Type:: entry - no DBTypeList backs this ad hoc table read; shared sentinel with SpellfocusBaseResponse
+    protected  int    $cacheType         = CACHE_TYPE_LIST_PAGE;
     protected  int    $requiredUserGroup = U_GROUP_STAFF;
 
     protected  string $template          = 'spellfocuses';

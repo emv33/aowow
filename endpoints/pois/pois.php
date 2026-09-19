@@ -12,10 +12,12 @@ if (!defined('AOWOW_REVISION'))
  * The Gossip component reads the rows a gossip option points at; this enumerates the whole table,
  * so every named point on a map - inns, mailboxes, flight masters - is browsable on its own.
  */
-class PoisBaseResponse extends TemplateResponse
+class PoisBaseResponse extends TemplateResponse implements ICache
 {
-    use TrListPage;
+    use TrListPage, TrCache;
 
+    protected  int    $type       = -4;    // no Type:: entry - no DBTypeList backs this ad hoc table read; shared sentinel with PoiBaseResponse
+    protected  int    $cacheType  = CACHE_TYPE_LIST_PAGE;
     protected  string $template   = 'pois';
     protected  string $pageName   = 'pois';
     protected  int    $requiredUserGroup = U_GROUP_STAFF;

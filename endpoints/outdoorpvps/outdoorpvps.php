@@ -12,10 +12,12 @@ if (!defined('AOWOW_REVISION'))
  * The table drives the world PvP objectives (Halaa, Silithus, Hellfire towers) and was read
  * nowhere: which template id exists, which script runs it and what the core's own comment says.
  */
-class OutdoorpvpsBaseResponse extends TemplateResponse
+class OutdoorpvpsBaseResponse extends TemplateResponse implements ICache
 {
-    use TrListPage;
+    use TrListPage, TrCache;
 
+    protected  int    $type       = -3;    // no Type:: entry - no DBTypeList backs this ad hoc table read; shared sentinel with OutdoorpvpBaseResponse
+    protected  int    $cacheType  = CACHE_TYPE_LIST_PAGE;
     protected  string $template   = 'outdoorpvps';
     protected  string $pageName   = 'outdoorpvps';
     protected  int    $requiredUserGroup = U_GROUP_STAFF;

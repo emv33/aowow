@@ -16,10 +16,12 @@ if (!defined('AOWOW_REVISION'))
  * Every row is resolved to the zone it falls in, so a name answers "where is this" rather than
  * printing three floats.
  */
-class TeleportsBaseResponse extends TemplateResponse
+class TeleportsBaseResponse extends TemplateResponse implements ICache
 {
-    use TrListPage;
+    use TrListPage, TrCache;
 
+    protected  int    $type              = -7;    // no Type:: entry - no DBTypeList backs this ad hoc table read; shared sentinel with TeleportBaseResponse
+    protected  int    $cacheType         = CACHE_TYPE_LIST_PAGE;
     protected  int    $requiredUserGroup = U_GROUP_STAFF;
 
     protected  string $template          = 'teleports';

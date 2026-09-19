@@ -14,10 +14,11 @@ if (!defined('AOWOW_REVISION'))
  * to fall back to. This gives every line, owned or not, its own permanent address; the owner (when
  * there is one) is a link on it, rather than the whole destination.
  */
-class TextBaseResponse extends TemplateResponse
+class TextBaseResponse extends TemplateResponse implements ICache
 {
-    use TrDetailPage;
+    use TrDetailPage, TrCache;
 
+    protected  int    $cacheType         = CACHE_TYPE_DETAIL_PAGE;
     protected  int    $requiredUserGroup = U_GROUP_STAFF;
 
     protected  string $template          = 'detail-page-generic';
@@ -34,6 +35,13 @@ class TextBaseResponse extends TemplateResponse
         parent::__construct($id);
 
         $this->rowId = $id;
+    }
+
+    // no Type:: entry (no DBTypeList backs GameText's rows) and the id is a composite string, not
+    // an int typeId - TrDetailPage's default key can't hold either, so both are folded into misc
+    public function getCacheKeyComponents() : array
+    {
+        return array(-8, 0, User::$groups, md5($this->rowId));
     }
 
     protected function generate() : void

@@ -13,10 +13,11 @@ if (!defined('AOWOW_REVISION'))
  * inverse question ("which scripts cast this spell / summon this creature?") and a plain listing of
  * every scripted entity. Rendering a script stays with the SmartAI instance on that entity's page.
  */
-class SmartaiBaseResponse extends TemplateResponse
+class SmartaiBaseResponse extends TemplateResponse implements ICache
 {
-    use TrListPage;
+    use TrListPage, TrCache;
 
+    protected  int    $cacheType         = CACHE_TYPE_LIST_PAGE;
     protected  int    $requiredUserGroup = U_GROUP_STAFF;
 
     protected  string $template          = 'smartai';
@@ -39,6 +40,13 @@ class SmartaiBaseResponse extends TemplateResponse
     public array $evtTypeList = [];
     public array $actTypeList = [];
     public array $formValues  = [];
+
+    // no single Type:: - a browser over `smart_scripts`, filtered by ?src/?evt/?act/?ref/?ent
+    // rather than a Filter object that TrListPage's default key would pick up on its own
+    public function getCacheKeyComponents() : array
+    {
+        return array(-10, -1, User::$groups, md5(serialize($this->_get)));
+    }
 
     protected function generate() : void
     {

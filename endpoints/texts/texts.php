@@ -13,10 +13,11 @@ if (!defined('AOWOW_REVISION'))
  * reachable by what it says. Kept apart from that search rather than added as a 29th module: the
  * rows have no name, no icon and no quality, and a hit is the text itself rather than an entity.
  */
-class TextsBaseResponse extends TemplateResponse
+class TextsBaseResponse extends TemplateResponse implements ICache
 {
-    use TrListPage;
+    use TrListPage, TrCache;
 
+    protected  int    $cacheType         = CACHE_TYPE_LIST_PAGE;
     protected  int    $requiredUserGroup = U_GROUP_STAFF;
 
     protected  string $template          = 'texts';
@@ -34,6 +35,13 @@ class TextsBaseResponse extends TemplateResponse
     public array  $srcList    = [];                         // for the form in the template
     public array  $formValues = [];
     public string $notice     = '';
+
+    // no Type:: entry, and the result set is driven by ?q/?src rather than a Filter object that
+    // TrListPage's default key would pick up on its own - both are folded into misc here instead
+    public function getCacheKeyComponents() : array
+    {
+        return array(-8, -1, User::$groups, md5(serialize($this->_get)));
+    }
 
     protected function generate() : void
     {

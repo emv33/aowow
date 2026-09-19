@@ -12,10 +12,11 @@ if (!defined('AOWOW_REVISION'))
  * The listing could only send a click to a pre-filtered objects listing; this gives the focus its
  * own page, with that same filtered set rendered directly as a related tab instead of a redirect.
  */
-class SpellfocusBaseResponse extends TemplateResponse
+class SpellfocusBaseResponse extends TemplateResponse implements ICache
 {
-    use TrDetailPage;
+    use TrDetailPage, TrCache;
 
+    protected  int    $cacheType         = CACHE_TYPE_DETAIL_PAGE;
     protected  int    $requiredUserGroup = U_GROUP_STAFF;
 
     protected  string $template          = 'detail-page-generic';
@@ -23,6 +24,7 @@ class SpellfocusBaseResponse extends TemplateResponse
     protected ?int    $activeTab         = parent::TAB_DATABASE;
     protected  array  $breadcrumb        = [0, 119];
 
+    public int $type   = -5;    // no Type:: entry - no DBTypeList backs this ad hoc table read; shared sentinel with SpellfocusesBaseResponse
     public int $typeId = 0;
 
     public function __construct(string $id)
