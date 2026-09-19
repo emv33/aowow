@@ -606,7 +606,7 @@ var fi_filters = {
     waypointpath: [
         { id: 1, name: 'sepgeneral'              },
         { id: 2, name: 'id',        type: 'num'  },
-        { id: 3, name: 'kind',      type: 'num'  },
+        { id: 3, name: 'points',    type: 'num'  },
         { id: 4, name: 'foundin',   type: 'zone' }
     ],
 
