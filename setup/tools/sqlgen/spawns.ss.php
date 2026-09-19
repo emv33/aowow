@@ -295,8 +295,11 @@ CLISetup::registerSetup("sql", new class extends SetupScript
         // assume that creature_template_addon data isn't stupid and only creatures with a single spawn are referenced here
         //
         // `kind` 0 rows are `waypoint_data` paths: a creature's default path (via *_addon), or one
-        // a SmartAI ACTION_WP_START assigns it at runtime - both share the `waypoint_data.id` id
-        // space, so REPLACE INTO dedupes a path that happens to be both.
+        // a SmartAI ACTION_WP_START assigns it at runtime - directly, or from inside a timed
+        // action list the creature calls (resolved further down via getActionListOwners(), since
+        // a SRC_TYPE_ACTIONLIST script isn't itself tied to any `entryorguid` this query can join
+        // on) - all share the `waypoint_data.id` id space, so REPLACE INTO dedupes a path that
+        // happens to be assigned more than one of these ways.
         // `kind` 1 rows are `script_waypoint` escort paths, keyed by the creature entry itself
         // (see LegacyScript::SRC_ESCORT_PATH) - a distinct id space from `waypoint_data.id`.
         // some cores/TDBs no longer ship `script_waypoint` at all (LegacyScript::tableExists()
@@ -332,7 +335,78 @@ CLISetup::registerSetup("sql", new class extends SetupScript
                 FROM   (SELECT `id`, MIN(`guid`) AS `guid`, MIN(`map`) AS `map`, MIN(`zoneId`) AS `zoneId` FROM creature GROUP BY `id`) c
                 JOIN   script_waypoint sw ON sw.`entry` = c.`id`';
 
-        return DB::World()->selectAssoc($sql);
+        $rows = DB::World()->selectAssoc($sql) ?: [];
+
+        // a WP_START issued from inside a timed action list (SRC_TYPE_ACTIONLIST) is invisible to
+        // the direct source_type = SRC_TYPE_CREATURE joins above - resolve it through whichever
+        // creature(s) actually call that list; SmartAI::getActionListOwners() already accounts for
+        // ACTION_CALL_TIMED_ACTIONLIST and its ACTION_CALL_RANDOM(_RANGE)_TIMED_ACTIONLIST siblings
+        $talActions = DB::World()->selectAssoc(
+           'SELECT `entryorguid` AS `talId`, `action_param2` AS `pathId`
+            FROM   smart_scripts
+            WHERE  `source_type` = %i AND `action_type` = %i AND `action_param2` > 0',
+            SmartAI::SRC_TYPE_ACTIONLIST, SmartAction::ACTION_WP_START
+        ) ?: [];
+
+        if ($talActions)
+        {
+            $owners = SmartAI::getActionListOwners(array_unique(array_column($talActions, 'talId')));
+
+            $entries = [];
+            foreach ($owners as $pairs)
+                foreach ($pairs as [$srcType, $entry])
+                    if ($srcType == Type::NPC)
+                        $entries[$entry] = $entry;
+
+            $pathIds = array_unique(array_column($talActions, 'pathId'));
+
+            if ($entries && $pathIds)
+            {
+                $creatures = [];
+                foreach (DB::World()->selectAssoc(
+                   'SELECT `id`, MIN(`guid`) AS `guid`, MIN(`map`) AS `map`, MIN(`zoneId`) AS `zoneId`
+                    FROM   creature WHERE `id` IN %in GROUP BY `id`',
+                    array_values($entries)
+                ) ?: [] as $c)
+                    $creatures[$c['id']] = $c;
+
+                $points = [];
+                foreach (DB::World()->selectAssoc(
+                   'SELECT `id`, `point`, `delay` AS `wait`, `position_x` AS `posX`, `position_y` AS `posY`
+                    FROM   waypoint_data WHERE `id` IN %in',
+                    array_values($pathIds)
+                ) ?: [] as $w)
+                    $points[$w['id']][] = $w;
+
+                foreach ($talActions as ['talId' => $talId, 'pathId' => $pathId])
+                {
+                    if (empty($points[$pathId]))
+                        continue;
+
+                    foreach ($owners[$talId] ?? [] as [$srcType, $entry])
+                    {
+                        if ($srcType != Type::NPC || empty($creatures[$entry]))
+                            continue;
+
+                        $c = $creatures[$entry];
+                        foreach ($points[$pathId] as $w)
+                            $rows[] = [
+                                'guid'           => $c['guid'],
+                                'creatureOrPath' => -$pathId,
+                                'kind'           => 0,
+                                'point'          => $w['point'],
+                                'areaId'         => $c['zoneId'],
+                                'map'            => $c['map'],
+                                'wait'           => $w['wait'],
+                                'posX'           => $w['posX'],
+                                'posY'           => $w['posY'],
+                            ];
+                    }
+                }
+            }
+        }
+
+        return $rows;
     }
 
     /** some cores/TDBs don't ship every optional table (see LegacyScript::tableExists() for the same check) */
