@@ -74,16 +74,17 @@ class ConditionBaseResponse extends TemplateResponse implements ICache
         $cnd = new Conditions();
         $cnd->getBySource([$this->srcType], [$this->group], [$this->entry], [$this->srcId])->prepare();
 
-        $cndTag = $cnd->toMarkupTag();
-
         $this->extendGlobalData($cnd->getJSGlobals());
 
         $srcTypeLabel = Lang::conditionBrowser('srcTypes')[$this->srcType] ?? ('#'.$this->srcType);
         $src          = $this->resolveSource();                // ['group' => [label, link]|null, 'entry' => [label, link]|null]
-        $primary      = $src['entry'] ?? $src['group'];
 
-        $this->h1 = $primary
-            ? Lang::condition('title', [Util::ucFirst($srcTypeLabel), $primary[0]])
+        // every side that resolved goes in the title, not just whichever came first - a vendor's
+        // page is about the npc AND the item, not one or the other
+        $labels = array_filter([$src['group'][0] ?? null, $src['entry'][0] ?? null]);
+
+        $this->h1 = $labels
+            ? Lang::condition('title', [Util::ucFirst($srcTypeLabel), implode(" \u{2013} ", $labels)])
             : Lang::condition('titleRaw', [Util::ucFirst($srcTypeLabel), $this->entry ?: ($this->group ?: $this->srcId)]);
 
 
@@ -120,18 +121,26 @@ class ConditionBaseResponse extends TemplateResponse implements ICache
 
         $this->infobox = new InfoboxMarkup($infobox, ['allow' => Markup::CLASS_STAFF, 'dbpage' => true], 'infobox-contents0');
 
-        if ($cndTag)
-            $this->extraText = new Markup('[h3]'.Lang::condition('conditions').'[/h3]'.$cndTag, ['allow' => Markup::CLASS_STAFF], 'text-generic');
+
+        /**************/
+        /* Extra Tabs */
+        /**************/
+
+        // the same "Related" tab every entity's own Conditions tab already renders through
+        // (areatrigger.php et al.) - its sentence-per-source markup names the real owner(s) a
+        // loot-template group expands to, where the plain [condition] cell used until now didn't
+        // state a source at all
+        $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"], 'tabsRelated', true);
+
+        if ($tab = $cnd->toListviewTab())
+            $this->lvTabs->addDataTab(...$tab);
 
         parent::generate();
     }
 
     // Conditions::$source's group column isn't always a direct id of the type it's paired with -
-    // for these six, it's an internal loot-template id that only resolves to an owner (possibly
-    // several) through the matching lookup in Conditions::prepareSource() (lootIdToNpc() et al.).
-    // Treating it as a direct CreatureList/ItemList/... id here would either miss or misname the
-    // owner, so it's left as a raw value instead - the conditions list below still renders fine,
-    // as that goes through the real lookup
+    // for these six, it's an internal loot-template id that only resolves to its real owner(s)
+    // through Conditions::resolveGroupOwners(), not a direct CreatureList::getName($group) etc.
     private const array GROUP_NEEDS_LOOKUP = array(
         Conditions::SRC_CREATURE_LOOT_TEMPLATE,
         Conditions::SRC_DISENCHANT_LOOT_TEMPLATE,
@@ -190,13 +199,41 @@ class ConditionBaseResponse extends TemplateResponse implements ICache
 
         $group = $entry = null;
 
-        if (is_int($grpType) && $this->group > 0 && !in_array($this->srcType, self::GROUP_NEEDS_LOOKUP, true) && ($name = self::nameFor($grpType, $this->group)))
+        if ($this->group > 0 && in_array($this->srcType, self::GROUP_NEEDS_LOOKUP, true))
+        {
+            [$ownerType, $ownerIds] = Conditions::resolveGroupOwners($this->srcType, $this->group);
+
+            $refs = [];
+            foreach ($ownerIds as $ownerId)
+                if ($name = self::nameFor($ownerType, $ownerId))
+                    $refs[] = [$name, $this->linkFor($ownerType, $ownerId, $name)];
+
+            if ($refs)
+                $group = $this->combineRefs($refs);
+        }
+        else if (is_int($grpType) && $this->group > 0 && ($name = self::nameFor($grpType, $this->group)))
             $group = [$name, $this->linkFor($grpType, $this->group, $name)];
 
         if (is_int($entryType) && $this->entry > 0 && ($name = self::nameFor($entryType, $this->entry)))
             $entry = [$name, $this->linkFor($entryType, $this->entry, $name)];
 
         return ['group' => $group, 'entry' => $entry];
+    }
+
+    /** folds several [label, link] pairs into one - a loot table can be shared by more owners than are worth spelling out in full */
+    private function combineRefs(array $refs, int $cap = 3) : array
+    {
+        $shown = array_slice($refs, 0, $cap);
+        $label = implode(', ', array_column($shown, 0));
+        $link  = implode(', ', array_column($shown, 1));
+
+        if (($more = count($refs) - $cap) > 0)
+        {
+            $label .= ' '.Lang::condition('andMore', [$more]);
+            $link  .= ' '.Lang::condition('andMore', [$more]);
+        }
+
+        return [$label, $link];
     }
 
     /** areatrigger has no [tag=id] markup support (no g_* lookup - see Type::getJSGlobalString()); every other type here does */
