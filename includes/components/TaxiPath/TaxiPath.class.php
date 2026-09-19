@@ -14,7 +14,11 @@ if (!defined('AOWOW_REVISION'))
  * and the route of a MO_TRANSPORT - but a path itself had no page, so none of those could link to it
  * and there was no way to ask what triggers a given flight.
  *
- * Both tables live in the aowow DB; only the SmartAI and gameobject lookups touch the world DB.
+ * `::taxipath_points` (also written by the `taxi` step, from TaxiPathNode.dbc) holds every node of
+ * a path's actual in-game route, not just its two endpoints - it's what lets the detail page draw
+ * the full curve rather than a single straight line between start and end.
+ *
+ * All three tables live in the aowow DB; only the SmartAI and gameobject lookups touch the world DB.
  */
 class TaxiPath
 {
@@ -59,6 +63,26 @@ class TaxiPath
                 'toAreaY'   => (float)$r['toAreaY'],
                 'mapId'     => (int)$r['mapId']
             );
+
+        return $out;
+    }
+
+    /**
+     * every node along one path's route, in flight order - written by the `taxi` setup step from
+     * TaxiPathNode.dbc via WorldPosition::toZonePos(), same as a creature's own movement path
+     *
+     * @return array point => [areaId, posX, posY]
+     */
+    public static function getPoints(int $pathId) : array
+    {
+        $rows = DB::Aowow()->selectAssoc(
+           'SELECT `point` AS ARRAY_KEY, `areaId`, `posX`, `posY` FROM ::taxipath_points WHERE `pathId` = %i ORDER BY `point` ASC',
+            $pathId
+        ) ?: [];
+
+        $out = [];
+        foreach ($rows as $point => $r)
+            $out[(int)$point] = array('areaId' => (int)$r['areaId'], 'posX' => (float)$r['posX'], 'posY' => (float)$r['posY']);
 
         return $out;
     }
