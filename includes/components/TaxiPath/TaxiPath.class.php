@@ -25,14 +25,14 @@ class TaxiPath
 
     /**
      * @param  array $pathIds  empty for every path
-     * @return array           pathId => [from, fromArea, fromNpc, to, toArea, toNpc, mapId]
+     * @return array           pathId => [from, fromArea, fromNpc, fromAreaX, fromAreaY, to, toArea, toNpc, toAreaX, toAreaY, mapId]
      */
     public static function getPaths(array $pathIds = []) : array
     {
         $loc  = Lang::getLocale()->value;
         $sql  = 'SELECT   tp.`id` AS ARRAY_KEY, tp.`id`,
-                          n1.`name_loc0` AS "from0", n1.`name_loc'.$loc.'` AS "fromLoc", n1.`areaId` AS "fromArea", n1.`type` AS "fromType", n1.`typeId` AS "fromTypeId", n1.`mapId`,
-                          n2.`name_loc0` AS "to0",   n2.`name_loc'.$loc.'` AS "toLoc",   n2.`areaId` AS "toArea",   n2.`type` AS "toType",   n2.`typeId` AS "toTypeId"
+                          n1.`name_loc0` AS "from0", n1.`name_loc'.$loc.'` AS "fromLoc", n1.`areaId` AS "fromArea", n1.`type` AS "fromType", n1.`typeId` AS "fromTypeId", n1.`mapId`, n1.`areaX` AS "fromAreaX", n1.`areaY` AS "fromAreaY",
+                          n2.`name_loc0` AS "to0",   n2.`name_loc'.$loc.'` AS "toLoc",   n2.`areaId` AS "toArea",   n2.`type` AS "toType",   n2.`typeId` AS "toTypeId",             n2.`areaX` AS "toAreaX",   n2.`areaY` AS "toAreaY"
                  FROM     ::taxipath tp
                  JOIN     ::taxinodes n1 ON n1.`id` = tp.`startNodeId`
                  JOIN     ::taxinodes n2 ON n2.`id` = tp.`endNodeId`';
@@ -46,14 +46,18 @@ class TaxiPath
         $out = [];
         foreach ($rows as $id => $r)
             $out[(int)$id] = array(
-                'id'       => (int)$id,
-                'from'     => (string)($r['fromLoc'] ?: $r['from0']),
-                'fromArea' => (int)$r['fromArea'],
-                'fromNpc'  => $r['fromType'] == 'NPC' ? (int)$r['fromTypeId'] : 0,
-                'to'       => (string)($r['toLoc'] ?: $r['to0']),
-                'toArea'   => (int)$r['toArea'],
-                'toNpc'    => $r['toType'] == 'NPC' ? (int)$r['toTypeId'] : 0,
-                'mapId'    => (int)$r['mapId']
+                'id'        => (int)$id,
+                'from'      => (string)($r['fromLoc'] ?: $r['from0']),
+                'fromArea'  => (int)$r['fromArea'],
+                'fromNpc'   => $r['fromType'] == 'NPC' ? (int)$r['fromTypeId'] : 0,
+                'fromAreaX' => (float)$r['fromAreaX'],
+                'fromAreaY' => (float)$r['fromAreaY'],
+                'to'        => (string)($r['toLoc'] ?: $r['to0']),
+                'toArea'    => (int)$r['toArea'],
+                'toNpc'     => $r['toType'] == 'NPC' ? (int)$r['toTypeId'] : 0,
+                'toAreaX'   => (float)$r['toAreaX'],
+                'toAreaY'   => (float)$r['toAreaY'],
+                'mapId'     => (int)$r['mapId']
             );
 
         return $out;

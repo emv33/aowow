@@ -80,6 +80,45 @@ class TaxipathBaseResponse extends TemplateResponse implements ICache
 
         $this->redButtons = [BUTTON_LINKS => false, BUTTON_WOWHEAD => false];
 
+        // start/end pins, connected by a line when both ends share a zone; a node with no
+        // coords (e.g. a boat's dock) just drops its own pin rather than blocking the other
+        $nodes = array(
+            'from' => ['area' => $this->path['fromArea'], 'x' => $this->path['fromAreaX'], 'y' => $this->path['fromAreaY'], 'type' => 'start', 'label' => Lang::taxipath('startsAt')],
+            'to'   => ['area' => $this->path['toArea'],   'x' => $this->path['toAreaX'],   'y' => $this->path['toAreaY'],   'type' => 'end',   'label' => Lang::taxipath('endsAt')]
+        );
+
+        $data = [];
+        foreach ($nodes as $n)
+        {
+            if (!$n['area'] || (!$n['x'] && !$n['y']))
+                continue;
+
+            $opts = ['label' => "\0$<br /><span class=\"q0\">".$n['label'].'</span>', 'type' => $n['type']];
+
+            if ($n['type'] == 'end' && $nodes['from']['area'] == $nodes['to']['area'] && ($nodes['from']['x'] || $nodes['from']['y']))
+                $opts['lines'] = [[$nodes['from']['x'], $nodes['from']['y']]];
+
+            $data[$n['area']][0]['coords'][] = [$n['x'], $n['y'], $opts];
+        }
+
+        if ($data)
+        {
+            foreach ($data as &$areas)
+                foreach ($areas as &$floor)
+                    $floor['count'] = count($floor['coords']);
+            unset($areas, $floor);
+
+            $this->addDataLoader('zones');
+            $this->map = array(
+                ['parent' => 'mapper-generic'],
+                $data,
+                null,
+                [Lang::taxipath('foundIn')]
+            );
+            foreach ($data as $areaId => $__)
+                $this->map[3][$areaId] = ZoneList::getName($areaId);
+        }
+
 
         /**************/
         /* Extra Tabs */
