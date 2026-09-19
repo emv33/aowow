@@ -129,22 +129,23 @@ class ConditionsBaseResponse extends TemplateResponse implements ICache
         foreach ($guidsByType as $type => $guids)
             $guidLookup[$type] = DB::Aowow()->selectCol('SELECT `guid` AS ARRAY_KEY, `typeId` FROM ::spawns WHERE `type` = %i AND `guid` IN %in', $type, array_values($guids)) ?: [];
 
-        foreach ($rows as $i => $r)
+        foreach ($rows as $r)
         {
             [$grpType, $entryType, ] = $srcTypes[$r['srcType']] ?? [null, null, null];
 
+            // a condition source has no id column of its own, but the four raw key columns together
+            // are one - same composite-id approach GameText::browse() already uses for its own
+            // owner-less rows; taken from $r before 'entry' below is possibly overwritten for
+            // display (SRC_SMART_EVENT), since the resolved, positive display value wouldn't look
+            // up the right row (or any) once ?condition re-queries `conditions` with it
             $row = array(
-                'id'          => $i + 1,                    // the listview needs a unique key; a condition source has no id of its own - count from 1 so the debug id column renders the first row (index 0 is falsy in JS)
+                'id'          => $r['srcType'].':'.$r['group'].':'.$r['entry'].':'.$r['srcId'],
                 'srctype'     => $r['srcType'],
                 'group'       => $r['group'],
                 'entry'       => $r['entry'],
                 'srcid'       => $r['srcId'],
                 'nconditions' => $r['nConditions'],
-                'cndtypes'    => $r['cndTypes'],
-                // ?condition='s own id - raw SourceGroup/Entry/Id, taken before 'entry' below is
-                // possibly overwritten for display (SRC_SMART_EVENT); a resolved, positive display
-                // id would look up the wrong row (or none) once ?condition re-queries `conditions`
-                'cid'         => $r['srcType'].':'.$r['group'].':'.$r['entry'].':'.$r['srcId']
+                'cndtypes'    => $r['cndTypes']
             );
 
             // the listview cannot map a Type to its g_* lookup on its own, so name both here
