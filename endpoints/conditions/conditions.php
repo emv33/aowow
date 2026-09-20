@@ -202,12 +202,36 @@ class ConditionsBaseResponse extends TemplateResponse implements ICache
                 };
 
                 $entry = $r['entry'] > 0 ? $r['entry'] : ($guidLookup[$type][-$r['entry']] ?? 0);
-                if ($type && $entry > 0 && ($_ = Type::getJSGlobalString($type)))
+                if ($type && $entry > 0)
                 {
-                    $row['entry']       = $entry;           // overwrite the raw guid with the entity it resolves to
-                    $row['entrylookup'] = $_;
-                    $row['entryurl']    = Type::getFileString($type);
-                    $jsg[$type][$entry] = $entry;
+                    $row['entry'] = $entry;                 // overwrite the raw guid with the entity it resolves to
+
+                    // areatrigger has no g_* lookup (Type::getJSGlobalString() is empty for it) -
+                    // resolve the name here instead, same as SmartaiBaseResponse::linkFields() already does
+                    if ($type == Type::AREATRIGGER)
+                    {
+                        if ($name = (string)AreaTriggerList::getName($entry))
+                        {
+                            $row['entryname'] = $name;
+                            $row['entryurl']  = Type::getFileString($type);
+                        }
+                    }
+                    else if ($_ = Type::getJSGlobalString($type))
+                    {
+                        $row['entrylookup'] = $_;
+                        $row['entryurl']    = Type::getFileString($type);
+                        $jsg[$type][$entry] = $entry;
+                    }
+                }
+            }
+            // ditto - a bare CND_SRC_AREATRIGGER_CLIENT row hits the same gap the generic branch
+            // below would otherwise fall into
+            else if ($r['srcType'] == Conditions::SRC_AREATRIGGER_CLIENT && $r['entry'] > 0)
+            {
+                if ($name = (string)AreaTriggerList::getName($r['entry']))
+                {
+                    $row['entryname'] = $name;
+                    $row['entryurl']  = Type::getFileString(Type::AREATRIGGER);
                 }
             }
             else if (is_int($entryType) && $r['entry'] > 0 && ($_ = Type::getJSGlobalString($entryType)))
