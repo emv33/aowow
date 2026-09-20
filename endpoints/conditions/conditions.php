@@ -129,6 +129,20 @@ class ConditionsBaseResponse extends TemplateResponse implements ICache
         foreach ($guidsByType as $type => $guids)
             $guidLookup[$type] = DB::Aowow()->selectCol('SELECT `guid` AS ARRAY_KEY, `typeId` FROM ::spawns WHERE `type` = %i AND `guid` IN %in', $type, array_values($guids)) ?: [];
 
+        // Conditions::GROUP_NEEDS_LOOKUP sources don't name their owner directly - SourceGroup is
+        // an internal loot-template id, resolved only through Conditions::resolveGroupOwners()'s
+        // own lookup (a raw id treated as e.g. a direct npc entry would as often as not resolve to
+        // some unrelated real npc rather than fail outright - see ?condition's identical fix);
+        // batched here by source type rather than run once per row
+        $lookupGroups = [];
+        foreach ($rows as $r)
+            if (in_array($r['srcType'], Conditions::GROUP_NEEDS_LOOKUP, true) && $r['group'] > 0)
+                $lookupGroups[$r['srcType']][] = $r['group'];
+
+        $lookupOwners = [];                                     // srcType => [Type::, [group => ownerIds[]]]
+        foreach ($lookupGroups as $srcType => $groups)
+            $lookupOwners[$srcType] = Conditions::resolveGroupOwnersBatch($srcType, $groups);
+
         foreach ($rows as $r)
         {
             [$grpType, $entryType, ] = $srcTypes[$r['srcType']] ?? [null, null, null];
@@ -148,8 +162,27 @@ class ConditionsBaseResponse extends TemplateResponse implements ICache
                 'cndtypes'    => $r['cndTypes']
             );
 
+            if (in_array($r['srcType'], Conditions::GROUP_NEEDS_LOOKUP, true))
+            {
+                // resolved server-side above, same as the gossip case below - there is no g_* lookup
+                // to point the client at, since the id shown is never SourceGroup itself
+                [$ownerType, $ownersByGroup] = $lookupOwners[$r['srcType']] ?? [0, []];
+                $owners = $ownersByGroup[$r['group']] ?? [];
+
+                $names = [];
+                foreach (array_slice($owners, 0, 3) as $ownerId)
+                    if ($name = Conditions::nameForType($ownerType, $ownerId))
+                        $names[] = $name;
+
+                if ($names)
+                {
+                    $row['groupname'] = implode(', ', $names) . (count($owners) > 3 ? ' '.Lang::condition('andMore', [count($owners) - 3]) : '');
+                    $row['groupurl']  = Type::getFileString($ownerType);
+                    $row['group']     = $owners[0];             // link target - the owner named first
+                }
+            }
             // the listview cannot map a Type to its g_* lookup on its own, so name both here
-            if (is_int($grpType) && $r['group'] > 0 && ($_ = Type::getJSGlobalString($grpType)))
+            else if (is_int($grpType) && $r['group'] > 0 && ($_ = Type::getJSGlobalString($grpType)))
             {
                 $row['grouplookup'] = $_;
                 $row['groupurl']    = Type::getFileString($grpType);
