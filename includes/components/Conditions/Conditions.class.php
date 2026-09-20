@@ -528,6 +528,44 @@ class Conditions
         };
     }
 
+    // the six source types whose SourceGroup is an internal loot-template id rather than a direct
+    // entity id - resolving one requires resolveGroupOwners()/resolveGroupOwnersBatch(), not a
+    // direct CreatureList::getName($group) etc.; every caller that links a source's own group
+    // (?conditions' own listing, ?condition's detail page) needs to know to treat these differently
+    public const array GROUP_NEEDS_LOOKUP = array(
+        self::SRC_CREATURE_LOOT_TEMPLATE,
+        self::SRC_DISENCHANT_LOOT_TEMPLATE,
+        self::SRC_GAMEOBJECT_LOOT_TEMPLATE,
+        self::SRC_MAIL_LOOT_TEMPLATE,
+        self::SRC_PICKPOCKETING_LOOT_TEMPLATE,
+        self::SRC_SKINNING_LOOT_TEMPLATE
+    );
+
+    private const array TYPE_LIST_CLASS = array(
+        Type::NPC         => CreatureList::class,
+        Type::ITEM        => ItemList::class,
+        Type::ZONE        => ZoneList::class,
+        Type::OBJECT      => GameObjectList::class,
+        Type::QUEST       => QuestList::class,
+        Type::SPELL       => SpellList::class,
+        Type::AREATRIGGER => AreaTriggerList::class
+    );
+
+    /** @return ?array{0: int, 1: string, 2: string} [Type:: the owners are, their table, the column SourceGroup matches against] */
+    private static function groupOwnerTarget(int $srcType) : ?array
+    {
+        return match ($srcType)
+        {
+            self::SRC_CREATURE_LOOT_TEMPLATE      => [Type::NPC,    'creature', 'lootId'],
+            self::SRC_PICKPOCKETING_LOOT_TEMPLATE => [Type::NPC,    'creature', 'pickpocketLootId'],
+            self::SRC_SKINNING_LOOT_TEMPLATE      => [Type::NPC,    'creature', 'skinLootId'],
+            self::SRC_DISENCHANT_LOOT_TEMPLATE    => [Type::ITEM,   'items',    'disenchantId'],
+            self::SRC_GAMEOBJECT_LOOT_TEMPLATE    => [Type::OBJECT, 'objects',  'lootId'],
+            self::SRC_MAIL_LOOT_TEMPLATE          => [Type::QUEST,  'quests',   'rewardMailTemplateId'],
+            default                                => null
+        };
+    }
+
     /**
      * the real owner(s) a loot-template style source's SourceGroup names, for callers that need
      * that outside of prepare()'s own per-row expansion (jsGlobals there mixes a resolved owner id
@@ -543,26 +581,45 @@ class Conditions
      */
     public static function resolveGroupOwners(int $srcType, int $group) : array
     {
-        if (!$group)
+        if (!$group || !($t = self::groupOwnerTarget($srcType)))
             return [0, []];
 
-        [$type, $col] = match ($srcType)
-        {
-            self::SRC_CREATURE_LOOT_TEMPLATE      => [Type::NPC,    ['creature', 'lootId']           ],
-            self::SRC_PICKPOCKETING_LOOT_TEMPLATE => [Type::NPC,    ['creature', 'pickpocketLootId']  ],
-            self::SRC_SKINNING_LOOT_TEMPLATE      => [Type::NPC,    ['creature', 'skinLootId']        ],
-            self::SRC_DISENCHANT_LOOT_TEMPLATE    => [Type::ITEM,   ['items',    'disenchantId']      ],
-            self::SRC_GAMEOBJECT_LOOT_TEMPLATE    => [Type::OBJECT, ['objects',  'lootId']             ],
-            self::SRC_MAIL_LOOT_TEMPLATE          => [Type::QUEST,  ['quests',   'rewardMailTemplateId']],
-            default                                => [0, null]
-        };
-
-        if (!$col)
-            return [0, []];
-
-        [$table, $column] = $col;
+        [$type, $table, $column] = $t;
 
         return [$type, DB::Aowow()->selectCol('SELECT `id` FROM ::'.$table.' WHERE `'.$column.'` = %i', $group) ?: []];
+    }
+
+    /**
+     * resolveGroupOwners(), batched over several SourceGroup values at once - for a listing that
+     * would otherwise run one query per row
+     *
+     * @return array{0: int, 1: array<int, int[]>} [Type:: the owners are, SourceGroup => owner ids]
+     */
+    public static function resolveGroupOwnersBatch(int $srcType, array $groups) : array
+    {
+        $groups = array_values(array_unique(array_filter($groups)));
+        if (!$groups || !($t = self::groupOwnerTarget($srcType)))
+            return [0, []];
+
+        [$type, $table, $column] = $t;
+
+        $rows = DB::Aowow()->selectCol('SELECT `id` AS ARRAY_KEY, `'.$column.'` FROM ::'.$table.' WHERE `'.$column.'` IN %in', $groups) ?: [];
+
+        $out = [];
+        foreach ($rows as $id => $group)
+            $out[$group][] = $id;
+
+        return [$type, $out];
+    }
+
+    /** a plain name for any of the entity types Conditions itself ever links to - shared by every caller that resolves a source's group/entry into a displayed reference */
+    public static function nameForType(int $type, int $id) : ?string
+    {
+        $cls = self::TYPE_LIST_CLASS[$type] ?? null;
+        if (!$cls)
+            return null;
+
+        return (string)($cls::getName($id) ?: '') ?: null;
     }
 
     public static function extendListviewRow(array &$lvRow, int $srcType, int $groupKey, array $condition) : bool

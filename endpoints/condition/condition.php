@@ -138,18 +138,6 @@ class ConditionBaseResponse extends TemplateResponse implements ICache
         parent::generate();
     }
 
-    // Conditions::$source's group column isn't always a direct id of the type it's paired with -
-    // for these six, it's an internal loot-template id that only resolves to its real owner(s)
-    // through Conditions::resolveGroupOwners(), not a direct CreatureList::getName($group) etc.
-    private const array GROUP_NEEDS_LOOKUP = array(
-        Conditions::SRC_CREATURE_LOOT_TEMPLATE,
-        Conditions::SRC_DISENCHANT_LOOT_TEMPLATE,
-        Conditions::SRC_GAMEOBJECT_LOOT_TEMPLATE,
-        Conditions::SRC_MAIL_LOOT_TEMPLATE,
-        Conditions::SRC_PICKPOCKETING_LOOT_TEMPLATE,
-        Conditions::SRC_SKINNING_LOOT_TEMPLATE
-    );
-
     /**
      * group and entry each independently name something for several source types (e.g.
      * SRC_NPC_VENDOR: the vendor AND the item it sells) - resolving only whichever came first
@@ -181,7 +169,7 @@ class ConditionBaseResponse extends TemplateResponse implements ICache
             if ($ownerId < 0 && $ownerType != Type::AREATRIGGER)
                 $ownerId = (int)DB::Aowow()->selectCell('SELECT `typeId` FROM ::spawns WHERE `type` = %i AND `guid` = %i', $ownerType, -$ownerId);
 
-            if ($ownerId <= 0 || !($name = self::nameFor($ownerType, $ownerId)))
+            if ($ownerId <= 0 || !($name = Conditions::nameForType($ownerType, $ownerId)))
                 return ['group' => null, 'entry' => null];
 
             return ['group' => null, 'entry' => [$name, $this->linkFor($ownerType, $ownerId, $name)]];
@@ -199,22 +187,22 @@ class ConditionBaseResponse extends TemplateResponse implements ICache
 
         $group = $entry = null;
 
-        if ($this->group > 0 && in_array($this->srcType, self::GROUP_NEEDS_LOOKUP, true))
+        if ($this->group > 0 && in_array($this->srcType, Conditions::GROUP_NEEDS_LOOKUP, true))
         {
             [$ownerType, $ownerIds] = Conditions::resolveGroupOwners($this->srcType, $this->group);
 
             $refs = [];
             foreach ($ownerIds as $ownerId)
-                if ($name = self::nameFor($ownerType, $ownerId))
+                if ($name = Conditions::nameForType($ownerType, $ownerId))
                     $refs[] = [$name, $this->linkFor($ownerType, $ownerId, $name)];
 
             if ($refs)
                 $group = $this->combineRefs($refs);
         }
-        else if (is_int($grpType) && $this->group > 0 && ($name = self::nameFor($grpType, $this->group)))
+        else if (is_int($grpType) && $this->group > 0 && ($name = Conditions::nameForType($grpType, $this->group)))
             $group = [$name, $this->linkFor($grpType, $this->group, $name)];
 
-        if (is_int($entryType) && $this->entry > 0 && ($name = self::nameFor($entryType, $this->entry)))
+        if (is_int($entryType) && $this->entry > 0 && ($name = Conditions::nameForType($entryType, $this->entry)))
             $entry = [$name, $this->linkFor($entryType, $this->entry, $name)];
 
         return ['group' => $group, 'entry' => $entry];
@@ -244,26 +232,6 @@ class ConditionBaseResponse extends TemplateResponse implements ICache
 
         $this->extendGlobalIds($type, $id);
         return '['.Type::getFileString($type).'='.$id.']';
-    }
-
-    private static function nameFor(int $type, int $id) : ?string
-    {
-        $cls = match ($type)
-        {
-            Type::NPC         => CreatureList::class,
-            Type::ITEM        => ItemList::class,
-            Type::ZONE        => ZoneList::class,
-            Type::OBJECT      => GameObjectList::class,
-            Type::QUEST       => QuestList::class,
-            Type::SPELL       => SpellList::class,
-            Type::AREATRIGGER => AreaTriggerList::class,
-            default           => null
-        };
-
-        if (!$cls)
-            return null;
-
-        return (string)($cls::getName($id) ?: '') ?: null;
     }
 }
 
