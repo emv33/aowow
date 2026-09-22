@@ -354,25 +354,48 @@ class Lang
                         if ($rank > 0)
                             $name = self::main('parensFmt', [$name, $rank]);
                     }
-                    // Lockpicking
-                    else if ($prop == 4)
-                    {
-                        if ($fmt == self::FMT_HTML)
-                            $name = $interactive ? '<a href="?spell=1842">'.$name.'</a>' : '<span class="q1">'.$name.'</span>';
-                        else if ($interactive && $fmt == self::FMT_MARKUP)
-                        {
-                            $name = '[spell=1842]';
-                            $ids[Type::SPELL][] = 1842;
-                        }
-                    }
-                    // exclude unusual stuff
-                    else if (User::isInGroup(U_GROUP_STAFF))
-                    {
-                        if ($rank > 0)
-                            $name = self::main('parensFmt', [$name, $rank]);
-                    }
+                    // any other skill-type lock: resolve the actual spell(s) whose Open Lock
+                    // effect targets this LockType.dbc id - the same reverse lookup
+                    // Spell::tabUnlocks() already does from the spell's own detail page
                     else
-                        continue 2;
+                    {
+                        $spellIds = DB::Aowow()->selectCol(
+                            'SELECT `id` FROM ::spell WHERE
+                                (`effect1Id` = %i AND `effect1MiscValue` = %i) OR
+                                (`effect2Id` = %i AND `effect2MiscValue` = %i) OR
+                                (`effect3Id` = %i AND `effect3MiscValue` = %i)',
+                            SPELL_EFFECT_OPEN_LOCK, $prop, SPELL_EFFECT_OPEN_LOCK, $prop, SPELL_EFFECT_OPEN_LOCK, $prop
+                        );
+
+                        $links = [];
+                        foreach ($spellIds as $sId)
+                        {
+                            $sName = SpellList::getName($sId);
+                            if (!$sName)
+                                continue;
+
+                            if ($fmt == self::FMT_HTML)
+                                $links[] = $interactive ? '<a class="q1" href="?spell='.$sId.'">'.$sName.'</a>' : '<span class="q1">'.$sName.'</span>';
+                            else if ($interactive && $fmt == self::FMT_MARKUP)
+                            {
+                                $links[] = '[spell='.$sId.']';
+                                $ids[Type::SPELL][] = $sId;
+                            }
+                            else
+                                $links[] = $sName;
+                        }
+
+                        if ($links)
+                            $name = implode(self::main('comma'), $links);
+                        // exclude unusual stuff with no resolvable spell
+                        else if (User::isInGroup(U_GROUP_STAFF))
+                        {
+                            if ($rank > 0)
+                                $name = self::main('parensFmt', [$name, $rank]);
+                        }
+                        else
+                            continue 2;
+                    }
                     break;
                 case LOCK_TYPE_SPELL:
                     $name = SpellList::getName($prop);
