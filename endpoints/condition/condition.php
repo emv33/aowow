@@ -68,11 +68,8 @@ class ConditionBaseResponse extends TemplateResponse implements ICache
         if (!$exists)
             $this->generateNotFound(Util::ucFirst(Lang::game('conditions')), Lang::condition('notFound'));
 
-        // arrays, not plain ints: getBySource() treats an int 0 as "no filter", which would pull
-        // in every SourceGroup/Entry/Id rather than just the (possibly legitimately 0) one this
-        // row's own key names - see Gossip::buildTextTable()'s identical guard
         $cnd = new Conditions();
-        $cnd->getBySource([$this->srcType], [$this->group], [$this->entry], [$this->srcId])->prepare();
+        $cnd->getBySource($this->srcType, $this->group, $this->entry, $this->srcId)->prepare();
 
         $this->extendGlobalData($cnd->getJSGlobals());
 
