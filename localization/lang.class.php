@@ -313,8 +313,7 @@ class Lang
             switch ($lock['type'.$i])
             {
                 case LOCK_TYPE_ITEM:
-                    $name = ItemList::getName($prop);
-                    if (!$name)
+                    if (!($name = ItemList::getName($prop)))
                         continue 2;
 
                     if ($fmt == self::FMT_HTML)
@@ -327,22 +326,21 @@ class Lang
 
                     break;
                 case LOCK_TYPE_SKILL:
-                    $name = self::spell('lockType', $prop);
-                    if (!$name)
+                    if (!($name = self::spell('lockType', $prop)))
                         continue 2;
 
-                    // skills
-                    if (in_array($prop, [1, 2, 3, 20]))
-                    {
-                        $skills = array(
-                             1 => SKILL_LOCKPICKING,
-                             2 => SKILL_HERBALISM,
-                             3 => SKILL_MINING,
-                            20 => SKILL_INSCRIPTION
-                        );
+                    $skills = array(
+                         1 => SKILL_LOCKPICKING,
+                         2 => SKILL_HERBALISM,
+                         3 => SKILL_MINING,
+                        20 => SKILL_INSCRIPTION
+                    );
 
+                    // resolve as skill
+                    if (isset($skills[$prop]))
+                    {
                         if ($fmt == self::FMT_HTML)
-                            $name = $interactive ? '<a href="?skill='.$skills[$prop].'">'.$name.'</a>' : '<span class="q1">'.$name.'</span>';
+                            $name = $interactive ? '<a class="q1" href="?skill='.$skills[$prop].'">'.$name.'</a>' : '<span class="q1">'.$name.'</span>';
                         else if ($interactive && $fmt == self::FMT_MARKUP)
                         {
                             $name = '[skill='.$skills[$prop].']';
@@ -350,20 +348,20 @@ class Lang
                         }
                         else
                             $name = SkillList::getName($prop);
-
-                        if ($rank > 0)
-                            $name = self::main('parensFmt', [$name, $rank]);
                     }
                     // any other skill-type lock: resolve the actual spell(s) whose Open Lock
                     // effect targets this LockType.dbc id - the same reverse lookup
                     // Spell::tabUnlocks() already does from the spell's own detail page
+                    // (skillLine1 <> 0 excludes non-player spells that share the misc value -
+                    // upstream a004ce00)
                     else
                     {
                         $spellIds = DB::Aowow()->selectCol(
                             'SELECT `id` FROM ::spell WHERE
-                                (`effect1Id` = %i AND `effect1MiscValue` = %i) OR
-                                (`effect2Id` = %i AND `effect2MiscValue` = %i) OR
-                                (`effect3Id` = %i AND `effect3MiscValue` = %i)',
+                                ((`effect1Id` = %i AND `effect1MiscValue` = %i) OR
+                                 (`effect2Id` = %i AND `effect2MiscValue` = %i) OR
+                                 (`effect3Id` = %i AND `effect3MiscValue` = %i)) AND `skillLine1` <> 0
+                             ORDER BY `id` ASC',
                             SPELL_EFFECT_OPEN_LOCK, $prop, SPELL_EFFECT_OPEN_LOCK, $prop, SPELL_EFFECT_OPEN_LOCK, $prop
                         );
 
@@ -388,18 +386,16 @@ class Lang
                         if ($links)
                             $name = implode(self::main('comma'), $links);
                         // exclude unusual stuff with no resolvable spell
-                        else if (User::isInGroup(U_GROUP_STAFF))
-                        {
-                            if ($rank > 0)
-                                $name = self::main('parensFmt', [$name, $rank]);
-                        }
-                        else
+                        else if (!User::isInGroup(U_GROUP_STAFF))
                             continue 2;
                     }
+
+                    if ($rank > 0)
+                        $name = self::main('parensFmt', [$name, $rank]);
+
                     break;
                 case LOCK_TYPE_SPELL:
-                    $name = SpellList::getName($prop);
-                    if (!$name)
+                    if (!($name = SpellList::getName($prop)))
                         continue 2;
 
                     if ($fmt == self::FMT_HTML)

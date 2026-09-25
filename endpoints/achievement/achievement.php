@@ -272,6 +272,7 @@ class AchievementBaseResponse extends TemplateResponse implements ICache
                 // link to area
                 case ACHIEVEMENT_CRITERIA_TYPE_COMPLETE_QUESTS_IN_ZONE:
                 case ACHIEVEMENT_CRITERIA_TYPE_HONORABLE_KILL_AT_AREA:
+                case ACHIEVEMENT_CRITERIA_TYPE_EXPLORE_AREA: // worldmapoverlay/id resolved to areatable/id during setup
                     $crtIcon = new IconElement(Type::ZONE, $obj, $crtName ?: ZoneList::getName($obj), size: IconElement::SIZE_SMALL, element: 'iconlist-icon');
                     break;
                 // link to area (by exploration overlay)
@@ -370,14 +371,13 @@ class AchievementBaseResponse extends TemplateResponse implements ICache
                     case ACHIEVEMENT_CRITERIA_DATA_TYPE_S_AREA:
                         $extraData[] = ZoneList::makeLink($xData['value1']);
                         break;
-                    // the target has to be of this level
                     case ACHIEVEMENT_CRITERIA_DATA_TYPE_T_LEVEL:
-                        $extraData[] = Lang::game('level').' '.$xData['value1'];
+                        $extraData[] = Lang::main('_reqLevel').$xData['value1'];
                         break;
                     // 0 = male, as in the client
                     case ACHIEVEMENT_CRITERIA_DATA_TYPE_T_GENDER:
                         if ($_ = Lang::exist('main', 'sex', $xData['value1'] + 1))
-                            $extraData[] = $_;
+                            $extraData[] = Lang::main('gender').Lang::main('colon').$_;
                         break;
                     case ACHIEVEMENT_CRITERIA_DATA_TYPE_SCRIPT:
                         if ($xData['ScriptName'] && User::isInGroup(U_GROUP_STAFF))
@@ -394,7 +394,7 @@ class AchievementBaseResponse extends TemplateResponse implements ICache
                             $extraData[] = $_;
                         break;
                     case ACHIEVEMENT_CRITERIA_DATA_TYPE_MAP_PLAYER_COUNT:
-                        $extraData[] = $xData['value1'].' '.Lang::main('players');
+                        $extraData[] = Lang::main('players').Lang::main('colon').$xData['value1'];
                         break;
                     // faction ids, not the SIDE_* the rest of the page uses
                     case ACHIEVEMENT_CRITERIA_DATA_TYPE_T_TEAM:
@@ -415,9 +415,9 @@ class AchievementBaseResponse extends TemplateResponse implements ICache
                         };
                         break;
                     case ACHIEVEMENT_CRITERIA_DATA_TYPE_S_EQUIPED_ITEM:
-                        $_ = sprintf(Lang::item('itemLevel'), $xData['value1']);
+                        $_ = Lang::item('itemLevel', [$xData['value1']]);
                         if ($q = Lang::exist('item', 'quality', $xData['value2']))
-                            $_ .= ' ('.$q.')';
+                            $_ = Lang::main('parensFmt', [$_, $q]);
 
                         $extraData[] = $_;
                         break;
@@ -427,7 +427,7 @@ class AchievementBaseResponse extends TemplateResponse implements ICache
                     // the quality of the item the criterion is about - the item filter lists them
                     case ACHIEVEMENT_CRITERIA_DATA_TYPE_S_ITEM_QUALITY:
                         if ($_ = Lang::exist('item', 'quality', $xData['value1']))
-                            $extraData[] = '<a href="?items&filter=qu='.(int)$xData['value1'].'">'.$_.'</a>';
+                            $extraData[] = Lang::item('_quality').'<a href="?items&amp;filter=qu='.(int)$xData['value1'].'">'.$_.'</a>';
                         break;
                     default:
                         if (User::isInGroup(U_GROUP_STAFF))

@@ -450,7 +450,7 @@ class Gossip
         foreach ($this->texts as $textId => $text)
         {
             $cnd = new Conditions();
-            $cnd->getBySource(Conditions::SRC_GOSSIP_MENU, group: [$this->menuId], entry: [$textId])->prepare();   // arrays: getBySource() ignores a filter that is int 0
+            $cnd->getBySource(Conditions::SRC_GOSSIP_MENU, group: $this->menuId, entry: $textId)->prepare();
             $cndTag = $cnd->toMarkupTag();
             if ($cndTag)
             {
@@ -546,7 +546,7 @@ class Gossip
         foreach ($this->options as $oId => $o)
         {
             $cnd = new Conditions();
-            $cnd->getBySource(Conditions::SRC_GOSSIP_MENU_OPTION, group: [$this->menuId], entry: [$oId])->prepare();   // arrays: OptionID 0 is a real option
+            $cnd->getBySource(Conditions::SRC_GOSSIP_MENU_OPTION, group: $this->menuId, entry: $oId)->prepare();
             $cndTag = $cnd->toMarkupTag();
             if ($cndTag)
             {
