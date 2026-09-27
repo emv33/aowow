@@ -544,7 +544,7 @@ class Profiler
                         JOIN ::spell s ON s.`effect1MiscValue` = gp.`id` AND s.`effect1Id` = %i
                         JOIN ::items i ON i.`class` = %i AND i.`spellId1` = s.`id` AND (i.`cuFlags` & %i) = 0
                         WHERE gp.`id` IN %in',
-                        SPELL_EFFECT_APPLY_GLYPH, ITEM_CLASS_GLYPH, CUSTOM_DISABLED | CUSTOM_UNAVAILABLE, $gProps
+                        SPELL_EFFECT_APPLY_GLYPH, ITEM_CLASS_GLYPH, CUSTOM_UNAVAILABLE, $gProps
                     );
 
                     if ($gItems)

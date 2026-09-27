@@ -357,6 +357,7 @@ var fi_filters = {
         { id: 43,   name: 'usableinbgs',            type: 'yn'                             },
         { id: 44,   name: 'usableinarenas',         type: 'yn'                             },
         { id: 31,   name: 'usablewhenshapeshifted', type: 'yn'                             },
+        { id: 6,    name: 'disabled',               type: 'yn'                             },
 
         { id: 9999, name: 'sepattributes' },
         { id: 69,   name: 'harmful',                    type: 'yn' },
@@ -446,6 +447,7 @@ var fi_filters = {
         { id: 10,  name: 'icon',                type: 'str' },
         { id: 9,   name: 'id',                  type: 'num', before: 'name' },
         { id: 11,  name: 'relatedevent',        type: 'event-any+none' },
+        { id: 12,  name: 'disabled',            type: 'yn' },
 
         { id: 8,   name: 'sepseries' },
         { id: 5,   name: 'firstseries',         type: 'yn' },

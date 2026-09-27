@@ -2456,6 +2456,7 @@ class SpellListFilter extends Filter
          3  => [parent::CR_BOOLEAN,   'spellFocusObject'                                                                          ], // requiresnearbyobject
          4  => [parent::CR_NUMERIC,   'trainingcost',     NUM_CAST_INT                                                            ], // trainingcost
          5  => [parent::CR_BOOLEAN,   'reqSpellId'                                                                                ], // requiresprofspec
+         6  => [parent::CR_FLAG,      'cuFlags',          CUSTOM_DISABLED                                                         ], // disabled [yn]
          8  => [parent::CR_FLAG,      'cuFlags',          CUSTOM_HAS_SCREENSHOT                                                   ], // hasscreenshots
          9  => [parent::CR_CALLBACK,  'cbSource',                                                                                 ], // source [enum]
         10  => [parent::CR_FLAG,      'cuFlags',          SPELL_CU_FIRST_RANK                                                     ], // firstrank

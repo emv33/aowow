@@ -4294,6 +4294,7 @@ var LANG = {
 
     fispells: {
         sepgeneral:                 "一般",
+        disabled:                   "已禁用",
         prcntbasemanarequired:      "需 % 法力值",
         casttime:                   "施法时间",
         channeled:                  "瞄准",
@@ -4412,6 +4413,7 @@ var LANG = {
 
     fiachievements: {
         sepgeneral:     "一般",
+        disabled:       "已禁用",
         givesreward:    "授予奖励",
         rewardtext:     "奖励文字",
         location:       "地点…",

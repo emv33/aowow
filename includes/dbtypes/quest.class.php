@@ -245,7 +245,7 @@ class QuestList extends DBTypeList
 
             // if ($this->isRepeatable())       // dafuque..? says repeatable and is used as 'disabled'..?
                 // $data[$this->id]['wflags'] |= QUEST_CU_REPEATABLE;
-            if ($this->curTpl['cuFlags'] & (CUSTOM_UNAVAILABLE | CUSTOM_DISABLED))
+            if ($this->curTpl['cuFlags'] & CUSTOM_UNAVAILABLE)
                 $data[$this->id]['wflags'] |= QUEST_CU_REPEATABLE;
 
             if ($this->curTpl['flags'] & QUEST_FLAG_DAILY)

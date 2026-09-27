@@ -30,6 +30,15 @@
                 <h1 class="h1-icon"><?=$this->h1; ?></h1>
 
 <?php
+if ($this->disabled):
+?>
+                <div class="pad"></div>
+                <b style="color: red"><?=Lang::spell('_disabled'); ?></b>
+                <div class="pad"></div>
+
+<?php
+endif;
+
     $this->brick('tooltip');
 
 if ($this->tools):

@@ -35,6 +35,7 @@ class AchievementBaseResponse extends TemplateResponse implements ICache
     public  string $description = '';
     public  array  $criteria    = [];
     public ?array  $rewards     = null;
+    public  bool   $disabled    = false;
 
     private AchievementList $subject;
 
@@ -54,7 +55,8 @@ class AchievementBaseResponse extends TemplateResponse implements ICache
 
         $this->extendGlobalData($this->subject->getJSGlobals(GLOBALINFO_REWARDS));
 
-        $this->h1 = $this->subject->getField('name', true);
+        $this->h1       = $this->subject->getField('name', true);
+        $this->disabled = !!($this->subject->getField('cuFlags') & CUSTOM_DISABLED);
 
         $this->gPageInfo += array(
             'type'   => $this->type,

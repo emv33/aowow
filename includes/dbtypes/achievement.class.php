@@ -369,6 +369,7 @@ class AchievementListFilter extends Filter
          9 => [parent::CR_NUMERIC,   'id',          NUM_CAST_INT,                true], // id
         10 => [parent::CR_STRING,    'ic.name',                                      ], // icon
         11 => [parent::CR_CALLBACK,  'cbRelEvent', null,                         null], // related event [enum]
+        12 => [parent::CR_FLAG,      'cuFlags',     CUSTOM_DISABLED                  ], // disabled [yn]
         14 => [parent::CR_FLAG,      'cuFlags',     CUSTOM_HAS_COMMENT               ], // hascomments
         15 => [parent::CR_FLAG,      'cuFlags',     CUSTOM_HAS_SCREENSHOT            ], // hasscreenshots
         16 => [parent::CR_FLAG,      'cuFlags',     CUSTOM_HAS_VIDEO                 ], // hasvideos

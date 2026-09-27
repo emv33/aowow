@@ -29,6 +29,15 @@
 ?>
 
                 <h1><?=$this->h1; ?></h1>
+
+<?php if ($this->disabled): ?>
+                <div class="pad"></div>
+                <b style="color: red"><?=Lang::achievement('_disabled'); ?></b>
+                <div class="pad"></div>
+
+<?php
+endif;
+?>
                 <?=$this->description.PHP_EOL; ?>
                 <h3><?=Lang::achievement('criteria').($this->reqCrtQty ? ' &ndash; <small><b>'.Lang::achievement('reqNumCrt', [$this->reqCrtQty, count($this->criteria)]).'</b></small>' : ''); ?></h3>
 
