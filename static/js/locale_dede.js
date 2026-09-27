@@ -4253,6 +4253,7 @@ var LANG = {
 
     fispells: {
         sepgeneral:                 "Allgemein",
+        disabled:                   "Deaktiviert",
         prcntbasemanarequired:      "% des Grundmanas benötigt",
         casttime:                   "Zauberzeit",
         channeled:                  "Kanalisiert",
@@ -4371,6 +4372,7 @@ var LANG = {
 
     fiachievements: {
         sepgeneral:     "Allgemein",
+        disabled:       "Deaktiviert",
         givesreward:    "Vergibt Belohnung",
         rewardtext:     "Belohnungstext",
         location:       "Standort...",

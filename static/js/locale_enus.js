@@ -4297,6 +4297,7 @@ var LANG = {
 
     fispells: {
         sepgeneral:                 "General",
+        disabled:                   "Disabled",
         prcntbasemanarequired:      "% of base mana required",
         casttime:                   "Cast time",
         channeled:                  "Channeled",
@@ -4415,6 +4416,7 @@ var LANG = {
 
     fiachievements: {
         sepgeneral:     "General",
+        disabled:       "Disabled",
         givesreward:    "Gives a reward",
         rewardtext:     "Reward text",
         location:       "Location...",

@@ -4252,6 +4252,7 @@ var LANG = {
 
     fispells: {
         sepgeneral:                 "Общее",
+        disabled:                   "Отключено",
         prcntbasemanarequired:      "Требуется % маны",
         casttime:                   "Применение",
         channeled:                  "Направляемое",
@@ -4372,6 +4373,7 @@ var LANG = {
 
     fiachievements: {
         sepgeneral:     "Общее",
+        disabled:       "Отключено",
         givesreward:    "Дает награду",
         rewardtext:     "Наградной текст",
         location:       "Местонахождение...",

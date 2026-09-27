@@ -4253,6 +4253,7 @@ var LANG = {
 
     fispells: {
         sepgeneral:                 "Général",
+        disabled:                   "Désactivé",
         prcntbasemanarequired:      "% du mana de base requis",
         casttime:                   "Incantation",
         channeled:                  "Canalisée",
@@ -4371,6 +4372,7 @@ var LANG = {
 
     fiachievements: {
         sepgeneral:     "Général",
+        disabled:       "Désactivé",
         givesreward:    "Donne une récompense",
         rewardtext:     "Texte de la récompense",
         location:       "Lieu...",

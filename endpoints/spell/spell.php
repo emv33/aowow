@@ -40,6 +40,7 @@ class SpellBaseResponse extends TemplateResponse implements ICache
     public ?array  $casterAura = null;
     public ?array  $targetAura = null;
     public  array  $tooltip    = [];
+    public  bool   $disabled   = false;
 
     private SpellList $subject;
     private int       $firstRank    = 0;
@@ -96,7 +97,8 @@ class SpellBaseResponse extends TemplateResponse implements ICache
         else
             $this->firstRank = $this->typeId;
 
-        $this->h1 = Util::htmlEscape($this->subject->getField('name', true));
+        $this->h1       = Util::htmlEscape($this->subject->getField('name', true));
+        $this->disabled = !!($this->subject->getField('cuFlags') & CUSTOM_DISABLED);
 
         $this->gPageInfo += array(
             'type'   => $this->type,
