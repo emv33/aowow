@@ -62,7 +62,11 @@ class SpellfocusesBaseResponse extends TemplateResponse implements ICache
         // read straight off the site's own objects table rather than trusting a fixed list of
         // ids - GameObjectListFilter's cr=50 used to gate this off a hand-typed enum that never
         // matched what a given core's gameobject_template actually has
-        $usedIds = array_flip(DB::Aowow()->selectCol('SELECT DISTINCT `spellFocusId` FROM ::objects WHERE `spellFocusId` != 0') ?: []);
+        $objRows = DB::Aowow()->selectAssoc('SELECT `id`, `spellFocusId`, `name_loc0`, `name_loc'.Lang::getLocale()->value.'` FROM ::objects WHERE `spellFocusId` != 0') ?: [];
+
+        $byFocus = [];
+        foreach ($objRows as $o)
+            $byFocus[(int)$o['spellFocusId']][] = $o;
 
         $data = [];
         foreach ($rows as $r)
@@ -75,8 +79,20 @@ class SpellfocusesBaseResponse extends TemplateResponse implements ICache
                 'name' => $name !== '' && $name[0] == '$' ? ' '.$name : $name
             );
 
-            if (isset($usedIds[$id]))
-                $row['objlink'] = '?objects&filter=cr=50;crs=3;crv='.$id;
+            if ($objs = $byFocus[$id] ?? [])
+            {
+                $row['objcount'] = count($objs);
+
+                // exactly one gameobject provides this focus - link it directly by name
+                // instead of sending the user through a one-row filtered listing
+                if (count($objs) == 1)
+                {
+                    $row['objlink'] = '?object='.$objs[0]['id'];
+                    $row['objname'] = Util::localizedString($objs[0], 'name');
+                }
+                else
+                    $row['objlink'] = '?objects&filter=cr=50;crs=3;crv='.$id;
+            }
 
             $data[] = $row;
         }
