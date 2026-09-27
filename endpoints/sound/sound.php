@@ -288,8 +288,6 @@ class SoundBaseResponse extends TemplateResponse implements ICache
         {
             $extra = [];
             $cnds  = [&$extra];
-            if (!User::isInGroup(U_GROUP_STAFF))
-                $cnds[] = [['cuFlags', CUSTOM_EXCLUDE_FOR_LISTVIEW, '&'], 0];
 
             if ($creatureIds)
                 $extra[] = ['id', $creatureIds];

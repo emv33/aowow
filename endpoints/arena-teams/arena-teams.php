@@ -96,8 +96,6 @@ class ArenateamsBaseResponse extends TemplateResponse implements IProfilerList
             $this->fiMenuExtension = $fiQuery;
 
         $conditions = [Listview::DEFAULT_SIZE];
-        if (!User::isInGroup(U_GROUP_EMPLOYEE))
-            $conditions[] = ['at.seasonGames', 0, '>'];
 
         if ($_ = $this->filter->getConditions())
             $conditions[] = $_;

@@ -38,8 +38,6 @@ class MissingscreenshotsBaseResponse extends TemplateResponse
             ['cuFlags', CUSTOM_HAS_COMMENT, '&'],
             [['cuFlags', CUSTOM_HAS_SCREENSHOT, '&'], 0]
         );
-        if (!User::isInGroup(U_GROUP_EMPLOYEE))
-            $cnd[] = [['cuFlags', CUSTOM_EXCLUDE_FOR_LISTVIEW, '&'], 0];
 
         $hasTabs = false;
         foreach (Type::getClassesFor(Type::FLAG_RANDOM_SEARCHABLE, 'contribute', CONTRIBUTE_SS) as $classStr)

@@ -64,8 +64,6 @@ class ZonesBaseResponse extends TemplateResponse implements ICache
         $visibleCols = [];
         $hiddenCols  = [];
 
-        if (!User::isInGroup(U_GROUP_EMPLOYEE))             // sub-areas and unused zones
-            $conditions[] = [['cuFlags', CUSTOM_EXCLUDE_FOR_LISTVIEW, '&'], 0];
 
         if ($this->category)
         {

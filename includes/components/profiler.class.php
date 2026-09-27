@@ -228,24 +228,17 @@ class Profiler
             if (!DB::isConnectable(DB_CHARACTERS . $rId))
                 continue;
 
-            // filter by access level
-            if ($rData['access'] == SEC_ADMINISTRATOR   && (CLI || User::isInGroup(U_GROUP_DEV | U_GROUP_ADMIN)))
+            // access level
+            if ($rData['access'] == SEC_ADMINISTRATOR)
                 $rData['access'] = U_GROUP_DEV | U_GROUP_ADMIN;
-            else if ($rData['access'] == SEC_GAMEMASTER && (CLI || User::isInGroup(U_GROUP_DEV | U_GROUP_ADMIN | U_GROUP_MOD)))
+            else if ($rData['access'] == SEC_GAMEMASTER)
                 $rData['access'] = U_GROUP_DEV | U_GROUP_ADMIN | U_GROUP_MOD;
-            else if ($rData['access'] == SEC_MODERATOR  && (CLI || User::isInGroup(U_GROUP_DEV | U_GROUP_ADMIN | U_GROUP_MOD | U_GROUP_BUREAU)))
+            else if ($rData['access'] == SEC_MODERATOR)
                 $rData['access'] = U_GROUP_DEV | U_GROUP_ADMIN | U_GROUP_MOD | U_GROUP_BUREAU;
-            else if ($rData['access'] > SEC_PLAYER && !CLI)
-                continue;
 
-            // filter dev realms
+            // dev realms
             if ($rData['region'] === 'dev')
-            {
-                if (CLI || User::isInGroup(U_GROUP_DEV | U_GROUP_ADMIN))
-                    $rData['access'] = U_GROUP_DEV | U_GROUP_ADMIN;
-                else
-                    continue;
-            }
+                $rData['access'] = U_GROUP_DEV | U_GROUP_ADMIN;
 
             self::$realms[$rId] = $rData;
         }
@@ -551,7 +544,7 @@ class Profiler
                         JOIN ::spell s ON s.`effect1MiscValue` = gp.`id` AND s.`effect1Id` = %i
                         JOIN ::items i ON i.`class` = %i AND i.`spellId1` = s.`id` AND (i.`cuFlags` & %i) = 0
                         WHERE gp.`id` IN %in',
-                        SPELL_EFFECT_APPLY_GLYPH, ITEM_CLASS_GLYPH, CUSTOM_DISABLED | CUSTOM_UNAVAILABLE | CUSTOM_EXCLUDE_FOR_LISTVIEW, $gProps
+                        SPELL_EFFECT_APPLY_GLYPH, ITEM_CLASS_GLYPH, CUSTOM_DISABLED | CUSTOM_UNAVAILABLE, $gProps
                     );
 
                     if ($gItems)
@@ -685,7 +678,7 @@ class Profiler
 
         DB::Aowow()->qry('DELETE FROM ::profiler_completion_skills WHERE `id` = %i', $profileId);
 
-        $skAllowed = DB::Aowow()->selectCol('SELECT `id` FROM ::skillline WHERE `typeCat` IN (9, 11) AND (`cuFlags` & %i) = 0', CUSTOM_EXCLUDE_FOR_LISTVIEW);
+        $skAllowed = DB::Aowow()->selectCol('SELECT `id` FROM ::skillline WHERE `typeCat` IN (9, 11)');
         if ($skills = DB::Characters($realmId)->selectAssoc('SELECT `skill`, `value`, `max` FROM character_skills WHERE `guid` = %i AND `skill` IN %in', $char['guid'], $skAllowed))
         {
             $racials = DB::Aowow()->selectAssoc('SELECT `effect1MiscValue` AS ARRAY_KEY, `effect1DieSides` + `effect1BasePoints` AS qty, `reqRaceMask`, `reqClassMask` FROM ::spell WHERE `typeCat` = -4 AND `effect1Id` = %i AND `effect1AuraId` = %i', SPELL_EFFECT_APPLY_AURA, SPELL_AURA_MOD_SKILL_TALENT);

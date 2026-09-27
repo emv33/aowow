@@ -142,26 +142,20 @@ class SpellBaseResponse extends TemplateResponse implements ICache
 
 
         // aowow - custom start: world DB overrides of the dbc data shown above
-        if (User::isInGroup(U_GROUP_STAFF))
-        {
-            $so = new SpellOverride($this->typeId);
-            $this->spellOverride = $so->getMarkup();         // fills the globals; must run first
-            $this->extendGlobalData($so->getJSGlobals());
-        }
+        $so = new SpellOverride($this->typeId);
+        $this->spellOverride = $so->getMarkup();         // fills the globals; must run first
+        $this->extendGlobalData($so->getJSGlobals());
         // aowow - custom end
 
         // aowow - custom start: legacy script engine
         // `spell_scripts` is keyed by spell id; `event_scripts` by the event a SPELL_EFFECT_SEND_EVENT effect sends
-        if (User::isInGroup(U_GROUP_STAFF))
-        {
-            $lsSources = [[LegacyScript::SRC_SPELL, $this->typeId]];
-            foreach (LegacyScript::getEventIdsForSpell($this->typeId) as $eventId)
-                $lsSources[] = [LegacyScript::SRC_EVENT, $eventId];
+        $lsSources = [[LegacyScript::SRC_SPELL, $this->typeId]];
+        foreach (LegacyScript::getEventIdsForSpell($this->typeId) as $eventId)
+            $lsSources[] = [LegacyScript::SRC_EVENT, $eventId];
 
-            $lsJSG = [];
-            $this->legacyScript = LegacyScript::buildMarkupFor($lsSources, 'lscript-spell-'.$this->typeId, $lsJSG);
-            $this->extendGlobalData($lsJSG);
-        }
+        $lsJSG = [];
+        $this->legacyScript = LegacyScript::buildMarkupFor($lsSources, 'lscript-spell-'.$this->typeId, $lsJSG);
+        $this->extendGlobalData($lsJSG);
         // aowow - custom end
 
 
@@ -599,10 +593,6 @@ class SpellBaseResponse extends TemplateResponse implements ICache
             ['recoveryCategory', 0, '>'],
         );
 
-        // limit shared cooldowns to same player class for regulat users
-        if (!User::isInGroup(U_GROUP_STAFF) && $this->subject->getField('spellFamilyId'))
-            $conditions[] = ['spellFamilyId', $this->subject->getField('spellFamilyId')];
-
         if (($cdSpells = new SpellList($conditions))->error)
             return null;
 
@@ -836,9 +826,6 @@ class SpellBaseResponse extends TemplateResponse implements ICache
 
     private function tabUsedByAreatrigger(array $ubSAI) : ?Listview
     {
-        if (!User::isInGroup(U_GROUP_EMPLOYEE))
-            return null;
-
         if (empty($ubSAI[Type::AREATRIGGER]))
             return null;
 
@@ -1674,10 +1661,9 @@ class SpellBaseResponse extends TemplateResponse implements ICache
         $lootKey  = 'disenchantId';
         $skillKey = 'requiredDisenchantSkill';
         $lootIds  = DB::Aowow()->selectCol(
-            'SELECT   `id` AS ARRAY_KEY, `disenchantId` FROM ::items WHERE `disenchantId` <> 0 AND `requiredDisenchantSkill` > 0 AND `class` IN %in AND `quality` IN %in AND (`cuFlags` & %i) = 0 AND `itemLevel` > 1',
+            'SELECT   `id` AS ARRAY_KEY, `disenchantId` FROM ::items WHERE `disenchantId` <> 0 AND `requiredDisenchantSkill` > 0 AND `class` IN %in AND `quality` IN %in AND `itemLevel` > 1',
             [ITEM_CLASS_ARMOR, ITEM_CLASS_WEAPON],
-            [ITEM_QUALITY_UNCOMMON, ITEM_QUALITY_RARE, ITEM_QUALITY_EPIC],
-            CUSTOM_EXCLUDE_FOR_LISTVIEW
+            [ITEM_QUALITY_UNCOMMON, ITEM_QUALITY_RARE, ITEM_QUALITY_EPIC]
         );
         $srcItemIds = array_keys($lootIds);
 
@@ -1859,11 +1845,10 @@ class SpellBaseResponse extends TemplateResponse implements ICache
                    s.`id` AS ARRAY_KEY, ic.`name` AS `iconString`
             FROM   ::spell s
             JOIN   ::icons ic ON s.`iconId` = ic.`id`
-            WHERE  (s.`cuFlags` & %i) = 0 AND
-                   (`effect1CreateItemId` = %i AND `effect1Id` = %i)',// OR
+            WHERE  (`effect1CreateItemId` = %i AND `effect1Id` = %i)',// OR
                 // (`effect2CreateItemId` = %i AND `effect2Id` = %i) OR
                 // (`effect3CreateItemId` = %i AND `effect3Id` = %i)',
-            CUSTOM_UNAVAILABLE, $itemId, SPELL_EFFECT_CREATE_ITEM //, $itemId, SPELL_EFFECT_CREATE_ITEM, $itemId, SPELL_EFFECT_CREATE_ITEM
+            $itemId, SPELL_EFFECT_CREATE_ITEM //, $itemId, SPELL_EFFECT_CREATE_ITEM, $itemId, SPELL_EFFECT_CREATE_ITEM
         );
 
         if (!$spells)
@@ -2799,10 +2784,8 @@ class SpellBaseResponse extends TemplateResponse implements ICache
                     continue;
 
                 $listItem = Lang::spell('attributes'.$i, $j);
-                if (!$listItem && User::isInGroup(U_GROUP_STAFF))
+                if (!$listItem)
                     $listItem = '<span class="q0">Unknown SpellAttribute'.$i.'</span>';
-                else if (!$listItem)
-                    continue;
 
                 if ($crId = (SpellListFilter::$attributesFilter[$i][$j] ?? 0))
                     $listItem = sprintf('<a href="?spells&filter=cr=%2$d;crs=%3$d;crv=0">%1$s</a>', $listItem, abs($crId), $crId > 0 ? 1 : 2);
@@ -3024,9 +3007,8 @@ class SpellBaseResponse extends TemplateResponse implements ICache
         }
 
         // spell script
-        if (User::isInGroup(U_GROUP_STAFF))
-            if ($_ = DB::World()->selectCell('SELECT `ScriptName` FROM spell_script_names WHERE ABS(`spell_id`) = %i', $this->firstRank))
-                $infobox[] = 'Script'.Lang::main('colon').$_;
+        if ($_ = DB::World()->selectCell('SELECT `ScriptName` FROM spell_script_names WHERE ABS(`spell_id`) = %i', $this->firstRank))
+            $infobox[] = 'Script'.Lang::main('colon').$_;
 
         return $infobox;
     }

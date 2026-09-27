@@ -144,7 +144,7 @@ class TextResponse extends BaseResponse
 
         // NOTE - this may fuck up some javascripts that say they expect ajax, but use the whole string anyway
         // so it's limited to tooltips
-        if (Cfg::get('DEBUG') && User::isInGroup(U_GROUP_STAFF) && $this->result instanceof Tooltip)
+        if (Cfg::get('DEBUG') && $this->result instanceof Tooltip)
         {
             $this->sumSQLStats();
 

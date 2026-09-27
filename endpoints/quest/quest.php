@@ -637,13 +637,12 @@ class QuestBaseResponse extends TemplateResponse implements ICache
             {
                 if ($atSpawns = DB::AoWoW()->selectAssoc('SELECT `typeId` AS ARRAY_KEY, `posX`, `posY`, `floor`, `areaId` FROM ::spawns WHERE `type` = %i AND `typeId` IN %in', Type::AREATRIGGER, $atir))
                 {
-                    if (User::isInGroup(U_GROUP_STAFF))
-                        $endText = '<a href="?areatrigger='.$atir[0].'">'.($endText ?: Lang::areatrigger('unnamed', [$atir[0]])).'</a>';
+                    $endText = '<a href="?areatrigger='.$atir[0].'">'.($endText ?: Lang::areatrigger('unnamed', [$atir[0]])).'</a>';
 
                     foreach ($atSpawns as $atId => $atsp)
                     {
                         $addObjectiveSpawns([$atsp['areaId'] => [$atsp['floor'] => [$atId => array(
-                            'type'      => User::isInGroup(U_GROUP_STAFF) ? Type::AREATRIGGER : -1,
+                            'type'      => Type::AREATRIGGER,
                             'id'        => $atId,
                             'point'     => 'requirement',
                             'name'      => $this->subject->parseText('end', false) ?: Lang::areatrigger('unnamed', [$atir[0]]),
@@ -832,25 +831,19 @@ class QuestBaseResponse extends TemplateResponse implements ICache
         // aowow - custom start: quest POI
         // `quest_poi` / `quest_poi_points` are the objective blobs the client itself draws; the page
         // only ever plotted npc and object spawns, which approximates something the DB states exactly
-        if (User::isInGroup(U_GROUP_STAFF))
-        {
-            $poiJSG = [];
-            $this->questPOI = self::buildPOIMarkup(self::getQuestPOI($this->typeId), $poiJSG);
-            $this->extendGlobalData($poiJSG);
-        }
+        $poiJSG = [];
+        $this->questPOI = self::buildPOIMarkup(self::getQuestPOI($this->typeId), $poiJSG);
+        $this->extendGlobalData($poiJSG);
         // aowow - custom end
 
         // aowow - custom start: legacy script engine
         // not every core still ships these two; LegacyScript checks before querying
-        if (User::isInGroup(U_GROUP_STAFF))
-        {
-            $lsJSG = [];
-            $this->legacyScript = LegacyScript::buildMarkupFor(array(
-                [LegacyScript::SRC_QUEST_START, $this->typeId],
-                [LegacyScript::SRC_QUEST_END,   $this->typeId]
-            ), 'lscript-quest-'.$this->typeId, $lsJSG);
-            $this->extendGlobalData($lsJSG);
-        }
+        $lsJSG = [];
+        $this->legacyScript = LegacyScript::buildMarkupFor(array(
+            [LegacyScript::SRC_QUEST_START, $this->typeId],
+            [LegacyScript::SRC_QUEST_END,   $this->typeId]
+        ), 'lscript-quest-'.$this->typeId, $lsJSG);
+        $this->extendGlobalData($lsJSG);
         // aowow - custom end
 
         $this->redButtons    = array(
@@ -1058,54 +1051,17 @@ class QuestBaseResponse extends TemplateResponse implements ICache
             $rewSpells = new SpellList(array(['id', [$displ, $cast]]));
             $this->extendGlobalData($rewSpells->getJSGlobals());
 
-            if (User::isInGroup(U_GROUP_EMPLOYEE))          // accurately display, what spell is what
-            {
-                $extra = null;
-                if ($_ = $rewSpells->getEntry($displ))
-                    $extra = Lang::quest('spellDisplayed', [$displ, Util::localizedString($_, 'name')]);
+            // accurately display, what spell is what
+            $extra = null;
+            if ($_ = $rewSpells->getEntry($displ))
+                $extra = Lang::quest('spellDisplayed', [$displ, Util::localizedString($_, 'name')]);
 
-                if ($_ = $rewSpells->getEntry($cast))
-                    $rewards[0] = array(
-                        'title' => Lang::quest('rewardAura'),
-                        'cast'  => [new IconElement(Type::SPELL, $cast, Util::localizedString($_, 'name'))],
-                        'extra' => $extra
-                    );
-            }
-            else                                            // if it has effect:learnSpell display the taught spell instead
-            {
-                $teach = [];
-                foreach ($rewSpells->iterate() as $id => $__)
-                    if ($_ = $rewSpells->canTeachSpell())
-                        foreach ($_ as $idx)
-                            $teach[$rewSpells->getField('effect'.$idx.'TriggerSpell')] = $id;
-
-                if ($teach)
-                {
-                    $taught = new SpellList(array(['id', array_keys($teach)]));
-                    if (!$taught->error)
-                    {
-                        $this->extendGlobalData($taught->getJSGlobals());
-                        $rewards[0] = ['cast' => [], 'extra' => null];
-
-                        $isTradeSkill = 0;
-                        foreach ($taught->iterate() as $id => $__)
-                        {
-                            $isTradeSkill |= array_intersect($taught->getField('skillLines'), array_merge(SKILLS_TRADE_PRIMARY, SKILLS_TRADE_SECONDARY)) ? 1 : 0;
-                            $rewards[0]['cast'][] = new IconElement(Type::SPELL, $id, $taught->getField('name', true));
-                        }
-
-                        $rewards[0]['title'] = $isTradeSkill ? Lang::quest('rewardTradeSkill') : Lang::quest('rewardSpell');
-                    }
-                }
-                else if (($_ = $rewSpells->getEntry($displ)) || ($_ = $rewSpells->getEntry($cast)))
-                {
-                    $rewards[0] = array(
-                        'title' => Lang::quest('rewardAura'),
-                        'cast'  => [new IconElement(Type::SPELL, $cast, Util::localizedString($_, 'name'))],
-                        'extra' => null
-                    );
-                }
-            }
+            if ($_ = $rewSpells->getEntry($cast))
+                $rewards[0] = array(
+                    'title' => Lang::quest('rewardAura'),
+                    'cast'  => [new IconElement(Type::SPELL, $cast, Util::localizedString($_, 'name'))],
+                    'extra' => $extra
+                );
         }
 
         if (!array_filter($rewards))
@@ -1204,7 +1160,7 @@ class QuestBaseResponse extends TemplateResponse implements ICache
             }
             $rep['qty'][0] += $extra;
 
-            if (User::isInGroup(U_GROUP_STAFF) && $extra)
+            if ($extra)
                 $rep['qty'][1] = $qty . $this->fmtStaffTip(sprintf('%+d', $extra), Lang::faction('customRewRate'));
 
             $repGains[] = $rep;
@@ -1270,7 +1226,7 @@ class QuestBaseResponse extends TemplateResponse implements ICache
 
         $prevStepIds = [$lastQuestId ?: $this->typeId];     // note: cannot exclude breadcrumb quests here. cases exists where a chain leads into a breadcrumb which then continues the chain.
         while ($prevQuests = DB::Aowow()->selectAssoc('SELECT `id`, `name_loc0`, `name_loc2`, `name_loc3`, `name_loc4`, `name_loc6`, `name_loc8`, `reqRaceMask` FROM ::quests WHERE `nextQuestIdChain` IN %in AND `id` <> `nextQuestIdChain` AND (`cuFlags` & %i) = 0 /* AND `breadcrumbForQuestId` = 0 */',
-            $prevStepIds, User::isInGroup(U_GROUP_STAFF) ? CUSTOM_EXCLUDE_FOR_LISTVIEW : 0))
+            $prevStepIds, 0))
         {
             $step = [];
             foreach ($prevQuests as $pQuest)

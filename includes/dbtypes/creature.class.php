@@ -91,7 +91,7 @@ class CreatureList extends DBTypeList
         if ($this->curTpl['type'] == NPC_TYPE_BEAST && ($fam = $this->curTpl['family']))
             $x .= '<tr><td>'.Lang::game('fa', $fam).'</td></tr>';
 
-        $fac = new FactionList(array([['cuFlags', CUSTOM_EXCLUDE_FOR_LISTVIEW, '&'], 0], ['id', $this->getField('factionId')]));
+        $fac = new FactionList(array(['id', $this->getField('factionId')]));
         if (!$fac->error)
             $x .= '<tr><td>'.$fac->getField('name', true).'</td></tr>';
 

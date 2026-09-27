@@ -395,7 +395,7 @@ abstract class DBTypeList
     public function getRandomId() : int
     {
         if (preg_match('/SELECT .*? FROM (::[\w_-]+) /i', $this->queryBase, $m))
-            return DB::Aowow()->selectCell('SELECT `id` FROM %n WHERE (`cuFlags` & %i) = 0  ORDER BY RAND() ASC LIMIT 1', $m[1], User::isInGroup(U_GROUP_EMPLOYEE) ? 0 : CUSTOM_EXCLUDE_FOR_LISTVIEW) ?: 0;
+            return DB::Aowow()->selectCell('SELECT `id` FROM %n WHERE (`cuFlags` & %i) = 0  ORDER BY RAND() ASC LIMIT 1', $m[1], 0) ?: 0;
 
         return 0;
     }
@@ -692,7 +692,7 @@ trait spawnHelper
                 $opts['type'] = 4;                          // make pip purple
             }
 
-            if (!$skipAdmin && User::isInGroup(U_GROUP_STAFF))
+            if (!$skipAdmin)
             {
                 if ($isAccessory)
                     $info[0] = 'Vehicle Accessory';

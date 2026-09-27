@@ -90,10 +90,6 @@ class Search
         $this->tokenizeQuery();
 
         $this->cndBase[] = $this->maxResults;
-
-        // Exclude internal wow stuff
-        if (!User::isInGroup(U_GROUP_EMPLOYEE))
-            $this->cndBase[] = [['cuFlags', CUSTOM_EXCLUDE_FOR_LISTVIEW, '&'], 0];
     }
 
     private function tokenizeQuery() : void
@@ -962,13 +958,6 @@ class Search
 
         $cnd = $this->cndBase;
 
-        // Exclude internal wow stuff [override for staff, as done for cuFlags in __construct()]
-        if (!User::isInGroup(U_GROUP_EMPLOYEE))
-        {
-            $cnd[] = [['flagsExtra', CREATURE_FLAG_EXTRA_TRIGGER], 0]; // exclude trigger creatures
-            $cnd[] = [['cuFlags', NPC_CU_DIFFICULTY_DUMMY, '&'], 0];   // exclude difficulty entries
-        }
-
         $cnd[] = $lookup;
 
         $npcs = new CreatureList($cnd, ['calcTotal' => true]);
@@ -1024,10 +1013,6 @@ class Search
             return null;
 
         $cnd = $this->cndBase;
-
-        // Exclude internal wow stuff [override for staff, as done for cuFlags in __construct()]
-        if (!User::isInGroup(U_GROUP_EMPLOYEE))
-            $cnd[] = [['cuFlags', CUSTOM_UNAVAILABLE | CUSTOM_DISABLED, '&'], 0];
 
         $cnd[] = $lookup;
 

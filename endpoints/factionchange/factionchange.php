@@ -21,7 +21,7 @@ class FactionchangeBaseResponse extends TemplateResponse implements ICache
     protected  int    $cacheType  = CACHE_TYPE_LIST_PAGE;
     protected  string $template   = 'factionchange';
     protected  string $pageName   = 'factionchange';
-    protected  int    $requiredUserGroup = U_GROUP_STAFF;
+    protected  int    $requiredUserGroup = U_GROUP_NONE;
 
     protected ?int    $activeTab  = parent::TAB_DATABASE;
     protected  array  $breadcrumb = [0, 117];

@@ -54,7 +54,7 @@ class MailsBaseResponse extends TemplateResponse implements ICache
 
         // aowow - custom start: `mail_level_reward` - the mails the server sends for reaching a
         // level, which the detail page could only ever resolve backwards
-        if (User::isInGroup(U_GROUP_STAFF) && DB::World()->selectCell('SHOW TABLES LIKE %s', 'mail_level_reward'))
+        if (DB::World()->selectCell('SHOW TABLES LIKE %s', 'mail_level_reward'))
         {
             $rewardRows = DB::World()->selectAssoc('SELECT `level`, `raceMask`, `mailTemplateId`, `senderEntry` FROM mail_level_reward ORDER BY `level` ASC') ?: [];
             if ($rewardRows)

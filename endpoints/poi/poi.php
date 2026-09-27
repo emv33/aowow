@@ -19,7 +19,7 @@ class PoiBaseResponse extends TemplateResponse implements ICache
     use TrDetailPage, TrCache;
 
     protected  int    $cacheType         = CACHE_TYPE_DETAIL_PAGE;
-    protected  int    $requiredUserGroup = U_GROUP_STAFF;
+    protected  int    $requiredUserGroup = U_GROUP_NONE;
 
     protected  string $template          = 'detail-page-generic';
     protected  string $pageName          = 'poi';

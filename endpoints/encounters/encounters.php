@@ -12,7 +12,7 @@ class EncountersBaseResponse extends TemplateResponse implements ICache
 
     protected  int    $type              = Type::ENCOUNTER;
     protected  int    $cacheType         = CACHE_TYPE_LIST_PAGE;
-    protected  int    $requiredUserGroup = U_GROUP_STAFF;
+    protected  int    $requiredUserGroup = U_GROUP_NONE;
 
     protected  string $template          = 'encounters';
     protected  string $pageName          = 'encounters';

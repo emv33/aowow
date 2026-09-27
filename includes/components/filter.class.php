@@ -444,7 +444,7 @@ abstract class Filter
                         continue 2;
                     break;
                 case self::CR_STAFFFLAG:
-                    if (User::isInGroup(U_GROUP_EMPLOYEE) && Util::checkNumeric($_crs[$i], NUM_CAST_INT))
+                    if (Util::checkNumeric($_crs[$i], NUM_CAST_INT))
                         continue 2;
                     break;
                 case self::CR_ENUM:

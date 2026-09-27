@@ -21,7 +21,7 @@ class DataintegrityBaseResponse extends TemplateResponse
 {
     use TrListPage;
 
-    protected  int    $requiredUserGroup = U_GROUP_STAFF;
+    protected  int    $requiredUserGroup = U_GROUP_NONE;
 
     protected  string $template          = 'data-integrity';
     protected  string $pageName          = 'data-integrity';
