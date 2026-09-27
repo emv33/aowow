@@ -1793,6 +1793,7 @@ $lang = array(
         'textTypes'     => [null, "yells", "says", "whispers"],
         'mechanicimmune'=> 'Not affected by mechanic: %s',
         '_extraFlags'   => 'Extra Flags: ',
+        '_npcFlags'     => 'NPC Flags: ',
         'versions'      => 'Difficulty Versions: ',
         'level'         => array(                           // type is creature rank; class is creature type
             "Level %s",                                     // TOOLTIP_UNIT_LEVEL

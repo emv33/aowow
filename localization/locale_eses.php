@@ -1793,6 +1793,7 @@ $lang = array(
         'textTypes'     => [null, "grita", "dice", "susurra"],
         'mechanicimmune'=> 'No afectado por la mecánica: %s',
         '_extraFlags'   => 'Banderas extra: ',
+        '_npcFlags'     => 'Banderas de PNJ: ',
         'versions'      => 'Versiones de dificultad: ',
         'level'         => array(
             "Nivel %s",

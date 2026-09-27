@@ -1792,6 +1792,7 @@ $lang = array(
         'textTypes'     => [null, "schreit", "sagt", "flüstert"],
         'mechanicimmune'=> 'Nicht anfällig für Mechanik: %s',
         '_extraFlags'   => 'Extra Flags: ',
+        '_npcFlags'     => 'NPC Flags: ',
         'versions'      => 'Schwierigkeitsgrade: ',
         'level'         => array(
             'Stufe %s',

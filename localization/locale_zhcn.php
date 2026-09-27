@@ -1793,6 +1793,7 @@ $lang = array(
         'textTypes'     => [null, "喊道", "说", "悄悄地说"],
         'mechanicimmune'=> '[Not affected by mechanic]：%s',
         '_extraFlags'   => '[Extra Flags]：',
+        '_npcFlags'     => '[NPC Flags]：',
         'versions'      => '[Difficulty Versions]：',
         'level'         => array(
             "等级 %s",

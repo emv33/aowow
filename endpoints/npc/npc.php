@@ -333,6 +333,18 @@ class NpcBaseResponse extends TemplateResponse implements ICache
             $infobox[] = Lang::npc('mechanicimmune', ['[br]'.implode(',[br]', $mechanics)]);
         }
 
+        // npc flags
+        if ($npcFlag = $this->subject->getField('npcflag'))
+        {
+            $buff = [];
+            foreach (Lang::npc('npcFlags') as $idx => $str)
+                if ($npcFlag & $idx)
+                    $buff[] = $str;
+
+            if ($buff)
+                $infobox[] = Lang::npc('_npcFlags').'[ul][li]'.implode('[/li][li]', $buff).'[/li][/ul]';
+        }
+
         // extra flags
         if ($flagsExtra = $this->subject->getField('flagsExtra'))
         {
