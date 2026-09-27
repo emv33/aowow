@@ -25,7 +25,6 @@ class AccountBaseResponse extends TemplateResponse
     // form fields
     public  int      $modelrace        = 0;
     public  int      $modelgender      = 0;
-    public  int      $idsInLists       = 0;
     public  string   $curEmail         = '';
     public  string   $curName          = '';
     public  string   $renameCD         = '';
@@ -54,7 +53,7 @@ class AccountBaseResponse extends TemplateResponse
     {
         array_unshift($this->title, Lang::account('settings'));
 
-        $user = DB::Aowow()->selectRow('SELECT `debug`, `email`, `description`, `avatar`, `wowicon`, `renameCooldown` FROM ::account WHERE `id` = %i', User::$id);
+        $user = DB::Aowow()->selectRow('SELECT `email`, `description`, `avatar`, `wowicon`, `renameCooldown` FROM ::account WHERE `id` = %i', User::$id);
 
         Lang::sort('game', 'ra');
 
@@ -101,9 +100,6 @@ class AccountBaseResponse extends TemplateResponse
         // Modelviewer
         if ($_ = DB::Aowow()->selectCell('SELECT `data` FROM ::account_cookies WHERE `name` = %s AND `userId` = %i', 'default_3dmodel', User::$id))
             [$this->modelrace, $this->modelgender] = explode(',', $_);
-
-        // Lists
-        $this->idsInLists = $user['debug'] ? 1 : 0;
 
         /* PERSONAL */
 

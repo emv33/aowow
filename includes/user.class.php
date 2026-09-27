@@ -16,7 +16,6 @@ class User
     public static  int    $perms      = 0;
     public static ?string $email      = null;
     public static  int    $dailyVotes = 0;
-    public static  bool   $debug      = false;              // show ids in lists (used to be debug, is now user setting)
     public static ?string $ip         = null;
     public static ?string $agent      = null;
     public static  Locale $preferedLoc;
@@ -91,7 +90,7 @@ class User
         $session  = DB::Aowow()->selectRow('SELECT `userId`, `expires` FROM ::account_sessions WHERE `status` = %i AND `sessionId` = %s', SESSION_ACTIVE, session_id());
 
         $userData = DB::Aowow()->selectRow(
-           'SELECT    a.`id`, a.`passHash`, a.`username`, a.`locale`, a.`userGroups`, a.`userPerms`, BIT_OR(ab.`typeMask`) AS "bans", IFNULL(SUM(r.`amount`), 0) AS "reputation", a.`dailyVotes`, a.`excludeGroups`, a.`status`, a.`statusTimer`, a.`email`, a.`debug`, a.`avatar`, a.`avatarborder`
+           'SELECT    a.`id`, a.`passHash`, a.`username`, a.`locale`, a.`userGroups`, a.`userPerms`, BIT_OR(ab.`typeMask`) AS "bans", IFNULL(SUM(r.`amount`), 0) AS "reputation", a.`dailyVotes`, a.`excludeGroups`, a.`status`, a.`statusTimer`, a.`email`, a.`avatar`, a.`avatarborder`
             FROM      ::account a
             LEFT JOIN ::account_banned ab    ON a.`id` = ab.`userId` AND ab.`end` > UNIX_TIMESTAMP()
             LEFT JOIN ::account_reputation r ON a.`id` =  r.`userId`
@@ -146,7 +145,6 @@ class User
         self::$dailyVotes    = $userData['dailyVotes'];
         self::$excludeGroups = $userData['excludeGroups'];
         self::$status        = $userData['status'];
-        self::$debug         = $userData['debug'];
         self::$email         = $userData['email'];
         self::$avatarborder  = $userData['avatarborder'];
 
@@ -562,9 +560,6 @@ class User
         $gUser['downvoteRep']       = Cfg::get('REP_REQ_DOWNVOTE');
         $gUser['upvoteRep']         = Cfg::get('REP_REQ_UPVOTE');
         $gUser['excludegroups']     = self::$excludeGroups;
-
-        if (self::$debug)
-            $gUser['debug'] = true;                         // csv id-list output option on listviews
 
         if (self::isPremium())
         {

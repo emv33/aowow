@@ -18,8 +18,7 @@ class AccountUpdategeneralsettingsResponse extends TextResponse
 
     protected  array  $expectedPOST  = array(
         'modelrace'   => ['filter' => FILTER_VALIDATE_INT, 'options' => ['default' => 0, 'min_range' => 1, 'max_range' => 11]],
-        'modelgender' => ['filter' => FILTER_VALIDATE_INT, 'options' => ['default' => 0, 'min_range' => 1, 'max_range' => 2] ],
-        'idsInLists'  => ['filter' => FILTER_CALLBACK,     'options' => [self::class, 'checkCheckbox']                       ]
+        'modelgender' => ['filter' => FILTER_VALIDATE_INT, 'options' => ['default' => 0, 'min_range' => 1, 'max_range' => 2] ]
     );
 
     private bool $success = false;
@@ -46,10 +45,6 @@ class AccountUpdategeneralsettingsResponse extends TextResponse
             return Lang::main('genericError');
 
         if (!setcookie('default_3dmodel', $this->_post['modelrace']. ',' . $this->_post['modelgender'], 0, '/'))
-            return Lang::main('intError');
-
-        // int > number of edited rows > no changes is still success
-        if (!is_int(DB::Aowow()->qry('UPDATE ::account SET `debug` = %i WHERE `id` = %i', $this->_post['idsInLists'] ? 1 : 0, User::$id)))
             return Lang::main('intError');
 
         $this->success = true;

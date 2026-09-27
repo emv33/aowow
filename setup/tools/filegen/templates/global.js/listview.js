@@ -20,9 +20,7 @@ function Listview(opt)
     else
         return;
 
-    var get = $WH.g_getGets();
-    if ((get.debug != null || g_user.debug) && g_user.roles & U_GROUP_MODERATOR)
-        this.debug = true;
+    this.debug = true;
 
     if (this.template && Listview.templates[this.template])
         this.template = Listview.templates[this.template];
