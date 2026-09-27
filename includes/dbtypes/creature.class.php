@@ -326,6 +326,7 @@ class CreatureListFilter extends Filter
         10 => [parent::CR_CALLBACK, 'cbRegularSkinLoot', NPC_TYPEFLAG_SPECIALLOOT                      ], // skinnable [yn]
         11 => [parent::CR_BOOLEAN,  'pickpocketLootId',                                                ], // pickpocketable
         12 => [parent::CR_CALLBACK, 'cbMoneyDrop',       null,                               null      ], // averagemoneydropped [op] [int]
+        13 => [parent::CR_FLAG,     'npcflag',           NPC_FLAG_GOSSIP                               ], // gossip
         15 => [parent::CR_CALLBACK, 'cbSpecialSkinLoot', NPC_TYPEFLAG_SKIN_WITH_HERBALISM,   null      ], // gatherable [yn]
         16 => [parent::CR_CALLBACK, 'cbSpecialSkinLoot', NPC_TYPEFLAG_SKIN_WITH_MINING,      null      ], // minable [yn]
         18 => [parent::CR_FLAG,     'npcflag',           NPC_FLAG_AUCTIONEER                           ], // auctioneer
@@ -336,6 +337,7 @@ class CreatureListFilter extends Filter
         23 => [parent::CR_FLAG,     'npcflag',           NPC_FLAG_INNKEEPER                            ], // innkeeper
         24 => [parent::CR_FLAG,     'npcflag',           NPC_FLAG_CLASS_TRAINER                        ], // talentunlearner
         25 => [parent::CR_FLAG,     'npcflag',           NPC_FLAG_GUILD_MASTER                         ], // tabardvendor
+        26 => [parent::CR_FLAG,     'npcflag',           NPC_FLAG_QUEST_GIVER                          ], // questgiver
         27 => [parent::CR_FLAG,     'npcflag',           NPC_FLAG_STABLE_MASTER                        ], // stablemaster
         28 => [parent::CR_FLAG,     'npcflag',           NPC_FLAG_TRAINER                              ], // trainer
         29 => [parent::CR_FLAG,     'npcflag',           NPC_FLAG_VENDOR                               ], // vendor
@@ -344,17 +346,28 @@ class CreatureListFilter extends Filter
         33 => [parent::CR_FLAG,     'cuFlags',           CUSTOM_HAS_COMMENT                            ], // hascomments
         34 => [parent::CR_NUMSTRING,'modelId',           NUM_CAST_INT                                  ], // usemodel [str]
         35 => [parent::CR_STRING,   'textureString'                                                    ], // useskin [str]
+        36 => [parent::CR_FLAG,     'npcflag',           NPC_PROFESSION_TRAINER                        ], // professiontrainer
         37 => [parent::CR_NUMERIC,  'id',                NUM_CAST_INT,                       true      ], // id
         38 => [parent::CR_CALLBACK, 'cbRelEvent',        null,                               null      ], // relatedevent [enum]
+        39 => [parent::CR_FLAG,     'npcflag',           NPC_FLAG_SPIRIT_HEALER                        ], // spirithealer
         40 => [parent::CR_FLAG,     'cuFlags',           CUSTOM_HAS_VIDEO                              ], // hasvideos
         41 => [parent::CR_CALLBACK, 'cbHasLocation'                                                    ], // haslocation [yn] [staff]
         42 => [parent::CR_CALLBACK, 'cbReputation',      '>',                                null      ], // increasesrepwith [enum]
         43 => [parent::CR_CALLBACK, 'cbReputation',      '<',                                null      ], // decreasesrepwith [enum]
-        44 => [parent::CR_CALLBACK, 'cbSpecialSkinLoot', NPC_TYPEFLAG_SKIN_WITH_ENGINEERING, null      ]  // salvageable [yn]
+        44 => [parent::CR_CALLBACK, 'cbSpecialSkinLoot', NPC_TYPEFLAG_SKIN_WITH_ENGINEERING, null      ], // salvageable [yn]
+        45 => [parent::CR_FLAG,     'npcflag',           NPC_FLAG_SPIRIT_GUIDE                         ], // spiritguide
+        46 => [parent::CR_FLAG,     'npcflag',           NPC_FLAG_VENDOR_AMMO                          ], // ammovendor
+        47 => [parent::CR_FLAG,     'npcflag',           NPC_FLAG_VENDOR_FOOD                          ], // foodvendor
+        48 => [parent::CR_FLAG,     'npcflag',           NPC_FLAG_VENDOR_POISON                        ], // poisonvendor
+        49 => [parent::CR_FLAG,     'npcflag',           NPC_FLAG_VENDOR_REAGENT                       ], // reagentvendor
+        50 => [parent::CR_FLAG,     'npcflag',           NPC_FLAG_PETITIONER                           ], // petitioner
+        51 => [parent::CR_FLAG,     'npcflag',           NPC_FLAG_GUILD_BANK                           ], // guildbank
+        52 => [parent::CR_FLAG,     'npcflag',           NPC_FLAG_SPELLCLICK                           ], // spellclick
+        53 => [parent::CR_FLAG,     'npcflag',           NPC_FLAG_MAILBOX                              ]  // mailbox
     );
 
     protected static array $inputFields = array(
-        'cr'    => [parent::V_LIST,     [[1, 3],[5, 12], 15, 16, [18, 25], [27, 29], [31, 35], 37, 38, [40, 44]], true ], // criteria ids
+        'cr'    => [parent::V_LIST,     [[1, 3],[5, 13], 15, 16, [18, 29], [31, 53]],                          true ], // criteria ids
         'crs'   => [parent::V_LIST,     [parent::ENUM_NONE, parent::ENUM_ANY, [0, 9999]],                         true ], // criteria operators
         'crv'   => [parent::V_REGEX,    parent::PATTERN_CRV,                                                      true ], // criteria values - only printable chars, no delimiter
         'na'    => [parent::V_NAME,     false,                                                                    false], // name / subname - only printable chars, no delimiter
