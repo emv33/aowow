@@ -39,13 +39,13 @@ Listview.templates.spellfocus = {
                 var a = $WH.ce('a');
                 a.className = 'q1';
                 a.href = t.objlink;
-                $WH.ae(a, $WH.ct(t.objcount == 1 ? t.objname : t.objcount));
+                $WH.ae(a, $WH.ct(t.objcount == 1 ? t.objname : (t.objcount + ' ' + LANG.types[2][3])));
                 $WH.ae(td, a);
             },
             getVisibleText: function(t) {
                 if (!t.objlink)
                     return '';
-                return t.objcount == 1 ? t.objname : String(t.objcount);
+                return t.objcount == 1 ? t.objname : (t.objcount + ' ' + LANG.types[2][3]);
             },
             sortFunc: function(a, b, col) {
                 return (a.objcount || 0) - (b.objcount || 0);
