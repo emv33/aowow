@@ -186,9 +186,7 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
         {
             if ($sfo = DB::Aowow()->selectRow('SELECT * FROM ::spellfocusobject WHERE `id` = %i', $_))
             {
-                $n = Util::localizedString($sfo, 'name');
-                if (!is_null(GameObjectListFilter::getCriteriaIndex(50, $_)))
-                    $n = '[url=?objects&filter=cr=50;crs='.$_.';crv=0]'.$n.'[/url]';
+                $n = '[url=?spellfocus='.$_.']'.Util::localizedString($sfo, 'name').'[/url]';
 
                 $infobox[] = '[tooltip name=focus]'.Lang::gameObject('focusDesc').'[/tooltip][span class=tip tooltip=focus]'.Lang::gameObject('focus').Lang::main('colon').$n.'[/span]';
             }
