@@ -159,7 +159,7 @@ class SpellOverride
 
             $rule = Lang::spellOverride('stackRules', (int)($rules[$gId] ?? 0)) ?: Lang::spellOverride('stackRules', 0);
             $out[] = Lang::spellOverride('groupLine', [$gId, $rule]) .
-                     ($peers ? ' ' . Lang::concat(array_map(fn($x) => '[spell='.$x.']', $peers), Lang::CONCAT_NONE) : '');
+                     ($peers ? ': ' . Lang::concat(array_map(fn($x) => '[spell='.$x.']', $peers), Lang::CONCAT_NONE) : '');
         }
 
         $this->add(Lang::spellOverride('group'), implode('[br]', $out));
