@@ -380,7 +380,7 @@ class AchievementBaseResponse extends TemplateResponse implements ICache
                             $extraData[] = Lang::main('gender').Lang::main('colon').$_;
                         break;
                     case ACHIEVEMENT_CRITERIA_DATA_TYPE_SCRIPT:
-                        if ($xData['ScriptName'] && User::isInGroup(U_GROUP_STAFF))
+                        if ($xData['ScriptName'])
                             $extraData[] = 'Script '.$xData['ScriptName'];
                         break;
                     case ACHIEVEMENT_CRITERIA_DATA_TYPE_HOLIDAY:
@@ -430,8 +430,7 @@ class AchievementBaseResponse extends TemplateResponse implements ICache
                             $extraData[] = Lang::item('_quality').'<a href="?items&amp;filter=qu='.(int)$xData['value1'].'">'.$_.'</a>';
                         break;
                     default:
-                        if (User::isInGroup(U_GROUP_STAFF))
-                            $extraData[] = 'has extra criteria data';
+                        $extraData[] = 'has extra criteria data';
                 }
             }
 

@@ -138,7 +138,7 @@ class EnchantmentBaseResponse extends TemplateResponse implements ICache
                 case ENCHANTMENT_TYPE_STAT:
                     if ($idx = Stat::getIndexFrom(Stat::IDX_ITEM_MOD, $_obj))
                         if ($jsonStat = Stat::getJsonString($idx))
-                            $_tip = [User::isInGroup(U_GROUP_STAFF) ? $_obj : null, $jsonStat];
+                            $_tip = [$_obj, $jsonStat];
                     // DO NOT BREAK!
                 case ENCHANTMENT_TYPE_DAMAGE:
                 case ENCHANTMENT_TYPE_TOTEM:

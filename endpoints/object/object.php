@@ -279,42 +279,39 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
             if ($id == $this->typeId)
                 $infobox[] = Lang::game('mode').Lang::game('modes', $this->mapType, $n);
 
-        if (User::isInGroup(U_GROUP_EMPLOYEE))
+        $spawnData = DB::Aowow()->selectAssoc('SELECT `guid` AS "0", `ScriptName` AS "1", `StringId` AS "2" FROM ::spawns WHERE `type` = %i AND `typeId` = %i AND `ScriptName` IS NOT NULL ORDER BY `guid` ASC', Type::OBJECT, $this->typeId);
+
+        // AI
+        $scripts = null;
+        if ($_ = $this->subject->getField('ScriptOrAI'))
+            $scripts = ($_ == 'SmartGameObjectAI' ? 'AI' :  'Script').Lang::main('colon').$_;
+
+        if ($moreAI = array_filter(array_column($spawnData, 1, 0)))
         {
-            $spawnData = DB::Aowow()->selectAssoc('SELECT `guid` AS "0", `ScriptName` AS "1", `StringId` AS "2" FROM ::spawns WHERE `type` = %i AND `typeId` = %i AND `ScriptName` IS NOT NULL ORDER BY `guid` ASC', Type::OBJECT, $this->typeId);
+            $scripts ??= 'Script'.Lang::main('colon').'…';
+            $scripts   = '[toggler=hidden id=scriptName]'.$scripts.'[/toggler][div=hidden id=scriptName][ul]';
+            foreach ($moreAI as $guid => $script)
+                $scripts .= sprintf('[li]GUID: %d - %s[/li]', $guid, $script);
 
-            // AI
-            $scripts = null;
-            if ($_ = $this->subject->getField('ScriptOrAI'))
-                $scripts = ($_ == 'SmartGameObjectAI' ? 'AI' :  'Script').Lang::main('colon').$_;
+            $scripts .= '[/ul][/div]';
+        }
 
-            if ($moreAI = array_filter(array_column($spawnData, 1, 0)))
-            {
-                $scripts ??= 'Script'.Lang::main('colon').'…';
-                $scripts   = '[toggler=hidden id=scriptName]'.$scripts.'[/toggler][div=hidden id=scriptName][ul]';
-                foreach ($moreAI as $guid => $script)
-                    $scripts .= sprintf('[li]GUID: %d - %s[/li]', $guid, $script);
+        if ($scripts)
+            $infobox[] = $scripts;
 
-                $scripts .= '[/ul][/div]';
-            }
+        // StringId
+        $stringIDs = null;
+        if ($_ = $this->subject->getField('StringId'))
+            $stringIDs = 'StringID'.Lang::main('colon').$_;
 
-            if ($scripts)
-                $infobox[] = $scripts;
+        if ($moreStrings = array_filter(array_column($spawnData, 2, 0)))
+        {
+            $stringIDs ??= 'StringID'.Lang::main('colon').'…';
+            $stringIDs   = '[toggler=hidden id=stringId]'.$stringIDs.'[/toggler][div=hidden id=stringId][ul]';
+            foreach ($moreStrings as $guid => $stringId)
+                $stringIDs .= sprintf('[li]GUID: %d - %s[/li]', $guid, $stringId);
 
-            // StringId
-            $stringIDs = null;
-            if ($_ = $this->subject->getField('StringId'))
-                $stringIDs = 'StringID'.Lang::main('colon').$_;
-
-            if ($moreStrings = array_filter(array_column($spawnData, 2, 0)))
-            {
-                $stringIDs ??= 'StringID'.Lang::main('colon').'…';
-                $stringIDs   = '[toggler=hidden id=stringId]'.$stringIDs.'[/toggler][div=hidden id=stringId][ul]';
-                foreach ($moreStrings as $guid => $stringId)
-                    $stringIDs .= sprintf('[li]GUID: %d - %s[/li]', $guid, $stringId);
-
-                $stringIDs .= '[/ul][/div]';
-            }
+            $stringIDs .= '[/ul][/div]';
         }
 
         if ($infobox)
@@ -433,27 +430,20 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
         }
 
         // aowow - custom start: gossip menus
-        // staff only, as the menu ids and option types this links to are world DB internals (the ?gossip= page is staff gated too)
-        if (User::isInGroup(U_GROUP_STAFF))
-        {
-            $gossipJSG = [];
-            $this->gossip = Gossip::buildMarkupFor(Gossip::getMenusForObject($this->typeId), 'gossip-object-'.$this->typeId, $gossipJSG);
-            $this->extendGlobalData($gossipJSG);
-        }
+        $gossipJSG = [];
+        $this->gossip = Gossip::buildMarkupFor(Gossip::getMenusForObject($this->typeId), 'gossip-object-'.$this->typeId, $gossipJSG);
+        $this->extendGlobalData($gossipJSG);
         // aowow - custom end
 
         // aowow - custom start: legacy script engine
         // the eventId an object fires lives in a type dependent `data<n>` column and drives `event_scripts`
-        if (User::isInGroup(U_GROUP_STAFF))
-        {
-            $lsSources = [];
-            foreach (LegacyScript::getEventIdsForObject($this->typeId) as $eventId)
-                $lsSources[] = [LegacyScript::SRC_EVENT, $eventId];
+        $lsSources = [];
+        foreach (LegacyScript::getEventIdsForObject($this->typeId) as $eventId)
+            $lsSources[] = [LegacyScript::SRC_EVENT, $eventId];
 
-            $lsJSG = [];
-            $this->legacyScript = LegacyScript::buildMarkupFor($lsSources, 'lscript-object-'.$this->typeId, $lsJSG);
-            $this->extendGlobalData($lsJSG);
-        }
+        $lsJSG = [];
+        $this->legacyScript = LegacyScript::buildMarkupFor($lsSources, 'lscript-object-'.$this->typeId, $lsJSG);
+        $this->extendGlobalData($lsJSG);
         // aowow - custom end
 
         $this->redButtons  = array(

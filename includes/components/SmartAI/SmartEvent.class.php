@@ -401,13 +401,10 @@ class SmartEvent
         if ($_ = $this->formatFlags())
             $footer = $_ . ($footer ? '; '.$footer : '');
 
-        if (User::isInGroup(U_GROUP_EMPLOYEE))
-        {
-            if ($eParams[5] == 1)
-                $footer = '[span class=rep2]DEPRECATED[/span] ' . $footer;
-            else if ($eParams[5] == 2)
-                $footer = '[span class=rep0]RESERVED[/span] ' . $footer;
-        }
+        if ($eParams[5] == 1)
+            $footer = '[span class=rep2]DEPRECATED[/span] ' . $footer;
+        else if ($eParams[5] == 2)
+            $footer = '[span class=rep0]RESERVED[/span] ' . $footer;
 
         // wrap body in tooltip
         return [sprintf(self::EVENT_CELL_TPL, $eventTT, $body), $footer];

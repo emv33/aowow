@@ -138,7 +138,7 @@ class FactionBaseResponse extends TemplateResponse implements ICache
         $infobox[] = Lang::faction('id') . $this->typeId;
 
         // profiler relateed (note that this is part of the cache. I don't think this is important enough to calc for every view)
-        if (Cfg::get('PROFILER_ENABLE') && !($this->subject->getField('cuFlags') & CUSTOM_EXCLUDE_FOR_LISTVIEW))
+        if (Cfg::get('PROFILER_ENABLE'))
         {
             $x = DB::Aowow()->selectCell('SELECT COUNT(1) FROM ::profiler_completion_reputation WHERE `exalted` = 1 AND `factionId` = %i', $this->typeId);
             $y = DB::Aowow()->selectCell('SELECT COUNT(1) FROM ::profiler_profiles WHERE `custom` = 0 AND `stub` = 0');

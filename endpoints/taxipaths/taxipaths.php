@@ -12,7 +12,7 @@ class TaxipathsBaseResponse extends TemplateResponse implements ICache
 
     protected  int    $type              = -6;    // no Type:: entry - no DBTypeList backs this ad hoc table read; shared sentinel with TaxipathBaseResponse
     protected  int    $cacheType         = CACHE_TYPE_LIST_PAGE;
-    protected  int    $requiredUserGroup = U_GROUP_STAFF;
+    protected  int    $requiredUserGroup = U_GROUP_NONE;
 
     protected  string $template          = 'taxipaths';
     protected  string $pageName          = 'taxipaths';

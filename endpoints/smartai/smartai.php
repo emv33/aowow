@@ -18,7 +18,7 @@ class SmartaiBaseResponse extends TemplateResponse implements ICache
     use TrListPage, TrCache;
 
     protected  int    $cacheType         = CACHE_TYPE_LIST_PAGE;
-    protected  int    $requiredUserGroup = U_GROUP_STAFF;
+    protected  int    $requiredUserGroup = U_GROUP_NONE;
 
     protected  string $template          = 'smartai';
     protected  string $pageName          = 'smartai';

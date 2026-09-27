@@ -224,7 +224,7 @@ class DB
 
         if (CLI)
             fwrite(STDERR, $msg);
-        else if (User::isInGroup(U_GROUP_ADMIN) && Cfg::get('DEBUG') >= LOG_LEVEL_INFO)
+        else if (Cfg::get('DEBUG') >= LOG_LEVEL_INFO)
             echo PHP_EOL . '<pre>' . $msg . '</pre>' . PHP_EOL;
 
         trigger_error($evt->result->getMessage(), E_USER_WARNING);

@@ -35,7 +35,7 @@ class RawRow
 
     public static function buildFor(int $type, int $typeId) : ?Markup
     {
-        if ($typeId <= 0 || !User::isInGroup(U_GROUP_STAFF) || !isset(self::TABLES[$type]))
+        if ($typeId <= 0 || !isset(self::TABLES[$type]))
             return null;
 
         [$table, $keys] = self::TABLES[$type];

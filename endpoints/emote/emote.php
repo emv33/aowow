@@ -77,23 +77,20 @@ class EmoteBaseResponse extends TemplateResponse implements ICache
             $infobox[] = $state;
         }
 
-        if (User::isInGroup(U_GROUP_STAFF | U_GROUP_TESTER))
+        // player emote: point to internal data
+        if ($_ = $this->subject->getField('parentEmote'))
         {
-            // player emote: point to internal data
-            if ($_ = $this->subject->getField('parentEmote'))
-            {
-                $this->extendGlobalIds(Type::EMOTE, $_);
-                $infobox[] = '[emote='.$_.']';
-            }
+            $this->extendGlobalIds(Type::EMOTE, $_);
+            $infobox[] = '[emote='.$_.']';
+        }
 
-            if ($flags = $this->subject->getField('flags'))
-            {
-                $box = Lang::game('flags').Lang::main('colon').'[ul]';
-                foreach (Lang::emote('flags') as $bit => $str)
-                    if ($bit & $flags)
-                        $box .= '[li][tooltip name=hint-'.$bit.']'.Util::asHex($bit).'[/tooltip][span class=tip tooltip=hint-'.$bit.']'.$str.'[/span][/li]';
-                $infobox[] = $box.'[/ul]';
-            }
+        if ($flags = $this->subject->getField('flags'))
+        {
+            $box = Lang::game('flags').Lang::main('colon').'[ul]';
+            foreach (Lang::emote('flags') as $bit => $str)
+                if ($bit & $flags)
+                    $box .= '[li][tooltip name=hint-'.$bit.']'.Util::asHex($bit).'[/tooltip][span class=tip tooltip=hint-'.$bit.']'.$str.'[/span][/li]';
+            $infobox[] = $box.'[/ul]';
         }
 
         // id

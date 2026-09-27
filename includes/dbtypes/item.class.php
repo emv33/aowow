@@ -970,10 +970,8 @@ class ItemList extends DBTypeList
                 foreach ($itemSpells->iterate() as $sId => $__)
                 {
                     [$parsed, $_, $scaling] = $itemSpells->parseText('description', $_reqLvl > 1 ? $_reqLvl : MAX_LEVEL);
-                    if (!$parsed && User::isInGroup(U_GROUP_EMPLOYEE))
+                    if (!$parsed)
                         $parsed = '<span style="opacity:.75">&lt;'.$itemSpells->getField('name', true, true).'&gt;</span>';
-                    else if (!$parsed)
-                        continue;
 
                     if ($scaling)
                         $causesScaling = true;
@@ -1436,12 +1434,7 @@ class ItemList extends DBTypeList
 
         // unknown rating
         if (!$statId)
-        {
-            if (User::isInGroup(U_GROUP_EMPLOYEE))
-                return Lang::item('statType', count(Lang::item('statType')) - 1, [$itemMod, $qty]);
-            else
-                return '';
-        }
+            return Lang::item('statType', count(Lang::item('statType')) - 1, [$itemMod, $qty]);
 
         // level independent Bonus
         if (Stat::isLevelIndependent($statId))

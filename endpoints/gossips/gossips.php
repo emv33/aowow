@@ -12,7 +12,7 @@ class GossipsBaseResponse extends TemplateResponse implements ICache
 
     protected  int    $type              = Type::GOSSIP;
     protected  int    $cacheType         = CACHE_TYPE_LIST_PAGE;
-    protected  int    $requiredUserGroup = U_GROUP_STAFF;
+    protected  int    $requiredUserGroup = U_GROUP_NONE;
 
     protected  string $template          = 'gossips';
     protected  string $pageName          = 'gossips';

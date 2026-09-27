@@ -23,7 +23,7 @@ class TransportsBaseResponse extends TemplateResponse implements ICache
 
     protected  int    $type              = -14;   // no single Type:: - transports are gameobjects (see the doc comment above); this is a view over them, not a new type
     protected  int    $cacheType         = CACHE_TYPE_LIST_PAGE;
-    protected  int    $requiredUserGroup = U_GROUP_STAFF;
+    protected  int    $requiredUserGroup = U_GROUP_NONE;
 
     protected  string $template          = 'transports';
     protected  string $pageName          = 'transports';

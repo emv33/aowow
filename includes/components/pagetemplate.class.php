@@ -537,7 +537,7 @@ class PageTemplate
         $this->prepareScripts();
 
         // db profiling
-        if (Cfg::get('DEBUG') >= LOG_LEVEL_INFO && User::isInGroup(U_GROUP_DEV | U_GROUP_ADMIN))
+        if (Cfg::get('DEBUG') >= LOG_LEVEL_INFO)
             $this->dbProfiles = \Aowow\DB::getProfiles();
     }
 
