@@ -1427,6 +1427,7 @@ $lang = array(
         'title'         => "Spell Focuses",
         'notFound'      => "This spell focus doesn't exist.",
         'id'            => "ID",
+        'spells'        => "Spells requiring this focus",
         'objects'       => "Objects providing this focus",
         'noObjects'     => "No gameobject in the world DB provides this focus."
     ),

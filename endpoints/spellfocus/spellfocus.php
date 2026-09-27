@@ -75,6 +75,13 @@ class SpellfocusBaseResponse extends TemplateResponse implements ICache
 
         $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"], 'tabsRelated', true);
 
+        $spells = new SpellList(array(['spellFocusObject', $this->typeId]));
+        if (!$spells->error)
+        {
+            $this->extendGlobalData($spells->getJSGlobals(GLOBALINFO_SELF | GLOBALINFO_RELATED));
+            $this->lvTabs->addListviewTab(new Listview(['data' => $spells->getListviewData(), 'name' => Lang::spellfocus('spells')], SpellList::$brickFile));
+        }
+
         $objects = new GameObjectList(array(['spellFocusId', $this->typeId]));
         if (!$objects->error)
         {
