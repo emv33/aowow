@@ -568,6 +568,24 @@ class NpcBaseResponse extends TemplateResponse implements ICache
             $genSpells  = array_merge($genSpells, $auraSpells);
         }
 
+        // a per-spawn `creature_addon` row can carry its own auras instead of (or in addition
+        // to) the template's - these were read nowhere, so a spawn-only aura never showed up
+        if (self::hasTable('creature_addon') && $spawnAuras = DB::World()->selectCol(
+               'SELECT DISTINCT ca.`auras`
+                FROM   creature_addon ca
+                JOIN   creature c ON c.`guid` = ca.`guid`
+                WHERE  c.`id` = %i AND ca.`auras` IS NOT NULL AND ca.`auras` <> \'\'',
+                $this->typeId
+            ))
+        {
+            $spawnAuraSpells = [];
+            foreach ($spawnAuras as $sa)
+                $spawnAuraSpells = array_merge($spawnAuraSpells, array_filter(explode(' ', preg_replace('/[^\d ]/', ' ', $sa))));
+
+            $auraSpells = array_unique(array_merge($auraSpells, $spawnAuraSpells));
+            $genSpells  = array_merge($genSpells, $spawnAuraSpells);
+        }
+
         if ($genSpells)
             $conditions[] = ['id', $genSpells];
 
