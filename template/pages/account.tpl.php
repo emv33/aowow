@@ -79,11 +79,6 @@ if ($this->bans):
 
                                 <div class="pad"></div>
 
-                                <h3><?=Lang::account('lists'); ?></h3>
-                                <label><input type="checkbox" name="idsInLists"<?=($this->idsInLists ? ' checked="checked"' : '');?> /><?=Lang::account('listsNote'); ?></label>
-
-                                <div class="pad"></div>
-
                                 <h3><?=Lang::account('announcements');?></h3>
                                 <button id="purgeannouncements" onclick="this.readonly = true; var button = this; new Ajax('?cookie&amp;purge', { onSuccess: function(xhr) { if(xhr.responseText == '0') { var span = $WH.ge('announcetext'); $WH.ee(span); $WH.ae(span, $WH.ct(LANG.myaccount_purgesuccess)); span.className = 'q2'; } else { alert(LANG.myaccount_purgefailed); } }, onComplete: function() { button.readonly = false; } }); return false;"><?=Lang::account('purge');?></button> <span id="announcetext"><?=Lang::account('annNote');?></span>
                             </div>
