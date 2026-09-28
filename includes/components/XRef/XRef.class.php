@@ -81,31 +81,41 @@ class XRef
         $this->add(Lang::xRef('smartAI'), $this->linksFor(SmartAI::getOwnerOfReference($this->type, $this->typeId)));
     }
 
-    /** `creature_summon_groups` - who this creature is a member of someone else's summon group */
+    /**
+     * `creature_summon_groups` - who this creature is a member of someone else's summon group
+     * links to the group's own ?summongroup= page rather than straight to the summoner - the
+     * group is the actual unit of "summoned together", and the page names the summoner anyway
+     */
     private function summonedBy() : void
     {
         if ($this->type != Type::NPC || !self::hasTable('creature_summon_groups'))
             return;
 
-        $rows = DB::World()->selectAssoc('SELECT `summonerId`, `summonerType` FROM creature_summon_groups WHERE `entry` = %i', $this->typeId) ?: [];
+        $rows = DB::World()->selectAssoc(
+           'SELECT DISTINCT `summonerId`, `summonerType`, `groupId` FROM creature_summon_groups WHERE `entry` = %i',
+            $this->typeId
+        ) ?: [];
 
-        $byType = [];
+        $links = [];
         foreach ($rows as $r)
         {
-            // summonerType 2 is a map, which has no entity to link to
-            if ((int)$r['summonerType'] == SUMMONER_TYPE_CREATURE)
-                $byType[Type::NPC][]    = (int)$r['summonerId'];
-            else if ((int)$r['summonerType'] == SUMMONER_TYPE_GAMEOBJECT)
-                $byType[Type::OBJECT][] = (int)$r['summonerId'];
+            $sType = (int)$r['summonerType'];
+            $sId   = (int)$r['summonerId'];
+
+            if ($label = self::summonerLabel($sType, $sId))
+                $links[] = self::summonGroupUrl($sType, $sId, (int)$r['groupId'], $label);
         }
 
-        $this->add(Lang::xRef('summonedBy'), $this->linksFor($byType));
+        $this->add(Lang::xRef('summonedBy'), $links);
     }
 
     /**
-     * `creature_summon_groups` read forwards - who this creature/object summons as a group
-     * the reverse direction (this creature is a member of someone else's summon group) is
-     * summonedBy() above; `entry` is always a creature, so no gameobject case is possible here
+     * `creature_summon_groups` read forwards - the summon groups this creature/object is the
+     * summoner of; `entry` is always a creature, so no gameobject case is possible there
+     *
+     * links to each group's own ?summongroup= page rather than every individual member - a
+     * summoner with several groups (or one group with many members) turned this into an
+     * unreadable wall of npc links otherwise
      */
     private function summons() : void
     {
@@ -114,12 +124,54 @@ class XRef
 
         $summonerType = $this->type == Type::NPC ? SUMMONER_TYPE_CREATURE : SUMMONER_TYPE_GAMEOBJECT;
 
-        $ids = DB::World()->selectCol(
-            'SELECT DISTINCT `entry` FROM creature_summon_groups WHERE `summonerId` = %i AND `summonerType` = %i',
+        $groupIds = DB::World()->selectCol(
+            'SELECT DISTINCT `groupId` FROM creature_summon_groups WHERE `summonerId` = %i AND `summonerType` = %i',
             $this->typeId, $summonerType
         ) ?: [];
 
-        $this->add(Lang::xRef('summons'), $this->linksFor([Type::NPC => $ids]));
+        $links = [];
+        foreach ($groupIds as $gId)
+            $links[] = self::summonGroupUrl($summonerType, $this->typeId, (int)$gId, Lang::xRef('unnamedGroup', [(int)$gId]));
+
+        $this->add(Lang::xRef('summons'), $links);
+    }
+
+    /** a raw [url=] link to a summon group's own page - the table has no Type:: tag of its own */
+    private static function summonGroupUrl(int $summonerType, int $summonerId, int $groupId, string $label) : string
+    {
+        return '[url=?summongroup='.$summonerType.':'.$summonerId.':'.$groupId.']'.$label.'[/url]';
+    }
+
+    /** display name for a summon group's owner; null for an unrecognized summonerType */
+    private static function summonerLabel(int $summonerType, int $summonerId) : ?string
+    {
+        return match ($summonerType)
+        {
+            SUMMONER_TYPE_CREATURE   => (string)(CreatureList::getName($summonerId) ?? ('#'.$summonerId)),
+            SUMMONER_TYPE_GAMEOBJECT => (string)(GameObjectList::getName($summonerId) ?? ('#'.$summonerId)),
+            SUMMONER_TYPE_MAP        => self::mapName($summonerId),
+            default                  => null
+        };
+    }
+
+    /** SUMMONER_TYPE_MAP has no owning entity - name the map instead, same fallback graveyards.php uses */
+    private static function mapName(int $mapId) : string
+    {
+        if (DB::Aowow()->selectCell('SHOW TABLES LIKE %s', 'dbc_map'))
+        {
+            $name = DB::Aowow()->selectCell('SELECT `name_loc'.Lang::getLocale()->value.'` FROM dbc_map WHERE `id` = %i', $mapId);
+            if ($name !== null && $name !== '')
+                return (string)$name;
+        }
+
+        return match ($mapId)
+        {
+            0   => Lang::maps('EasternKingdoms'),
+            1   => Lang::maps('Kalimdor'),
+            530 => Lang::maps('Outland'),
+            571 => Lang::maps('Northrend'),
+            default => '#'.$mapId
+        };
     }
 
     /**
