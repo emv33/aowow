@@ -954,25 +954,25 @@ var mn_database = [
     [, "Autre"],
     [31, "Icônes", "?icons", mn_icons],
     [19,"Sons","?sounds", mn_sounds],
-    [102, 'Areatrigger', '?areatriggers', mn_areatrigger, {requiredAccess: 1726}],    // aowow - custom
+    [102, 'Areatrigger', '?areatriggers', mn_areatrigger],    // aowow - custom
     [103, 'Mails', '?mails'],                               // aowow - custom
-    [104, 'Gossip', '?gossips', null, {requiredAccess: 1726}],    // aowow - custom
-    [105, 'Conditions', '?conditions', null, {requiredAccess: 1726}],    // aowow - custom
-    [106, 'SmartAI', '?smartai', null, {requiredAccess: 1726}],    // aowow - custom
-    [107, 'Encounters', '?encounters', null, {requiredAccess: 1726}],    // aowow - custom
-    [108, 'Transports', '?transports', null, {requiredAccess: 1726}],    // aowow - custom
-    [109, 'Game text', '?texts', null, {requiredAccess: 1726}],    // aowow - custom
+    [104, 'Gossip', '?gossips'],    // aowow - custom
+    [105, 'Conditions', '?conditions'],    // aowow - custom
+    [106, 'SmartAI', '?smartai'],    // aowow - custom
+    [107, 'Encounters', '?encounters'],    // aowow - custom
+    [108, 'Transports', '?transports'],    // aowow - custom
+    [109, 'Game text', '?texts'],    // aowow - custom
     [118, 'Achievement Criteria', '?achievement-criteria'],          // aowow - custom
-    [110, 'Flight paths', '?taxipaths', null, {requiredAccess: 1726}],    // aowow - custom
-    [111, 'Named locations', '?teleports', null, {requiredAccess: 1726}],    // aowow - custom
-    [112, 'Trainers', '?trainers', null, {requiredAccess: 1726}],    // aowow - custom
-    [113, 'Graveyards', '?graveyards', null, {requiredAccess: 1726}],    // aowow - custom
-    [114, 'Weather', '?weather', null, {requiredAccess: 1726}],    // aowow - custom
-    [115, 'Outdoor PvP', '?outdoorpvps', null, {requiredAccess: 1726}],    // aowow - custom
-    [116, 'Points of interest', '?pois', null, {requiredAccess: 1726}],    // aowow - custom
-    [117, 'Faction change', '?factionchange', null, {requiredAccess: 1726}],    // aowow - custom
-    [119, 'Spell Focuses', '?spellfocuses', null, {requiredAccess: 1726}],    // aowow - custom
-    [120, 'Waypoint Paths', '?waypointpaths', null, {requiredAccess: 1726}]    // aowow - custom
+    [110, 'Flight paths', '?taxipaths'],    // aowow - custom
+    [111, 'Named locations', '?teleports'],    // aowow - custom
+    [112, 'Trainers', '?trainers'],    // aowow - custom
+    [113, 'Graveyards', '?graveyards'],    // aowow - custom
+    [114, 'Weather', '?weather'],    // aowow - custom
+    [115, 'Outdoor PvP', '?outdoorpvps'],    // aowow - custom
+    [116, 'Points of interest', '?pois'],    // aowow - custom
+    [117, 'Faction change', '?factionchange'],    // aowow - custom
+    [119, 'Spell Focuses', '?spellfocuses'],    // aowow - custom
+    [120, 'Waypoint Paths', '?waypointpaths']    // aowow - custom
 ];
 
 var mn_guides = [
