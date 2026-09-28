@@ -641,8 +641,9 @@ class NpcBaseResponse extends TemplateResponse implements ICache
             if (!$abilities->error)
             {
                 $this->extendGlobalData($abilities->getJSGlobals(GLOBALINFO_SELF | GLOBALINFO_RELATED));
-                $controled = $abilities->getListviewData();
-                $normal    = [];
+                $controled  = $abilities->getListviewData();
+                $normal     = [];
+                $hasGuidCol = false;
 
                 foreach ($controled as $id => $values)
                 {
@@ -657,16 +658,17 @@ class NpcBaseResponse extends TemplateResponse implements ICache
                         if (in_array($id, $smartSpells))
                             $src[] = Lang::npc('srcSmartai');
                         if (in_array($id, $auraSpells))
-                        {
-                            if (!empty($spawnAuraGuids[$id]))
-                                $src[] = Lang::npc('srcSpawnauraGuid', [implode(', ', $spawnAuraGuids[$id])]);
-                            else
-                                $src[] = Lang::npc('srcSpawnaura');
-                        }
+                            $src[] = Lang::npc('srcSpawnaura');
                         if (isset($spellClick[$id]))
                             $src[] = Lang::npc('srcSpellclick');
 
                         $values['source'] = implode(', ', $src);
+
+                        if (!empty($spawnAuraGuids[$id]))
+                        {
+                            $values['guids'] = implode(', ', $spawnAuraGuids[$id]);
+                            $hasGuidCol      = true;
+                        }
 
                         $normal[$id] = $values;
                         if (!in_array($id, $tplSpells))
@@ -680,12 +682,18 @@ class NpcBaseResponse extends TemplateResponse implements ICache
                     $this->extendGlobalData($cnd->getJSGlobals());
 
                 if ($normal)
+                {
+                    $abilityCols = ["\$Listview.funcBox.createSimpleCol('source', '".Lang::npc('srcColumn')."', '15%', 'source')"];
+                    if ($hasGuidCol)
+                        $abilityCols[] = "\$Listview.funcBox.createSimpleCol('guids', '".Lang::npc('guidColumn')."', '15%', 'guids')";
+
                     $this->lvTabs->addListviewTab(new Listview(array(
                         'data'      => $normal,
                         'name'      => '$LANG.tab_abilities',
                         'id'        => 'abilities',
-                        'extraCols' => ["\$Listview.funcBox.createSimpleCol('source', '".Lang::npc('srcColumn')."', '15%', 'source')"]
+                        'extraCols' => $abilityCols
                     ), SpellList::$brickFile));
+                }
 
                 if ($controled)
                     $this->lvTabs->addListviewTab(new Listview(array(
