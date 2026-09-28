@@ -44,6 +44,7 @@ class Listview implements \JsonSerializable
         'poi'               => ['template' => 'poi',               'id' => 'poi',                                                 ], // aowow - custom
         'factionchange'     => ['template' => 'factionchange',     'id' => 'factionchange',                                       ], // aowow - custom
         'spellfocus'        => ['template' => 'spellfocus',        'id' => 'spellfocus',                                          ], // aowow - custom
+        'summongroup'       => ['template' => 'summongroup',       'id' => 'summongroup',                                         ], // aowow - custom
         'icongallery'       => ['template' => 'icongallery',       'id' => 'icons',                                               ],
         'item'              => ['template' => 'item',              'id' => 'items',           'name' => '$LANG.tab_items'         ],
         'itemset'           => ['template' => 'itemset',           'id' => 'itemsets',        'name' => '$LANG.tab_itemsets'      ],
