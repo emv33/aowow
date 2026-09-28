@@ -972,7 +972,8 @@ var mn_database = [
     [116, 'Points of interest', '?pois'],    // aowow - custom
     [117, 'Faction change', '?factionchange'],    // aowow - custom
     [119, 'Spell Focuses', '?spellfocuses'],    // aowow - custom
-    [120, 'Waypoint Paths', '?waypointpaths']    // aowow - custom
+    [120, 'Waypoint Paths', '?waypointpaths'],    // aowow - custom
+    [121, 'Summon Groups', '?summongroups']    // aowow - custom
 ];
 
 var mn_guides = [
@@ -4647,6 +4648,13 @@ var LANG = {
     waypointpath_sourcedefault: "Default",
     waypointpath_sourcesmartai: "SmartAI",
     waypointpath_npc: "NPC",
+    fisummongroup: {
+        summoner:   "Summoner",
+        group:      "Group",
+        members:    "Members",
+        summonType: "Summon type",
+        summonTime: "Summon time"
+    },
     // end aowow custom
 
     pr_notice:     'Première fois? Ne soyez pas gêné! Visitez notre <a href="?help=profiler" target="_blank">page d\'aide</a>! &nbsp; <small class="q0"><a href="javascript:;">close</a></small>',

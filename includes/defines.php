@@ -2144,6 +2144,7 @@ define('AT_TYPE_SCRIPT',    5);
 // summon types
 define('SUMMONER_TYPE_CREATURE',   0);
 define('SUMMONER_TYPE_GAMEOBJECT', 1);
+define('SUMMONER_TYPE_MAP',        2);    // aowow - custom: no owning entity, summonerId is a map id
 
 // Map Types
 define('MAP_TYPE_ZONE',          0);

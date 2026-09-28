@@ -1429,6 +1429,16 @@ $lang = array(
         'objects'       => "Objects providing this focus",
         'noObjects'     => "No gameobject in the world DB provides this focus."
     ),
+    'summongroup' => array(
+        'title'         => "Summon Groups",
+        'notFound'      => "This summon group doesn't exist.",
+        'titleOf'       => '%1$s - Group %2$d',
+        'summoner'      => "Summoner",
+        'group'         => "Group",
+        'members'       => "Members",
+        'summonType'    => "Summon type",
+        'summonTime'    => "Summon time"
+    ),
     'gameText' => array(
         'title'         => "Game text",
         'notFound'      => "This text doesn't exist.",
