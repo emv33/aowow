@@ -547,11 +547,13 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         // aowow - custom end
 
         // tab: abilities / tab_controlledabilities (dep: VehicleId)
-        $tplSpells  = [];
-        $genSpells  = [];
-        $auraSpells = [];
-        $spellClick = [];
-        $conditions = [DB::OR];
+        $tplSpells      = [];
+        $genSpells      = [];
+        $auraSpells     = [];
+        $tplAuraSpells  = [];
+        $spawnAuraGuids = [];       // spellId => [guid, ...] - only set for auras not already covered template-wide
+        $spellClick     = [];
+        $conditions     = [DB::OR];
 
         for ($i = 1; $i < 9; $i++)
             if ($_ = $this->subject->getField('spell'.$i))
@@ -566,14 +568,15 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         if ($auras = DB::World()->selectCell('SELECT `auras` FROM creature_template_addon WHERE `entry` = %i', $this->typeId))
         {
             $auras = preg_replace('/[^\d ]/', ' ', $auras);  // remove erroneous chars from string
-            $auraSpells = array_filter(explode(' ', $auras));
-            $genSpells  = array_merge($genSpells, $auraSpells);
+            $tplAuraSpells = array_filter(explode(' ', $auras));
+            $auraSpells    = $tplAuraSpells;
+            $genSpells     = array_merge($genSpells, $tplAuraSpells);
         }
 
         // a per-spawn `creature_addon` row can carry its own auras instead of (or in addition
         // to) the template's - these were read nowhere, so a spawn-only aura never showed up
-        if (self::hasTable('creature_addon') && $spawnAuras = DB::World()->selectCol(
-               'SELECT DISTINCT ca.`auras`
+        if (self::hasTable('creature_addon') && $spawnAuraRows = DB::World()->selectAssoc(
+               'SELECT ca.`guid` AS ARRAY_KEY, ca.`auras`
                 FROM   creature_addon ca
                 JOIN   creature c ON c.`guid` = ca.`guid`
                 WHERE  c.`id` = %i AND ca.`auras` IS NOT NULL AND ca.`auras` <> \'\'',
@@ -581,8 +584,17 @@ class NpcBaseResponse extends TemplateResponse implements ICache
             ))
         {
             $spawnAuraSpells = [];
-            foreach ($spawnAuras as $sa)
-                $spawnAuraSpells = array_merge($spawnAuraSpells, array_filter(explode(' ', preg_replace('/[^\d ]/', ' ', $sa))));
+            foreach ($spawnAuraRows as $guid => $row)
+            {
+                foreach (array_filter(explode(' ', preg_replace('/[^\d ]/', ' ', $row['auras']))) as $sId)
+                {
+                    $spawnAuraSpells[] = $sId;
+
+                    // already covered for every spawn via the template - no single guid to blame
+                    if (!in_array($sId, $tplAuraSpells))
+                        $spawnAuraGuids[$sId][] = $guid;
+                }
+            }
 
             $auraSpells = array_unique(array_merge($auraSpells, $spawnAuraSpells));
             $genSpells  = array_merge($genSpells, $spawnAuraSpells);
@@ -645,7 +657,12 @@ class NpcBaseResponse extends TemplateResponse implements ICache
                         if (in_array($id, $smartSpells))
                             $src[] = Lang::npc('srcSmartai');
                         if (in_array($id, $auraSpells))
-                            $src[] = Lang::npc('srcSpawnaura');
+                        {
+                            if (!empty($spawnAuraGuids[$id]))
+                                $src[] = Lang::npc('srcSpawnauraGuid', [implode(', ', $spawnAuraGuids[$id])]);
+                            else
+                                $src[] = Lang::npc('srcSpawnaura');
+                        }
                         if (isset($spellClick[$id]))
                             $src[] = Lang::npc('srcSpellclick');
 
