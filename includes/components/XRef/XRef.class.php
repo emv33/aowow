@@ -103,6 +103,26 @@ class XRef
     }
 
     /**
+     * `creature_summon_groups` read forwards - who this creature/object summons as a group
+     * the reverse direction (this creature is a member of someone else's summon group) is
+     * summonedBy() above; `entry` is always a creature, so no gameobject case is possible here
+     */
+    private function summons() : void
+    {
+        if (!in_array($this->type, [Type::NPC, Type::OBJECT]) || !self::hasTable('creature_summon_groups'))
+            return;
+
+        $summonerType = $this->type == Type::NPC ? SUMMONER_TYPE_CREATURE : SUMMONER_TYPE_GAMEOBJECT;
+
+        $ids = DB::World()->selectCol(
+            'SELECT DISTINCT `entry` FROM creature_summon_groups WHERE `summonerId` = %i AND `summonerType` = %i',
+            $this->typeId, $summonerType
+        ) ?: [];
+
+        $this->add(Lang::xRef('summons'), $this->linksFor([Type::NPC => $ids]));
+    }
+
+    /**
      * `vehicle_accessory` - the vehicle this creature rides on, seated by spawn rather than by entry
      * the by-entry table is already in the infobox, so only vehicles that exist nowhere else are
      * listed here
@@ -238,6 +258,7 @@ class XRef
     {
         $this->smartAI();
         $this->summonedBy();
+        $this->summons();
         $this->ridesOn();
         $this->spawnGroups();
         $this->linkedRespawn();

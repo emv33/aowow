@@ -1450,6 +1450,7 @@ $lang = array(
         'title'         => "Referenced by",
         'smartAI'       => "Scripts",
         'summonedBy'    => "Summoned by",
+        'summons'       => "Summons",
         'ridesOn'       => "Rides on",
         'spawnGroup'    => "Spawn groups",
         'unnamedGroup'  => 'Group #%1$d',
