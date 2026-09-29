@@ -4528,7 +4528,9 @@ var LANG = {
     fiteleport: {
         name:       "Name",
         zone:       "Zone",
-        position:   "Position"
+        position:   "Position",
+        z:          "Height",
+        orientation:"Orientation"
     },
     teleport_map: "Map $1",
     fitrainer: {

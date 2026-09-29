@@ -58,7 +58,7 @@ class TeleportsBaseResponse extends TemplateResponse implements ICache
         if (!DB::World()->selectCell('SHOW TABLES LIKE %s', 'game_tele'))
             return [];
 
-        $rows = DB::World()->selectAssoc('SELECT `id`, `name`, `map`, `position_x`, `position_y`, `position_z` FROM game_tele ORDER BY `name` ASC') ?: [];
+        $rows = DB::World()->selectAssoc('SELECT `id`, `name`, `map`, `position_x`, `position_y`, `position_z`, `orientation` FROM game_tele ORDER BY `name` ASC') ?: [];
 
         $jsg  = [];
         $data = [];
@@ -68,12 +68,18 @@ class TeleportsBaseResponse extends TemplateResponse implements ICache
             // opened with one would be spliced into the page as code - see GameText::excerpt()
             $name = (string)$r['name'];
 
+            // world orientation/height, independent of whether the point below resolves to a zone
+            $o = Util::O2Deg((float)$r['orientation']);
+
             $row = array(
                 'id'   => (int)$r['id'],
                 'name' => $name !== '' && $name[0] == '$' ? ' '.$name : $name,
                 'map'  => (int)$r['map'],
                 'posx' => 0,
-                'posy' => 0
+                'posy' => 0,
+                'posz' => round((float)$r['position_z'], 1),
+                'o'    => $o[0],
+                'odir' => $o[1]
             );
 
             // the same conversion the spawn importer uses; it swaps the axes, so it is not done by hand

@@ -40,7 +40,7 @@ class TeleportBaseResponse extends TemplateResponse implements ICache
             $this->generateNotFound(Lang::teleport('title'), Lang::teleport('notFound'));
 
         $row = DB::World()->selectRow(
-           'SELECT `id`, `name`, `map`, `position_x`, `position_y` FROM game_tele WHERE `id` = %i',
+           'SELECT `id`, `name`, `map`, `position_x`, `position_y`, `position_z`, `orientation` FROM game_tele WHERE `id` = %i',
             $this->typeId
         );
 
@@ -93,11 +93,18 @@ class TeleportBaseResponse extends TemplateResponse implements ICache
                 ['parent' => 'mapper-generic'],
                 [$areaId => [(int)$p['floor'] => ['coords' => [[$p['posX'], $p['posY'], []]], 'count' => 1]]],
                 null,
-                null
-            );
+                [Lang::teleport('foundIn')]     // triggers the auto-click in mapper.tpl.php that sets the
+            );                                  // mapper's zone - without it the map defaults to zone 0 (black)
+            $this->map[3][$areaId] = ZoneList::getName($areaId);
         }
         else
             $infobox[] = Lang::teleport('map', [$mapId]);
+
+        // raw world values, independent of whether the point above resolved to a zone
+        $infobox[] = Lang::teleport('height').Lang::main('colon').sprintf('%.1f', (float)$row['position_z']);
+
+        $o = Util::O2Deg((float)$row['orientation']);
+        $infobox[] = Lang::teleport('orientation').Lang::main('colon').$o[0].'° ('.$o[1].')';
 
         $this->infobox = new InfoboxMarkup($infobox, ['allow' => Markup::CLASS_STAFF, 'dbpage' => true], 'infobox-contents0');
 

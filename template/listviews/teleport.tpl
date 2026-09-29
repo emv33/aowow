@@ -51,6 +51,29 @@ Listview.templates.teleport = {
             sortFunc: function(a, b, col) {
                 return (a.posx - b.posx) || (a.posy - b.posy);
             }
+        },
+        {
+            id: 'z',
+            name: LANG.fiteleport.z,
+            type: 'text',
+            width: '10%',
+            align: 'right',
+            value: 'posz'
+        },
+        {
+            id: 'orientation',
+            name: LANG.fiteleport.orientation,
+            type: 'text',
+            width: '15%',
+            compute: function(t, td) {
+                $WH.ae(td, $WH.ct(t.o + '° (' + t.odir + ')'));
+            },
+            getVisibleText: function(t) {
+                return t.o + '° (' + t.odir + ')';
+            },
+            sortFunc: function(a, b, col) {
+                return a.o - b.o;
+            }
         }
     ],
     getItemLink: function(t) {

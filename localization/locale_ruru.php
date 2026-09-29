@@ -1381,7 +1381,10 @@ $lang = array(
         'id'            => "ID",
         'zone'          => "Zone",
         'map'           => 'Map [b]%1$d[/b]',
-        'position'      => "Position"
+        'position'      => "Position",
+        'height'        => "Height",
+        'orientation'   => "Orientation",
+        'foundIn'       => "This location can be found in"
     ),
     'trainer' => array(
         'title'         => "Trainers",
