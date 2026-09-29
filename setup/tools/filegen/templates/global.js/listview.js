@@ -20,7 +20,7 @@ function Listview(opt)
     else
         return;
 
-    this.debug = true;
+    this.debug = true;   // aowow - custom: id column always shown, no debug gate (upstream: if (g_user.debug))
 
     if (this.template && Listview.templates[this.template])
         this.template = Listview.templates[this.template];
