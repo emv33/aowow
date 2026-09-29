@@ -49,7 +49,7 @@ Listview.templates.teleport = {
                 return t.posx + ', ' + t.posy;
             },
             sortFunc: function(a, b, col) {
-                return (a.posx - b.posx) || (a.posy - b.posy);
+                return (a.posx + a.posy) - (b.posx + b.posy);
             }
         },
         {
