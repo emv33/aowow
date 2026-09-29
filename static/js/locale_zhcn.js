@@ -1010,7 +1010,7 @@ var mn_database = [
     [109, 'Game text', '?texts'],    // aowow - custom
     [118, 'Achievement Criteria', '?achievement-criteria'],          // aowow - custom
     [110, 'Flight paths', '?taxipaths'],    // aowow - custom
-    [111, 'Named locations', '?teleports'],    // aowow - custom
+    [111, 'Teleports', '?teleports'],    // aowow - custom
     [112, 'Trainers', '?trainers'],    // aowow - custom
     [113, 'Graveyards', '?graveyards'],    // aowow - custom
     [114, 'Weather', '?weather'],    // aowow - custom

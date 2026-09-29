@@ -1375,8 +1375,8 @@ $lang = array(
         'title'         => 'Template row (%1$s)'
     ),
     'teleport' => array(
-        'title'         => "Named locations",
-        'notFound'      => "This location doesn't exist.",
+        'title'         => "Teleports",
+        'notFound'      => "This teleport doesn't exist.",
         'unnamed'       => "Teleport to %s",
         'id'            => "ID",
         'zone'          => "Zone",
@@ -1384,7 +1384,7 @@ $lang = array(
         'position'      => "Position",
         'height'        => "Height",
         'orientation'   => "Orientation",
-        'foundIn'       => "This location can be found in"
+        'foundIn'       => "This teleport can be found in"
     ),
     'trainer' => array(
         'title'         => "Trainers",
