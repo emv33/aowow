@@ -44,6 +44,10 @@ if ($this->placeholder):
 <?php
 elseif ($this->map):
     $this->brick('mapper');
+elseif ($this->foundInZones):
+    echo '                <div>'.Lang::npc('foundIn').' ';
+    echo Lang::concat($this->foundInZones, callback: fn($name, $areaId) => '<a href="?zone='.$areaId.'">'.$name.'</a>');
+    echo '.</div>'.PHP_EOL;
 else:
     echo '                '.Lang::npc('unkPosition').''.PHP_EOL;
 endif;

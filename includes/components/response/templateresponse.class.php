@@ -25,6 +25,7 @@ trait TrDetailPage
     public ?Markup        $questGreeting = null;            // aowow - custom: the line an npc/object opens with when it holds several quests
     public ?Markup        $rawRow        = null;            // aowow - custom: the entity's own template row, as the world DB stores it
     public ?array         $map           = null;
+    public  array         $foundInZones  = [];              // aowow - custom: zone/instance names when spawns are known but have no drawable point for $map
     public  array         $headIcons     = [];
 
     // aowow - custom start: what else in the world DB points at this entity
