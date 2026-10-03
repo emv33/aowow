@@ -420,6 +420,19 @@ class ItemBaseResponse extends TemplateResponse implements ICache
 
             if ($hasUse)
                 $infobox[] = $tt ?? '[tooltip=tooltip_notconsumedonuse]'.Lang::item('nonConsumable').'[/tooltip]';
+
+            // area restriction of the spell(s) cast on use
+            $useSpells = [];
+            for ($i = 1; $i < 6; $i++)
+                if ($this->subject->getField('spellId'.$i) > 0 && !in_array($this->subject->getField('spellTrigger'.$i), [SPELL_TRIGGER_EQUIP, SPELL_TRIGGER_HIT]))
+                    $useSpells[] = $this->subject->getField('spellId'.$i);
+
+            if ($useSpells && ($groups = DB::Aowow()->selectCol('SELECT DISTINCT `areaGroupId` FROM ::spell WHERE `id` IN %in AND `areaGroupId` > 0', $useSpells)))
+                if ($zones = Game::getAreaGroupZones(...$groups))
+                {
+                    $this->extendGlobalIds(Type::ZONE, ...$zones);
+                    $infobox[] = Lang::game('requires2').Lang::main('colon').implode(', ', array_map(fn($z) => '[zone='.$z.']', $zones));
+                }
         }
 
         // related holiday

@@ -2999,6 +2999,7 @@ CREATE TABLE `aowow_spell` (
   `schoolMask` tinyint(3) unsigned NOT NULL,
   `spellDescriptionVariableId` smallint(6) NOT NULL,
   `trainingCost` int(10) unsigned NOT NULL,
+  `areaGroupId` smallint(5) unsigned NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   KEY `spell` (`id`) USING BTREE,
   KEY `iconId` (`iconId`),

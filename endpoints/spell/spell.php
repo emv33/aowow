@@ -2930,6 +2930,13 @@ class SpellBaseResponse extends TemplateResponse implements ICache
             }
         }
 
+        // area restriction (spell.dbc -> areaGroupId)
+        if ($zones = Game::getAreaGroupZones($this->subject->getField('areaGroupId')))
+        {
+            $this->extendGlobalIds(Type::ZONE, ...$zones);
+            $infobox[] = Lang::game('requires2').Lang::main('colon').implode(', ', array_map(fn($z) => '[zone='.$z.']', $zones));
+        }
+
         // primary & secondary trades
         if (in_array($typeCat, [9, 11]))
         {
