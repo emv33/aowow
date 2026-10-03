@@ -60,7 +60,18 @@ class SpellOverride
         {
             $pos = sprintf('%.1f, %.1f, %.1f', (float)$r['PositionX'], (float)$r['PositionY'], (float)$r['PositionZ']);
 
-            if ($areaId = (int)DB::Aowow()->selectCell('SELECT `id` FROM ::zones WHERE `mapId` = %i AND `parentArea` = 0 AND (`cuFlags` & %i) = 0 LIMIT 1', (int)$r['MapID'], CUSTOM_EXCLUDE_FOR_LISTVIEW))
+            // resolve the world position to the zone it lies in and link it as a pinned map lightbox
+            if ($zp = WorldPosition::toZonePos((int)$r['MapID'], (float)$r['PositionX'], (float)$r['PositionY']))
+            {
+                $zp     = WorldPosition::checkZonePos($zp);
+                $areaId = (int)$zp['areaId'];
+                $pins   = sprintf('%03d%03d', (int)round($zp['posX'] * 10), (int)round($zp['posY'] * 10));
+
+                $this->jsGlobals[Type::ZONE][$areaId] = $areaId;
+                $out[] = '[lightbox=map zone='.$areaId.($zp['floor'] > 1 ? ' floor='.($zp['floor'] - 1) : '').' pins='.$pins.']'.ZoneList::getName($areaId).'[/lightbox] [small class=q0]'.sprintf('%.1f, %.1f', $zp['posX'], $zp['posY']).'[/small]';
+            }
+            // no zone covers the point (instance maps): fall back to the map's own zone, unpinned
+            else if ($areaId = (int)DB::Aowow()->selectCell('SELECT `id` FROM ::zones WHERE `mapId` = %i AND `parentArea` = 0 AND (`cuFlags` & %i) = 0 LIMIT 1', (int)$r['MapID'], CUSTOM_EXCLUDE_FOR_LISTVIEW))
             {
                 $this->jsGlobals[Type::ZONE][$areaId] = $areaId;
                 $out[] = '[zone='.$areaId.'] [small class=q0]'.$pos.'[/small]';
