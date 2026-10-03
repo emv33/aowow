@@ -365,6 +365,14 @@ class Conditions
                     $lookups[] = [DB::AND, [['c2.`ConditionTypeOrReference` = %i', $cId], ['c2.`ConditionValue1` = %i', $typeId]]];
             }
 
+        // OBJECT_ENTRY_GUID carries the entry in val2 (val1 is the TypeID), so the generic val1 lookup above can't see it
+        if ($type === Type::NPC || $type === Type::OBJECT)
+            $lookups[] = [DB::AND, [
+                ['c2.`ConditionTypeOrReference` = %i', self::OBJECT_ENTRY_GUID],
+                ['c2.`ConditionValue1` = %i', $type === Type::NPC ? self::TYPEID_UNIT : self::TYPEID_GAMEOBJECT],
+                ['c2.`ConditionValue2` = %i', $typeId]
+            ]];
+
         if (!$lookups)
             return $this;
 
