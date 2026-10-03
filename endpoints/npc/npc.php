@@ -1078,7 +1078,8 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         }
 
         // tab: same model as
-        if ($this->subject->getTameable() && ($model = $this->subject->getField('modelId')))
+        // aowow - custom: shown for every npc (upstream: only if $this->subject->getTameable())
+        if ($model = $this->subject->getField('modelId'))
         {
             $sameModel = new CreatureList(array(['modelId', $model], ['id', $this->typeId, '!']));
             if (!$sameModel->error)
