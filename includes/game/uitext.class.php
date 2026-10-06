@@ -18,10 +18,6 @@ final class UIText
         Lang::FMT_MARKUP => '[br]'
     );
 
-    private const array VALID_TAGS = array(
-        'h1', 'h2', 'h3', 'p', 'a', 'img', 'span', 'br'     // also html + body but they are handled separately
-    );
-
     /**
      * shorthand of UIText::format($txt, Lang::FMT_HTML) for use as LocString formatter
      * @param string    $text   text to format
@@ -60,29 +56,22 @@ final class UIText
         if ($fmt == Lang::FMT_MARKUP && strpos($text, '[') !== false)
             $text = str_replace('[', '\[', $text);
 
+        if (stripos($text, '<HTML>') !== false)
+            $text = self::handleSimpleHtml($text, $fmt);
+        else
+        {
+            // if target output is html escape fake html-ish tags the browser skipsh dishplaying ...<hic>!
+            if ($fmt == Lang::FMT_HTML)
+                $text = Util::htmlEscape($text);
+
+            $text = strtr($text, ["\n" => self::LINE_BREAK[$fmt]]);
+        }
+
         if (strpos($text, '|') !== false)
             $text = self::unescapeUISequences($text, $fmt);
 
         if (strpos($text, '$') !== false)
             $text = self::replaceTextVariables($text, $fmt);
-
-        if (stripos($text, '<HTML>') !== false)
-            $text = self::handleSimpleHtml($text, $fmt);
-        else
-            $text = strtr($text, ["\n" => self::LINE_BREAK[$fmt]]);
-
-        // if target output is html escape fake html-ish tags the browser skipsh dishplaying ...<hic>!
-        $text = preg_replace_callback('/<\/?([a-z1-3]+)(?:[^>]*)>/i', function ($m) use ($fmt) {
-            [$full, $tag] = $m;
-
-            if (in_array(strtolower($tag), self::VALID_TAGS))
-                return $fmt == Lang::FMT_MARKUP ? '['.substr($full, 1, -1).']' : $full;
-
-            if ($fmt == Lang::FMT_HTML)
-                return '&lt;'.substr($full, 1, -1).'&gt;';
-
-            return $full;
-        }, $text);
 
         return $text;
     }
@@ -104,8 +93,8 @@ final class UIText
     private static function handleSimpleHtml(string $text, int $fmt = Lang::FMT_HTML) : string
     {
         $text = str_ireplace(
-            ['<HTML>', '</HTML>', '<BODY>', '</BODY>', '<BR>',                  '</BR>'],
-            ['',       '',        '',       '',         self::LINE_BREAK[$fmt], ''     ],
+            ['<HTML>', '</HTML>', '<BODY>', '</BODY>', '<BR></BR>',           ],
+            ['',       '',        '',       '',         self::LINE_BREAK[$fmt]],
             $text
         );
 
@@ -113,8 +102,22 @@ final class UIText
         $text = preg_replace_callback('/src="([^"]+)"/i', fn($m) => sprintf('src="%s/images/wow/%s.png"', Cfg::get('STATIC_URL'), strtr($m[1], ['\\' => '/'])), $text);
 
         // docs say SimpleHTML supports anchors though in 335 they seem to be unused
-        // also, where the hell do they link to?
+        // also, where the hell do they link to? For now strip the anchor tags and retain the contained text node.
         $text = preg_replace('/<a href="[^"]*">([^<]*)<\/a>/ui', '\1', $text);
+
+        // make tags fit the output format                          v IMG+BR tags have this trailing self-closing slash
+        $text = preg_replace_callback('/<(\/?)([a-z1-3]+) ?([^>]*?)(\/?)>/i', function ($m) use ($fmt) {
+            if ($fmt == Lang::FMT_RAW)
+                return '';
+
+            if ($fmt == Lang::FMT_MARKUP && self::validateTag(...$m))
+                return '['.substr($m[0], 1, $m[4] ? -2 : -1).']'; // markup does not use trailing self-closing slashes
+
+            if ($fmt == Lang::FMT_HTML && !self::validateTag(...$m))
+                return '&lt;'.substr($m[0], 1, -1).'&gt;';
+
+            return $m[0];
+        }, $text);
 
         return $text;
     }
@@ -400,6 +403,57 @@ final class UIText
 
         // unescape escaped ui sequences
         return strtr($text, ['||' => '|']);
+    }
+
+    /**
+     * Validates a parsed UI tag against the supported tag set and required attributes.
+     *
+     * @param string $full     Full tag text. (not used, required to spread regex match into function)
+     * @param string $closing  Whether the tag is a closing tag.
+     * @param string $tag      Tag name to validate.
+     * @param string $attrStr  Raw attribute string for the tag.
+     *
+     * @return bool True when the tag is allowed and valid, otherwise false.
+     */
+    private static function validateTag(string $full, string $closing, string $tag, string $attrStr) : bool
+    {
+        if ($closing && trim($attrStr))
+            return false;
+
+        $tag = strtolower($tag);
+
+        switch ($tag)
+        {
+            case 'h1':
+            case 'h2':
+            case 'h3':
+            case 'span':
+            case 'br':
+            case 'p':
+                return true;
+        }
+
+        /*
+         * i.e. quest 13081 reward text:
+         * <A gentle ringing fills your head as you approach the naaru.> [...]
+         * looks like an anchor but SimpleXMLElement throws an exception as intended
+         */
+
+        try
+        {
+            $node = new SimpleXML($full);
+        }
+        catch (\Exception $e)
+        {
+            return false;
+        }
+
+        return match ($tag)
+        {
+            'a'     => $closing || !empty($node->attributes()['href']),
+            'img'   => !empty($node->attributes()['src']),
+            default => false
+        };
     }
 }
 
