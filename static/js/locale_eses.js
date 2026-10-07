@@ -4363,6 +4363,34 @@ var LANG = {
         onGlobalCooldown:           "Sujeto al tiempo de relanzamiento global",
         onlyaffectsingletarget:     "El aura solo puede afectar a un solo objetivo",
 
+        sepcustomattr:                       "Custom attributes", // aowow - custom
+        customattrenchantproc:               "Triggered by weapon enchant proc", // aowow - custom
+        customattrconeback:                  "Cone faces away from caster", // aowow - custom
+        customattrconeline:                  "Narrow line-shaped cone", // aowow - custom
+        customattrsharedamage:               "Damage is split among targets", // aowow - custom
+        customattrnoinitialthreat:           "Generates no initial threat", // aowow - custom
+        customattrauracc:                    "Crowd-control aura", // aowow - custom
+        customattrdontbreakstealth:          "Does not break stealth", // aowow - custom
+        customattrcancrit:                   "Can critically strike", // aowow - custom
+        customattrdirectdamage:              "Deals direct damage", // aowow - custom
+        customattrcharge:                    "Charges to target", // aowow - custom
+        customattrpickpocket:                "Pickpocket spell", // aowow - custom
+        customattrrollingperiodic:           "Rolling periodic (re-rolls tick on refresh)", // aowow - custom
+        customattrnegativeeff0:              "Effect 1 is negative", // aowow - custom
+        customattrnegativeeff1:              "Effect 2 is negative", // aowow - custom
+        customattrnegativeeff2:              "Effect 3 is negative", // aowow - custom
+        customattrignorearmor:               "Ignores armor", // aowow - custom
+        customattrreqtargetfacingcaster:     "Requires target facing caster", // aowow - custom
+        customattrreqcasterbehindtarget:     "Requires caster behind target", // aowow - custom
+        customattrallowinflighttarget:       "Allows targeting while target is in flight", // aowow - custom
+        customattrneedsammodata:             "Needs ranged ammo data", // aowow - custom
+        customattrbinaryspell:               "Binary spell (hit-or-miss, no partial resist)", // aowow - custom
+        customattrschoolmasknormalwithmagic: "Physical treated as magic for resistance", // aowow - custom
+        customattrdeprecatedliquidaura:      "Deprecated liquid aura (unused)", // aowow - custom
+        customattristalent:                  "Is a talent", // aowow - custom
+        customattrauracannotbesaved:         "Aura cannot be saved across logout", // aowow - custom
+        customattrcantargetanyprivateobject: "Can target any private object", // aowow - custom
+
         sepcommunity:               "Comunidad",
         hascomments:                "Tiene comentarios",
         hasscreenshots:             "Tiene capturas de pantalla",

@@ -2822,6 +2822,28 @@ class SpellBaseResponse extends TemplateResponse implements ICache
             }
         }
 
+        // aowow - custom start: TrinityCore's spell_custom_attr.attributes (SpellCustomAttributes) - not part of
+        // Spell.dbc, so read live from the world DB rather than from a baked column on $this->subject
+        if (self::hasTable('spell_custom_attr'))
+        {
+            $customAttr = (int)DB::World()->selectCell('SELECT `attributes` FROM spell_custom_attr WHERE `entry` = %i', $this->typeId);
+            for ($j = 1; $j <= (1 << 31); $j <<= 1)
+            {
+                if (!($customAttr & $j))
+                    continue;
+
+                $listItem = Lang::spell('attributesCu', $j);
+                if (!$listItem)
+                    $listItem = '<span class="q0">Unknown CustomAttribute</span>';
+
+                if ($crId = (SpellListFilter::$customAttrFilter[$j] ?? 0))
+                    $listItem = sprintf('<a href="?spells&filter=cr=%2$d;crs=%3$d;crv=0">%1$s</a>', $listItem, abs($crId), $crId > 0 ? 1 : 2);
+
+                $list[] = $this->fmtStaffTip($listItem, 'CustomAttr: '.Util::asHex($j));
+            }
+        }
+        // aowow - custom end
+
         $this->attributes = $list;
     }
 

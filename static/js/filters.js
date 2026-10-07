@@ -431,6 +431,34 @@ var fi_filters = {
         { id: 89,   name: 'usablefeared',               type: 'yn' },
         { id: 65,   name: 'usesallpower',               type: 'yn' },
 
+        { id: 9999, name: 'sepcustomattr' },                            // aowow - custom
+        { id: 130,  name: 'customattrenchantproc',                  type: 'yn' }, // aowow - custom
+        { id: 131,  name: 'customattrconeback',                     type: 'yn' }, // aowow - custom
+        { id: 132,  name: 'customattrconeline',                     type: 'yn' }, // aowow - custom
+        { id: 133,  name: 'customattrsharedamage',                  type: 'yn' }, // aowow - custom
+        { id: 134,  name: 'customattrnoinitialthreat',              type: 'yn' }, // aowow - custom
+        { id: 135,  name: 'customattrauracc',                       type: 'yn' }, // aowow - custom
+        { id: 136,  name: 'customattrdontbreakstealth',             type: 'yn' }, // aowow - custom
+        { id: 137,  name: 'customattrcancrit',                      type: 'yn' }, // aowow - custom
+        { id: 138,  name: 'customattrdirectdamage',                 type: 'yn' }, // aowow - custom
+        { id: 139,  name: 'customattrcharge',                       type: 'yn' }, // aowow - custom
+        { id: 140,  name: 'customattrpickpocket',                   type: 'yn' }, // aowow - custom
+        { id: 141,  name: 'customattrrollingperiodic',              type: 'yn' }, // aowow - custom
+        { id: 142,  name: 'customattrnegativeeff0',                 type: 'yn' }, // aowow - custom
+        { id: 143,  name: 'customattrnegativeeff1',                 type: 'yn' }, // aowow - custom
+        { id: 144,  name: 'customattrnegativeeff2',                 type: 'yn' }, // aowow - custom
+        { id: 145,  name: 'customattrignorearmor',                  type: 'yn' }, // aowow - custom
+        { id: 146,  name: 'customattrreqtargetfacingcaster',        type: 'yn' }, // aowow - custom
+        { id: 147,  name: 'customattrreqcasterbehindtarget',        type: 'yn' }, // aowow - custom
+        { id: 148,  name: 'customattrallowinflighttarget',          type: 'yn' }, // aowow - custom
+        { id: 149,  name: 'customattrneedsammodata',                type: 'yn' }, // aowow - custom
+        { id: 150,  name: 'customattrbinaryspell',                  type: 'yn' }, // aowow - custom
+        { id: 151,  name: 'customattrschoolmasknormalwithmagic',    type: 'yn' }, // aowow - custom
+        { id: 152,  name: 'customattrdeprecatedliquidaura',         type: 'yn' }, // aowow - custom
+        { id: 153,  name: 'customattristalent',                     type: 'yn' }, // aowow - custom
+        { id: 154,  name: 'customattrauracannotbesaved',            type: 'yn' }, // aowow - custom
+        { id: 155,  name: 'customattrcantargetanyprivateobject',    type: 'yn' }, // aowow - custom
+
         { id: 9999, name: 'sepcommunity'               },
         { id: 11,   name: 'hascomments',    type: 'yn' },
         { id: 8,    name: 'hasscreenshots', type: 'yn' },

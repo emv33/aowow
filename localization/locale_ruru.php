@@ -1493,8 +1493,7 @@ $lang = array(
             2 => "strongest effect only",
             3 => "exclusive",
             4 => "exclusive, highest rank"
-        ),
-        'customAttr'    => "Custom attributes"
+        )
     ),
     'dataIntegrity' => array(
         'title'         => "Data integrity",
@@ -2863,6 +2862,35 @@ $lang = array(
             SPELL_ATTR7_REFLECTION_ONLY_DEFENDS                       => 'Reflection Only Defends',
             SPELL_ATTR7_CAN_PROC_FROM_SUPPRESSED_TARGET_PROCS         => 'Can Proc From Suppressed Target Procs',
             SPELL_ATTR7_CLIENT_INDICATOR                              => 'Always Cast Log'
+        ),
+        // aowow - custom: TrinityCore's spell_custom_attr.attributes (SpellCustomAttributes); see includes/defines.php
+        'attributesCu' => array(
+            SPELL_ATTR0_CU_ENCHANT_PROC                  => 'Triggered by weapon enchant proc',
+            SPELL_ATTR0_CU_CONE_BACK                     => 'Cone faces away from caster',
+            SPELL_ATTR0_CU_CONE_LINE                     => 'Narrow line-shaped cone',
+            SPELL_ATTR0_CU_SHARE_DAMAGE                  => 'Damage is split among targets',
+            SPELL_ATTR0_CU_NO_INITIAL_THREAT             => 'Generates no initial threat',
+            SPELL_ATTR0_CU_AURA_CC                       => 'Crowd-control aura',
+            SPELL_ATTR0_CU_DONT_BREAK_STEALTH            => 'Does not break stealth',
+            SPELL_ATTR0_CU_CAN_CRIT                      => 'Can critically strike',
+            SPELL_ATTR0_CU_DIRECT_DAMAGE                 => 'Deals direct damage',
+            SPELL_ATTR0_CU_CHARGE                        => 'Charges to target',
+            SPELL_ATTR0_CU_PICKPOCKET                    => 'Pickpocket spell',
+            SPELL_ATTR0_CU_ROLLING_PERIODIC               => 'Rolling periodic (re-rolls tick on refresh)',
+            SPELL_ATTR0_CU_NEGATIVE_EFF0                  => 'Effect 1 is negative',
+            SPELL_ATTR0_CU_NEGATIVE_EFF1                  => 'Effect 2 is negative',
+            SPELL_ATTR0_CU_NEGATIVE_EFF2                  => 'Effect 3 is negative',
+            SPELL_ATTR0_CU_IGNORE_ARMOR                   => 'Ignores armor',
+            SPELL_ATTR0_CU_REQ_TARGET_FACING_CASTER       => 'Requires target facing caster',
+            SPELL_ATTR0_CU_REQ_CASTER_BEHIND_TARGET       => 'Requires caster behind target',
+            SPELL_ATTR0_CU_ALLOW_INFLIGHT_TARGET          => 'Allows targeting while target is in flight',
+            SPELL_ATTR0_CU_NEEDS_AMMO_DATA                => 'Needs ranged ammo data',
+            SPELL_ATTR0_CU_BINARY_SPELL                   => 'Binary spell (hit-or-miss, no partial resist)',
+            SPELL_ATTR0_CU_SCHOOLMASK_NORMAL_WITH_MAGIC   => 'Physical treated as magic for resistance',
+            SPELL_ATTR0_CU_DEPRECATED_LIQUID_AURA         => 'Deprecated liquid aura (unused)',
+            SPELL_ATTR0_CU_IS_TALENT                      => 'Is a talent',
+            SPELL_ATTR0_CU_AURA_CANNOT_BE_SAVED           => 'Aura cannot be saved across logout',
+            SPELL_ATTR0_CU_CAN_TARGET_ANY_PRIVATE_OBJECT  => 'Can target any private object'
         )
     ),
     'item' => array(
