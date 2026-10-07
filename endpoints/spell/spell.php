@@ -24,6 +24,7 @@ class SpellBaseResponse extends TemplateResponse implements ICache
     public  array  $tools      = [];
     public  array  $effects    = [];
     public  array  $attributes = [];
+    public  array  $customAttributes = [];  // aowow - custom: see createCustomAttributesList()
     public  string $powerCost  = '';
     public  string $castTime   = '';
     public  string $level      = '';
@@ -240,6 +241,7 @@ class SpellBaseResponse extends TemplateResponse implements ICache
         $this->createRequiredItems();       // Required Items
         $this->createEffects();             // Spell Effect Block
         $this->createAttributesList();      // Spell Attributes listing and SpellFilter links
+        $this->createCustomAttributesList(); // aowow - custom: TDB spell_custom_attr, separate from the DBC Flags row
         $this->createSpellSchool();         // Schools cell and filter link
 
         $this->powerCost = $this->subject->createPowerCostForCurrent();
@@ -2822,30 +2824,36 @@ class SpellBaseResponse extends TemplateResponse implements ICache
             }
         }
 
-        // aowow - custom start: TrinityCore's spell_custom_attr.attributes (SpellCustomAttributes) - not part of
-        // Spell.dbc, so read live from the world DB rather than from a baked column on $this->subject
-        if (self::hasTable('spell_custom_attr'))
-        {
-            $customAttr = (int)DB::World()->selectCell('SELECT `attributes` FROM spell_custom_attr WHERE `entry` = %i', $this->typeId);
-            for ($j = 1; $j <= (1 << 31); $j <<= 1)
-            {
-                if (!($customAttr & $j))
-                    continue;
-
-                $listItem = Lang::spell('attributesCu', $j);
-                if (!$listItem)
-                    $listItem = '<span class="q0">Unknown CustomAttribute</span>';
-
-                if ($crId = (SpellListFilter::$customAttrFilter[$j] ?? 0))
-                    $listItem = sprintf('<a href="?spells&filter=cr=%2$d;crs=%3$d;crv=0">%1$s</a>', $listItem, abs($crId), $crId > 0 ? 1 : 2);
-
-                $list[] = $this->fmtStaffTip($listItem, 'CustomAttr: '.Util::asHex($j));
-            }
-        }
-        // aowow - custom end
-
         $this->attributes = $list;
     }
+
+    // aowow - custom start: TrinityCore's spell_custom_attr.attributes (SpellCustomAttributes) - a world DB (TDB)
+    // table, not part of Spell.dbc, so this is its own row rather than mixed into the DBC-sourced Flags row above
+    private function createCustomAttributesList() : void
+    {
+        if (!self::hasTable('spell_custom_attr'))
+            return;
+
+        $list       = [];
+        $customAttr = (int)DB::World()->selectCell('SELECT `attributes` FROM spell_custom_attr WHERE `entry` = %i', $this->typeId);
+        for ($j = 1; $j <= (1 << 31); $j <<= 1)
+        {
+            if (!($customAttr & $j))
+                continue;
+
+            $listItem = Lang::spell('attributesCu', $j);
+            if (!$listItem)
+                $listItem = '<span class="q0">Unknown CustomAttribute</span>';
+
+            if ($crId = (SpellListFilter::$customAttrFilter[$j] ?? 0))
+                $listItem = sprintf('<a href="?spells&filter=cr=%2$d;crs=%3$d;crv=0">%1$s</a>', $listItem, abs($crId), $crId > 0 ? 1 : 2);
+
+            $list[] = $this->fmtStaffTip($listItem, 'CustomAttr: '.Util::asHex($j));
+        }
+
+        $this->customAttributes = $list;
+    }
+    // aowow - custom end
 
     private function createSpellSchool() : void
     {

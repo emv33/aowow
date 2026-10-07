@@ -2320,6 +2320,7 @@ $lang = array(
         '_value'        => "值",
         '_radius'       => "半径：",
         '_interval'     => "间隔：", //Interval
+        '_customAttr'   => "Custom attributes", // aowow - custom: spell_custom_attr (TDB), separate from the DBC Flags row
         '_inSlot'       => "在插槽中：",
         '_collapseAll'  => "折叠全部",
         '_expandAll'    => "展开全部",

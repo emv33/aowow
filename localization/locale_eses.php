@@ -2320,6 +2320,7 @@ $lang = array(
         '_value'        => "Valor",
         '_radius'       => "Radio: ",
         '_interval'     => "Intérvalo: ",
+        '_customAttr'   => "Custom attributes", // aowow - custom: spell_custom_attr (TDB), separate from the DBC Flags row
         '_inSlot'       => "en la casilla: ",
         '_collapseAll'  => "Contraer todo",
         '_expandAll'    => "Expandier todo",

@@ -2320,6 +2320,7 @@ $lang = array(
         '_value'        => "Значение",
         '_radius'       => "Радиус действия: ",
         '_interval'     => "Интервал: ",
+        '_customAttr'   => "Custom attributes", // aowow - custom: spell_custom_attr (TDB), separate from the DBC Flags row
         '_inSlot'       => "в слот: ",
         '_collapseAll'  => "Свернуть все",
         '_expandAll'    => "Развернуть все",

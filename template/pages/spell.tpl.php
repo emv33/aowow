@@ -346,6 +346,23 @@ if ($this->attributes):
 
 <?php endif; ?>
 
+<?php // aowow - custom: spell_custom_attr (TDB) - kept out of the DBC-sourced Flags row above
+if ($this->customAttributes):
+?>
+
+                    <tr>
+                        <th><?=Lang::spell('_customAttr');?></th>
+                            <td colspan="3" style="line-height:17px">
+                                <ul style="margin:0"><?php
+    foreach ($this->customAttributes as $a):
+        echo '<li>'.$a.'</li>';
+    endforeach;
+?></ul>
+                        </td>
+                    </tr>
+
+<?php endif; ?>
+
                 </table>
 
 <?php $this->brick('markup', ['markup' => $this->legacyScript]);   // aowow - custom ?>
