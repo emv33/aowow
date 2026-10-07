@@ -2354,6 +2354,7 @@ $lang = array(
         'pointsPerCP'   => ", плюс %s в прием в серии",
         'stackGroup'    => "[Stack Group]",
         'linkedWith'    => "[Linked with]",
+        'conditionFor'  => "[Aura condition for]",
         'apMod'         => " (Мод.-р АП:%.3g)",
         'spMod'         => " (Мод.-р СП:%.3g)",
         'instantPhys'   => "Мгновенное действие",

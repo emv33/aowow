@@ -2354,6 +2354,7 @@ $lang = array(
         'pointsPerCP'   => ", mas %s por punto de combo",
         'stackGroup'    => "Grupo de aplilamiento",
         'linkedWith'    => "Asociado con",
+        'conditionFor'  => "[Aura condition for]",
         'apMod'         => " (Mod AP: %.3g)",
         'spMod'         => " (Mod SP: %.3g)",
         'instantPhys'   => "Instantáneo",

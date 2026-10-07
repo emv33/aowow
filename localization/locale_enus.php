@@ -2354,6 +2354,7 @@ $lang = array(
         'pointsPerCP'   => ", plus %s per combo point",
         'stackGroup'    => "Stack Group",
         'linkedWith'    => "Linked with",
+        'conditionFor'  => "Aura condition for",
         'apMod'         => " (AP mod: %.3g)",
         'spMod'         => " (SP mod: %.3g)",
         'pointsSpread'  => "%s to %s",                      // INT_SPELL_POINTS_SPREAD_TEMPLATE

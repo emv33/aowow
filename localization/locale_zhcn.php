@@ -2354,6 +2354,7 @@ $lang = array(
         'pointsPerCP'   => "，加%s每连击",
         'stackGroup'    => "Stack Group",
         'linkedWith'    => "Linked with",
+        'conditionFor'  => "Aura condition for",
         'apMod'         => "（攻强 mod：%.3g）",
         'spMod'         => "（法力 mod：%.3g）",
         'instantPhys'   => "瞬发",

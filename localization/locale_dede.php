@@ -2353,6 +2353,7 @@ $lang = array(
         'pointsPerCP'   => ", plus %s pro Combopunkt",
         'stackGroup'    => "Stack Gruppierung",
         'linkedWith'    => "Verknüpft mit",
+        'conditionFor'  => "[Aura condition for]",
         'apMod'         => " (AP mod: %.3g)",
         'spMod'         => " (ZM mod: %.3g)",
         'pointsSpread'  => '1$s bis %2$s',

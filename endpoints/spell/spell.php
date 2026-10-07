@@ -386,6 +386,9 @@ class SpellBaseResponse extends TemplateResponse implements ICache
         if ($tab = $this->tabLinkedWith())                  // custom
             $this->lvTabs->addListviewTab($tab);
 
+        if ($tab = $this->tabAuraConditionFor())            // custom: reverse of casterAuraSpell(Not)/targetAuraSpell(Not)
+            $this->lvTabs->addListviewTab($tab);
+
         if ($tab = $this->tabTriggeredBy())                 //
             $this->lvTabs->addListviewTab($tab);
 
@@ -1097,6 +1100,29 @@ class SpellBaseResponse extends TemplateResponse implements ICache
             'name'        => Lang::spell('linkedWith'),
             'hiddenCols'  => ['skill', 'name'],
             'visibleCols' => ['linkedTrigger', 'linkedEffect']
+        ), SpellList::$brickFile);
+    }
+
+    // aowow - custom: reverse lookup for the Spell Details "Required:"/"Disallowed:" aura-state rows
+    private function tabAuraConditionFor() : ?Listview
+    {
+        $conditions = array(
+            DB::OR,
+            ['casterAuraSpell', $this->typeId],
+            ['casterAuraSpellNot', $this->typeId],
+            ['targetAuraSpell', $this->typeId],
+            ['targetAuraSpellNot', $this->typeId]
+        );
+
+        if (($condFor = new SpellList($conditions))->error)
+            return null;
+
+        $this->extendGlobalData($condFor->getJSGlobals(GLOBALINFO_SELF | GLOBALINFO_RELATED));
+
+        return new Listview(array(
+            'data' => $condFor->getListviewData(),
+            'id'   => 'aura-condition-for',
+            'name' => Lang::spell('conditionFor')
         ), SpellList::$brickFile);
     }
 
