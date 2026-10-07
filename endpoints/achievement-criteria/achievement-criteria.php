@@ -75,7 +75,11 @@ class AchievementcriteriaBaseResponse extends TemplateResponse implements ICache
         );
 
         $this->pageTemplate['filter'] = ($this->formValues['id'] || $this->formValues['ac'] || $this->formValues['ty'] !== null || $this->formValues['fl'] || $this->formValues['na']) ? 1 : 0;
-        $this->typeList = AchievementCriteriaList::TYPE_NAMES;
+
+        // aowow - custom: don't limit the dropdown to the types TYPE_NAMES has a name for - fall back to the
+        // same generic 'Criteria type #n' label the listview uses, so every type actually in use is selectable
+        foreach (DB::Aowow()->selectCol('SELECT DISTINCT `type` FROM ::achievementcriteria ORDER BY `type` ASC') ?: [] as $_type)
+            $this->typeList[$_type] = AchievementCriteriaList::TYPE_NAMES[$_type] ?? 'Criteria type #'.$_type;
 
         $conditions = [Listview::DEFAULT_SIZE];
         if ($this->formValues['id'])
