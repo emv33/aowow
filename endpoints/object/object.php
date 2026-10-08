@@ -480,20 +480,11 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
         // aowow - custom end
 
         // tab: summoned by
-        $summonEffects = array(
-            SPELL_EFFECT_TRANS_DOOR,
-            SPELL_EFFECT_SUMMON_OBJECT_WILD,
-            SPELL_EFFECT_SUMMON_OBJECT_SLOT1,
-            SPELL_EFFECT_SUMMON_OBJECT_SLOT2,
-            SPELL_EFFECT_SUMMON_OBJECT_SLOT3,
-            SPELL_EFFECT_SUMMON_OBJECT_SLOT4,
-            SPELL_EFFECT_DUEL                               // aowow - custom: spawns the duel flag gameobject
-        );
         $conditions = array(
             DB::OR,
-            [DB::AND, ['effect1Id', $summonEffects], ['effect1MiscValue', $this->typeId]],
-            [DB::AND, ['effect2Id', $summonEffects], ['effect2MiscValue', $this->typeId]],
-            [DB::AND, ['effect3Id', $summonEffects], ['effect3MiscValue', $this->typeId]]
+            [DB::AND, ['effect1Id', SpellList::EFFECTS_MODEL_OBJECT], ['effect1MiscValue', $this->typeId]],
+            [DB::AND, ['effect2Id', SpellList::EFFECTS_MODEL_OBJECT], ['effect2MiscValue', $this->typeId]],
+            [DB::AND, ['effect3Id', SpellList::EFFECTS_MODEL_OBJECT], ['effect3MiscValue', $this->typeId]]
         );
 
         $summons = new SpellList($conditions);
