@@ -792,6 +792,16 @@ class SpellBaseResponse extends TemplateResponse implements ICache
         if ($auras = DB::World()->selectCol('SELECT `entry` FROM creature_template_addon WHERE `auras` REGEXP %s', '\\b'.$this->typeId.'\\b'))
             $conditions[] = ['id', $auras];
 
+        // per-spawn creature_addon auras - the npc page's abilities tab already lists these
+        if (self::hasTable('creature_addon') && $spawnAuras = DB::World()->selectCol(
+               'SELECT DISTINCT c.`id`
+                FROM   creature_addon ca
+                JOIN   creature c ON c.`guid` = ca.`guid`
+                WHERE  ca.`auras` REGEXP %s',
+                '\\b'.$this->typeId.'\\b'
+            ))
+            $conditions[] = ['id', $spawnAuras];
+
         if ($spellClick = DB::World()->selectCol('SELECT `npc_entry` FROM npc_spellclick_spells WHERE `spell_id` = %i', $this->typeId))
             $conditions[] = ['id', $spellClick];
 
