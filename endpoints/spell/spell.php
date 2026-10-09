@@ -2834,7 +2834,7 @@ class SpellBaseResponse extends TemplateResponse implements ICache
 
                 $listItem = Lang::spell('attributes'.$i, $j);
                 if (!$listItem)
-                    $listItem = '<span class="q0">Unknown SpellAttribute'.$i.'</span>';
+                    $listItem = '<span class="q0">Unknown SpellAttribute'.$i.': '.Util::asHex($j).'</span>';
 
                 if ($crId = (SpellListFilter::$attributesFilter[$i][$j] ?? 0))
                     $listItem = sprintf('<a href="?spells&filter=cr=%2$d;crs=%3$d;crv=0">%1$s</a>', $listItem, abs($crId), $crId > 0 ? 1 : 2);
@@ -2862,7 +2862,7 @@ class SpellBaseResponse extends TemplateResponse implements ICache
 
             $listItem = Lang::spell('attributesCu', $j);
             if (!$listItem)
-                $listItem = '<span class="q0">Unknown CustomAttribute</span>';
+                $listItem = '<span class="q0">Unknown CustomAttribute: '.Util::asHex($j).'</span>';
 
             if ($crId = (SpellListFilter::$customAttrFilter[$j] ?? 0))
                 $listItem = sprintf('<a href="?spells&filter=cr=%2$d;crs=%3$d;crv=0">%1$s</a>', $listItem, abs($crId), $crId > 0 ? 1 : 2);
