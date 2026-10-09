@@ -444,7 +444,7 @@ abstract class Filter
                         continue 2;
                     break;
                 case self::CR_STAFFFLAG:
-                    if (Util::checkNumeric($_crs[$i], NUM_CAST_INT))
+                    if (Util::checkNumeric($_crs[$i], NUM_CAST_INT) && $_crs[$i] > 0 && $_crs[$i] < 33)
                         continue 2;
                     break;
                 case self::CR_ENUM:

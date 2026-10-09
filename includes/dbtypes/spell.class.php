@@ -59,7 +59,7 @@ class SpellList extends DBTypeList
     );
     public const array EFFECTS_MODEL_OBJECT     = array(
         SPELL_EFFECT_TRANS_DOOR,            SPELL_EFFECT_SUMMON_OBJECT_WILD,                SPELL_EFFECT_SUMMON_OBJECT_SLOT1,               SPELL_EFFECT_SUMMON_OBJECT_SLOT2,               SPELL_EFFECT_SUMMON_OBJECT_SLOT3,
-        SPELL_EFFECT_SUMMON_OBJECT_SLOT4
+        SPELL_EFFECT_SUMMON_OBJECT_SLOT4,   SPELL_EFFECT_DUEL
     );
     public const array EFFECTS_MODEL_NPC        = array(
         SPELL_EFFECT_SUMMON,                SPELL_EFFECT_SUMMON_PET,                        SPELL_EFFECT_SUMMON_DEMON,                      SPELL_EFFECT_KILL_CREDIT,                       SPELL_EFFECT_KILL_CREDIT2
@@ -2544,8 +2544,8 @@ class SpellListFilter extends Filter
         101 => [parent::CR_STAFFFLAG, 'attributes5'                                                                               ], // flags6 [flags]
         102 => [parent::CR_STAFFFLAG, 'attributes6'                                                                               ], // flags7 [flags]
         103 => [parent::CR_STAFFFLAG, 'attributes7'                                                                               ], // flags8 [flags]
-        104 => [parent::CR_STAFFFLAG, 'targets'                                                                                   ], // flags9 [flags]
-        105 => [parent::CR_STAFFFLAG, 'stanceMaskNot'                                                                             ], // flags10 [flags]
+        104 => [parent::CR_CALLBACK , 'cbCustomAttr'                                                                              ], // flags9 [flags]
+     // 105 => [parent::CR_NYI_PH,    null                                                                                        ], // flags10 [flags]
         106 => [parent::CR_STAFFFLAG, 'spellFamilyFlags1'                                                                         ], // flags11 [flags]
         107 => [parent::CR_STAFFFLAG, 'spellFamilyFlags2'                                                                         ], // flags12 [flags]
         108 => [parent::CR_STAFFFLAG, 'spellFamilyFlags3'                                                                         ], // flags13 [flags]
@@ -2903,6 +2903,17 @@ class SpellListFilter extends Filter
             [DB::AND, ['s.effect2AuraId', SpellList::MOD_AURAS], ['spellFamilyId', $fam], [DB::OR, ['s.effect2SpellClassMaskA', $m1, '&'], ['s.effect2SpellClassMaskB', $m2, '&'], ['s.effect2SpellClassMaskC', $m3, '&']]],
             [DB::AND, ['s.effect3AuraId', SpellList::MOD_AURAS], ['spellFamilyId', $fam], [DB::OR, ['s.effect3SpellClassMaskA', $m1, '&'], ['s.effect3SpellClassMaskB', $m2, '&'], ['s.effect3SpellClassMaskC', $m3, '&']]]
         );
+    }
+
+    protected function cbCustomAttr(int $cr, int $crs, string $crv) : ?array
+    {
+        if ($crs < 1 || $crs > 32)
+            return null;
+
+        if (!($ids = DB::World()->selectCol('SELECT `entry` FROM spell_custom_attr WHERE `attributes` & %i', (1 << ($crs - 1)))))
+            return [0];
+
+        return ['s.id', $ids];
     }
 }
 
