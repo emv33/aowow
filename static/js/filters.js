@@ -473,8 +473,8 @@ var fi_filters = {
         { id: 101,  name: 'flags6',       type: 'spell_flags6',  staffonly: true },
         { id: 102,  name: 'flags7',       type: 'spell_flags7',  staffonly: true },
         { id: 103,  name: 'flags8',       type: 'spell_flags8',  staffonly: true },
-        { id: 104,  name: 'flags9',       type: 'flags',         staffonly: true },
-        { id: 105,  name: 'flags10',      type: 'flags',         staffonly: true },
+        { id: 104,  name: 'flags9',       type: 'spell_flags9',  staffonly: true },
+        { id: 105,  name: 'flags10',      type: 'spell_flags10', staffonly: true },
         { id: 106,  name: 'flags11',      type: 'flags',         staffonly: true },
         { id: 107,  name: 'flags12',      type: 'flags',         staffonly: true },
         { id: 108,  name: 'flags13',      type: 'flags',         staffonly: true }
