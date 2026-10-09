@@ -4651,8 +4651,8 @@ var LANG = {
         flags6:                     "AttributesExE",        // Flags (6)
         flags7:                     "AttributesExF",        // Flags (7)
         flags8:                     "AttributesExG",        // Flags (8)
-        flags9:                     "AttributesCustom",     // Flags (9)
-        flags10:                    "Flags (10)",           // not used
+        flags9:                     "Spell targets",        // Flags (9) // aowow - custom: upstream labels this "AttributesCustom" (custom attrs have their own criteria here)
+        flags10:                    "Excluded stances",     // Flags (10) // aowow - custom: upstream: "Flags (10)", not used
         flags11:                    "FamilyFlags (1)",      // Flags (11)
         flags12:                    "FamilyFlags (2)",      // Flags (12)
         flags13:                    "FamilyFlags (3)"       // Flags (13)
