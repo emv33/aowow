@@ -2264,6 +2264,18 @@ class SpellBaseResponse extends TemplateResponse implements ICache
             if ($this->subject->getField('effect'.$i.'RadiusMax') > 0)
                 $_footer['radius'] = Lang::spell('_radius').$this->subject->getField('effect'.$i.'RadiusMax').' '.Lang::spell('_distUnit');
 
+            // aowow - custom: who is affected by this effect. A/B are often "where" + "who" (e.g. caster position + enemies in area),
+            // so positional targets are only shown if no unit / object target is present.
+            $targets = [];
+            foreach (['A', 'B'] as $slot)
+                if ($_ = $this->subject->getField('effect'.$i.'ImplicitTarget'.$slot))
+                    if ($lbl = Lang::spell('implicitTargets', $_))
+                        $targets[$lbl] = $_;
+            if (count($targets) > 1)
+                unset($targets['Location']);
+            if ($targets)
+                $_footer['targets'] = Lang::spell('_targets').implode(', ', array_keys($targets));
+
             if ($this->subject->getField('effect'.$i.'Periode') > 0)
                 $_footer['interval'] = Lang::spell('_interval').DateTime::formatTimeElapsedFloat($this->subject->getField('effect'.$i.'Periode'));
 
