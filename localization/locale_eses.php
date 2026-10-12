@@ -2492,7 +2492,7 @@ $lang = array(
             "Inscripción",                          "Abrir desde vehículo"
         ),
         'stealthType'   => ["GENERAL", "TRAMPA"],
-        'invisibilityType' => ["General", "UNK-1", "UNK-2", "Trampa", "UNK-4", "UNK-5", "Ebrio", "UNK-7", "UNK-8", "UNK-9", "UNK-10", "UNK-11"],
+        'invisibilityType' => [0 => "General", 3 => "Trampa", 6 => "Ebrio"],
         'summonControl' => ["Sin control", "Guardián", "Mascota", "Embelesado", "Vehículo poseído", "Vehículo sin control"],
         'summonSlot'    => ["Mascota", "Tótem de Fuego", "Tótem de Tierra", "Tótem de Agua", "Tótem de Aire", "Mascota mansa", "Misión"],
         'unkEffect'     => 'Efecto desconocido (%1$d)',

@@ -2491,7 +2491,7 @@ $lang = array(
             "Inschriftenkunde",                     "Vom Fahrzeug öffnen"
         ),
         'stealthType'   => ["Allgemein", "Falle"],
-        'invisibilityType' => ["Allgemein", "UNK-1", "UNK-2", "Falle", "UNK-4", "UNK-5", "Trunkenheit", "UNK-7", "UNK-8", "UNK-9", "UNK-10", "UNK-11"],
+        'invisibilityType' => [0 => "Allgemein", 3 => "Falle", 6 => "Trunkenheit"],
         'summonControl' => ["Ungesteuert", "Wächter", "Begleiter", "Bezaubert", "Gesteuertes Fahrzeug", "Ungesteuertes Fahrzeug"],
         'summonSlot'    => ["Begleiter", "Feuertotem", "Erdtotem", "Wassertotem", "Lufttotem", "Haustier", "Quest"],
         'unkEffect'     => 'Unknown Effect (%1$d)',

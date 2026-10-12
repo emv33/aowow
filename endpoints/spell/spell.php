@@ -2480,14 +2480,14 @@ class SpellBaseResponse extends TemplateResponse implements ICache
 
                     switch ($effAura)
                     {
+                        // aowow - custom: the misc value is a free stealth / invisibility "channel" that hider and detector have to share
+                        //                  unnamed values show as plain numbers and link to the spells using the same channel
+                        case SPELL_AURA_MOD_STEALTH:
                         case SPELL_AURA_MOD_STEALTH_DETECT:
-                            if ($_ = Lang::spell('stealthType', $effMV))
-                                $_nameMV = $this->fmtStaffTip($_, 'MiscValue: '.$effMV);
-                            break;
                         case SPELL_AURA_MOD_INVISIBILITY:
                         case SPELL_AURA_MOD_INVISIBILITY_DETECT:
-                            if ($_ = Lang::spell('invisibilityType', $effMV))
-                                $_nameMV = $this->fmtStaffTip($_, 'MiscValue: '.$effMV);
+                            $_ = Lang::exist('spell', $effAura == SPELL_AURA_MOD_STEALTH || $effAura == SPELL_AURA_MOD_STEALTH_DETECT ? 'stealthType' : 'invisibilityType', $effMV) ?? $effMV;
+                            $_nameMV = '<a href="?spells&filter=cr=29;crs='.$effAura.';crv='.$effMV.'">'.$this->fmtStaffTip((string)$_, 'MiscValue: '.$effMV).'</a>';
                             break;
                         case SPELL_AURA_MOD_POWER_REGEN_PERCENT:
                         case SPELL_AURA_MOD_INCREASE_ENERGY_PERCENT:

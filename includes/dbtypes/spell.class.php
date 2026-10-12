@@ -2787,6 +2787,14 @@ class SpellListFilter extends Filter
         if (!$this->checkInput(parent::V_RANGE, [1, self::MAX_SPELL_AURA], $crs))
             return null;
 
+        // aowow - custom: for stealth / invisibility auras crv is the misc value (the channel hider and detector share); negative = any
+        if (in_array($crs, [SPELL_AURA_MOD_STEALTH, SPELL_AURA_MOD_STEALTH_DETECT, SPELL_AURA_MOD_INVISIBILITY, SPELL_AURA_MOD_INVISIBILITY_DETECT]) && Util::checkNumeric($crv, NUM_CAST_INT) && $crv >= 0)
+            return [DB::OR,
+                [DB::AND, ['effect1AuraId', $crs], ['effect1MiscValue', $crv]],
+                [DB::AND, ['effect2AuraId', $crs], ['effect2MiscValue', $crv]],
+                [DB::AND, ['effect3AuraId', $crs], ['effect3MiscValue', $crv]]
+            ];
+
         return [DB::OR, ['effect1AuraId', $crs], ['effect2AuraId', $crs], ['effect3AuraId', $crs]];
     }
 

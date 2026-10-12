@@ -2492,7 +2492,7 @@ $lang = array(
             "Inscription",                          "Open From Vehicle"
         ),
         'stealthType'   => ["General", "Trap"],
-        'invisibilityType' => ["General", "UNK-1", "UNK-2", "Trap", "UNK-4", "UNK-5", "Drunk", "UNK-7", "UNK-8", "UNK-9", "UNK-10", "UNK-11"],
+        'invisibilityType' => [0 => "General", 3 => "Trap", 6 => "Drunk"],
         'summonControl' => ["Uncontrolled", "Guardian", "Pet", "Possessed", "Possessed Vehicle", "Uncontrolled Vehicle"],
         'summonSlot'    => ["Pet", "Fire Totem", "Earth Totem", "Water Totem", "Air Totem", "Non-combat Pet", "Quest"],
         'unkEffect'     => 'Unknown Effect (%1$d)',

@@ -2492,7 +2492,7 @@ $lang = array(
             "Начертание",                           "Открыть на ходу"
         ),
         'stealthType'   => ["GENERAL", "TRAP"],
-        'invisibilityType' => ["General", "UNK-1", "UNK-2", "Trap", "UNK-4", "UNK-5", "Drunk", "UNK-7", "UNK-8", "UNK-9", "UNK-10", "UNK-11"],
+        'invisibilityType' => [0 => "General", 3 => "Trap", 6 => "Drunk"],
         'summonControl' => ['[Uncontrolled]', "Стражи", "Питомец", "Подчинённый", '[Possessed Vehicle]', '[Uncontrolled Vehicle]'],
         'summonSlot'    => ["Питомец", "Тотем огня", "Тотем земли", "Тотем воды", "Тотем воздуха", "Спутник", "Задание"],
         'unkEffect'     => 'Unknown Effect (%1$d)',

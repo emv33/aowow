@@ -2492,7 +2492,7 @@ $lang = array(
             "Calligraphie",                         "Ouverture à partir d'un véhicule",
         ),
         'stealthType'   => ["GENERAL", "TRAP"],
-        'invisibilityType' => ["General", "UNK-1", "UNK-2", "Trap", "UNK-4", "UNK-5", "Drunk", "UNK-7", "UNK-8", "UNK-9", "UNK-10", "UNK-11"],
+        'invisibilityType' => [0 => "General", 3 => "Trap", 6 => "Drunk"],
         'summonControl' => ["[Uncontrolled]", "Gardiens", "Familier", "Charmé", "[Possessed Vehicle]", "[Uncontrolled Vehicle]"],
         'summonSlot'    => ["Familier", "Totem de Feu", "Totem de Terre", "Totem d'Eau", "Totem d'Air", "Familier pacifique", "Quête"],
         'unkEffect'     => 'Unknown Effect (%1$d)',

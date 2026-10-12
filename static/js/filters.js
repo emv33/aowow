@@ -343,7 +343,7 @@ var fi_filters = {
         { id: 40,   name: 'damagetype',             type: 'damagetype'                     },
         { id: 201,  name: 'duration_stc',           type: 'num'                            }, // aowow - custom
         { id: 109,  name: 'effecttype',             type: 'effecttype'                     },
-        { id: 29,   name: 'appliesaura',            type: 'effectauranames'                },
+        { id: 29,   name: 'appliesaura',            type: 'effectauranames-misc'           },
         { id: 15,   name: 'icon',                   type: 'str'                            },
         { id: 10,   name: 'firstrank',              type: 'yn'                             },
         { id: 20,   name: 'hasreagents',            type: 'yn'                             },
@@ -1036,6 +1036,7 @@ function fi_criterionChange(_this, crs, crv) {
                     _.name = 'crs[]';
 
                     var group = _;
+                    var crsSel = _;
 
                     if (criteriaParams.indexOf('any') != -1) {
                         var o2 = $WH.ce('option');
@@ -1114,6 +1115,37 @@ function fi_criterionChange(_this, crs, crv) {
                 _.setAttribute('autocomplete', 'off');
 
                 d.appendChild(_);
+
+                // aowow - custom: optional misc value for stealth / invisibility auras, blank = any (sent as -1)
+                if (criteriaParams.indexOf('misc') != -1 && _this.name == 'cr[]') {
+                    var hid = _;
+                    var mv = $WH.ce('input');
+                    var miscAuras = [16, 17, 18, 19];
+
+                    mv.type = 'text';
+                    mv.maxLength = 8;
+                    mv.style.textAlign = 'center';
+                    mv.style.width = '5.0em';
+                    mv.title = 'Misc value (blank = any)';
+                    mv.setAttribute('autocomplete', 'off');
+                    if (crv != null && parseInt(crv) >= 0 && miscAuras.indexOf(parseInt(crs)) != -1) {
+                        mv.value = parseInt(crv).toString();
+                    }
+
+                    var syncMisc = function () {
+                        var show = miscAuras.indexOf(parseInt(crsSel.value)) != -1;
+                        var val  = mv.value.replace(/\s+/g, '');
+
+                        mv.style.display = show ? '' : 'none';
+                        hid.value = (show && val !== '' && !isNaN(parseInt(val))) ? parseInt(val).toString() : (show ? '-1' : '0');
+                    };
+
+                    crsSel.onchange = mv.onchange = mv.onkeyup = syncMisc;
+                    d.appendChild($WH.ct(' '));
+                    d.appendChild(mv);
+                    syncMisc();
+                }
+
                 if (_this.name == 'wt[]') {
                     fi_sortWeight(_);
                 }

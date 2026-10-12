@@ -2492,7 +2492,7 @@ $lang = array(
             "书典",                          "未锁上的物品"
         ),
         'stealthType'   => ["一般", "陷阱"],
-        'invisibilityType' => ["一般", "UNK-1", "UNK-2", "陷阱", "UNK-4", "UNK-5", "醉酒", "UNK-7", "UNK-8", "UNK-9", "UNK-10", "UNK-11"],
+        'invisibilityType' => [0 => "一般", 3 => "陷阱", 6 => "醉酒"],
         'summonControl' => ['[Uncontrolled]', "守护者", "宠物", "被魅惑", '[Possessed Vehicle]', '[Uncontrolled Vehicle]'],
         'summonSlot'    => ["宠物", "火焰图腾", "大地图腾", "水图腾", "空气图腾", "非战斗宠物", "任务"],
         'unkEffect'     => '未知效果 (%1$d)',
