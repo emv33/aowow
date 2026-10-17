@@ -125,6 +125,10 @@ class GameText
         else if (!$ownerType)
             $ownerName = Lang::gameText('sources', $src).' #'.$entry;
 
+        // zero-pad the numeric parts so the composite keys order the way the numbers do; every
+        // getOne() parser reads them back with an (int) cast, so unpadded keys still resolve
+        $id = preg_replace_callback('/(?<=:)\d+(?=:|$)/', fn($m) => str_pad($m[0], 10, '0', STR_PAD_LEFT), $id);
+
         return array(
             'src'       => $src,
             'id'        => $id,                             // listviews need a unique key; none of these tables has a single column one

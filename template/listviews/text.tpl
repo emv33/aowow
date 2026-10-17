@@ -51,8 +51,9 @@ Listview.templates.text = {
 
                 return (entry ? entry['name_' + Locale.getName()] : null) || t.ownername || ('#' + (t.ownerid || t.entry));
             },
+            // numeric-aware: the pre-labelled owners end in an id, and "#10" must not precede "#9"
             sortFunc: function(a, b, col) {
-                return $WH.strcmp(this.getVisibleText(a), this.getVisibleText(b));
+                return this.getVisibleText(a).localeCompare(this.getVisibleText(b), undefined, { numeric: true });
             }
         },
         {
