@@ -357,6 +357,13 @@ class NpcBaseResponse extends TemplateResponse implements ICache
                 $infobox[] = Lang::npc('_extraFlags').'[ul][li]'.implode('[/li][li]', $buff).'[/li][/ul]';
         }
 
+        // unit flags that stop players from attacking or selecting it, despite a hostile reaction
+        $unitFlags = $this->subject->getField('unitFlags');
+        if ($unitFlags & (UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_IMMUNE_TO_PC))
+            $infobox[] = Lang::npcExtra('unattackable');
+        if ($unitFlags & UNIT_FLAG_NOT_SELECTABLE)
+            $infobox[] = Lang::npcExtra('untargetable');
+
         // Mode dummy references
         if ($this->altNPCs)
         {
