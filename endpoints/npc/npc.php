@@ -1672,6 +1672,7 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         $lc     = array_change_key_case($row, CASE_LOWER);
         $mount  = (int)($lc['mount'] ?? 0);
         $emote  = (int)($lc['emote'] ?? 0);
+        $stand  = (int)($lc['bytes1'] ?? 0) & 0xFF;    // UNIT_FIELD_BYTES_1 idx 0: UnitStandStateType
         $out    = [];
 
         if ($mount)
@@ -1683,6 +1684,9 @@ class NpcBaseResponse extends TemplateResponse implements ICache
             $out[] = Lang::npcExtra('emote').Lang::main('colon').'[emote='.$emote.']';
         }
 
+        if ($stand)
+            $out[] = Lang::npcExtra('standState').Lang::main('colon').(Lang::unit('bytes1', 0, $stand) ?? Lang::unit('bytes1', 'valueUNK', [$stand, 0]));
+
         if (!$out)
             return [];
 
@@ -1690,12 +1694,12 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         if (self::hasTable('creature_addon'))
         {
             $rows = DB::World()->selectAssoc(
-               'SELECT   c.`guid` AS ARRAY_KEY, ca.`mount`, ca.`emote`
+               'SELECT   c.`guid` AS ARRAY_KEY, ca.`mount`, ca.`emote`, (ca.`bytes1` & 255) AS "stand"
                 FROM     creature_addon ca
                 JOIN     creature c ON c.`guid` = ca.`guid`
-                WHERE    c.`id` = %i AND (ca.`mount` <> %i OR ca.`emote` <> %i)
+                WHERE    c.`id` = %i AND (ca.`mount` <> %i OR ca.`emote` <> %i OR (ca.`bytes1` & 255) <> %i)
                 ORDER BY c.`guid` ASC',
-                $npcId, $mount, $emote
+                $npcId, $mount, $emote, $stand
             ) ?: [];
 
             if ($rows)
@@ -1714,6 +1718,9 @@ class NpcBaseResponse extends TemplateResponse implements ICache
                             $resp->extendGlobalIds(Type::EMOTE, $e);
                         $bits[] = Lang::npcExtra('emote').Lang::main('colon').($e ? '[emote='.$e.']' : Lang::npcExtra('noEmote'));
                     }
+
+                    if (($st = (int)$r['stand']) !== $stand)
+                        $bits[] = Lang::npcExtra('standState').Lang::main('colon').(Lang::unit('bytes1', 0, $st) ?? Lang::unit('bytes1', 'valueUNK', [$st, 0]));
 
                     $items .= sprintf('[li]GUID: %d - %s[/li]', $guid, implode(', ', $bits));
                 }

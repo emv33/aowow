@@ -1589,6 +1589,7 @@ $lang = array(
         'noMount'       => "No mount",
         'noEmote'       => "No emote",
         'emote'         => "Emote",
+        'standState'    => "Stand state",
         'addonOverride' => '%1$d spawn(s) override it',
         'movementOverride' => '%1$d spawn(s) move differently',
         'armor'         => "Armor",
