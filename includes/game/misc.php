@@ -242,12 +242,15 @@ class Game
         $quotes   = [];
         $soundIds = [];
 
+        // aowow - custom: text_loc* carries both gendered variants of a broadcast text, "male / female", when they differ (upstream: first non-empty one)
         $quoteSrc = DB::World()->selectAssoc(
            'SELECT    ct.`GroupID` AS ARRAY_KEY, ct.`ID` AS ARRAY_KEY2, ct.`Type` AS "talkType", ct.TextRange AS "range",
                       IFNULL(bct.`LanguageID`, ct.`Language`) AS "lang",
-                      IFNULL(NULLIF(bct.`Text`, ""),  IFNULL(NULLIF(bct.`Text1`, ""),  IFNULL(ct.`Text`, "")))  AS "text_loc0",
+                      IF(bct.`Text` <> "" AND bct.`Text1` <> "" AND bct.`Text` <> bct.`Text1`, CONCAT(bct.`Text`, " / ", bct.`Text1`),
+                         IFNULL(NULLIF(bct.`Text`, ""),  IFNULL(NULLIF(bct.`Text1`, ""),  IFNULL(ct.`Text`, ""))))  AS "text_loc0",
                       %if', Lang::getLocale()->value,
-                     'IFNULL(NULLIF(bctl.`Text`, ""), IFNULL(NULLIF(bctl.`Text1`, ""), IFNULL(ctl.`Text`, ""))) AS text_loc%i,', Lang::getLocale()->value,
+                     'IF(bctl.`Text` <> "" AND bctl.`Text1` <> "" AND bctl.`Text` <> bctl.`Text1`, CONCAT(bctl.`Text`, " / ", bctl.`Text1`),
+                         IFNULL(NULLIF(bctl.`Text`, ""), IFNULL(NULLIF(bctl.`Text1`, ""), IFNULL(ctl.`Text`, "")))) AS text_loc%i,', Lang::getLocale()->value,
                      '%end
                       IF(bct.`SoundEntriesID` > 0, bct.`SoundEntriesID`, ct.`Sound`) AS "soundId"
             FROM      creature_text ct
