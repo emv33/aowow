@@ -345,39 +345,34 @@ class NpcBaseResponse extends TemplateResponse implements ICache
                 $infobox[] = Lang::npc('_npcFlags').'[ul][li]'.implode('[/li][li]', $buff).'[/li][/ul]';
         }
 
-        // extra flags
-        if ($flagsExtra = $this->subject->getField('flagsExtra'))
+        // extra flags, plus the bits of unit_flags, unit_flags2 and type_flags that TDB sets by hand
+        // (bits the core sets at runtime or never reads are skipped)
+        $flagLines = function(int $flags, array $labels) : array
         {
             $buff = [];
-            foreach (Lang::npc('extraFlags') as $idx => $str)
-                if ($flagsExtra & $idx)
-                    $buff[] = $str;
-
-            if ($buff)
-                $infobox[] = Lang::npc('_extraFlags').'[ul][li]'.implode('[/li][li]', $buff).'[/li][/ul]';
-        }
-
-        // flags from unit_flags, unit_flags2 and type_flags that TDB sets by hand (runtime-only and unnamed bits are skipped)
-        $flagLines = function(int $flags, string $labels) : array
-        {
-            $buff = [];
-            foreach (Lang::npcExtra($labels) as $mask => $str)
+            foreach ($labels as $mask => $str)
                 if ($flags & $mask)
                     $buff[] = $str;
 
             return $buff;
         };
 
+        $buff = [];
+        if ($flagsExtra = $this->subject->getField('flagsExtra'))
+            $buff = $flagLines($flagsExtra, Lang::npc('extraFlags'));
+
         $buff = array_merge(
-            $flagLines($this->subject->getField('unitFlags'),  'unitFlagLabels'),
-            $flagLines($this->subject->getField('unitFlags2'), 'unitFlag2Labels'),
-            $flagLines($_typeFlags,                            'typeFlagLabels')
+            $buff,
+            $flagLines($this->subject->getField('unitFlags'),  Lang::npcExtra('unitFlagLabels')),
+            $flagLines($this->subject->getField('unitFlags2'), Lang::npcExtra('unitFlag2Labels')),
+            $flagLines($_typeFlags,                            Lang::npcExtra('typeFlagLabels'))
         );
-        foreach ($buff as $str)
-            $infobox[] = $str;
+
+        if ($buff)
+            $infobox[] = Lang::npc('_extraFlags').'[ul][li]'.implode('[/li][li]', $buff).'[/li][/ul]';
 
         // purely cosmetic type flags go into a collapsed list
-        if ($buff = $flagLines($_typeFlags, 'typeFlagClientLabels'))
+        if ($buff = $flagLines($_typeFlags, Lang::npcExtra('typeFlagClientLabels')))
             $infobox[] = '[toggler=hidden id=clientFlags]'.Lang::npcExtra('clientFlags').'[/toggler][div=hidden id=clientFlags][ul][li]'.implode('[/li][li]', $buff).'[/li][/ul][/div]';
 
         // Mode dummy references
