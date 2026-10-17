@@ -221,7 +221,7 @@ set_exception_handler(function (\Throwable $e) : void
         fwrite(STDERR, "\nException - ".$e->getMessage()."\n   ".$e->getFile(). '('.$e->getLine().")\n".$e->getTraceAsString()."\n\n");
     else
     {
-        Util::addNote('Exception - '.$e->getMessage().' @ '.$e->getFile(). ':'.$e->getLine()."\n".$e->getTraceAsString(), U_GROUP_EMPLOYEE, LOG_LEVEL_ERROR);
+        Util::addNote('Exception - '.$e->getMessage().' @ '.$e->getFile(). ':'.$e->getLine()."\n".$e->getTraceAsString(), 0, LOG_LEVEL_ERROR);   // aowow - custom: shown to everyone (upstream: U_GROUP_EMPLOYEE)
         (new TemplateResponse())->generateError();
     }
 });
