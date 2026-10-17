@@ -65,7 +65,23 @@ Listview.templates.condition = {
                 }
             },
             getVisibleText: function(cnd) {
-                return cnd.group + ' ' + cnd.entry + ' ' + cnd.srcid;
+                // inline search matches against this, so it has to carry the names the cell displays
+                var nameCol = 'name_' + Locale.getName(),
+                    parts   = [];
+
+                var resolve = function(lookupName, id, inlineName) {
+                    var lookup = lookupName ? window[lookupName] : null,
+                        entry  = lookup && id ? lookup[id] : null,
+                        name   = (entry && entry[nameCol]) || inlineName;
+
+                    if (name)
+                        parts.push(name);
+                };
+
+                resolve(cnd.grouplookup, cnd.group, cnd.groupname);
+                resolve(cnd.entrylookup, cnd.entry, cnd.entryname);
+
+                return parts.join(' ') + ' ' + cnd.group + ' ' + cnd.entry + ' ' + cnd.srcid;
             },
             sortFunc: function(a, b, col) {
                 return (a.group - b.group) || (a.entry - b.entry);
