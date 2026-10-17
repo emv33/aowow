@@ -357,12 +357,28 @@ class NpcBaseResponse extends TemplateResponse implements ICache
                 $infobox[] = Lang::npc('_extraFlags').'[ul][li]'.implode('[/li][li]', $buff).'[/li][/ul]';
         }
 
-        // unit flags that stop players from attacking or selecting it, despite a hostile reaction
-        $unitFlags = $this->subject->getField('unitFlags');
-        if ($unitFlags & (UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_IMMUNE_TO_PC))
-            $infobox[] = Lang::npcExtra('unattackable');
-        if ($unitFlags & UNIT_FLAG_UNINTERACTIBLE)
-            $infobox[] = Lang::npcExtra('untargetable');
+        // flags from unit_flags, unit_flags2 and type_flags that TDB sets by hand (runtime-only and unnamed bits are skipped)
+        $flagLines = function(int $flags, string $labels) : array
+        {
+            $buff = [];
+            foreach (Lang::npcExtra($labels) as $mask => $str)
+                if ($flags & $mask)
+                    $buff[] = $str;
+
+            return $buff;
+        };
+
+        $buff = array_merge(
+            $flagLines($this->subject->getField('unitFlags'),  'unitFlagLabels'),
+            $flagLines($this->subject->getField('unitFlags2'), 'unitFlag2Labels'),
+            $flagLines($_typeFlags,                            'typeFlagLabels')
+        );
+        foreach ($buff as $str)
+            $infobox[] = $str;
+
+        // purely cosmetic type flags go into a collapsed list
+        if ($buff = $flagLines($_typeFlags, 'typeFlagClientLabels'))
+            $infobox[] = '[toggler=hidden id=clientFlags]'.Lang::npcExtra('clientFlags').'[/toggler][div=hidden id=clientFlags][ul][li]'.implode('[/li][li]', $buff).'[/li][/ul][/div]';
 
         // Mode dummy references
         if ($this->altNPCs)

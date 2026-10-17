@@ -1590,8 +1590,43 @@ $lang = array(
         'noEmote'       => "No emote",
         'emote'         => "Emote",
         'standState'    => "Stand state",
-        'unattackable'  => "Cannot be attacked",
-        'untargetable'  => "Cannot be targeted",
+        'unitFlagLabels' => array(
+            UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_IMMUNE_TO_PC => "Cannot be attacked",
+            UNIT_FLAG_IMMUNE_TO_NPC                           => "Immune to creatures",
+            UNIT_FLAG_UNINTERACTIBLE                          => "Cannot be targeted",
+            UNIT_FLAG_CANNOT_SWIM                             => "Cannot swim"
+        ),
+        'unitFlag2Labels' => array(
+            UNIT_FLAG2_HIDE_BODY                              => "Body hidden, only equipment shown",
+            UNIT_FLAG2_DO_NOT_FADE_IN                         => "Appears instantly when summoned",
+            UNIT_FLAG2_CANNOT_TURN                            => "Does not turn to face its target while casting"
+        ),
+        'typeFlagLabels' => array(
+            NPC_TYPEFLAG_VISIBLE_TO_GHOSTS                    => "Visible to ghosts",
+            NPC_TYPEFLAG_SPELL_ATTACKABLE                     => "Attackable by spells",
+            NPC_TYPEFLAG_INTERACT_WHILE_DEAD                  => "Interactable while dead",
+            NPC_TYPEFLAG_ALLOW_MOUNTED_COMBAT                 => "Allows mounted combat",
+            NPC_TYPEFLAG_CAN_ASSIST                           => "Can be healed and buffed by players",
+            NPC_TYPEFLAG_NO_PET_BAR                           => "Shows no pet bar when controlled",
+            NPC_TYPEFLAG_ALLOW_INTERACTION_WHILE_IN_COMBAT    => "Interactable while in combat",
+            NPC_TYPEFLAG_INTERACT_ONLY_WITH_CREATOR           => "Only its summoner can interact with it",
+            NPC_TYPEFLAG_TREAT_AS_RAID_UNIT                   => "Counts as a raid member for helpful spells",
+            NPC_TYPEFLAG_FORCE_GOSSIP                         => "Always shows its gossip"
+        ),
+        'typeFlagClientLabels' => array(
+            NPC_TYPEFLAG_DO_NOT_PLAY_WOUND_ANIM               => "No wound animation",
+            NPC_TYPEFLAG_NO_FACTION_TOOLTIP                   => "No faction in tooltip",
+            NPC_TYPEFLAG_MORE_AUDIBLE                         => "More audible",
+            NPC_TYPEFLAG_NO_DEATH_MESSAGE                     => "No death message",
+            NPC_TYPEFLAG_USE_MODEL_COLLISION_SIZE             => "Uses model collision size",
+            NPC_TYPEFLAG_COLLIDE_WITH_MISSILES                => "Collides with missiles",
+            NPC_TYPEFLAG_NO_NAME_PLATE                        => "No name plate",
+            NPC_TYPEFLAG_LINK_ALL                             => "Links all",
+            NPC_TYPEFLAG_DO_NOT_PLAY_UNIT_EVENT_SOUNDS        => "No unit event sounds",
+            NPC_TYPEFLAG_HAS_NO_SHADOW_BLOB                   => "No shadow blob",
+            NPC_TYPEFLAG_DO_NOT_SHEATHE                       => "Does not sheathe its weapon"
+        ),
+        'clientFlags'   => "Client display flags",
         'addonOverride' => '%1$d spawn(s) override it',
         'movementOverride' => '%1$d spawn(s) move differently',
         'armor'         => "Armor",
