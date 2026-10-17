@@ -2700,6 +2700,9 @@ class SpellBaseResponse extends TemplateResponse implements ICache
                                 }
                             }
                             break;
+                        case SPELL_AURA_USE_NORMAL_MOVEMENT_SPEED:  // value is the speed cap in yards per second (7 = base run speed), not a percentage
+                            $valueFmt = '%s'.Lang::spell('_distUnit').'/s';
+                            break;
                         case SPELL_AURA_MOD_COMBAT_RESULT_CHANCE:
                             $valueFmt = '%s%%';
                         case SPELL_AURA_IGNORE_COMBAT_RESULT:
