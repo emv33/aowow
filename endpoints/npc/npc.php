@@ -1690,7 +1690,10 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         $lc     = array_change_key_case($row, CASE_LOWER);
         $mount  = (int)($lc['mount'] ?? 0);
         $emote  = (int)($lc['emote'] ?? 0);
-        $stand  = (int)($lc['bytes1'] ?? 0) & 0xFF;    // UNIT_FIELD_BYTES_1 idx 0: UnitStandStateType
+        // newer revisions split `bytes1` into `StandState` / `AnimTier` / ...; older ones pack
+        // UnitStandStateType into the low byte of `bytes1`
+        $stand  = (int)($lc['standstate'] ?? ((int)($lc['bytes1'] ?? 0) & 0xFF));
+        $sCol   = isset($lc['standstate']) ? 'ca.`StandState`' : '(ca.`bytes1` & 255)';
         $out    = [];
 
         if ($mount)
@@ -1712,10 +1715,10 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         if (self::hasTable('creature_addon'))
         {
             $rows = DB::World()->selectAssoc(
-               'SELECT   c.`guid` AS ARRAY_KEY, ca.`mount`, ca.`emote`, (ca.`bytes1` & 255) AS "stand"
+               'SELECT   c.`guid` AS ARRAY_KEY, ca.`mount`, ca.`emote`, '.$sCol.' AS "stand"
                 FROM     creature_addon ca
                 JOIN     creature c ON c.`guid` = ca.`guid`
-                WHERE    c.`id` = %i AND (ca.`mount` <> %i OR ca.`emote` <> %i OR (ca.`bytes1` & 255) <> %i)
+                WHERE    c.`id` = %i AND (ca.`mount` <> %i OR ca.`emote` <> %i OR '.$sCol.' <> %i)
                 ORDER BY c.`guid` ASC',
                 $npcId, $mount, $emote, $stand
             ) ?: [];
