@@ -242,14 +242,14 @@ class Game
         $quotes   = [];
         $soundIds = [];
 
-        // aowow - custom: text_loc* carries both gendered variants of a broadcast text, "male / female", when they differ (upstream: first non-empty one)
+        // aowow - custom: text_loc* carries both gendered variants of a broadcast text, "male / female" (split off again below), when they differ (upstream: first non-empty one)
         $quoteSrc = DB::World()->selectAssoc(
            'SELECT    ct.`GroupID` AS ARRAY_KEY, ct.`ID` AS ARRAY_KEY2, ct.`Type` AS "talkType", ct.TextRange AS "range",
                       IFNULL(bct.`LanguageID`, ct.`Language`) AS "lang",
-                      IF(bct.`Text` <> "" AND bct.`Text1` <> "" AND bct.`Text` <> bct.`Text1`, CONCAT(bct.`Text`, " / ", bct.`Text1`),
+                      IF(bct.`Text` <> "" AND bct.`Text1` <> "" AND bct.`Text` <> bct.`Text1`, CONCAT(bct.`Text`, CHAR(31), bct.`Text1`),
                          IFNULL(NULLIF(bct.`Text`, ""),  IFNULL(NULLIF(bct.`Text1`, ""),  IFNULL(ct.`Text`, ""))))  AS "text_loc0",
                       %if', Lang::getLocale()->value,
-                     'IF(bctl.`Text` <> "" AND bctl.`Text1` <> "" AND bctl.`Text` <> bctl.`Text1`, CONCAT(bctl.`Text`, " / ", bctl.`Text1`),
+                     'IF(bctl.`Text` <> "" AND bctl.`Text1` <> "" AND bctl.`Text` <> bctl.`Text1`, CONCAT(bctl.`Text`, CHAR(31), bctl.`Text1`),
                          IFNULL(NULLIF(bctl.`Text`, ""), IFNULL(NULLIF(bctl.`Text1`, ""), IFNULL(ctl.`Text`, "")))) AS text_loc%i,', Lang::getLocale()->value,
                      '%end
                       IF(bct.`SoundEntriesID` > 0, bct.`SoundEntriesID`, ct.`Sound`) AS "soundId"
@@ -275,15 +275,21 @@ class Game
                 if (!$msg)
                     continue;
 
-                // fixup .. either set %s for emotes or dont >.<
-                if (in_array($t['talkType'], [2, 16]) && strpos($msg, '%s') === false)
-                    $msg = '%s '.$msg;
+                // the gendered variants of a broadcast text, which each carry their own placeholders
+                $variants = explode(chr(31), $msg);
+                foreach ($variants as &$v)
+                {
+                    // fixup .. either set %s for emotes or dont >.<
+                    if (in_array($t['talkType'], [2, 16]) && strpos($v, '%s') === false)
+                        $v = '%s '.$v;
 
-                // fixup: bad case-insensitivity
-                $msg = UIText::format(str_replace('%S', '%s', $msg), $asHTML ? Lang::FMT_HTML : Lang::FMT_MARKUP);
+                    // fixup: bad case-insensitivity
+                    $v = UIText::format(str_replace('%S', '%s', $v), $asHTML ? Lang::FMT_HTML : Lang::FMT_MARKUP);
 
-                if ($talkSource)
-                    $msg = sprintf($msg, $talkSource);
+                    if ($talkSource)
+                        $v = strtr($v, ['%%' => '%', '%s' => $talkSource]);
+                }
+                unset($v);
 
                 // convert [old, new] talkType to css compatible
                 $t['talkType'] = match ((int)$t['talkType'])
@@ -296,6 +302,19 @@ class Game
                     5, 42   => 3,                           // boss whisper - pink-ish
                     default => 2
                 };
+
+                // a caller that formats the line itself passes its arguments once, so every variant has to
+                // point at the same ones: the nth `%s` of a later variant becomes `%<n + prefix>$s`
+                if (count($variants) > 1 && !$talkSource)
+                {
+                    $skip = $t['talkType'] != 4 ? 1 : 0;    // the prefix takes the first argument
+                    foreach (array_slice($variants, 1, null, true) as $i => $v)
+                    {
+                        $n = $skip;
+                        $variants[$i] = preg_replace_callback('/%[%s]/', fn($m) => $m[0] == '%s' ? '%'.(++$n).'$s' : $m[0], $v);
+                    }
+                }
+                $msg = implode(' / ', $variants);
 
                 // prefix
                 $prefix = '';
