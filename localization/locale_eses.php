@@ -1842,7 +1842,6 @@ $lang = array(
         'despawnAfter'  => "Generado por script<br />Desaparece después: %s",
         'rank'          => [0 => "Normal", 1 => "Élite", 4 => "Raro", 2 => "Élite raro", 3 => "Jefe"],
         'textRanges'    => [null, "Mandar al área", "Mandar a zona", "Mandar al mapa", "Mandar al mundo"],
-        'textGroup'     => "TextGroup #%d",
         'textTypes'     => [null, "grita", "dice", "susurra"],
         'mechanicimmune'=> 'No afectado por la mecánica: %s',
         '_extraFlags'   => 'Banderas extra: ',

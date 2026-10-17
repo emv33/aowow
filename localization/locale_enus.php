@@ -1842,7 +1842,6 @@ $lang = array(
         'despawnAfter'  => "Spawned by Script<br />Despawn after: %s",
         'rank'          => [0 => "Normal", 1 => "Elite", 4 => "Rare", 2 => "Rare Elite", 3 => "Boss"],
         'textRanges'    => [null, "sent to area", "sent to zone", "sent to map", "sent to world"],
-        'textGroup'     => "TextGroup #%d",
         'textTypes'     => [null, "yells", "says", "whispers"],
         'mechanicimmune'=> 'Not affected by mechanic: %s',
         '_extraFlags'   => 'Extra Flags: ',
