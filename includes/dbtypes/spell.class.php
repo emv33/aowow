@@ -689,16 +689,16 @@ class SpellList extends DBTypeList
 
     public function createCastTimeForCurrent(bool $short = true, bool $noInstant = true) : string
     {
+        // passives (talents, equip spells) don't have a cast time
+        if ($noInstant && $this->curTpl['attributes0'] & SPELL_ATTR0_PASSIVE)
+            return '';
         if (!$this->curTpl['castTime'] && $this->isChanneledSpell())
             return Lang::spell('channeled');
         // SPELL_ATTR0_ABILITY instant ability.. yeah, wording thing only (todo (low): rule is imperfect)
-        else if (!$this->curTpl['castTime'] && ($this->curTpl['damageClass'] != SPELL_DAMAGE_CLASS_MAGIC || $this->curTpl['attributes0'] & SPELL_ATTR0_ABILITY))
+        if (!$this->curTpl['castTime'] && ($this->curTpl['damageClass'] != SPELL_DAMAGE_CLASS_MAGIC || $this->curTpl['attributes0'] & SPELL_ATTR0_ABILITY))
             return Lang::spell('instantPhys');
-        // show instant only for player/pet/npc abilities (todo (low): unsure when really hidden (like talent-case))
-        else if ($noInstant && !in_array($this->curTpl['typeCat'], [11, 7, -3, -6, -8, 0]) && !($this->curTpl['cuFlags'] & SPELL_CU_TALENTSPELL))
-            return '';
-        else
-            return $short ? Lang::formatTime($this->curTpl['castTime'] * 1000, 'spell', 'castTime') : DateTime::formatTimeElapsedFloat($this->curTpl['castTime'] * 1000);
+
+        return $short ? Lang::formatTime($this->curTpl['castTime'] * 1000, 'spell', 'castTime') : DateTime::formatTimeElapsedFloat($this->curTpl['castTime'] * 1000);
     }
 
     private function createCooldownForCurrent() : string
@@ -714,7 +714,7 @@ class SpellList extends DBTypeList
     }
 
     // formulae base from TC
-    private function calculateAmountForCurrent(int $effIdx, int $nTicks = 1) : array
+    private function calculateAmountForCurrent(int $effIdx, ?string $op = null, ?int $oparg = null, int $nTicks = 1) : array
     {
         $level    = $this->charLevel;
         $maxBase  = 0;
@@ -727,6 +727,16 @@ class SpellList extends DBTypeList
         $LDSEffs  = $this->canLevelDamageScale();
         $modMin   =
         $modMax   = null;
+
+        $min = $nTicks * ($add ? $base + 1 : $base);
+        $max = $nTicks * ($add + $base);
+
+        if ($op !== null && $oparg !== null)
+        {
+            eval("\$min  = floor($min $op $oparg);");
+            eval("\$max  = ceil($max $op $oparg);");
+            eval("\$rppl = $rppl $op $oparg;");
+        }
 
         if ($rppl)
         {
@@ -741,15 +751,8 @@ class SpellList extends DBTypeList
             $maxBase += (int)(($level - $baseLvl) * $rppl);
             $maxBase *= $nTicks;
 
-        }
-
-        $min = $nTicks * ($add ? $base + 1 : $base);
-        $max = $nTicks * ($add + $base);
-
-        if ($rppl)
-        {
-            $modMin = '<!--ppl'.$baseLvl.':'.($maxLvl ?: $level).':'.abs($min).':'.(abs($rppl) * 100 * $nTicks).'-->';
-            $modMax = '<!--ppl'.$baseLvl.':'.($maxLvl ?: $level).':'.abs($max).':'.(abs($rppl) * 100 * $nTicks).'-->';
+            $modMin = '<!--ppl'.$baseLvl.':'.($maxLvl ?: $level).':'.abs($min).':'.floor(abs($rppl) * 100 * $nTicks).'-->';
+            $modMax = '<!--ppl'.$baseLvl.':'.($maxLvl ?: $level).':'.abs($max).':'.floor(abs($rppl) * 100 * $nTicks).'-->';
         }
         else if ($this->getField('attributes0') & SPELL_ATTR0_LEVEL_DAMAGE_CALCULATION && in_array($effIdx, $LDSEffs) && $spellLvl)
         {
@@ -1352,16 +1355,13 @@ class SpellList extends DBTypeList
                 break;
             case 'm':                                       // BasePoints (minValue)
             case 'M':                                       // BasePoints (maxValue)
-                [$min, $max, $modStrMin, $modStrMax] = $srcSpell->calculateAmountForCurrent($effIdx);
+                if (!in_array($op, $signs) || !is_numeric($oparg))
+                    $op = $oparg = null;
+
+                [$min, $max, $modStrMin, $modStrMax] = $srcSpell->calculateAmountForCurrent($effIdx, $op, $oparg);
 
                 $mv   = $srcSpell->getField('effect'.$effIdx.'MiscValue');
                 $aura = $srcSpell->getField('effect'.$effIdx.'AuraId');
-
-                if (in_array($op, $signs) && is_numeric($oparg))
-                {
-                    eval("\$min = $min $op $oparg;");
-                    eval("\$max = $max $op $oparg;");
-                }
 
                 // Aura giving combat ratings
                 $stats = [];
@@ -1400,13 +1400,10 @@ class SpellList extends DBTypeList
                         $periode = 3000;
                 }
 
-                [$min, $max, $modStrMin, $modStrMax] = $srcSpell->calculateAmountForCurrent($effIdx, intVal($duration / $periode));
+                if (!in_array($op, $signs) || !is_numeric($oparg))
+                    $op = $oparg = null;
 
-                if (in_array($op, $signs) && is_numeric($oparg))
-                {
-                    eval("\$min = $min $op $oparg;");
-                    eval("\$max = $max $op $oparg;");
-                }
+                [$min, $max, $modStrMin, $modStrMax] = $srcSpell->calculateAmountForCurrent($effIdx, $op, $oparg, intVal($duration / $periode));
 
                 if ($this->interactive >= self::INTERACTIVE_EMBEDDED && ($modStrMin || $modStrMax))
                 {
@@ -1421,15 +1418,14 @@ class SpellList extends DBTypeList
                 break;
             case 's':                                       // BasePoints (with variance)
             case 'S':
-                [$min, $max, $modStrMin, $modStrMax] = $srcSpell->calculateAmountForCurrent($effIdx);
                 $mv   = $srcSpell->getField('effect'.$effIdx.'MiscValue');
                 $aura = $srcSpell->getField('effect'.$effIdx.'AuraId');
 
-                if (in_array($op, $signs) && is_numeric($oparg))
-                {
-                    eval("\$min = $min $op $oparg;");
-                    eval("\$max = $max $op $oparg;");
-                }
+                if (!in_array($op, $signs) || !is_numeric($oparg))
+                    $op = $oparg = null;
+
+                [$min, $max, $modStrMin, $modStrMax] = $srcSpell->calculateAmountForCurrent($effIdx, $op, $oparg);
+
                 // Aura giving combat ratings
                 $stats = [];
                 if ($aura == SPELL_AURA_MOD_RATING)
@@ -2086,6 +2082,7 @@ class SpellList extends DBTypeList
                 'reagents'     => array_values($this->getReagentsForCurrent()),
                 'source'       => []
              // 'talentspec'   => $this->curTpl['skillLines'][0]      not used: g_chr_specs has the wrong structure for it; also setting .cat and .type does the same
+             // 'nskillup'     => 1,                        // not sure what that was used for. At least as old as 3.3.0, but back then skillups where always 1 point? Also sent whith all spells not just trandeskills.
             );
 
             // Sources
@@ -2121,6 +2118,18 @@ class SpellList extends DBTypeList
                     $data[$this->id]['learnedat'] = $la;
 
                 $data[$this->id]['colors'] = $this->getColorsForCurrent();
+            }
+
+            // pet types
+            if ($this->curTpl['typeCat'] == -7)
+            {
+                $data[$this->id]['pettype'] = [];
+                if ($this->curTpl['cuFlags'] & SPELL_CU_PET_TALENT_TYPE0)
+                    $data[$this->id]['pettype'][] = PET_TALENT_TYPE_FEROCITY;
+                if ($this->curTpl['cuFlags'] & SPELL_CU_PET_TALENT_TYPE1)
+                    $data[$this->id]['pettype'][] = PET_TALENT_TYPE_TENACITY;
+                if ($this->curTpl['cuFlags'] & SPELL_CU_PET_TALENT_TYPE2)
+                    $data[$this->id]['pettype'][] = PET_TALENT_TYPE_CUNNING;
             }
 
             // glyph
@@ -2907,7 +2916,8 @@ class SpellListFilter extends Filter
 
     protected function cbCustomAttr(int $cr, int $crs, string $crv) : ?array
     {
-        if ($crs < 1 || $crs > 32)
+        // if (!User::isInGroup(U_GROUP_EMPLOYEE) || $crs < 1 || $crs > 32)
+        if ($crs < 1 || $crs > 32)                          // aowow - custom: no staff gate (upstream: U_GROUP_EMPLOYEE check)
             return null;
 
         if (!($ids = DB::World()->selectCol('SELECT `entry` FROM spell_custom_attr WHERE `attributes` & %i', (1 << ($crs - 1)))))
