@@ -82,7 +82,35 @@ class GameText
                 $out[] = $r;
         }
 
-        return $out;
+        return self::padIds($out);
+    }
+
+    /**
+     * zero-pad the numeric parts of the composite row ids so they order the way the numbers do -
+     * to the widest value found in that position among the rows of the same source, not to a fixed
+     * width. Every getOne() parser casts to int, so unpadded links keep resolving.
+     */
+    private static function padIds(array $rows) : array
+    {
+        $width = [];
+        foreach ($rows as $r)
+            foreach (explode(':', $r['id']) as $i => $part)
+                if ($i && ctype_digit($part))
+                    $width[$r['src']][$i] = max($width[$r['src']][$i] ?? 0, strlen($part));
+
+        foreach ($rows as &$r)
+        {
+            $parts = explode(':', $r['id']);
+            foreach ($parts as $i => &$part)
+                if ($i && ctype_digit($part))
+                    $part = str_pad($part, $width[$r['src']][$i], '0', STR_PAD_LEFT);
+            unset($part);
+
+            $r['id'] = implode(':', $parts);
+        }
+        unset($r);
+
+        return $rows;
     }
 
     /** an `IN` over the given ids, or a condition that holds for every row when there are none */
@@ -124,10 +152,6 @@ class GameText
             $ownerName = Lang::gossip('menu', [$ownerId]);
         else if (!$ownerType)
             $ownerName = Lang::gameText('sources', $src).' #'.$entry;
-
-        // zero-pad the numeric parts so the composite keys order the way the numbers do; every
-        // getOne() parser reads them back with an (int) cast, so unpadded keys still resolve
-        $id = preg_replace_callback('/(?<=:)\d+(?=:|$)/', fn($m) => str_pad($m[0], 10, '0', STR_PAD_LEFT), $id);
 
         return array(
             'src'       => $src,
