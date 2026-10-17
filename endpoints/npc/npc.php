@@ -468,7 +468,7 @@ class NpcBaseResponse extends TemplateResponse implements ICache
                     ? ' [small](for GUIDs: '.implode(', ', $guids).')[/small]'
                     : ' [small](for GUID: '.$g.')[/small]';
 
-                $sai = new SmartAI(SmartAI::SRC_TYPE_CREATURE, -$g, ['uid' => 'sai-'.$g, 'title' => $ttl]);
+                $sai = new SmartAI(SmartAI::SRC_TYPE_CREATURE, -$g, ['uid' => 'sai-'.$g, 'title' => $ttl, 'ownerEntry' => $this->typeId]);
                 if ($sai->prepare())
                     $found[] = $sai;
             }
