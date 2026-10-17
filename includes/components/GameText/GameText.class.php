@@ -227,7 +227,7 @@ class GameText
             }
 
             foreach ($refs[$id] as [$src, $ownerType, $ownerId])
-                $out[] = self::row($src, 'bt:'.$id.':'.$src.':'.$ownerId, $id, $txt, $ownerType, $ownerId);
+                $out[] = self::row($src, 'br:'.$ownerId.':'.$src.':'.$id, $id, $txt, $ownerType, $ownerId);
         }
 
         return $out;
@@ -557,7 +557,7 @@ class GameText
      * source table - the ?text=<id> detail page's only query.
      *
      * @param  string $id  the composite key browse() hands out: 'ct:creature:group:row',
-     *                     'bt:id[:src:ownerId]', 'nt:id:slot:gender:menu', 'go:menu:option:col',
+     *                     'bt:id[:src:ownerId]' (older form of 'br:ownerId:src:id'), 'nt:id:slot:gender:menu', 'go:menu:option:col',
      *                     'pt:id'
      */
     public static function getOne(string $id) : ?array
@@ -573,6 +573,9 @@ class GameText
         {
             'ct'    => self::oneCreatureText($id, $rest),
             'bt'    => self::oneBroadcastText($id, $rest),
+            // owner first, like the other kinds: 'br:owner:src:broadcastTextId'; handled as the
+            // older 'bt:broadcastTextId:src:owner', which is still accepted
+            'br'    => count($rest) == 3 ? self::oneBroadcastText($id, [$rest[2], $rest[1], $rest[0]]) : null,
             'nt'    => self::oneNpcText($id, $rest),
             'go'    => self::oneGossipOption($id, $rest),
             'pt'    => self::onePageText($id, $rest),
