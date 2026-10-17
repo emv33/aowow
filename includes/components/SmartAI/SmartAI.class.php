@@ -293,6 +293,7 @@ class SmartAI
 
     // misc data
     public readonly int    $baseEntry;                      // I'm a timed action list belonging to this entry
+    public readonly int    $ownerEntry;                     // I'm a guid-specific table (negative entryorguid) of a spawn of this entry
     public readonly string $title;                          // title appendix for the [toggle]
     public readonly string $uid;                             // id for the [toggler]/[div] pair, so multiple tables can coexist on one page
     public readonly int    $teleportTargetArea;             // precalculated areaId so we don't have to look it up right now
@@ -300,6 +301,7 @@ class SmartAI
     public function __construct(public readonly int $srcType = 0, public readonly int $entry = 0, array $miscData = [])
     {
         $this->baseEntry          = $miscData['baseEntry']          ?? 0;
+        $this->ownerEntry         = $miscData['ownerEntry']         ?? 0;
         $this->title              = $miscData['title']              ?? '';
         $this->uid                = $miscData['uid']                ?? 'sai';
         $this->teleportTargetArea = $miscData['teleportTargetArea'] ?? 0;
@@ -1105,7 +1107,7 @@ class SmartAI
 
     public function getEntry() : int
     {
-        return $this->baseEntry ?: $this->entry;
+        return $this->baseEntry ?: $this->ownerEntry ?: $this->entry;
     }
 
     private function initQuotes(int $creatureId) : void
