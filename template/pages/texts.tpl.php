@@ -36,15 +36,6 @@
                         <tr>
                             <td><?=$this->ucFirst(Lang::gameText('term')).Lang::main('colon'); ?></td>
                             <td><input type="text" name="q" size="40" value="<?=$this->escHTML($f['q']); ?>" /></td>
-                            <td><?=$this->ucFirst(Lang::gameText('source')).Lang::main('colon'); ?></td>
-                            <td>
-                                <select name="src">
-                                    <option value="0"><?=Lang::gameText('anySource'); ?></option>
-<?php foreach ($this->srcList as $id => $name): ?>
-                                    <option value="<?=$id; ?>"<?=($f['src'] == $id ? ' selected="selected"' : ''); ?>><?=$this->escHTML($name); ?></option>
-<?php endforeach; ?>
-                                </select>
-                            </td>
                         </tr>
                     </table>
 

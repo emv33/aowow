@@ -28,11 +28,9 @@ class TextsBaseResponse extends TemplateResponse implements ICache
     protected  array  $scripts           = [[SC_JS_FILE, 'js/filters.js']];   // fi_toggle(), used to (un)collapse the search form
 
     protected  array  $expectedGET       = array(
-        'q'   => ['filter' => FILTER_CALLBACK,     'options' => [self::class, 'checkTextLine']],
-        'src' => ['filter' => FILTER_VALIDATE_INT, 'flags' => FILTER_REQUIRE_SCALAR]
+        'q' => ['filter' => FILTER_CALLBACK, 'options' => [self::class, 'checkTextLine']]
     );
 
-    public array  $srcList    = [];                         // for the form in the template
     public array  $formValues = [];
     public string $notice     = '';
 
@@ -61,11 +59,7 @@ class TextsBaseResponse extends TemplateResponse implements ICache
 
         $this->redButtons[BUTTON_WOWHEAD] = false;
 
-        $this->srcList    = Lang::gameText('sources');
-        $this->formValues = array(
-            'q'   => trim((string)($this->_get['q'] ?? '')),
-            'src' => (int)($this->_get['src'] ?? 0)
-        );
+        $this->formValues = ['q' => trim((string)($this->_get['q'] ?? ''))];
 
         $this->pageTemplate['filter'] = array_filter($this->formValues) ? 1 : 0;
 
@@ -76,12 +70,31 @@ class TextsBaseResponse extends TemplateResponse implements ICache
             $rows = [];
         }
         else
-            $rows = GameText::browse(['query' => $this->formValues['q'], 'src' => $this->formValues['src']]);
+            $rows = GameText::browse(['query' => $this->formValues['q']]);
 
-        $tabData = ['data' => $this->buildListviewData($rows)];
+        // one tab per kind of text; kinds without a hit get no tab, but the page keeps one
+        // (empty) so the listview's own "no results" state still shows
+        $bySrc = [];
+        foreach ($rows as $r)
+            $bySrc[$r['src']][] = $r;
 
         $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"]);
-        $this->lvTabs->addListviewTab(new Listview($tabData, 'text', 'text'));
+        $first = true;
+        foreach (GameText::SOURCES as $src => $_)
+        {
+            if (!$bySrc && $src != GameText::SRC_CREATURE_TEXT)
+                continue;
+            if ($bySrc && empty($bySrc[$src]))
+                continue;
+
+            $this->lvTabs->addListviewTab(new Listview(array(
+                'id'         => 'texts-'.$src,
+                'name'       => Lang::gameText('sources', $src),
+                'data'       => $this->buildListviewData($bySrc[$src] ?? []),
+                'hiddenCols' => ['src']                     // the tab says it already
+            ), 'text', $first ? 'text' : ''));              // the template only needs defining once
+            $first = false;
+        }
 
         parent::generate();
     }
