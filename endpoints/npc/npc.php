@@ -361,7 +361,7 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         $unitFlags = $this->subject->getField('unitFlags');
         if ($unitFlags & (UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_IMMUNE_TO_PC))
             $infobox[] = Lang::npcExtra('unattackable');
-        if ($unitFlags & UNIT_FLAG_NOT_SELECTABLE)
+        if ($unitFlags & UNIT_FLAG_UNINTERACTIBLE)
             $infobox[] = Lang::npcExtra('untargetable');
 
         // Mode dummy references

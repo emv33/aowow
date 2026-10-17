@@ -801,11 +801,11 @@ define('CREATURE_FLAG_EXTRA_IMMUNITY_KNOCKBACK',              0x40000000);    //
 define('UNIT_FLAG_SERVER_CONTROLLED',       0x00000001);    //
 define('UNIT_FLAG_NON_ATTACKABLE',          0x00000002);    //
 define('UNIT_FLAG_REMOVE_CLIENT_CONTROL',   0x00000004);    //
-define('UNIT_FLAG_PVP_ATTACKABLE',          0x00000008);    // Allows to apply PvP rules to attackable state in addition to faction dependent state
-define('UNIT_FLAG_RENAME',                  0x00000010);    //
+define('UNIT_FLAG_PLAYER_CONTROLLED',       0x00000008);    // controlled by a player, use _IMMUNE_TO_PC instead of _IMMUNE_TO_NPC
+define('UNIT_FLAG_EVADING_HOME',            0x00000010);    // creature is returning to its spawn after evading
 define('UNIT_FLAG_PREPARATION',             0x00000020);    // Don't take reagents for spells with SPELL_ATTR_EX5_NO_REAGENT_WHILE_PREP
 define('UNIT_FLAG_UNK_6',                   0x00000040);    // not sure what it does, but it is needed to cast nontriggered spells in smart_scripts
-define('UNIT_FLAG_NOT_ATTACKABLE_1',        0x00000080);    // UNIT_FLAG_PVP_ATTACKABLE| UNIT_FLAG_NOT_ATTACKABLE_1 is NON_PVP_ATTACKABLE
+define('UNIT_FLAG_NOT_ATTACKABLE_1',        0x00000080);    // (UNIT_FLAG_PLAYER_CONTROLLED | UNIT_FLAG_NOT_ATTACKABLE_1) is NON_PVP_ATTACKABLE
 define('UNIT_FLAG_IMMUNE_TO_PC',            0x00000100);    // disables combat/assistance with PlayerCharacters (PC)
 define('UNIT_FLAG_IMMUNE_TO_NPC',           0x00000200);    // disables combat/assistance with NonPlayerCharacters (NPC)
 define('UNIT_FLAG_LOOTING',                 0x00000400);    // Loot animation
@@ -813,31 +813,31 @@ define('UNIT_FLAG_PET_IN_COMBAT',           0x00000800);    // In combat? 2.0.8
 define('UNIT_FLAG_PVP_ENABLING',            0x00001000);    // Changed in 3.0.3
 define('UNIT_FLAG_SILENCED',                0x00002000);    // Can't cast spells
 define('UNIT_FLAG_CANNOT_SWIM',             0x00004000);    // 2.0.8
-define('UNIT_FLAG_UNK_15',                  0x00008000);    // Only Swim ('OnlySwim' from UnitFlags.cs in WPP)
-define('UNIT_FLAG_UNK_16',                  0x00010000);    // No Attack 2 ('NoAttack2' from UnitFlags.cs in WPP)
+define('UNIT_FLAG_CAN_SWIM',                0x00008000);    // shows swim animation in water; the core adds it to creatures that can enter water
+define('UNIT_FLAG_NON_ATTACKABLE_2',        0x00010000);    // removes attackable icon; added by SPELL_AURA_MOD_UNATTACKABLE
 define('UNIT_FLAG_PACIFIED',                0x00020000);    // Creature will not attack
 define('UNIT_FLAG_STUNNED',                 0x00040000);    // 3.0.3 ok
 define('UNIT_FLAG_IN_COMBAT',               0x00080000);    // ('AffectingCombat' from UnitFlags.cs in WPP)
-define('UNIT_FLAG_TAXI_FLIGHT',             0x00100000);    // Disable casting at client side spell not allowed by taxi flight (mounted?), probably used with   0x4 flag
+define('UNIT_FLAG_ON_TAXI',                 0x00100000);    // Disable casting at client side spell not allowed by taxi flight (mounted?), probably used with 0x4 flag
 define('UNIT_FLAG_DISARMED',                0x00200000);    // 3.0.3, disable melee spells casting..., "Required melee weapon" added to melee spells tooltip.
 define('UNIT_FLAG_CONFUSED',                0x00400000);    // Confused.
 define('UNIT_FLAG_FLEEING',                 0x00800000);    // ('Feared' from UnitFlags.cs in WPP)
-define('UNIT_FLAG_PLAYER_CONTROLLED',       0x01000000);    // Used in spell Eyes of the Beast for pet... let attack by controlled creature. Also used by Vehicles (PCV).
-define('UNIT_FLAG_NOT_SELECTABLE',          0x02000000);    // Can't be selected by mouse or with /target {name} command.
+define('UNIT_FLAG_POSSESSED',               0x01000000);    // under direct client control by a player (possess or vehicle)
+define('UNIT_FLAG_UNINTERACTIBLE',          0x02000000);    // Can't be selected by mouse or with /target {name} command.
 define('UNIT_FLAG_SKINNABLE',               0x04000000);    // Skinnable
 define('UNIT_FLAG_MOUNT',                   0x08000000);    // The client seems to handle it perfectly. Also used when making custom mounts.
 define('UNIT_FLAG_UNK_28',                  0x10000000);    // (PreventKneelingWhenLooting from UnitFlags.cs in WPP)
-define('UNIT_FLAG_UNK_29',                  0x20000000);    // Used in Feign Death spell or NPC will play dead. (PreventEmotes)
+define('UNIT_FLAG_PREVENT_EMOTES_FROM_CHAT_TEXT', 0x20000000);    // no automatic emotes from parsed chat text, for example "lol" in /say
 define('UNIT_FLAG_SHEATHE',                 0x40000000);    //
-define('UNIT_FLAG_UNK_31',                  0x80000000);    //
+define('UNIT_FLAG_IMMUNE',                  0x80000000);    // immune to damage
 define('UNIT_FLAG_VALIDATE',                0x7FFFFFFF);    //
 
 define('UNIT_FLAG2_FEIGN_DEATH',            0x00000001);    //
-define('UNIT_FLAG2_UNK1',                   0x00000002);    // Hide unit model (show only player equip)
+define('UNIT_FLAG2_HIDE_BODY',              0x00000002);    // Hide unit model (show only player equip)
 define('UNIT_FLAG2_IGNORE_REPUTATION',      0x00000004);    //
 define('UNIT_FLAG2_COMPREHEND_LANG',        0x00000008);    //
 define('UNIT_FLAG2_MIRROR_IMAGE',           0x00000010);    //
-define('UNIT_FLAG2_INSTANTLY_APPEAR_MODEL', 0x00000020);    // Unit model instantly appears when summoned (does not fade in)
+define('UNIT_FLAG2_DO_NOT_FADE_IN',         0x00000020);    // Unit model instantly appears when summoned (does not fade in)
 define('UNIT_FLAG2_FORCE_MOVEMENT',         0x00000040);    //
 define('UNIT_FLAG2_DISARM_OFFHAND',         0x00000080);    //
 define('UNIT_FLAG2_DISABLE_PRED_STATS',     0x00000100);    // Player has disabled predicted stats (Used by raid frames)
@@ -846,7 +846,7 @@ define('UNIT_FLAG2_REGENERATE_POWER',       0x00000800);    //
 define('UNIT_FLAG2_RESTRICT_PARTY_INTERACTION', 0x1000);    // Restrict interaction to party or raid
 define('UNIT_FLAG2_PREVENT_SPELL_CLICK',    0x00002000);    // Prevent spellclick
 define('UNIT_FLAG2_ALLOW_ENEMY_INTERACT',   0x00004000);    //
-define('UNIT_FLAG2_DISABLE_TURN',           0x00008000);    //
+define('UNIT_FLAG2_CANNOT_TURN',            0x00008000);    // does not face its target while casting
 define('UNIT_FLAG2_UNK2',                   0x00010000);    //
 define('UNIT_FLAG2_PLAY_DEATH_ANIM',        0x00020000);    // Plays special death animation upon death
 define('UNIT_FLAG2_ALLOW_CHEAT_SPELLS',     0x00040000);    // allows casting spells with AttributesEx7 & SPELL_ATTR7_IS_CHEAT_SPELL
@@ -1732,7 +1732,7 @@ define('SPELL_ATTR1_CHANNEL_TRACK_TARGET',            0x00004000); // Track targ
 define('SPELL_ATTR1_DISPEL_AURAS_ON_IMMUNITY',        0x00008000); // Immunity cancels preapplied auras DESCRIPTION For immunity spells, cancel all auras that this spell would make you immune to when the spell is applied
 define('SPELL_ATTR1_UNAFFECTED_BY_SCHOOL_IMMUNE',     0x00010000); // Unaffected by school immunities DESCRIPTION Will not pierce Divine Shield, Ice Block and other full invulnerabilities
 define('SPELL_ATTR1_UNAUTOCASTABLE_BY_PET',           0x00020000); // Cannot be autocast by pet
-define('SPELL_ATTR1_PREVENTS_ANIM',                   0x00040000); // [WoWDev Wiki] Stun, Polymorph, Daze, Hex, etc. Auras apply "UNIT_FLAG_PREVENT_EMOTES_FROM_CHAT_TEXT".
+define('SPELL_ATTR1_PREVENTS_ANIM',                   0x00040000); // [WoWDev Wiki] Stun, Polymorph, Daze, Hex, etc. Auras apply "UNIT_FLAG_UNK_29".
 define('SPELL_ATTR1_CANT_TARGET_SELF',                0x00080000); // Cannot be self-cast
 define('SPELL_ATTR1_FINISHING_MOVE_DAMAGE',           0x00100000); // Requires combo points (type 1) - modifies effect amount
 define('SPELL_ATTR1_THREAT_ONLY_ON_MISS',             0x00200000); // [WoWDev Wiki] Untested if this implies all functions listed under SpellMissInfo aside from Miss such as Parry, Dodge, Resist, etc.
