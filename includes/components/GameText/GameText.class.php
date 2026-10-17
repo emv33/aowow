@@ -106,8 +106,10 @@ class GameText
         // UIText::format() only turns the html subset page_text carries into bbcode under
         // Lang::FMT_MARKUP - under FMT_RAW a recognized tag (its <HTML>/<BODY>/<BR>, or any other
         // tag UIText considers valid) survives untouched, and this excerpt lands in the listing as
-        // a plain text node, so anything still tag-shaped after formatting is stripped here first
-        $text = strip_tags(UIText::format($text, Lang::FMT_RAW));
+        // a plain text node, so those markup tags are stripped here first. Not strip_tags(): the
+        // <name> / <class> / <male/female> placeholders FMT_RAW substitutes for the $N, $C, $g
+        // variables are tag-shaped too, and they are meant to be read
+        $text = preg_replace('/<\/?(?:html|body|br|h[1-3]|p|span|img|a)(?:\s[^>]*)?\/?>/i', '', UIText::format($text, Lang::FMT_RAW));
         $text = Lang::trimTextClean($text, 0);
 
         return $text !== '' && $text[0] == '$' ? ' '.$text : $text;
