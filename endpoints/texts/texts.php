@@ -31,6 +31,15 @@ class TextsBaseResponse extends TemplateResponse implements ICache
         'q' => ['filter' => FILTER_CALLBACK, 'options' => [self::class, 'checkTextLine']]
     );
 
+    // the listview id doubles as the tab's #anchor; named after the label rather than the table
+    private const array TAB_IDS = array(
+        GameText::SRC_CREATURE_TEXT => 'creature-text',
+        GameText::SRC_BROADCAST     => 'broadcast-text',
+        GameText::SRC_NPC_TEXT      => 'gossip-text',
+        GameText::SRC_GOSSIP_OPTION => 'gossip-option',
+        GameText::SRC_PAGE_TEXT     => 'page-text'
+    );
+
     public array  $formValues = [];
     public string $notice     = '';
 
@@ -88,7 +97,7 @@ class TextsBaseResponse extends TemplateResponse implements ICache
                 continue;
 
             $this->lvTabs->addListviewTab(new Listview(array(
-                'id'         => 'texts-'.$src,
+                'id'         => self::TAB_IDS[$src],
                 'name'       => Lang::gameText('sources', $src),
                 'data'       => $this->buildListviewData($bySrc[$src] ?? []),
                 'hiddenCols' => ['src']                     // the tab says it already
