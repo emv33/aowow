@@ -1842,6 +1842,7 @@ $lang = array(
         'despawnAfter'  => "[Spawned by Script<br />Despawn after]：%s",
         'rank'          => [0 => "普通", 1 => "稀有", 4 => "精英", 2 => "稀有精英", 3 => "首领"],
         'textRanges'    => [null, "发送到地区", "发送到区域", "发送到地图", "发送到世界"],
+        'textGroup'     => "TextGroup #%d",
         'textTypes'     => [null, "喊道", "说", "悄悄地说"],
         'mechanicimmune'=> '[Not affected by mechanic]：%s',
         '_extraFlags'   => '[Extra Flags]：',
