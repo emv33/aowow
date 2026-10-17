@@ -371,9 +371,9 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         if ($buff)
             $infobox[] = Lang::npc('_extraFlags').'[ul][li]'.implode('[/li][li]', $buff).'[/li][/ul]';
 
-        // purely cosmetic type flags go into a collapsed list
+        // purely cosmetic type flags, listed like the others
         if ($buff = $flagLines($_typeFlags, Lang::npcExtra('typeFlagClientLabels')))
-            $infobox[] = '[toggler=hidden id=clientFlags]'.Lang::npcExtra('clientFlags').'[/toggler][div=hidden id=clientFlags][ul][li]'.implode('[/li][li]', $buff).'[/li][/ul][/div]';
+            $infobox[] = Lang::npcExtra('clientFlags').Lang::main('colon').'[ul][li]'.implode('[/li][li]', $buff).'[/li][/ul]';
 
         // Mode dummy references
         if ($this->altNPCs)
