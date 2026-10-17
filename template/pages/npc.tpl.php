@@ -62,7 +62,7 @@ if ([$quoteGroups, $count] = $this->quotes):
     $grouped = count($quoteGroups) > 1;                     // aowow - custom: label each creature_text group (upstream: unlabeled <ul> per multi-line group)
     foreach ($quoteGroups as $groupId => $group):
         if ($grouped):
-            echo '<ul><li><b>'.Lang::npc('textGroup', [$groupId]).'</b></li>'.PHP_EOL;
+            echo '<ul><li><b>'.Lang::npc('textGroup', [$groupId]).'</b><ul style="margin-left:1.5em">'.PHP_EOL;
         endif;
 
         foreach ($group as $itr):
@@ -70,7 +70,7 @@ if ([$quoteGroups, $count] = $this->quotes):
         endforeach;
 
         if ($grouped):
-            echo '</ul>'.PHP_EOL;
+            echo '</ul></li></ul>'.PHP_EOL;
         endif;
 
     endforeach;
