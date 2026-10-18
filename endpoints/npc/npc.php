@@ -1708,6 +1708,16 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         if ($stand)
             $out[] = Lang::npcExtra('standState').Lang::main('colon').(Lang::unit('bytes1', 0, $stand) ?? Lang::unit('bytes1', 'valueUNK', [$stand, 0]));
 
+        // `VisibilityDistanceType` (0 = the map default, which is not worth a line); the core maps the
+        // other values to fixed ranges (ObjectDefines.h): tiny 25, small 50, large 200, gigantic 400,
+        // infinite = one grid (533.33)
+        if (($vis = (int)($lc['visibilitydistancetype'] ?? 0)) > 0)
+        {
+            $yards = [1 => 25, 2 => 50, 3 => 200, 4 => 400, 5 => 533];
+            if (isset($yards[$vis]))
+                $out[] = Lang::npcExtra('visibility').Lang::main('colon').sprintf(Lang::npcExtra('visibilityTypes')[$vis], $yards[$vis]);
+        }
+
         if (!$out)
             return [];
 
