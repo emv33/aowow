@@ -133,6 +133,31 @@ class TaxipathBaseResponse extends TemplateResponse implements ICache
             }
         }
 
+        // the same route on the map of each continent it touches, listed before the zones: the whole route in one view
+        // (nodes of an instance, or without the zone-level route, have nothing to show here)
+        $continents = [];
+        $cPrev      = null;
+        $cPoints    = TaxiPath::getContinentPoints($this->typeId);
+        $cFirst     = array_key_first($cPoints);
+        $cLast      = array_key_last($cPoints);
+        foreach ($cPoints as $idx => [$mapId, $mapKey, $x, $y])
+        {
+            $opts = [];
+            if ($idx == $cFirst)
+                $opts = ['label' => "\0$<br /><span class=\"q0\">".Lang::taxipath('startsAt').'</span>', 'type' => 'start'];
+            else if ($idx == $cLast)
+                $opts = ['label' => "\0$<br /><span class=\"q0\">".Lang::taxipath('endsAt').'</span>', 'type' => 'end'];
+
+            if ($cPrev && $cPrev[0] == $mapId)              // a route crossing continents is two separate lines
+                $opts['lines'] = [[$cPrev[2], $cPrev[3]]];
+
+            $continents[$mapKey][0]['coords'][] = [$x, $y, $opts];
+            $cPrev = [$mapId, $mapKey, $x, $y];
+        }
+
+        if ($continents)
+            $data = $continents + $data;
+
         if ($data)
         {
             foreach ($data as &$areas)
@@ -147,8 +172,14 @@ class TaxipathBaseResponse extends TemplateResponse implements ICache
                 null,
                 [Lang::taxipath('foundIn')]
             );
+            $continentNames = array(
+                -3 => Lang::maps('EasternKingdoms'),
+                -6 => Lang::maps('Kalimdor'),
+                -2 => Lang::maps('Outland'),
+                -5 => Lang::maps('Northrend')
+            );
             foreach ($data as $areaId => $__)
-                $this->map[3][$areaId] = ZoneList::getName($areaId);
+                $this->map[3][$areaId] = $continentNames[$areaId] ?? ZoneList::getName($areaId);
         }
 
 

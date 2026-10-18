@@ -27,6 +27,9 @@ class TaxiPath
     public const int SRC_SMARTAI      = 3;                  // SMART_ACTION_ACTIVATE_TAXI
     public const int SRC_OBJECT       = 4;                  // a MO_TRANSPORT running the path
 
+    // Map.dbc/id => the id the map page knows the continent's map by (see ?maps)
+    public const array CONTINENT_MAPS = [0 => -3, 1 => -6, 530 => -2, 571 => -5];
+
     /**
      * @param  array $pathIds  empty for every path
      * @return array           pathId => [from, fromArea, fromNpc, fromAreaX, fromAreaY, to, toArea, toNpc, toAreaX, toAreaY, mapId]
@@ -83,6 +86,44 @@ class TaxiPath
         $out = [];
         foreach ($rows as $point => $r)
             $out[(int)$point] = array('areaId' => (int)$r['areaId'], 'posX' => (float)$r['posX'], 'posY' => (float)$r['posY']);
+
+        return $out;
+    }
+
+    /**
+     * the same route as getPoints(), placed on the maps of the continents it crosses instead of the zones
+     * the zone-level points are derived from TaxiPathNode.dbc, which also keeps the world position of every node
+     *
+     * @return array point => [continent map id, continent map pseudo zone id (the key the map page uses), posX, posY]
+     */
+    public static function getContinentPoints(int $pathId) : array
+    {
+        $nodes = DB::Aowow()->selectAssoc(
+           'SELECT `nodeIdx` AS ARRAY_KEY, `mapId`, `posX`, `posY` FROM dbc_taxipathnode WHERE `pathId` = %i ORDER BY `nodeIdx` ASC',
+            $pathId
+        ) ?: [];
+
+        $out    = [];
+        $bounds = [];
+        foreach ($nodes as $idx => $n)
+        {
+            $mapId = (int)$n['mapId'];
+            if (!isset(self::CONTINENT_MAPS[$mapId]))       // an instance has no continent to show it on
+                continue;
+
+            // the continent's own entry of WorldMapArea (it has no area)
+            $bounds[$mapId] ??= DB::Aowow()->selectRow('SELECT `left`, `right`, `top`, `bottom` FROM ::worldmaparea WHERE `mapId` = %i AND `areaId` = 0 ORDER BY `id` ASC LIMIT 1', $mapId) ?: false;
+            if (!$b = $bounds[$mapId])
+                continue;
+
+            // same conversion as WorldPosition::toZonePos(): world positions are rotated 90° in relation to map positions
+            $out[(int)$idx] = array(
+                $mapId,
+                self::CONTINENT_MAPS[$mapId],
+                round(($b['left'] - $n['posY']) * 100 / ($b['left'] - $b['right']), 1),
+                round(($b['top']  - $n['posX']) * 100 / ($b['top']  - $b['bottom']), 1)
+            );
+        }
 
         return $out;
     }
