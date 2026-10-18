@@ -52,7 +52,14 @@ class FilterBaseResponse extends TextResponse
         };
 
         // yes, the whole _POST! .. should the input fields be exposed and static so they can be evaluated via BaseResponse::initRequestData() ?
-        if (!$this->filter = Type::newFilter($fileStr, $_POST, $opts))
+        // aowow - custom: browsers over tables that have no Type:: of their own, so Type::newFilter() cannot find their filter
+        $this->filter = match ($this->page)
+        {
+            'conditions' => new ConditionsFilter($_POST, $opts),
+            default      => Type::newFilter($fileStr, $_POST, $opts)
+        };
+
+        if (!$this->filter)
             trigger_error('Filter::__construct - tried to init filter from bogus GET data', E_USER_WARNING);
     }
 
