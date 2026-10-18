@@ -1544,6 +1544,7 @@ $lang = array(
         'flightMasters' => "Flight masters",
         'sentBySpell'   => "Sent by spell",
         'sentByScript'  => "Sent by script",
+        'andMore'       => "and %d more",
         'usedByObject'  => "Used by transport",
         'foundIn'       => "This route runs through"
     ),

@@ -106,23 +106,56 @@ Listview.templates.taxipath = {
             id: 'triggers',
             name: LANG.fitaxipath.triggers,
             type: 'text',
-            width: '18%',
+            width: '25%',
             compute: function(tp, td) {
-                var buff = [];
-                if (tp.nspells)  buff.push($WH.sprintf(LANG.taxipath_nspells,  tp.nspells));
-                if (tp.nscripts) buff.push($WH.sprintf(LANG.taxipath_nscripts, tp.nscripts));
-                if (tp.nobjects) buff.push($WH.sprintf(LANG.taxipath_nobjects, tp.nobjects));
+                var nameCol = 'name_' + Locale.getName();
 
-                if (!buff.length)
-                    return -1;
+                // the first few by name, the rest as a number; scripts without a creature or object to name are counted
+                if (tp.startedby && tp.startedby.length) {
+                    tp.startedby.forEach(function(s, i) {
+                        var lookup = window[s[0]],
+                            entry  = lookup && lookup[s[2]];
 
-                $WH.ae(td, $WH.ct(buff.join(LANG.comma)));
+                        if (i)
+                            $WH.ae(td, $WH.ct(LANG.comma));
+
+                        var a = $WH.ce('a');
+                        a.className = 'q1';
+                        a.href = '?' + s[1] + '=' + s[2];
+                        $WH.ae(a, $WH.ct((entry && entry[nameCol]) || ('#' + s[2])));
+
+                        if (entry && entry.icon) {
+                            $WH.ae(td, Icon.create(entry.icon, 0, null, a.href, null, null, null, null, true));
+                            $WH.ae(td, $WH.ct(' '));
+                        }
+
+                        $WH.ae(td, a);
+                    });
+
+                    if (tp.startedmore)
+                        $WH.ae(td, $WH.ct(' ' + tp.startedmore));
+
+                    return;
+                }
+
+                if (tp.nscripts) {
+                    $WH.ae(td, $WH.ct($WH.sprintf(LANG.taxipath_nscripts, tp.nscripts)));
+                    return;
+                }
+
+                return -1;
             },
             getVisibleText: function(tp) {
-                return '';
+                var nameCol = 'name_' + Locale.getName();
+
+                return (tp.startedby || []).map(function(s) {
+                    var lookup = window[s[0]];
+
+                    return lookup && lookup[s[2]] ? lookup[s[2]][nameCol] : '';
+                }).join(' ');
             },
             sortFunc: function(a, b, col) {
-                return (a.nspells + a.nscripts + a.nobjects) - (b.nspells + b.nscripts + b.nobjects);
+                return (a.nstarted || 0) - (b.nstarted || 0);
             }
         }
     ],

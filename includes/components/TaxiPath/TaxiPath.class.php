@@ -169,10 +169,41 @@ class TaxiPath
                     $jsg[Type::NPC][$npcId] = $npcId;
             }
 
-            // what else can start this flight, as counts; the detail page names them
-            $row['nspells']  = count($src[self::SRC_SPELL]   ?? []);
-            $row['nscripts'] = count($src[self::SRC_SMARTAI] ?? []);
-            $row['nobjects'] = count($src[self::SRC_OBJECT]  ?? []);
+            // what else can start this flight: the first few by name, the rest only as a number
+            $starters = [];
+            foreach ($src[self::SRC_SPELL] ?? [] as $spellId)
+                $starters[Type::SPELL.':'.$spellId] = [Type::SPELL, $spellId];
+            foreach ($src[self::SRC_OBJECT] ?? [] as $objectId)
+                $starters[Type::OBJECT.':'.$objectId] = [Type::OBJECT, $objectId];
+
+            $unnamed = 0;                                   // scripts that don't belong to a creature or object template
+            foreach ($src[self::SRC_SMARTAI] ?? [] as [$srcType, $entry])
+            {
+                $type = match ($srcType)
+                {
+                    SmartAI::SRC_TYPE_CREATURE => Type::NPC,
+                    SmartAI::SRC_TYPE_OBJECT   => Type::OBJECT,
+                    default                    => 0
+                };
+
+                if ($type && $entry > 0)                    // a negative entryorguid is a guid, not a template entry
+                    $starters[$type.':'.$entry] = [$type, $entry];
+                else
+                    $unnamed++;
+            }
+
+            $shown = array_slice(array_values($starters), 0, 3);
+            foreach ($shown as [$type, $typeId])
+            {
+                $row['startedby'][] = [Type::getJSGlobalString($type), Type::getFileString($type), $typeId];
+                $jsg[$type][$typeId] = $typeId;
+            }
+
+            $row['nstarted'] = count($starters) + $unnamed;
+            if ($shown && $row['nstarted'] > count($shown))
+                $row['startedmore'] = Lang::taxipath('andMore', [$row['nstarted'] - count($shown)]);
+            else if (!$shown && $unnamed)
+                $row['nscripts'] = $unnamed;
 
             $data[] = $row;
         }
