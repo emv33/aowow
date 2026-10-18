@@ -123,7 +123,7 @@ class Conditions
 //  public const int LABEL                    = 59;         // ❌ reserved for TC master
     public const int GROUP_STATUS             = 60;         // player in (raid) group   group status,   NULL,           NULL
 
-    private const array IGNORABLE_IN_LISTING = [self::ALIVE, self::HP_VAL, self::HP_PCT];
+    private const array IGNORABLE_IN_LISTING = [self::ALIVE];
 
     private const int IDX_SRC_GROUP = 0;
     private const int IDX_SRC_ENTRY = 1;
@@ -312,6 +312,10 @@ class Conditions
         // player level: not an entity, listed as plain text; a negation is folded into the comparator (5 is "not equal")
         $target .= ' WHEN '.self::LEVEL.' THEN CONCAT("0:", c.`ConditionValue1`, ":", IF(c.`NegativeCondition`, ELT(c.`ConditionValue2` + 1, 5, 4, 3, 2, 1), c.`ConditionValue2`))';
 
+        // target health: plain text as well, "-1" being a percentage and "-2" an absolute amount; same comparator handling as the level
+        foreach ([self::HP_PCT => -1, self::HP_VAL => -2] as $cndId => $pseudo)
+            $target .= ' WHEN '.$cndId.' THEN CONCAT("'.$pseudo.'", ":", c.`ConditionValue1`, ":", IF(c.`NegativeCondition`, ELT(c.`ConditionValue2` + 1, 5, 4, 3, 2, 1), c.`ConditionValue2`))';
+
         // "target is creature / gameobject #id" names its entity in Value2, with the type in Value1
         $target .= ' WHEN '.self::OBJECT_ENTRY_GUID.' THEN (CASE WHEN c.`ConditionValue2` <= 0 THEN NULL'
                  . ' WHEN c.`ConditionValue1` = '.self::TYPEID_UNIT.' THEN CONCAT('.Type::NPC.', ":", c.`ConditionValue2`)'
@@ -350,9 +354,9 @@ class Conditions
                     if ($tId <= 0)
                         continue;
 
-                    if ($tType == 0)                        // player level, see above
+                    if ($tType <= 0)                        // player level and target health, see above
                     {
-                        $targets['lvl'.$tId.':'.$tNote] = [0, $tId, $tNote];
+                        $targets['txt'.$tType.':'.$tId.':'.$tNote] = [$tType, $tId, $tNote];
                         continue;
                     }
 
