@@ -57,7 +57,7 @@ Listview.templates.smartai = {
                     $WH.ae(td, $WH.ct(' ('));
                     sai.owners.forEach(function(o, i) {
                         if (i > 0)
-                            $WH.ae(td, $WH.ct(', '));
+                            $WH.ae(td, $WH.ct(LANG.comma));
 
                         var a = $WH.ce('a');
                         a.href = '?' + o.url + '=' + o.id;

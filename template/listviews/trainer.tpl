@@ -90,13 +90,15 @@ Listview.templates.trainer = {
                     return -1;
                 }
 
-                var icon = g_skills.createIcon(t.reqSkill, 0);
-                icon.style.cssFloat = icon.style.styleFloat = 'left';
-                $WH.ae(td, icon);
-
                 var nameCol = 'name_' + Locale.getName(),
                     entry   = g_skills[t.reqSkill],
                     a       = $WH.ce('a');
+
+                // inline icon followed by the link, as the spell column and the conditions listing do
+                if (entry && entry.icon) {
+                    $WH.ae(td, Icon.create(entry.icon, 0, null, '?skill=' + t.reqSkill, null, null, null, null, true));
+                    $WH.ae(td, $WH.ct(' '));
+                }
 
                 a.className = 'q';
                 a.href = '?skill=' + t.reqSkill;
