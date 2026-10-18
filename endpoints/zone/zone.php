@@ -160,7 +160,10 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
         if ($_ = DB::Aowow()->selectCol('SELECT `id` FROM ::races WHERE `startAreaId` = %i', $this->typeId))
         {
             $this->extendGlobalIds(Type::CHR_RACE, ...$_);
-            $infobox[] = Lang::concat($_, Lang::CONCAT_NONE, fn($x) => '[race='.$x.']').' '.Lang::race('startZone');
+            // aowow - custom start: "Starting zone: Dwarf, Gnome" (upstream: "Dwarf, Gnome starting zone")
+            // $infobox[] = Lang::concat($_, Lang::CONCAT_NONE, fn($x) => '[race='.$x.']').' '.Lang::race('startZone');
+            $infobox[] = Lang::race('startZone').Lang::main('colon').Lang::concat($_, Lang::CONCAT_NONE, fn($x) => '[race='.$x.']');
+            // aowow - custom end
         }
 
         parent::generate(); // calls applyGlobals .. probably too early here, but addMoveLocationMenu requires PageTemplate to be initialized
