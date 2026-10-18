@@ -170,7 +170,7 @@ var ConditionList = new function() {
                 break;
 
             case 33:
-                param[0] = (targets[entry[1]] || '').replace(/^./, (c) => c.toUpperCase());     // opens the sentence
+                param[0] = targets[entry[1]];
                 param[1] = g_relation_types[entry[2]] ?? 'UNK RELATION';
                 param[2] = targets[target];
                 break;
