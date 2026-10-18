@@ -307,6 +307,10 @@ class Conditions
         $target = '(CASE c.`ConditionTypeOrReference`';   // a negative id is a reference to a condition template, not a type
         foreach ($linkable as $cndId)
             $target .= ' WHEN '.$cndId.' THEN CONCAT('.self::$conditions[$cndId][self::IDX_CND_VAL1].', ":", c.`ConditionValue1`)';
+        // "target is creature / gameobject #id" names its entity in Value2, with the type in Value1
+        $target .= ' WHEN '.self::OBJECT_ENTRY_GUID.' THEN (CASE WHEN c.`ConditionValue2` <= 0 THEN NULL'
+                 . ' WHEN c.`ConditionValue1` = '.self::TYPEID_UNIT.' THEN CONCAT('.Type::NPC.', ":", c.`ConditionValue2`)'
+                 . ' WHEN c.`ConditionValue1` = '.self::TYPEID_GAMEOBJECT.' THEN CONCAT('.Type::OBJECT.', ":", c.`ConditionValue2`) END)';
         $target .= ' END)';
 
         $rows = DB::World()->selectAssoc(
