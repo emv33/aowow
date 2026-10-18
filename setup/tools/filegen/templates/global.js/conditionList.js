@@ -29,14 +29,41 @@ var ConditionList = new function() {
         return _parseEntry(entry, targets, target);
     };
 
-    // the standings a reputation rank mask names, as the conditions tab words them
+    // the standings a reputation rank mask names: a single one by name, a range as "x or higher" / "x or lower" / "x - y"
+    // (every standing is nothing worth mentioning); a mask with gaps is spelled out
     self.standings = function(mask)
     {
-        var standings = {};
+        var bits = [];
         for (let i in g_reputation_standings)
-            standings[i * 1 + 1] = g_reputation_standings[i];
+            if (mask & (1 << i))
+                bits.push(i * 1);
 
-        return _makeList(mask, standings, '$2');
+        if (!bits.length)
+            return '';
+
+        var lo = bits[0],
+            hi = bits[bits.length - 1],
+            last = Object.keys(g_reputation_standings).length - 1;
+
+        if (hi - lo + 1 != bits.length)
+        {
+            var standings = {};
+            for (let i in g_reputation_standings)
+                standings[i * 1 + 1] = g_reputation_standings[i];
+
+            return _makeList(mask, standings, '$2');
+        }
+
+        if (lo == hi)
+            return g_reputation_standings[lo];
+        if (lo == 0 && hi == last)
+            return '';
+        if (hi == last)
+            return $WH.sprintf(LANG.cnd_or_higher, g_reputation_standings[lo]);
+        if (lo == 0)
+            return $WH.sprintf(LANG.cnd_or_lower, g_reputation_standings[hi]);
+
+        return g_reputation_standings[lo] + ' \u2013 ' + g_reputation_standings[hi];
     };
 
     function _makeList(mask, src, tpl)

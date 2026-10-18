@@ -151,8 +151,10 @@ Listview.templates.condition = {
 
                     Listview.templates.condition.appendLink(td, t.l, t.i, entry, '?' + t.u + '=' + t.i, (entry && entry[nameCol]) || ('#' + t.i));
 
-                    if (t.n)                                    // the rank a skill is needed at, or the standings of a faction
-                        $WH.ae(td, $WH.ct(' (' + (t.l == 'g_factions' ? ConditionList.standings(t.n) : t.n) + ')'));
+                    // the rank a skill is needed at, or the standings of a faction
+                    var note = t.l == 'g_factions' ? ConditionList.standings(t.n) : t.n;
+                    if (note)
+                        $WH.ae(td, $WH.ct(' (' + note + ')'));
                 }
 
                 if (cnd.moretargets)

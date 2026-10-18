@@ -5535,6 +5535,8 @@ var LANG = {
     tab_condition_for: 'Condition for',
     cnd_either:        'Either',
     cnd_or:            'Or',
+    cnd_or_higher:     '$1 or higher',
+    cnd_or_lower:      '$1 or lower',
 
     // Guide (wasn't localized at the time of capture)
     myguides:          'My Guides',

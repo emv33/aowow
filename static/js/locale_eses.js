@@ -5491,6 +5491,8 @@ var LANG = {
     tab_condition_for: 'Condición para',
     cnd_either:        'Cualquiera',
     cnd_or:            'O',
+    cnd_or_higher:     '$1 o superior',
+    cnd_or_lower:      '$1 o inferior',
 
     // Guide
     myguides:          'Mis Guías',
