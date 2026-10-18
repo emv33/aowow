@@ -28,49 +28,78 @@ class SmartaiBaseResponse extends TemplateResponse implements ICache
     protected  array  $scripts           = [[SC_JS_FILE, 'js/filters.js']];   // fi_toggle(), used to (un)collapse the search form
 
     protected  array  $expectedGET       = array(
-        'src' => ['filter' => FILTER_VALIDATE_INT, 'flags' => FILTER_REQUIRE_SCALAR],
-        'evt' => ['filter' => FILTER_VALIDATE_INT, 'flags' => FILTER_REQUIRE_SCALAR],
-        'act' => ['filter' => FILTER_VALIDATE_INT, 'flags' => FILTER_REQUIRE_SCALAR],
-        'ref' => ['filter' => FILTER_VALIDATE_INT, 'flags' => FILTER_REQUIRE_SCALAR],
-        'ent' => ['filter' => FILTER_VALIDATE_INT, 'flags' => FILTER_REQUIRE_SCALAR]
+        'filter' => ['filter' => FILTER_CALLBACK,     'options' => [self::class, 'sanitizeFilter']],
+        // the search form used to be plain GET parameters; kept so existing links keep working
+        'src'    => ['filter' => FILTER_VALIDATE_INT, 'flags' => FILTER_REQUIRE_SCALAR],
+        'evt'    => ['filter' => FILTER_VALIDATE_INT, 'flags' => FILTER_REQUIRE_SCALAR],
+        'act'    => ['filter' => FILTER_VALIDATE_INT, 'flags' => FILTER_REQUIRE_SCALAR],
+        'ref'    => ['filter' => FILTER_VALIDATE_INT, 'flags' => FILTER_REQUIRE_SCALAR],
+        'ent'    => ['filter' => FILTER_VALIDATE_INT, 'flags' => FILTER_REQUIRE_SCALAR]
     );
 
 
     public array $srcTypeList = [];                         // for the form in the template
     public array $evtTypeList = [];
     public array $actTypeList = [];
-    public array $formValues  = [];
 
-    // no single Type:: - a browser over `smart_scripts`, filtered by ?src/?evt/?act/?ref/?ent
-    // rather than a Filter object that TrListPage's default key would pick up on its own
+    public function __construct(string $rawParam)
+    {
+        parent::__construct($rawParam);
+
+        // old-style parameters: translate into the equivalent filter and continue there
+        // (FILTER_VALIDATE_INT yields false - not null - for the empty string the "Any" option submitted)
+        $legacy = array_filter(array_map(fn($k) => is_int($this->_get[$k] ?? null) ? $this->_get[$k] : null, ['src' => 'src', 'evt' => 'evt', 'act' => 'act', 'ref' => 'ref', 'ent' => 'ent']), fn($v) => $v !== null);
+        if (!isset($this->_get['filter']) && $legacy)
+        {
+            $parts = [];
+            if (isset($legacy['src']))
+                $parts[] = 'ty='.$legacy['src'];
+
+            $cr = [];
+            if (!empty($legacy['ent']))
+                $cr[] = [SmartAIFilter::CR_ENTRY, 3, $legacy['ent']];
+            if (!empty($legacy['ref']))
+                $cr[] = [SmartAIFilter::CR_REF, 3, $legacy['ref']];
+            if (isset($legacy['evt']))
+                $cr[] = [SmartAIFilter::CR_EVENT, $legacy['evt'], 0];
+            if (isset($legacy['act']))
+                $cr[] = [SmartAIFilter::CR_ACTION, $legacy['act'], 0];
+
+            if ($cr)
+                array_push($parts, 'cr='.implode(':', array_column($cr, 0)), 'crs='.implode(':', array_column($cr, 1)), 'crv='.implode(':', array_column($cr, 2)));
+
+            $this->forward('?smartai&filter='.implode(';', $parts));
+        }
+
+        $this->filter = new SmartAIFilter($this->_get['filter'] ?? '');
+        if ($this->filter->shouldReload)
+        {
+            $_SESSION['error']['fi'] = $this->filter::class;
+            $get = $this->filter->buildGETParam();
+            $this->forward('?' . $this->pageName . ($get ? '&filter=' . $get : ''));
+        }
+        $this->filterError = $this->filter->error;
+    }
+
+    // no single Type:: - a browser over `smart_scripts`
     public function getCacheKeyComponents() : array
     {
-        return array(-10, -1, User::$groups, md5(serialize($this->_get)));
+        return array(-10, -1, User::$groups, md5($this->filter->buildGETParam()));
     }
 
     protected function generate() : void
     {
-        // FILTER_VALIDATE_INT yields false - not null - for the empty string the "Any" option submits,
-        // and false == 0 in a loose comparison, so anything but a real int has to become null here or
-        // the template marks event/action type 0 as the selected one
-        $asInt = fn(string $k) : ?int => is_int($this->_get[$k] ?? null) ? $this->_get[$k] : null;
-
-        $this->formValues  = array(
-            'src' => $asInt('src'),
-            'evt' => $asInt('evt'),
-            'act' => $asInt('act'),
-            'ref' => $asInt('ref') ?? 0,
-            'ent' => $asInt('ent') ?? 0
-        );
+        $opts = $this->filter->getBrowseOpts();
 
         // filtered down to one creature's own scripts - name the page after it instead of the
         // generic listing title; a negative entry is a spawn guid, resolved the same way
         // buildListviewData()/resolveGuids() do for the same field on every row
         $this->h1 = Util::ucFirst(Lang::game('smartAI'));
 
-        if ($this->formValues['src'] === SmartAI::SRC_TYPE_CREATURE && $this->formValues['ent'])
+        $entCr = array_values(array_filter($opts['criteria'], fn($cr) => $cr['kind'] == SmartAIFilter::CR_ENTRY && $cr['op'] == '='));
+        if ($opts['srcType'] == [SmartAI::SRC_TYPE_CREATURE] && count($entCr) == 1)
         {
-            $npcId = $this->formValues['ent'];
+            $npcId = $entCr[0]['value'];
             if ($npcId < 0)
                 $npcId = self::resolveGuids([['srcType' => SmartAI::SRC_TYPE_CREATURE, 'entry' => $npcId]])[SmartAI::SRC_TYPE_CREATURE][$npcId] ?? 0;
 
@@ -92,21 +121,14 @@ class SmartaiBaseResponse extends TemplateResponse implements ICache
 
         $this->redButtons[BUTTON_WOWHEAD] = false;
 
+        if ($fiQuery = $this->filter->buildGETParam())
+            $this->fiMenuExtension = $fiQuery;
+
         $this->srcTypeList = Lang::smartaiBrowser('srcTypes');
         $this->evtTypeList = self::nameList(Lang::smartAI('events'));
         $this->actTypeList = self::nameList(Lang::smartAI('actions'));
 
-        $this->pageTemplate['filter'] = ($this->formValues['src'] !== null || $this->formValues['evt'] !== null ||
-            $this->formValues['act'] !== null || $this->formValues['ref'] || $this->formValues['ent']) ? 1 : 0;
-
-        $rows = SmartAI::browse(array(
-            'srcType'    => $this->formValues['src'] !== null ? [$this->formValues['src']] : [],
-            'eventType'  => $this->formValues['evt'] ?? -1,
-            'actionType' => $this->formValues['act'] ?? -1,
-            'refId'      => $this->formValues['ref'],
-            'entry'      => $this->formValues['ent'],
-            'limit'      => Listview::DEFAULT_SIZE
-        ));
+        $rows = SmartAI::browse($opts + ['limit' => Listview::DEFAULT_SIZE]);
 
         $tabData = ['data' => $this->buildListviewData($rows)];
 

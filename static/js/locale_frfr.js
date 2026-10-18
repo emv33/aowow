@@ -4898,6 +4898,11 @@ var LANG = {
         5: "Page text"
     },
     fismartai: {
+        sepgeneral: "General",
+        entry:      "Entry or guid",
+        refid:      "References id",
+        eventtype:  "Event",
+        actiontype: "Action",
         srctype:    "Source type",
         entity:     "Scripted entity",
         count:      "Rows",

@@ -28,7 +28,9 @@ class TextsBaseResponse extends TemplateResponse implements ICache
     protected  array  $scripts           = [[SC_JS_FILE, 'js/filters.js']];   // fi_toggle(), used to (un)collapse the search form
 
     protected  array  $expectedGET       = array(
-        'q' => ['filter' => FILTER_CALLBACK, 'options' => [self::class, 'checkTextLine']]
+        'filter' => ['filter' => FILTER_CALLBACK, 'options' => [self::class, 'sanitizeFilter']],
+        // the search form used to be a plain GET parameter; kept so existing links keep working
+        'q'      => ['filter' => FILTER_CALLBACK, 'options' => [self::class, 'checkTextLine']]
     );
 
     // the listview id doubles as the tab's #anchor; named after the label rather than the table
@@ -40,14 +42,30 @@ class TextsBaseResponse extends TemplateResponse implements ICache
         GameText::SRC_PAGE_TEXT     => 'page-text'
     );
 
-    public array  $formValues = [];
-    public string $notice     = '';
+    public string $notice = '';
 
-    // no Type:: entry, and the result set is driven by ?q/?src rather than a Filter object that
-    // TrListPage's default key would pick up on its own - both are folded into misc here instead
+    public function __construct(string $rawParam)
+    {
+        parent::__construct($rawParam);
+
+        // old-style parameter: translate into the equivalent filter and continue there
+        if (!isset($this->_get['filter']) && trim((string)($this->_get['q'] ?? '')) !== '')
+            $this->forward('?texts&filter=na='.trim($this->_get['q']));
+
+        $this->filter = new TextsFilter($this->_get['filter'] ?? '');
+        if ($this->filter->shouldReload)
+        {
+            $_SESSION['error']['fi'] = $this->filter::class;
+            $get = $this->filter->buildGETParam();
+            $this->forward('?' . $this->pageName . ($get ? '&filter=' . $get : ''));
+        }
+        $this->filterError = $this->filter->error;
+    }
+
+    // no Type:: entry - the result set is driven by the filter
     public function getCacheKeyComponents() : array
     {
-        return array(-8, -1, User::$groups, md5(serialize($this->_get)));
+        return array(-8, -1, User::$groups, md5($this->filter->buildGETParam()));
     }
 
     protected function generate() : void
@@ -68,18 +86,23 @@ class TextsBaseResponse extends TemplateResponse implements ICache
 
         $this->redButtons[BUTTON_WOWHEAD] = false;
 
-        $this->formValues = ['q' => trim((string)($this->_get['q'] ?? ''))];
+        if ($fiQuery = $this->filter->buildGETParam())
+            $this->fiMenuExtension = $fiQuery;
 
-        $this->pageTemplate['filter'] = array_filter($this->formValues) ? 1 : 0;
+        $opts = $this->filter->getBrowseOpts();
 
         // same floor the site's own search uses - two characters match half the game
-        if ($this->formValues['q'] && mb_strlen($this->formValues['q']) < 3 && !Lang::getLocale()->isLogographic())
+        if ($opts['query'] && mb_strlen($opts['query']) < 3 && !Lang::getLocale()->isLogographic())
         {
             $this->notice = Lang::gameText('tooShort');
             $rows = [];
         }
         else
-            $rows = GameText::browse(['query' => $this->formValues['q']]);
+            $rows = GameText::browse(['query' => $opts['query']]);
+
+        // none picked searches every kind of text
+        if ($opts['src'])
+            $rows = array_filter($rows, fn($r) => in_array($r['src'], $opts['src']));
 
         // one tab per kind of text; kinds without a hit get no tab, but the page keeps one
         // (empty) so the listview's own "no results" state still shows

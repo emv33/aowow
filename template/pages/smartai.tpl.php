@@ -6,7 +6,7 @@
     /** @var PageTemplate $this */
 
     $this->brick('header');
-    $f = $this->formValues;                                 // shorthand
+    $f = $this->filter->values;                             // shorthand
 ?>
 
     <div class="main" id="main">
@@ -16,12 +16,11 @@
 <?php
     $this->brick('announcement');
 
-    $this->brick('pageTemplate', ['fiMenuItem' => [106]]);
+    $this->brick('pageTemplate', ['fiQuery' => $this->fiMenuExtension, 'fiMenuItem' => [106]]);
 ?>
 
-            <div id="fi" style="display: <?=($this->pageTemplate['filter'] ? 'block' : 'none'); ?>;">
-                <form action="?smartai" method="get" name="fi">
-                    <input type="hidden" name="smartai" value="" />
+            <div id="fi" style="display: <?=($this->filter->query ? 'block' : 'none'); ?>;">
+                <form action="?filter=smartai" method="post" name="fi" onsubmit="return fi_submit(this)" onreset="return fi_reset(this)">
                     <div class="text">
 
 <?php
@@ -32,53 +31,39 @@
 
                         <h1><?=$this->h1; ?></h1>
                     </div>
-                    <table>
-                        <tr>
-                            <td><?=$this->ucFirst(Lang::smartaiBrowser('srcType')).Lang::main('colon'); ?></td>
-                            <td>
-                                <select name="src">
-                                    <option value=""<?=($f['src'] === null ? ' selected="selected"' : ''); ?>><?=Lang::smartaiBrowser('anySource'); ?></option>
-<?php foreach ($this->srcTypeList as $id => $name): ?>
-                                    <option value="<?=$id; ?>"<?=($f['src'] === $id ? ' selected="selected"' : ''); ?>><?=$this->escHTML($name); ?></option>
-<?php endforeach; ?>
-                                </select>
-                            </td>
-                            <td><?=$this->ucFirst(Lang::smartaiBrowser('entry')).Lang::main('colon'); ?></td>
-                            <td><input type="text" name="ent" size="10" value="<?=($f['ent'] ?: ''); ?>" /></td>
-                        </tr>
-                        <tr>
-                            <td><?=$this->ucFirst(Lang::smartaiBrowser('eventType')).Lang::main('colon'); ?></td>
-                            <td>
-                                <select name="evt">
-                                    <option value=""<?=($f['evt'] === null ? ' selected="selected"' : ''); ?>><?=Lang::smartaiBrowser('anyEvent'); ?></option>
-<?php foreach ($this->evtTypeList as $id => $name): ?>
-                                    <option value="<?=$id; ?>"<?=($f['evt'] === $id ? ' selected="selected"' : ''); ?>><?=$id.' &ndash; '.$this->escHTML($name); ?></option>
-<?php endforeach; ?>
-                                </select>
-                            </td>
-                            <td><?=$this->ucFirst(Lang::smartaiBrowser('refId')).Lang::main('colon'); ?></td>
-                            <td><input type="text" name="ref" size="10" value="<?=($f['ref'] ?: ''); ?>" /></td>
-                        </tr>
-                        <tr>
-                            <td><?=$this->ucFirst(Lang::smartaiBrowser('actionType')).Lang::main('colon'); ?></td>
-                            <td colspan="3">
-                                <select name="act">
-                                    <option value=""<?=($f['act'] === null ? ' selected="selected"' : ''); ?>><?=Lang::smartaiBrowser('anyAction'); ?></option>
-<?php foreach ($this->actTypeList as $id => $name): ?>
-                                    <option value="<?=$id; ?>"<?=($f['act'] === $id ? ' selected="selected"' : ''); ?>><?=$id.' &ndash; '.$this->escHTML($name); ?></option>
-<?php endforeach; ?>
-                                </select>
-                            </td>
-                        </tr>
-                    </table>
+                    <div class="rightpanel">
+                        <div style="float: left"><?=Lang::smartaiBrowser('srcType'); ?></div>
+                        <small><a href="javascript:;" onclick="document.forms['fi'].elements['ty[]'].selectedIndex = -1; return false" onmousedown="return false"><?=Lang::main('clear'); ?></a></small>
+                        <div class="clear"></div>
+                        <select name="ty[]" size="4" multiple="multiple" class="rightselect" style="width: 14em">
+<?=$this->makeOptionsList($this->srcTypeList, $f['ty'] ?? [], 28); ?>
+                        </select>
+                    </div>
+
+                    <div id="fi_criteria" class="padded criteria"><div></div></div><div><a href="javascript:;" id="fi_addcriteria" onclick="fi_addCriterion(this); return false"><?=Lang::main('addFilter'); ?></a></div>
+
+                    <div class="padded2 clear">
+                        <div style="float: right"><?=Lang::main('refineSearch'); ?></div>
+                        <?=Lang::main('match'); ?><input type="radio" name="ma" value="" id="ma-0" <?=(!$f['ma'] ? 'checked="checked" ' : ''); ?>/><label for="ma-0"><?=Lang::main('allFilter'); ?></label><input type="radio" name="ma" value="1" id="ma-1" <?=($f['ma'] ? 'checked="checked" ' : ''); ?> /><label for="ma-1"><?=Lang::main('oneFilter'); ?></label>
+                    </div>
+
+                    <div class="clear"></div>
 
                     <div class="padded">
                         <input type="submit" value="<?=Lang::main('applyFilter'); ?>" />
+                        <input type="reset" value="<?=Lang::main('resetForm'); ?>" />
                     </div>
 
                 </form>
             </div>
             <div class="pad clear"></div>
+
+<script type="text/javascript">//<![CDATA[
+    // the event and action types are named server side only; offered as the dropdowns of their criteria
+    LANG.fidropdowns.smartevent  = <?=\Aowow\Util::toJSON(array_map(fn($id, $n) => [$id, $id.' – '.$n], array_keys($this->evtTypeList), $this->evtTypeList)); ?>;
+    LANG.fidropdowns.smartaction = <?=\Aowow\Util::toJSON(array_map(fn($id, $n) => [$id, $id.' – '.$n], array_keys($this->actTypeList), $this->actTypeList)); ?>;
+//]]></script>
+<?=$this->renderFilter(12); ?>
 
 <?php $this->brick('lvTabs'); ?>
 

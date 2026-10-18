@@ -57,6 +57,8 @@ class FilterBaseResponse extends TextResponse
         {
             'conditions'           => new ConditionsFilter($_POST, $opts),
             'achievement-criteria' => new AchievementCriteriaListFilter($_POST, $opts),
+            'smartai'              => new SmartAIFilter($_POST, $opts),
+            'texts'                => new TextsFilter($_POST, $opts),
             default      => Type::newFilter($fileStr, $_POST, $opts)
         };
 

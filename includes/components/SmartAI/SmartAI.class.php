@@ -343,7 +343,7 @@ class SmartAI
      * one row per distinct script, for the ?smartai browser
      * rendering a script stays with the instance API; this only enumerates them
      *
-     * @param  array $opts  srcType: int[], eventType: int, actionType: int, refId: int, entry: int, limit: int (0 = uncapped)
+     * @param  array $opts  srcType: int[], criteria: [kind: SmartAIFilter::CR_*, op: SQL operator, value: int][], matchAny: bool, limit: int (0 = uncapped)
      * @return array        list of [srcType, entry, nRows, eventTypes[], actionTypes[]]
      */
     public static function browse(array $opts = []) : array
@@ -353,35 +353,51 @@ class SmartAI
         if ($_ = array_filter(array_map('intVal', (array)($opts['srcType'] ?? [])), fn($x) => $x >= 0))
             $where[] = ['s.`source_type` IN %in', $_];
 
-        if ($_ = intVal($opts['entry'] ?? 0))
-            $where[] = ['s.`entryorguid` = %i', $_];
-
-        // event_type 0 (UPDATE_IC) and action_type 0 (NONE) are real values, so -1 is the "unset" marker
-        if (($_ = intVal($opts['eventType'] ?? -1)) >= 0)
-            $where[] = ['s.`event_type` = %i', $_];
-
-        if (($_ = intVal($opts['actionType'] ?? -1)) >= 0)
-            $where[] = ['s.`action_type` = %i', $_];
-
-        // "which scripts name this id" - action_param1..6 hold spell/creature/object/sound ids depending on
-        // action_type, so a blind OR across all six columns for every row would also match on flags/timers/
-        // counts that merely happen to equal $_ under an unrelated action_type. Scope each param slot to the
-        // action_type(s) that actually declare it as carrying an id, same as SmartAI::getOwnerOfReference().
-        if ($_ = intVal($opts['refId'] ?? 0))
+        // event_type 0 (UPDATE_IC) and action_type 0 (NONE) are real values, so these are compared as given
+        $crit = [];
+        foreach ((array)($opts['criteria'] ?? []) as ['kind' => $kind, 'op' => $op, 'value' => $value])
         {
-            $refParts = [];
-            foreach (SmartAction::getParamTypes() as $actionType => $params)
+            $value = intVal($value);
+
+            switch ($kind)
             {
-                $pq = [];
-                foreach ($params as $idx => $pType)
-                    $pq[] = ['s.`action_param'.$idx.'` = %i', $_];
+                case SmartAIFilter::CR_ENTRY:
+                    $crit[] = ['s.`entryorguid` '.$op.' %i', $value];
+                    break;
+                case SmartAIFilter::CR_EVENT:
+                    $crit[] = ['s.`event_type` = %i', $value];
+                    break;
+                case SmartAIFilter::CR_ACTION:
+                    $crit[] = ['s.`action_type` = %i', $value];
+                    break;
+                // "which scripts name this id" - action_param1..6 hold spell/creature/object/sound ids depending on
+                // action_type, so a blind OR across all six columns for every row would also match on flags/timers/
+                // counts that merely happen to equal $value under an unrelated action_type. Scope each param slot to the
+                // action_type(s) that actually declare it as carrying an id, same as SmartAI::getOwnerOfReference().
+                case SmartAIFilter::CR_REF:
+                    if (!$value)
+                        break;
 
-                $refParts[] = [DB::AND, [['s.`action_type` = %i', $actionType], [DB::OR, $pq]]];
+                    $refParts = [];
+                    foreach (SmartAction::getParamTypes() as $actionType => $params)
+                    {
+                        $pq = [];
+                        foreach ($params as $idx => $pType)
+                            $pq[] = ['s.`action_param'.$idx.'` = %i', $value];
+
+                        $refParts[] = [DB::AND, [['s.`action_type` = %i', $actionType], [DB::OR, $pq]]];
+                    }
+
+                    if ($refParts)
+                        $crit[] = [DB::OR, $refParts];
+                    break;
             }
-
-            if ($refParts)
-                $where[] = [DB::OR, $refParts];
         }
+
+        if (count($crit) > 1)
+            $where[] = [!empty($opts['matchAny']) ? DB::OR : DB::AND, $crit];
+        else if ($crit)
+            $where[] = $crit[0];
 
         if (!$where)
             $where[] = ['1 = 1'];

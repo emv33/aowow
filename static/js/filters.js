@@ -726,6 +726,14 @@ var fi_filters = {
         { id: 3, name: 'textid',   type: 'num'  }
     ],
 
+    smartai: [
+        { id: 1, name: 'sepgeneral'                          },
+        { id: 2, name: 'entry',      type: 'num'             },
+        { id: 3, name: 'refid',      type: 'num'             },
+        { id: 4, name: 'eventtype',  type: 'smartevent'      },
+        { id: 5, name: 'actiontype', type: 'smartaction'     }
+    ],
+
     condition: [
         { id: 1, name: 'sepgeneral'                       },
         { id: 2, name: 'sourcegroup',      type: 'num'    },
