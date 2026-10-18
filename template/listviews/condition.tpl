@@ -103,6 +103,14 @@ Listview.templates.condition = {
                 }
 
                 for (var i = 0; i < cnd.targets.length; i++) {
+                    if (!cnd.targets[i][0]) {                   // plain text, nothing to link (player level)
+                        if (i)
+                            $WH.ae(td, $WH.ct(LANG.comma));
+
+                        $WH.ae(td, $WH.ct(cnd.targets[i][3]));
+                        continue;
+                    }
+
                     var t      = cnd.targets[i],
                         lookup = window[t[0]],
                         entry  = lookup && lookup[t[2]],
@@ -135,10 +143,12 @@ Listview.templates.condition = {
                     parts   = [];
 
                 (cnd.targets || []).forEach(function(t) {
-                    var lookup = window[t[0]],
+                    var lookup = t[0] ? window[t[0]] : null,
                         entry  = lookup && lookup[t[2]];
 
-                    if (entry && entry[nameCol])
+                    if (!t[0])
+                        parts.push(t[3]);
+                    else if (entry && entry[nameCol])
                         parts.push(entry[nameCol]);
                 });
 

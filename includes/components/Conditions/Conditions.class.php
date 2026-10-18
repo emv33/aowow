@@ -309,6 +309,9 @@ class Conditions
         $target = '(CASE c.`ConditionTypeOrReference`';   // a negative id is a reference to a condition template, not a type
         foreach ($linkable as $cndId)
             $target .= ' WHEN '.$cndId.' THEN CONCAT('.self::$conditions[$cndId][self::IDX_CND_VAL1].', ":", c.`ConditionValue1`'.($cndId == self::SKILL ? ', ":", c.`ConditionValue2`' : '').')';   // a skill comes with the rank it needs
+        // player level: not an entity, listed as plain text; a negation is folded into the comparator (5 is "not equal")
+        $target .= ' WHEN '.self::LEVEL.' THEN CONCAT("0:", c.`ConditionValue1`, ":", IF(c.`NegativeCondition`, ELT(c.`ConditionValue2` + 1, 5, 4, 3, 2, 1), c.`ConditionValue2`))';
+
         // "target is creature / gameobject #id" names its entity in Value2, with the type in Value1
         $target .= ' WHEN '.self::OBJECT_ENTRY_GUID.' THEN (CASE WHEN c.`ConditionValue2` <= 0 THEN NULL'
                  . ' WHEN c.`ConditionValue1` = '.self::TYPEID_UNIT.' THEN CONCAT('.Type::NPC.', ":", c.`ConditionValue2`)'
@@ -345,6 +348,12 @@ class Conditions
                     [$tType, $tId, $tNote] = array_pad(array_map('intVal', explode(':', $t)), 3, 0);
                     if ($tId <= 0)
                         continue;
+
+                    if ($tType == 0)                        // player level, see above
+                    {
+                        $targets['lvl'.$tId.':'.$tNote] = [0, $tId, $tNote];
+                        continue;
+                    }
 
                     $ids = match ($tType)                   // masks name every class / race they contain
                     {

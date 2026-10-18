@@ -301,7 +301,12 @@ class ConditionsBaseResponse extends TemplateResponse implements ICache
 
             // the entities the conditions themselves name, where each one is a single linkable element; otherwise just a count
             foreach ($r['targets'] as [$tType, $tId, $tNote])
-                if ($tId > 0 && ($_ = Type::getJSGlobalString($tType)))
+                if ($tType == 0)                            // player level: text only, there is nothing to link to
+                {
+                    $op = [0 => '', 1 => '>', 2 => '<', 3 => "\u{2265}", 4 => "\u{2264}", 5 => "\u{2260}"][$tNote] ?? '';
+                    $row['targets'][] = [null, null, $tId, trim(Lang::game('level').' '.$op.' '.$tId)];
+                }
+                else if ($tId > 0 && ($_ = Type::getJSGlobalString($tType)))
                 {
                     $row['targets'][] = [$_, Type::getFileString($tType), $tId, $tNote];
                     $jsg[$tType][$tId] = $tId;
