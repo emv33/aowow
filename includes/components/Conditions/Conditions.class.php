@@ -321,8 +321,8 @@ class Conditions
         $rows = DB::World()->selectAssoc(
            'SELECT   c.`SourceTypeOrReferenceId` AS "srcType", c.`SourceGroup` AS "group", c.`SourceEntry` AS "entry", c.`SourceId` AS "srcId",
                      COUNT(1) AS "nConditions", GROUP_CONCAT(DISTINCT ABS(c.`ConditionTypeOrReference`)) AS "cndTypes",
-                     COUNT(DISTINCT c.`ElseGroup`) AS "nGroups", COUNT('.$keep.') AS "nKept",
-                     COUNT(DISTINCT IF('.$keep.' IS NULL, NULL, c.`ElseGroup`)) AS "nKeptGroups", COUNT('.$target.') AS "nLinkable", GROUP_CONCAT(DISTINCT '.$target.') AS "targets"
+                     COUNT(DISTINCT c.`ElseGroup`, c.`ConditionTarget`) AS "nGroups", COUNT('.$keep.') AS "nKept",
+                     COUNT(DISTINCT IF('.$keep.' IS NULL, NULL, c.`ElseGroup`), c.`ConditionTarget`) AS "nKeptGroups", COUNT('.$target.') AS "nLinkable", GROUP_CONCAT(DISTINCT '.$target.') AS "targets"
             FROM     conditions c
             WHERE    %and
             GROUP BY c.`SourceTypeOrReferenceId`, c.`SourceGroup`, c.`SourceEntry`, c.`SourceId`
@@ -333,7 +333,7 @@ class Conditions
         $out = [];
         foreach ($rows as $r)
         {
-            // one condition per else-group, each naming an entity: they can be listed by name.
+            // one condition per else-group and condition target (the detail page shows those apart), each naming an entity: they can be listed by name.
             // anything more elaborate is left to the detail page
             $targets = [];
             $nTargets = 0;
