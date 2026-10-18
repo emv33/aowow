@@ -2563,6 +2563,8 @@ var g_condition_sources = {
     24: [['caster', 'target'],   'If the conditions for the $Tspell%:%; are met, the [spell=$2] is allowed to proc.'],                // CND_SRC_SPELL_PROC
     30: [['player', null],       'If the conditions are met, [url=?areatrigger=$2]Areatrigger #$2[/url] is allowed to trigger.']      // CND_SRC_AREATRIGGER_CLIENT_TRIGGERED
 };
+// aowow - custom: a loot template (the id is $1) that no creature, object, item or quest refers to
+var g_condition_unowned_loot = 'If the conditions are met, [item=$2] can be found in loot template #$1, which nothing refers to.';
 
 var g_conditions = {
      0: 'Always $Ntrue:false;',

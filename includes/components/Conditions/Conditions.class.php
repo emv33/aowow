@@ -817,10 +817,16 @@ class Conditions
         // only one entry in array expected
         if ($fn = self::$source[$sType][self::IDX_SRC_FN])
             if (!$this->$fn($sType, $sGroup, $sEntry, $sId, $cTarget))
-                return [null, null, null, null, null];
+            {
+                // aowow - custom: a loot template nothing refers to is kept, marked by its negated id (upstream: dropped)
+                if (!in_array($sType, self::GROUP_NEEDS_LOOKUP) || $sGroup <= 0)
+                    return [null, null, null, null, null];
+
+                $sGroup = -$sGroup;
+            }
 
         [$grp, $entry, $id, $_] = self::$source[$sType];
-        if (is_int($grp))
+        if (is_int($grp) && $sGroup > 0)
             $this->jsGlobals[$grp][$sGroup] = $sGroup;
         if (is_int($entry))
             $this->jsGlobals[$entry][$sEntry] = $sEntry;

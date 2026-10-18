@@ -2515,6 +2515,8 @@ var g_condition_sources = {
     24: [['caster', 'target'],   'Si se cumplen las condiciones para el hechizo, se permite que [spell=$2] se active.'],
     30: [['player', null],       'Si se cumplen las condiciones, se permite activar [url=?areatrigger=$2]Areatrigger #$2[/url].']
 };
+// aowow - custom: a loot template (the id is $1) that no creature, object, item or quest refers to
+var g_condition_unowned_loot = 'If the conditions are met, [item=$2] can be found in loot template #$1, which nothing refers to.';
 
 var g_conditions = {
      0: 'Siempre $Nverdadero:falso;',

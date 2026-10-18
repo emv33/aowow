@@ -2515,6 +2515,8 @@ var g_condition_sources = {
     24: [['Zauberer', 'Ziel'],    'Wenn $Tder %:das %; die Bedingung erfüllt kann [spell=$2] auslösen.'],
     30: [['Spieler', null],       'Wenn die Bedingung erfüllt ist kann [url=?areatrigger=$2]Areatrigger #$2[/url] ausgelöst werden.']
 };
+// aowow - custom: a loot template (the id is $1) that no creature, object, item or quest refers to
+var g_condition_unowned_loot = 'If the conditions are met, [item=$2] can be found in loot template #$1, which nothing refers to.';
 
 var g_conditions = {
      0: 'Immer $Nwahr:falsch;',
