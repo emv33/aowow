@@ -59,7 +59,34 @@ Listview.templates.graveyard = {
             name: LANG.location,
             type: 'text',
             compute: function(t, td) {
-                return Listview.funcBox.location(t, td);
+                if (t.location == null)
+                    return -1;
+
+                // as Listview.funcBox.location() does, each zone followed by the side(s) its link is restricted to
+                for (var i = 0, len = t.location.length; i < len; ++i) {
+                    if (i > 0)
+                        $WH.ae(td, $WH.ct(LANG.comma));
+
+                    var zoneId = t.location[i],
+                        a      = $WH.ce('a');
+
+                    a.className = 'q1';
+                    a.href = '?zone=' + zoneId;
+                    $WH.ae(a, $WH.ct(g_zones[zoneId]));
+                    $WH.ae(td, a);
+
+                    var sides = t.sides ? t.sides[zoneId] : 0;
+                    [[1, 'icon-alliance'], [2, 'icon-horde']].forEach(function(s) {
+                        if (!(sides & s[0]))
+                            return;
+
+                        var sp = $WH.ce('span');
+                        sp.className = s[1];
+                        g_addTooltip(sp, g_sides[s[0]]);
+                        $WH.ae(td, $WH.ct(' '));
+                        $WH.ae(td, sp);
+                    });
+                }
             },
             getVisibleText: function(t) {
                 return Listview.funcBox.arrayText(t.location, g_zones);
