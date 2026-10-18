@@ -404,8 +404,9 @@ class Conditions
 
         // an entity of a type with a page of its own: a link
         $valType = self::$conditions[$type][self::IDX_CND_VAL1];
-        if (is_int($valType) && $valType > 0 && $val1 > 0 && Type::getJSGlobalString($valType))
-            return [[$valType, $val1, $type == self::SKILL ? $val2 : 0]];   // a skill comes with the rank it needs
+        $negatedStanding = $type == self::REPUTATION_RANK && $c['NegativeCondition'];    // "is not honored" is better told in words
+        if (is_int($valType) && $valType > 0 && $val1 > 0 && !$negatedStanding && Type::getJSGlobalString($valType))
+            return [[$valType, $val1, in_array($type, [self::SKILL, self::REPUTATION_RANK], true) ? $val2 : 0]];   // a skill comes with the rank it needs, a faction with the standings (mask)
 
         // anything else is worded the way the detail page words it
         $cnd = $prep->prepareCondition($c['NegativeCondition'] ? -$type : $type, $val1, $val2, (int)$c['ConditionValue3'], (string)$c['ConditionStringValue1']);

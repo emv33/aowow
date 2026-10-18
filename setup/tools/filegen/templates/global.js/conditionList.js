@@ -29,6 +29,16 @@ var ConditionList = new function() {
         return _parseEntry(entry, targets, target);
     };
 
+    // the standings a reputation rank mask names, as the conditions tab words them
+    self.standings = function(mask)
+    {
+        var standings = {};
+        for (let i in g_reputation_standings)
+            standings[i * 1 + 1] = g_reputation_standings[i];
+
+        return _makeList(mask, standings, '$2');
+    };
+
     function _makeList(mask, src, tpl)
     {
         var arr  = Listview.funcBox.assocBinFlags(mask, src).sort(),
