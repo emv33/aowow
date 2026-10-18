@@ -1398,7 +1398,8 @@ $lang = array(
         'alliance'      => "Alliance",
         'horde'         => "Horde",
         'both'          => "Both factions",
-        'neutral'       => "Neutral"
+        'neutral'       => "Neutral",
+        'foundIn'       => "This graveyard can be found in"
     ),
     'weather' => array(
         'title'         => "Weather"

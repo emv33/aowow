@@ -159,8 +159,9 @@ class GraveyardBaseResponse extends TemplateResponse implements ICache
                 ['parent' => 'mapper-generic'],
                 [$areaId => [(int)$p['floor'] => ['coords' => [[$p['posX'], $p['posY'], []]], 'count' => 1]]],
                 null,
-                null
-            );
+                [Lang::graveyard('foundIn')]            // triggers the auto-click in mapper.tpl.php that sets the
+            );                                          // mapper's zone - without it the map defaults to zone 0 (black)
+            $this->map[3][$areaId] = ZoneList::getName($areaId);
         }
         else if ($mapId !== null)
             $infobox[] = Lang::graveyard('map').Lang::main('colon').$mapId;
