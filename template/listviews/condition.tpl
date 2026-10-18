@@ -120,6 +120,12 @@ Listview.templates.condition = {
                     a.href = '?' + t[1] + '=' + t[2];
                     $WH.ae(a, $WH.ct((entry && entry[nameCol]) || ('#' + t[2])));
 
+                    // quests carry the marker the game shows for them: yellow, or blue if repeatable
+                    if (t[0] == 'g_quests') {
+                        a.className += ' icontiny tinyspecial';
+                        a.style.backgroundImage = 'url(' + Icon.url(entry && (entry.daily || entry.weekly) ? 'quest_start_daily' : 'quest_start', null, true) + ')';
+                    }
+
                     if (i)
                         $WH.ae(td, $WH.ct(LANG.comma));
 
