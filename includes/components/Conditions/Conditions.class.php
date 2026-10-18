@@ -276,7 +276,8 @@ class Conditions
 
         // criteria: [kind => ConditionsFilter::CR_*, op => comparison, value => int], all of them or any
         $criteria = [];
-        $cndExists = [];                                    // about the same condition of a source, so they go in one EXISTS
+        $cndTypes  = [];                                    // conditions of a source, as EXISTS
+        $cndValues = [];
         foreach ($opts['criteria'] ?? [] as $cr)
         {
             $op  = $cr['op'];
@@ -297,10 +298,10 @@ class Conditions
                     $criteria[] = ['(c.`SourceEntry` '.$op.' %i OR c.`SourceGroup` '.$op.' %i)', $val, $val];
                     break;
                 case ConditionsFilter::CR_CONDITION_TYPE:
-                    $cndExists[] = ['ABS(c2.`ConditionTypeOrReference`) '.$op.' %i', $val];
+                    $cndTypes[] = ['ABS(c2.`ConditionTypeOrReference`) '.$op.' %i', $val];
                     break;
                 case ConditionsFilter::CR_CONDITION_VALUE:
-                    $cndExists[] = ['c2.`ConditionValue1` '.$op.' %i', $val];
+                    $cndValues[] = ['c2.`ConditionValue1` '.$op.' %i', $val];
                     break;
             }
         }
@@ -310,11 +311,13 @@ class Conditions
                                               WHERE c2.`SourceTypeOrReferenceId` = c.`SourceTypeOrReferenceId` AND c2.`SourceGroup` = c.`SourceGroup`
                                                 AND c2.`SourceEntry` = c.`SourceEntry` AND c2.`SourceId` = c.`SourceId` AND %and)', $sub];
 
-        if ($cndExists && !empty($opts['matchAny']))
-            foreach ($cndExists as $sub)
-                $criteria[] = $exists([$sub]);
-        else if ($cndExists)
-            $criteria[] = $exists($cndExists);
+        // a type and a value that are both asked for describe the same condition ("item in inventory" and "item 12345")
+        // when everything has to match; the others are conditions of their own
+        $sameCnd = !empty($opts['matchAny']) ? [] : array_filter([array_shift($cndTypes), array_shift($cndValues)]);
+        if ($sameCnd)
+            $criteria[] = $exists($sameCnd);
+        foreach (array_merge($cndTypes, $cndValues) as $sub)
+            $criteria[] = $exists([$sub]);
 
         if ($criteria)
             $where[] = [!empty($opts['matchAny']) ? '(%or)' : '(%and)', $criteria];
