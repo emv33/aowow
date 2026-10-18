@@ -229,19 +229,6 @@ class XRef
         $this->add(Lang::xRef('spawnGroup'), $out);
     }
 
-    /** `creature_equip_template` - the creatures that carry this item as a weapon or shield */
-    private function equippedBy() : void
-    {
-        if ($this->type != Type::ITEM || !self::hasTable('creature_equip_template'))
-            return;
-
-        $ids = DB::World()->selectCol('SELECT `CreatureID` FROM creature_equip_template WHERE `ItemID1` = %i OR `ItemID2` = %i OR `ItemID3` = %i', $this->typeId, $this->typeId, $this->typeId);
-        if ($ids === null)                                  // renamed from entry/itemEntry<n> in 2016
-            $ids = DB::World()->selectCol('SELECT `entry` FROM creature_equip_template WHERE `itemEntry1` = %i OR `itemEntry2` = %i OR `itemEntry3` = %i', $this->typeId, $this->typeId, $this->typeId) ?: [];
-
-        $this->add(Lang::xRef('equippedBy'), $this->linksFor([Type::NPC => $ids]));
-    }
-
     /**
      * `linked_respawn` - spawns whose respawn is tied to another spawn's, read nowhere until now
      *
@@ -314,7 +301,6 @@ class XRef
         $this->ridesOn();
         $this->spawnGroups();
         $this->linkedRespawn();
-        $this->equippedBy();
         $this->leadsFormation();
 
         if (!$this->rows)

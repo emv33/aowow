@@ -307,6 +307,9 @@ class ItemBaseResponse extends TemplateResponse implements ICache
         if ($tab = $this->tabTeaches())                     //
             $this->lvTabs->addListviewTab($tab);
 
+        if ($tab = $this->tabEquippedBy())                  // custom
+            $this->lvTabs->addListviewTab($tab);
+
         if ($tab = $this->tabSameModelAs())                 // todo (low): should also work for creatures summoned by item
             $this->lvTabs->addListviewTab($tab);
 
@@ -1296,6 +1299,29 @@ class ItemBaseResponse extends TemplateResponse implements ICache
             'id'   => 'see-also'
         ), ItemList::$brickFile);
     }
+
+    // aowow - custom start: `creature_equip_template` - the creatures that carry this item as a weapon or shield
+    private function tabEquippedBy() : ?Listview
+    {
+        if (!DB::World()->selectCell('SHOW TABLES LIKE %s', 'creature_equip_template'))
+            return null;
+
+        $ids = DB::World()->selectCol('SELECT `CreatureID` FROM creature_equip_template WHERE `ItemID1` = %i OR `ItemID2` = %i OR `ItemID3` = %i', $this->typeId, $this->typeId, $this->typeId);
+        if ($ids === null)                                  // renamed from entry/itemEntry<n> in 2016
+            $ids = DB::World()->selectCol('SELECT `entry` FROM creature_equip_template WHERE `itemEntry1` = %i OR `itemEntry2` = %i OR `itemEntry3` = %i', $this->typeId, $this->typeId, $this->typeId);
+
+        if (!$ids || ($npcs = new CreatureList(array(['id', array_unique($ids)])))->error)
+            return null;
+
+        $this->extendGlobalData($npcs->getJSGlobals(GLOBALINFO_SELF));
+
+        return new Listview(array(
+            'data' => $npcs->getListviewData(),
+            'name' => Lang::xRef('equippedBy'),
+            'id'   => 'equipped-by'
+        ), CreatureList::$brickFile);
+    }
+    // aowow - custom end
 
     private function tabSameModelAs() : ?Listview
     {
