@@ -2,6 +2,14 @@ var g_listviews = {};
 
 function Listview(opt)
 {
+    // aowow - custom: g_zones is a fixed list of zone names (Hellfire Peninsula is not on it); a zone a page was
+    // given through its globals is named from g_gatheredzones, so Listview.funcBox.location() and the sorting and
+    // searching of a location column work for it as well (upstream: g_zones only)
+    if (window.g_gatheredzones)
+        for (var zoneId in g_gatheredzones)
+            if (!g_zones[zoneId] && g_gatheredzones[zoneId]['name_' + Locale.getName()])
+                g_zones[zoneId] = g_gatheredzones[zoneId]['name_' + Locale.getName()];
+
     $WH.cO(this, opt);
 
     if (this.id)

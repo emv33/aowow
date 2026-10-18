@@ -83,8 +83,6 @@ class EncountersBaseResponse extends TemplateResponse implements ICache
 
         $this->lvTabs->addListviewTab(new Listview($tabData, EncounterList::$brickFile, 'encounter'));
 
-        $this->addDataLoader('zones');                      // the Location column names its zones from g_zones
-
         parent::generate();
     }
 }
