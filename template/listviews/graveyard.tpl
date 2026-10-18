@@ -119,8 +119,23 @@ Listview.templates.graveyard = {
             type: 'text',
             width: '12%',
             compute: function(t, td) {
-                var label = t.faction == 1 ? LANG.figraveyard.alliance : (t.faction == 2 ? LANG.figraveyard.horde : (t.faction == 3 ? LANG.figraveyard.both : LANG.figraveyard.neutral));
-                $WH.ae(td, $WH.ct(label));
+                // the side's emblem in front of its name, as the other listings show it; both sides get both
+                var sides = [[1, 'icon-alliance', LANG.figraveyard.alliance], [2, 'icon-horde', LANG.figraveyard.horde]],
+                    first = true;
+
+                sides.forEach(function(s) {
+                    if (!(t.faction & s[0]))
+                        return;
+
+                    if (!first)
+                        $WH.ae(td, $WH.ct(LANG.comma));
+
+                    $WH.ae(td, $WH.ce('span', { className: s[1] }, $WH.ct(s[2])));
+                    first = false;
+                });
+
+                if (first)
+                    $WH.ae(td, $WH.ct(LANG.figraveyard.neutral));
             },
             getVisibleText: function(t) {
                 return t.faction == 1 ? LANG.figraveyard.alliance : (t.faction == 2 ? LANG.figraveyard.horde : (t.faction == 3 ? LANG.figraveyard.both : LANG.figraveyard.neutral));

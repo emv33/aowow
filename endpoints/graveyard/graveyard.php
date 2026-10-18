@@ -133,14 +133,14 @@ class GraveyardBaseResponse extends TemplateResponse implements ICache
             $infobox[] = Lang::graveyard('resurrects').Lang::main('colon').implode(', ', array_map(fn($z) => '[zone='.$z.']', $zones));
         }
 
-        if ($ally && $horde)
-            $factionLbl = Lang::graveyard('both');
-        else if ($ally)
-            $factionLbl = Lang::graveyard('alliance');
-        else if ($horde)
-            $factionLbl = Lang::graveyard('horde');
-        else
-            $factionLbl = Lang::graveyard('neutral');
+        // the side's emblem in front of its name, as on the other pages; both sides get both
+        $sides = [];
+        if ($ally)
+            $sides[] = '[span class=icon-alliance]'.Lang::graveyard('alliance').'[/span]';
+        if ($horde)
+            $sides[] = '[span class=icon-horde]'.Lang::graveyard('horde').'[/span]';
+
+        $factionLbl = $sides ? implode(Lang::main('comma'), $sides) : Lang::graveyard('neutral');
 
         $infobox[] = Lang::graveyard('faction').Lang::main('colon').$factionLbl;
 
