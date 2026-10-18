@@ -41,46 +41,43 @@ class MailsBaseResponse extends TemplateResponse implements ICache
         /* Main Content */
         /****************/
 
-        $tabData = [];
         $mails = new MailList();
-        if (!$mails->error)
-            $tabData['data'] = $mails->getListviewData();
+        $data  = $mails->error ? [] : $mails->getListviewData();
 
         $this->extendGlobalData($mails->getJSGlobals());
 
-        $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"]);
-
-        $this->lvTabs->addListviewTab(new Listview(['data' => $mails->getListviewData(), 'name' => Util::ucFirst(Lang::game('mails'))], MailList::$brickFile, 'mail'));
+        $extraCols = [];
 
         // aowow - custom start: `mail_level_reward` - the mails the server sends for reaching a
-        // level, which the detail page could only ever resolve backwards
+        // level, which the detail page could only ever resolve backwards; shown as a column of the
+        // one mail listing (upstream: no level column)
         if (DB::World()->selectCell('SHOW TABLES LIKE %s', 'mail_level_reward'))
         {
-            $rewardRows = DB::World()->selectAssoc('SELECT `level`, `raceMask`, `mailTemplateId`, `senderEntry` FROM mail_level_reward ORDER BY `level` ASC') ?: [];
-            if ($rewardRows)
+            $rewardRows = DB::World()->selectAssoc('SELECT `level`, `mailTemplateId` FROM mail_level_reward ORDER BY `level` ASC') ?: [];
+            foreach ($rewardRows as $r)
             {
-                $data = [];
-                foreach ($rewardRows as $r)
-                {
-                    $id = (int)$r['mailTemplateId'];
-                    $data[] = array(
+                $id = (int)$r['mailTemplateId'];
+
+                if (!isset($data[$id]))                     // template without a DBC entry
+                    $data[$id] = array(
                         'id'          => $id,
                         'subject'     => Lang::mail('untitled', [$id]),
                         'body'        => '',
-                        'attachments' => [],
-                        'level'       => (int)$r['level']
+                        'attachments' => []
                     );
-                }
 
-                $this->lvTabs->addListviewTab(new Listview(array(
-                    'data'      => $data,
-                    'name'      => Lang::mail('levelRewards'),
-                    'id'        => 'level-rewards',
-                    'extraCols' => ["\$Listview.funcBox.createSimpleCol('level', LANG.level, '8%', 'level')"]
-                ), 'mail', 'mail'));
+                if (!isset($data[$id]['level']))            // lowest level wins, rows are ordered
+                    $data[$id]['level'] = (int)$r['level'];
             }
+
+            if ($rewardRows)
+                $extraCols[] = "\$Listview.funcBox.createSimpleCol('level', LANG.level, '8%', 'level')";
         }
         // aowow - custom end
+
+        $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"]);
+
+        $this->lvTabs->addListviewTab(new Listview(['data' => $data, 'extraCols' => $extraCols ?: null], MailList::$brickFile, 'mail'));
 
         parent::generate();
     }
