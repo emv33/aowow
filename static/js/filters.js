@@ -708,6 +708,18 @@ var fi_filters = {
         { id: 5, name: 'viasmartai',type: 'yn'   }
     ],
 
+    achievementcriteria: [
+        { id: 1, name: 'sepgeneral'                         },
+        { id: 2, name: 'id',              type: 'num'       },
+        { id: 3, name: 'achievementid',   type: 'num'       },
+        { id: 4, name: 'achievementname', type: 'str'       },
+        { id: 5, name: 'assetid',         type: 'num'       },
+        { id: 9999, name: 'sepflags'                        },
+        { id: 6, name: 'progressbar',     type: 'yn'        },
+        { id: 7, name: 'hidden',          type: 'yn'        },
+        { id: 8, name: 'moneycounter',    type: 'yn'        }
+    ],
+
     gossip: [
         { id: 1, name: 'sepgeneral'             },
         { id: 2, name: 'id',       type: 'num'  },

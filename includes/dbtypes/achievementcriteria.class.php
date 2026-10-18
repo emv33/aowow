@@ -233,4 +233,54 @@ class AchievementCriteriaList extends DBTypeList
     public function renderTooltip() : ?string { return null; }
 }
 
+class AchievementCriteriaListFilter extends Filter
+{
+    public const int CR_ID            = 2;
+    public const int CR_ACHIEVEMENT   = 3;
+    public const int CR_ACH_NAME      = 4;
+    public const int CR_ASSET         = 5;
+    public const int CR_PROGRESS_BAR  = 6;
+    public const int CR_HIDDEN        = 7;
+    public const int CR_MONEY_COUNTER = 8;
+
+    protected string $type = 'achievementcriteria';
+
+    protected static array $genericFilter = array(
+        self::CR_ID            => [parent::CR_NUMERIC, 'ac.id',               NUM_CAST_INT                                    ], // id
+        self::CR_ACHIEVEMENT   => [parent::CR_NUMERIC, 'ac.refAchievementId', NUM_CAST_INT                                    ], // achievementid
+        self::CR_ACH_NAME      => [parent::CR_STRING,  'a.name',              STR_LOCALIZED                                   ], // achievementname [str]
+        self::CR_ASSET         => [parent::CR_NUMERIC, 'ac.value1',           NUM_CAST_INT                                    ], // assetid
+        self::CR_PROGRESS_BAR  => [parent::CR_FLAG,    'ac.completionFlags',  ACHIEVEMENT_CRITERIA_FLAG_SHOW_PROGRESS_BAR     ], // progressbar [yn]
+        self::CR_HIDDEN        => [parent::CR_FLAG,    'ac.completionFlags',  ACHIEVEMENT_CRITERIA_FLAG_HIDDEN                ], // hidden [yn]
+        self::CR_MONEY_COUNTER => [parent::CR_FLAG,    'ac.completionFlags',  ACHIEVEMENT_CRITERIA_FLAG_MONEY_COUNTER         ]  // moneycounter [yn]
+    );
+
+    // fieldId => [checkType, checkValue[, fieldIsArray]]
+    protected static array $inputFields = array(
+        'cr'  => [parent::V_LIST,  [2, 3, 4, 5, 6, 7, 8], true ], // criteria ids
+        'crs' => [parent::V_LIST,  [parent::ENUM_NONE, parent::ENUM_ANY, [0, 99999]],      true ], // criteria operators
+        'crv' => [parent::V_REGEX, parent::PATTERN_CRV,   true ], // criteria values
+        'na'  => [parent::V_NAME,  false,                 false], // name - matched against the criteria text
+        'ma'  => [parent::V_EQUAL, 1,                     false], // match any / all filter
+        'ty'  => [parent::V_RANGE, [0, 255],              true ]  // criteria types
+    );
+
+    protected function createSQLForValues() : array
+    {
+        $parts = [];
+        $_v    = &$this->values;
+
+        // name [str]
+        if ($_v['na'])
+            if ($_ = $this->buildLikeLookup([['na', 'ac.name_loc'.Lang::getLocale()->value]]))
+                $parts[] = $_;
+
+        // type [list]
+        if ($_v['ty'])
+            $parts[] = ['ac.type', $_v['ty']];
+
+        return $parts;
+    }
+}
+
 ?>

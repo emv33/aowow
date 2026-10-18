@@ -4815,6 +4815,17 @@ var LANG = {
         id:         "ID",
         foundin:    "Found in..."
     },
+    fiachievementcriteria: {
+        sepgeneral:      "General",
+        sepflags:        "Flags",
+        id:              "ID",
+        achievementid:   "Achievement ID",
+        achievementname: "Achievement name",
+        assetid:         "Asset ID",
+        progressbar:     "Shows a progress bar",
+        hidden:          "Hidden",
+        moneycounter:    "Displays money"
+    },
     figossip: {
         sepgeneral: "General",
         id:         "ID",

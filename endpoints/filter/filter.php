@@ -55,7 +55,8 @@ class FilterBaseResponse extends TextResponse
         // aowow - custom: browsers over tables that have no Type:: of their own, so Type::newFilter() cannot find their filter
         $this->filter = match ($this->page)
         {
-            'conditions' => new ConditionsFilter($_POST, $opts),
+            'conditions'           => new ConditionsFilter($_POST, $opts),
+            'achievement-criteria' => new AchievementCriteriaListFilter($_POST, $opts),
             default      => Type::newFilter($fileStr, $_POST, $opts)
         };
 

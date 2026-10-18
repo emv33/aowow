@@ -4812,6 +4812,17 @@ var LANG = {
         id:         "ID",
         foundin:    "发现于…"
     },
+    fiachievementcriteria: {
+        sepgeneral:      "General",
+        sepflags:        "Flags",
+        id:              "ID",
+        achievementid:   "Achievement ID",
+        achievementname: "Achievement name",
+        assetid:         "Asset ID",
+        progressbar:     "Shows a progress bar",
+        hidden:          "Hidden",
+        moneycounter:    "Displays money"
+    },
     figossip: {
         sepgeneral: "常规",
         id:         "ID",

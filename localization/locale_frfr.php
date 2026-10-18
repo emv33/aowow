@@ -1983,11 +1983,7 @@ $lang = array(
         )
     ),
     'achievementCriteriaBrowser' => array(
-        'id'            => "ID",
-        'achievement'   => "Achievement",
-        'type'          => "Type",
-        'flags'         => "Flags",
-        'anyType'       => "Any type"
+        'type'          => "Type"
     ),
     'chrClass' => array(
         'id'            => "ID Classe : ",
