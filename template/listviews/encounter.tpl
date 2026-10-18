@@ -43,25 +43,17 @@ Listview.templates.encounter = {
             }
         },
         {
-            id: 'instance',
-            name: LANG.fiencounter.instance,
+            id: 'location',
+            name: LANG.location,
             type: 'text',
-            align: 'left',
-            width: '25%',
             compute: function(enc, td) {
-                if (!enc.area || !g_zones[enc.area])
-                    return -1;
-
-                var a = $WH.ce('a');
-                a.href = '?zone=' + enc.area;
-                $WH.ae(a, $WH.ct(g_zones[enc.area]));
-                $WH.ae(td, a);
+                return Listview.funcBox.location(enc, td);
             },
             getVisibleText: function(enc) {
-                return (enc.area && g_zones[enc.area]) ? g_zones[enc.area] : '';
+                return Listview.funcBox.arrayText(enc.location, g_zones);
             },
             sortFunc: function(a, b, col) {
-                return $WH.strcmp(this.getVisibleText(a), this.getVisibleText(b));
+                return Listview.funcBox.assocArrCmp(a.location, b.location, g_zones);
             }
         },
         {

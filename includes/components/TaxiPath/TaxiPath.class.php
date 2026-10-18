@@ -201,6 +201,9 @@ class TaxiPath
                 if ($_ = $p[$k])
                     $jsg[Type::ZONE][$_] = $_;
 
+            if ($zones = array_values(array_unique(array_filter([$p['fromArea'], $p['toArea']]))))
+                $row['location'] = $zones;
+
             $src = $sources[$id] ?? [];
 
             if ($_ = ($src[self::SRC_FLIGHTMASTER] ?? []))

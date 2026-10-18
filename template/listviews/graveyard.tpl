@@ -55,64 +55,17 @@ Listview.templates.graveyard = {
             }
         },
         {
-            id: 'zones',
-            name: LANG.figraveyard.zones,
+            id: 'location',
+            name: LANG.location,
             type: 'text',
-            align: 'left',
             compute: function(t, td) {
-                if (!t.zones || !t.zones.length) {
-                    return -1;
-                }
-
-                for (var i = 0; i < t.zones.length; i++) {
-                    if (i)
-                        $WH.ae(td, $WH.ct(', '));
-
-                    var z     = t.zones[i],
-                        entry = g_gatheredzones ? g_gatheredzones[z] : null,
-                        name  = null,
-                        expansion = 0;
-
-                    if (entry) {
-                        var nameCol = 'name_' + Locale.getName();
-                        name = entry[nameCol] || entry.name || ('#' + z);
-                        expansion = entry.expansion || 0;
-                    }
-                    else
-                        name = (g_zones && g_zones[z]) ? g_zones[z] : ('#' + z);
-
-                    var a = $WH.ce('a');
-                    a.href = '?zone=' + z;
-                    $WH.ae(a, $WH.ct(name));
-
-                    if (expansion) {
-                        var sp = $WH.ce('span');
-                        sp.className = g_GetExpansionClassName(expansion);
-                        $WH.ae(sp, a);
-                        $WH.ae(td, sp);
-                    }
-                    else
-                        $WH.ae(td, a);
-                }
+                return Listview.funcBox.location(t, td);
             },
             getVisibleText: function(t) {
-                var out = [];
-                for (var i = 0; i < (t.zones || []).length; i++) {
-                    var z     = t.zones[i],
-                        entry = g_gatheredzones ? g_gatheredzones[z] : null;
-
-                    if (entry) {
-                        var nameCol = 'name_' + Locale.getName();
-                        out.push(entry[nameCol] || entry.name || ('#' + z));
-                    }
-                    else
-                        out.push((g_zones && g_zones[z]) ? g_zones[z] : ('#' + z));
-                }
-
-                return out.join(', ');
+                return Listview.funcBox.arrayText(t.location, g_zones);
             },
             sortFunc: function(a, b, col) {
-                return $WH.strcmp(this.getVisibleText(a), this.getVisibleText(b));
+                return Listview.funcBox.assocArrCmp(a.location, b.location, g_zones);
             }
         },
         {

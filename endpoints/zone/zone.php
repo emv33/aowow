@@ -1270,6 +1270,7 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
                 'id'      => (int)$r['id'],
                 'name'    => $name !== '' && $name[0] == '$' ? ' '.$name : $name,
                 'zone'    => $areaId,
+                'location' => [$areaId],
                 'x'       => $x,
                 'y'       => $y,
                 'icon'    => (int)$r['icon'],

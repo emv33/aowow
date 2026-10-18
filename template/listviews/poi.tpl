@@ -30,26 +30,17 @@ Listview.templates.poi = {
             }
         },
         {
-            id: 'zone',
-            name: LANG.fipoi.zone,
+            id: 'location',
+            name: LANG.location,
             type: 'text',
-            width: '20%',
-            align: 'left',
             compute: function(t, td) {
-                if (!t.zone) {
-                    return -1;
-                }
-
-                var a = $WH.ce('a');
-                a.href = t.maplink || ('?maps=' + t.zone);
-                $WH.ae(a, $WH.ct((g_zones && g_zones[t.zone]) ? g_zones[t.zone] : ('#' + t.zone)));
-                $WH.ae(td, a);
+                return Listview.funcBox.location(t, td);
             },
             getVisibleText: function(t) {
-                return (g_zones && g_zones[t.zone]) ? g_zones[t.zone] : (t.zone ? ('#' + t.zone) : '');
+                return Listview.funcBox.arrayText(t.location, g_zones);
             },
             sortFunc: function(a, b, col) {
-                return $WH.strcmp(this.getVisibleText(a), this.getVisibleText(b));
+                return Listview.funcBox.assocArrCmp(a.location, b.location, g_zones);
             }
         },
         {
@@ -62,7 +53,15 @@ Listview.templates.poi = {
                 if (!t.x && !t.y)
                     return -1;
 
-                $WH.ae(td, $WH.ct(t.x + ', ' + t.y));
+                var txt = $WH.ct(t.x + ', ' + t.y);
+                if (t.maplink) {
+                    var a = $WH.ce('a');
+                    a.href = t.maplink;
+                    $WH.ae(a, txt);
+                    $WH.ae(td, a);
+                }
+                else
+                    $WH.ae(td, txt);
             },
             getVisibleText: function(t) {
                 return t.x + ', ' + t.y;

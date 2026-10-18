@@ -4,23 +4,17 @@ Listview.templates.weather = {
 
     columns: [
         {
-            id: 'zone',
-            name: LANG.fiweather.zone,
+            id: 'location',
+            name: LANG.location,
             type: 'text',
-            align: 'left',
             compute: function(t, td) {
-                var name = (g_zones && g_zones[t.zone]) ? g_zones[t.zone] : ('#' + t.zone),
-                    a    = $WH.ce('a');
-
-                a.href = '?zone=' + t.zone;
-                $WH.ae(a, $WH.ct(name));
-                $WH.ae(td, a);
+                return Listview.funcBox.location(t, td);
             },
             getVisibleText: function(t) {
-                return (g_zones && g_zones[t.zone]) ? g_zones[t.zone] : ('#' + t.zone);
+                return Listview.funcBox.arrayText(t.location, g_zones);
             },
             sortFunc: function(a, b, col) {
-                return $WH.strcmp(this.getVisibleText(a), this.getVisibleText(b));
+                return Listview.funcBox.assocArrCmp(a.location, b.location, g_zones);
             }
         },
         {

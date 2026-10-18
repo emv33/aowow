@@ -25,26 +25,20 @@ Listview.templates.teleport = {
             }
         },
         {
-            id: 'zone',
-            name: LANG.fiteleport.zone,
+            id: 'location',
+            name: LANG.location,
             type: 'text',
-            width: '30%',
-            align: 'left',
             compute: function(t, td) {
-                if (!t.zone) {
+                // a point in no zone is named by its map instead
+                if (!t.location) {
                     $WH.ae(td, $WH.ct(t.mapname || $WH.sprintf(LANG.teleport_map, t.map)));
                     return;
                 }
 
-                var zone = g_zones ? g_zones[t.zone] : null,
-                    a    = $WH.ce('a');
-
-                a.href = '?zone=' + t.zone;
-                $WH.ae(a, $WH.ct(zone || ('#' + t.zone)));
-                $WH.ae(td, a);
+                return Listview.funcBox.location(t, td);
             },
             getVisibleText: function(t) {
-                return (t.zone && g_zones ? g_zones[t.zone] : null) || t.mapname || ('#' + (t.zone || t.map));
+                return t.location ? Listview.funcBox.arrayText(t.location, g_zones) : (t.mapname || ('#' + t.map));
             },
             sortFunc: function(a, b, col) {
                 return $WH.strcmp(this.getVisibleText(a), this.getVisibleText(b));
@@ -60,7 +54,15 @@ Listview.templates.teleport = {
                 if (!t.posx && !t.posy)
                     return -1;
 
-                $WH.ae(td, $WH.ct(t.posx + ', ' + t.posy));
+                var txt = $WH.ct(t.posx + ', ' + t.posy);
+                if (t.maplink) {
+                    var a = $WH.ce('a');
+                    a.href = t.maplink;
+                    $WH.ae(a, txt);
+                    $WH.ae(td, a);
+                }
+                else
+                    $WH.ae(td, txt);
             },
             getVisibleText: function(t) {
                 return t.posx + ', ' + t.posy;

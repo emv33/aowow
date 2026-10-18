@@ -83,6 +83,7 @@ class PoisBaseResponse extends TemplateResponse implements ICache
             if ($mapId !== null && ($pt = WorldPosition::toZonePos($mapId, $poi['x'], $poi['y'])))
             {
                 $poi['zone']    = (int)$pt[0]['areaId'];
+                $poi['location'] = [$poi['zone']];
                 $poi['maplink'] = '?maps='.$poi['zone'].':'.self::pinStr($pt[0]['posX']).self::pinStr($pt[0]['posY']);
 
                 $jsg[Type::ZONE][$poi['zone']] = $poi['zone'];
