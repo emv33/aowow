@@ -155,7 +155,8 @@ class TaxipathBaseResponse extends TemplateResponse implements ICache
             $cPrev = [$mapId, $mapKey, $x, $y];
         }
 
-        if ($continents)
+        // a route within one zone is shown on that zone's map, the continent would only shrink it
+        if ($continents && count($data) != 1)
             $data = $continents + $data;
 
         if ($data)
