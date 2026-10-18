@@ -171,6 +171,11 @@ class TaxiPath
             GO_TYPE_MO_TRANSPORT, $pathIds) ?: [] as $r)
             $out[(int)$r['data0']][self::SRC_OBJECT][(int)$r['entry']] = (int)$r['entry'];
 
+        // ... so a node of that path that happens to stand next to one (the Ratchet dock) names none
+        foreach ($out as $id => $src)
+            if (isset($src[self::SRC_OBJECT]))
+                unset($out[$id][self::SRC_FLIGHTMASTER]);
+
         return $out;
     }
 

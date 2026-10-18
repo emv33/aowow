@@ -55,6 +55,9 @@ class TaxipathBaseResponse extends TemplateResponse implements ICache
         $src     = TaxiPath::getSources([$this->typeId])[$this->typeId] ?? [];
         $infobox = [Lang::taxipath('id').Lang::main('colon').$this->typeId];
 
+        // a transport is the flight itself, there is no flight master - even where a node of the path lies next to one
+        $isTransport = !empty($src[TaxiPath::SRC_OBJECT]);
+
         foreach ([['from', 'fromArea', 'fromNpc'], ['to', 'toArea', 'toNpc']] as $i => [$nk, $ak, $npck])
         {
             $line = Lang::taxipath($i ? 'endsAt' : 'startsAt').Lang::main('colon');
@@ -69,7 +72,7 @@ class TaxipathBaseResponse extends TemplateResponse implements ICache
 
             $infobox[] = $line;
 
-            if ($_ = $this->path[$npck])
+            if (!$isTransport && ($_ = $this->path[$npck]))
             {
                 $this->extendGlobalIds(Type::NPC, $_);
                 $infobox[] = Lang::taxipath('flightMaster').Lang::main('colon').'[npc='.$_.']';
@@ -191,7 +194,7 @@ class TaxipathBaseResponse extends TemplateResponse implements ICache
         $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"], 'tabsRelated', true);
 
         // tab: flight masters at either end
-        if ($npcIds = array_filter([$this->path['fromNpc'], $this->path['toNpc']]))
+        if (!$isTransport && ($npcIds = array_filter([$this->path['fromNpc'], $this->path['toNpc']])))
             $this->addListTab(new CreatureList([['id', array_values($npcIds)]]), CreatureList::$brickFile, Lang::taxipath('flightMasters'), 'flightmasters');
 
         // tab: spells sending a player down this path
