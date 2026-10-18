@@ -4,13 +4,6 @@ Listview.templates.outdoorpvp = {
 
     columns: [
         {
-            id: 'typeId',
-            name: LANG.fioutdoorpvp.typeId,
-            type: 'num',
-            width: '12%',
-            value: 'typeId'
-        },
-        {
             id: 'scriptName',
             name: LANG.fioutdoorpvp.scriptName,
             type: 'text',
