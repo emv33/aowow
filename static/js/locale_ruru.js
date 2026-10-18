@@ -3661,7 +3661,7 @@ var LANG = {
     fidropdowns: {
         yn:             [   [1, "Да"],                              [2, "Нет"]                              ],
         num:            [   [1, ">"],                               [2, ">="],                              [3, "="],                               [4, "<="],                              [5, "<"],                              [6, "!="]],
-        visibilityrange: [  [0, "Normal (100 yd)"], [1, "Tiny (25 yd)"], [2, "Small (50 yd)"], [3, "Large (200 yd)"], [4, "Gigantic (400 yd)"], [5, "Maximum (533 yd)"]  ],
+        visibilityrange: [  [0, "Default (100 yd)"], [1, "Tiny (25 yd)"], [2, "Small (50 yd)"], [3, "Large (200 yd)"], [4, "Gigantic (400 yd)"], [5, "Maximum (533 yd)"]  ],
         side:           [   [1, "Да"],                              [2, "Альянс"],                          [3, "Орда"],                            [4, "Обе"],                             [5, "Нет"]                                      ],
         faction:        [
                             [null, "World of Warcraft"],
