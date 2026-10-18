@@ -2,6 +2,26 @@ Listview.templates.condition = {
     sort: [2],
     searchable: 1,
 
+    // a link to an entity the way its own listings show it: item / spell / ... icon in front,
+    // quests with the marker the game shows for them (yellow, or blue if repeatable)
+    appendLink: function(td, lookupName, entry, href, name) {
+        var a = $WH.ce('a');
+        a.className = 'q1';
+        a.href = href;
+        $WH.ae(a, $WH.ct(name));
+
+        if (lookupName == 'g_quests') {
+            a.className += ' icontiny tinyspecial';
+            a.style.backgroundImage = 'url(' + Icon.url(entry && (entry.daily || entry.weekly) ? 'quest_start_daily' : 'quest_start', null, true) + ')';
+        }
+        else if (entry && entry.icon) {
+            $WH.ae(td, Icon.create(entry.icon, 0, null, href, null, null, null, null, true));
+            $WH.ae(td, $WH.ct(' '));
+        }
+
+        $WH.ae(td, a);
+    },
+
     columns: [
         {
             id: 'srctype',
@@ -43,13 +63,8 @@ Listview.templates.condition = {
 
                     var name = (entry && entry[nameCol]) || inlineName;
 
-                    if (name) {
-                        var a = $WH.ce('a');
-                        a.className = 'q1';
-                        a.href = '?' + urlPart + '=' + id;
-                        $WH.ae(a, $WH.ct(name));
-                        $WH.ae(td, a);
-                    }
+                    if (name)
+                        Listview.templates.condition.appendLink(td, lookupName, entry, '?' + urlPart + '=' + id, name);
                     else
                         $WH.ae(td, $WH.ct('#' + id));
 
@@ -113,29 +128,12 @@ Listview.templates.condition = {
 
                     var t      = cnd.targets[i],
                         lookup = window[t[0]],
-                        entry  = lookup && lookup[t[2]],
-                        a      = $WH.ce('a');
-
-                    a.className = 'q1';
-                    a.href = '?' + t[1] + '=' + t[2];
-                    $WH.ae(a, $WH.ct((entry && entry[nameCol]) || ('#' + t[2])));
-
-                    // quests carry the marker the game shows for them: yellow, or blue if repeatable
-                    if (t[0] == 'g_quests') {
-                        a.className += ' icontiny tinyspecial';
-                        a.style.backgroundImage = 'url(' + Icon.url(entry && (entry.daily || entry.weekly) ? 'quest_start_daily' : 'quest_start', null, true) + ')';
-                    }
+                        entry  = lookup && lookup[t[2]];
 
                     if (i)
                         $WH.ae(td, $WH.ct(LANG.comma));
 
-                    if (entry && entry.icon) {
-                        var icon = Icon.create(entry.icon, 0, null, a.href, null, null, null, null, true);
-                        $WH.ae(td, icon);
-                        $WH.ae(td, $WH.ct(' '));
-                    }
-
-                    $WH.ae(td, a);
+                    Listview.templates.condition.appendLink(td, t[0], entry, '?' + t[1] + '=' + t[2], (entry && entry[nameCol]) || ('#' + t[2]));
 
                     if (t[3])                                   // e.g. the rank a skill is needed at
                         $WH.ae(td, $WH.ct(' (' + t[3] + ')'));
