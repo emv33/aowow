@@ -1388,11 +1388,6 @@ $lang = array(
         'id'            => "ID",
         'map'           => "Map",
         'resurrects'    => "Resurrects players from",
-        'faction'       => "Faction",
-        'alliance'      => "Alliance",
-        'horde'         => "Horde",
-        'both'          => "Both factions",
-        'neutral'       => "Neutral",
         'foundIn'       => "This graveyard can be found in"
     ),
     'weather' => array(

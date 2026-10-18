@@ -28,7 +28,7 @@ class TaxiPath
     public const int SRC_OBJECT       = 4;                  // a MO_TRANSPORT running the path
 
     // Map.dbc/id => the id the map page knows the continent's map by (see ?maps)
-    public const array CONTINENT_MAPS = [0 => -3, 1 => -6, 530 => -2, 571 => -5];
+    public const array CONTINENT_MAPS = WorldPosition::CONTINENT_MAPS;
 
     /**
      * @param  array $pathIds  empty for every path

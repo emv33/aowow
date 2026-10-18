@@ -41,6 +41,9 @@ abstract class WorldPosition
         return $out;
     }
 
+    // Map.dbc/id => the id the map page knows the continent's map by (see ?maps)
+    public const array CONTINENT_MAPS = [0 => -3, 1 => -6, 530 => -2, 571 => -5];
+
     private static array $zoneMapCache  = [];
     private static array $alphaMapCache = [];
 
@@ -209,6 +212,27 @@ abstract class WorldPosition
         usort($points, fn($a, $b) => ($b['srcPrio'] <=> $a['srcPrio']) ?: ($a['dist'] <=> $b['dist']));
 
         return $points;
+    }
+
+    /**
+     * a world position on the map of the continent it lies on, for points that no zone contains
+     *
+     * @return ?array [continent map pseudo zone id (the key the map page uses), posX, posY]
+     */
+    public static function toContinentPos(int $mapId, float $mapX, float $mapY) : ?array
+    {
+        if (!isset(self::CONTINENT_MAPS[$mapId]))           // an instance has no continent to show it on
+            return null;
+
+        // the continent's own entry of WorldMapArea (it has no area)
+        $b = DB::Aowow()->selectRow('SELECT `left`, `right`, `top`, `bottom` FROM ::worldmaparea WHERE `mapId` = %i AND `areaId` = 0 ORDER BY `id` ASC LIMIT 1', $mapId);
+        if (!$b || $b['left'] == $b['right'] || $b['top'] == $b['bottom'])
+            return null;
+
+        $posX = round(($b['left'] - $mapY) * 100 / ($b['left'] - $b['right']), 1);
+        $posY = round(($b['top']  - $mapX) * 100 / ($b['top']  - $b['bottom']), 1);
+
+        return ($posX < 0 || $posX > 100 || $posY < 0 || $posY > 100) ? null : [self::CONTINENT_MAPS[$mapId], $posX, $posY];
     }
 
     /**
