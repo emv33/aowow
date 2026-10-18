@@ -3660,6 +3660,7 @@ var LANG = {
     fidropdowns:{
         yn:             [   [1, "Sí"],                              [2, "No"]                               ],
         num:            [   [1, ">"],                               [2, ">="],                              [3, "="],                               [4, "<="],                              [5, "<"],                              [6, "!="]],
+        visibilityrange: [  [1, "Tiny (25 yd)"], [2, "Small (50 yd)"], [3, "Large (200 yd)"], [4, "Gigantic (400 yd)"], [5, "Maximum (533 yd)"]  ],
         side:           [   [1, "Sí"],                              [2, "Alianza"],                         [3, "Horda"],                           [4, "Ambos"],                           [5, "No"]                                       ],
         faction:        [
                             [null, "World of Warcraft"],
@@ -4443,6 +4444,7 @@ var LANG = {
         npcnoeventsounds:   "No unit event sounds",
         npcnoshadow:        "No shadow blob",
         npcnosheathe:       "Does not sheathe its weapon",
+        visibilityrange:    "Visibility range",
 
         sepcommunity:        "Comunidad",
         hascomments:         "Tiene comentarios",

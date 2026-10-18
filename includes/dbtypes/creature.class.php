@@ -311,7 +311,9 @@ class CreatureListFilter extends Filter
          6 => parent::ENUM_ZONE,                            // foundin
         42 => parent::ENUM_FACTION,                         // increasesrepwith
         43 => parent::ENUM_FACTION,                         // decreasesrepwith
-        38 => parent::ENUM_EVENT                            // relatedevent
+        38 => parent::ENUM_EVENT,                           // relatedevent
+        // aowow - custom: VisibilityDistanceType of `creature_template_addon` (0 = map default is not offered)
+       106 => [1, 2, 3, 4, 5]                               // visibilityrange
     );
 
     protected static array $genericFilter = array(
@@ -415,12 +417,13 @@ class CreatureListFilter extends Filter
         101 => [parent::CR_FLAG,    'typeFlags',         NPC_TYPEFLAG_LINK_ALL                         ], // npclinkall
         102 => [parent::CR_FLAG,    'typeFlags',         NPC_TYPEFLAG_DO_NOT_PLAY_UNIT_EVENT_SOUNDS    ], // npcnoeventsounds
         103 => [parent::CR_FLAG,    'typeFlags',         NPC_TYPEFLAG_HAS_NO_SHADOW_BLOB               ], // npcnoshadow
-        104 => [parent::CR_FLAG,    'typeFlags',         NPC_TYPEFLAG_DO_NOT_SHEATHE                   ]  // npcnosheathe
+        104 => [parent::CR_FLAG,    'typeFlags',         NPC_TYPEFLAG_DO_NOT_SHEATHE                   ], // npcnosheathe
+        106 => [parent::CR_CALLBACK, 'cbVisibilityRange', null,                              null      ]  // visibilityrange [enum]
         // aowow - custom end
     );
 
     protected static array $inputFields = array(
-        'cr'    => [parent::V_LIST,     [[1, 3],[5, 13], 15, 16, [18, 29], [31, 104]],                        true ], // criteria ids
+        'cr'    => [parent::V_LIST,     [[1, 3],[5, 13], 15, 16, [18, 29], [31, 104], 106],                        true ], // criteria ids
         'crs'   => [parent::V_LIST,     [parent::ENUM_NONE, parent::ENUM_ANY, [0, 9999]],                         true ], // criteria operators
         'crv'   => [parent::V_REGEX,    parent::PATTERN_CRV,                                                      true ], // criteria values - only printable chars, no delimiter
         'na'    => [parent::V_NAME,     false,                                                                    false], // name / subname - only printable chars, no delimiter
@@ -635,6 +638,20 @@ class CreatureListFilter extends Filter
 
         return $facTpls ? ['faction', $facTpls] : [0];
     }
+
+    // aowow - custom start: `VisibilityDistanceType` lives in `creature_template_addon`, not in the generated creature table
+    protected function cbVisibilityRange(int $cr, int $crs, string $crv) : ?array
+    {
+        if ($crs == parent::ENUM_ANY)
+            $ids = DB::World()->selectCol('SELECT `entry` FROM creature_template_addon WHERE `VisibilityDistanceType` > 0');
+        else if (in_array($crs, self::$enums[$cr]))
+            $ids = DB::World()->selectCol('SELECT `entry` FROM creature_template_addon WHERE `VisibilityDistanceType` = %i', $crs);
+        else
+            return null;
+
+        return $ids ? ['id', $ids] : [0];
+    }
+    // aowow - custom end
 
     protected function cbHasLocation(int $cr, int $crs, string $crv) : ?array
     {
