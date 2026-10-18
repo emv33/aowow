@@ -63,30 +63,6 @@ Listview.templates.poi = {
             sortFunc: function(a, b, col) {
                 return (a.x + a.y) - (b.x + b.y);
             }
-        },
-        {
-            id: 'icon',
-            name: LANG.fipoi.icon,
-            type: 'num',
-            width: '12%',
-            value: 'icon',
-            compute: function(t, td) {
-                if (!t.icon) {
-                    $WH.ae(td, $WH.ct('-'));
-                    return;
-                }
-
-                // the client resolves this id to a texture through hardcoded UI logic, not
-                // through any DBC/DB table this site has access to - a generic pin glyph marks
-                // it as an icon reference rather than claiming to render the actual graphic
-                var sp = $WH.ce('span');
-                sp.className = 'mapper-pin mapper-pin-1';
-                $WH.ae(sp, $WH.ct(String(t.icon)));
-                $WH.ae(td, sp);
-            },
-            getVisibleText: function(t) {
-                return t.icon;
-            }
         }
     ],
     getItemLink: function(t) {

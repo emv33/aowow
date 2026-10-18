@@ -43,12 +43,12 @@ class PoiBaseResponse extends TemplateResponse implements ICache
 
         // 3.3.5 spells the columns differently from newer cores; both are tried, as pois.php does
         $row = DB::World()->selectRow(
-           'SELECT `ID`, `PositionX` AS "x", `PositionY` AS "y", `Icon` AS "icon", `Name` AS "name" FROM points_of_interest WHERE `ID` = %i',
+           'SELECT `ID`, `PositionX` AS "x", `PositionY` AS "y", `Name` AS "name" FROM points_of_interest WHERE `ID` = %i',
             $this->typeId
         );
         if (!$row)
             $row = DB::World()->selectRow(
-               'SELECT `entry` AS "ID", `x`, `y`, `icon`, `icon_name` AS "name" FROM points_of_interest WHERE `entry` = %i',
+               'SELECT `entry` AS "ID", `x`, `y`, `icon_name` AS "name" FROM points_of_interest WHERE `entry` = %i',
                 $this->typeId
             );
 
@@ -58,7 +58,6 @@ class PoiBaseResponse extends TemplateResponse implements ICache
         $name = trim((string)$row['name']);
         $posX = (float)$row['x'];
         $posY = (float)$row['y'];
-        $icon = (int)$row['icon'];
 
         [$mapId, $npcs, $objects] = $this->findOwners($this->typeId);
 
@@ -91,9 +90,6 @@ class PoiBaseResponse extends TemplateResponse implements ICache
             $this->extendGlobalIds(Type::OBJECT, ...$objects);
             $infobox[] = Lang::poi('presentedBy').Lang::main('colon').implode(', ', array_map(fn($e) => '[object='.$e.']', $objects));
         }
-
-        if ($icon)
-            $infobox[] = Lang::poi('icon').Lang::main('colon').$icon;
 
         if ($mapId !== null && ($pt = WorldPosition::toZonePos($mapId, $posX, $posY)))
         {

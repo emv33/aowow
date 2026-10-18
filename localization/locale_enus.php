@@ -1417,7 +1417,6 @@ $lang = array(
         'id'            => "ID",
         'zone'          => "Zone",
         'position'      => "Position",
-        'icon'          => "Icon",
         'presentedBy'   => "Presented by",
         'foundIn'       => "This point of interest can be found in"
     ),
