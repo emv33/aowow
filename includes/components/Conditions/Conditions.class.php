@@ -308,7 +308,7 @@ class Conditions
 
         $target = '(CASE c.`ConditionTypeOrReference`';   // a negative id is a reference to a condition template, not a type
         foreach ($linkable as $cndId)
-            $target .= ' WHEN '.$cndId.' THEN CONCAT('.self::$conditions[$cndId][self::IDX_CND_VAL1].', ":", c.`ConditionValue1`)';
+            $target .= ' WHEN '.$cndId.' THEN CONCAT('.self::$conditions[$cndId][self::IDX_CND_VAL1].', ":", c.`ConditionValue1`'.($cndId == self::SKILL ? ', ":", c.`ConditionValue2`' : '').')';   // a skill comes with the rank it needs
         // "target is creature / gameobject #id" names its entity in Value2, with the type in Value1
         $target .= ' WHEN '.self::OBJECT_ENTRY_GUID.' THEN (CASE WHEN c.`ConditionValue2` <= 0 THEN NULL'
                  . ' WHEN c.`ConditionValue1` = '.self::TYPEID_UNIT.' THEN CONCAT('.Type::NPC.', ":", c.`ConditionValue2`)'
@@ -342,7 +342,7 @@ class Conditions
             {
                 foreach (array_filter(explode(',', (string)$r['targets'])) as $t)
                 {
-                    [$tType, $tId] = array_map('intVal', explode(':', $t));
+                    [$tType, $tId, $tNote] = array_pad(array_map('intVal', explode(':', $t)), 3, 0);
                     if ($tId <= 0)
                         continue;
 
@@ -353,7 +353,7 @@ class Conditions
                         default         => [$tId]
                     };
                     foreach ($ids as $id)
-                        $targets[$tType.':'.$id] = [$tType, $id];
+                        $targets[$tType.':'.$id] = [$tType, $id, $tNote];
                 }
                 $nTargets = count($targets);
                 $targets  = array_slice(array_values($targets), 0, 3);

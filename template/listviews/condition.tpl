@@ -122,6 +122,9 @@ Listview.templates.condition = {
                     }
 
                     $WH.ae(td, a);
+
+                    if (t[3])                                   // e.g. the rank a skill is needed at
+                        $WH.ae(td, $WH.ct(' (' + t[3] + ')'));
                 }
 
                 if (cnd.moretargets)

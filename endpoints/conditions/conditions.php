@@ -300,10 +300,10 @@ class ConditionsBaseResponse extends TemplateResponse implements ICache
             }
 
             // the entities the conditions themselves name, where each one is a single linkable element; otherwise just a count
-            foreach ($r['targets'] as [$tType, $tId])
+            foreach ($r['targets'] as [$tType, $tId, $tNote])
                 if ($tId > 0 && ($_ = Type::getJSGlobalString($tType)))
                 {
-                    $row['targets'][] = [$_, Type::getFileString($tType), $tId];
+                    $row['targets'][] = [$_, Type::getFileString($tType), $tId, $tNote];
                     $jsg[$tType][$tId] = $tId;
                 }
 
