@@ -18,6 +18,29 @@ abstract class WorldPosition
         3703, 4395                                          // Shattrath City, Dalaran
     );
 
+    /**
+     * names of maps, for points that resolve to no zone - Map.dbc is written into the aowow DB by the
+     * zones setup step and names every map; the four continents keep a lang string for when it is gone
+     *
+     * @param  int[] $mapIds
+     * @return array<int, string> mapId => name, only for the ids that have one
+     */
+    public static function getMapNames(array $mapIds) : array
+    {
+        $out = [];
+        if ($mapIds = array_values(array_unique(array_map('intval', $mapIds))))
+            if (DB::Aowow()->selectCell('SHOW TABLES LIKE %s', 'dbc_map'))
+                foreach (DB::Aowow()->selectAssoc('SELECT `id` AS ARRAY_KEY, `name_loc'.Lang::getLocale()->value.'` AS "name" FROM dbc_map WHERE `id` IN %in', $mapIds) ?: [] as $id => $r)
+                    if ((string)$r['name'] !== '')
+                        $out[(int)$id] = (string)$r['name'];
+
+        foreach ($mapIds as $id)
+            if (!isset($out[$id]) && ($n = match ($id) { 0 => Lang::maps('EasternKingdoms'), 1 => Lang::maps('Kalimdor'), 530 => Lang::maps('Outland'), 571 => Lang::maps('Northrend'), default => '' }))
+                $out[$id] = $n;
+
+        return $out;
+    }
+
     private static array $zoneMapCache  = [];
     private static array $alphaMapCache = [];
 

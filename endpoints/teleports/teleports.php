@@ -96,6 +96,13 @@ class TeleportsBaseResponse extends TemplateResponse implements ICache
             $data[] = $row;
         }
 
+        // a point outside every zone is named by its map instead of a bare id
+        $mapNames = WorldPosition::getMapNames(array_column(array_filter($data, fn($r) => !isset($r['zone'])), 'map'));
+        foreach ($data as &$row)
+            if (!isset($row['zone']) && isset($mapNames[$row['map']]))
+                $row['mapname'] = $mapNames[$row['map']];
+        unset($row);
+
         $this->extendGlobalData($jsg);
 
         return $data;

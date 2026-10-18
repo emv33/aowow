@@ -18,7 +18,7 @@ Listview.templates.teleport = {
             align: 'left',
             compute: function(t, td) {
                 if (!t.zone) {
-                    $WH.ae(td, $WH.ct($WH.sprintf(LANG.teleport_map, t.map)));
+                    $WH.ae(td, $WH.ct(t.mapname || $WH.sprintf(LANG.teleport_map, t.map)));
                     return;
                 }
 
@@ -31,7 +31,7 @@ Listview.templates.teleport = {
                 $WH.ae(td, a);
             },
             getVisibleText: function(t) {
-                return (t.zone && g_zones ? g_zones[t.zone] : null) || ('#' + (t.zone || t.map));
+                return (t.zone && g_zones ? g_zones[t.zone] : null) || t.mapname || ('#' + (t.zone || t.map));
             },
             sortFunc: function(a, b, col) {
                 return $WH.strcmp(this.getVisibleText(a), this.getVisibleText(b));
