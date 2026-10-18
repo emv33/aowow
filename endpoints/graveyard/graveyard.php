@@ -140,8 +140,8 @@ class GraveyardBaseResponse extends TemplateResponse implements ICache
         if ($zones)
             $this->extendGlobalIds(Type::ZONE, ...$zones);
 
-        // the position, on the map of the zone it lies in and on the continent's; a point in no zone is still
-        // somewhere on a continent, and an instance has neither
+        // the position, on the map of the zone it lies in; a point in no zone is still somewhere on a continent,
+        // and an instance has neither
         if ($mapId !== null && ($posX || $posY))
         {
             $mapData = [];
@@ -157,7 +157,8 @@ class GraveyardBaseResponse extends TemplateResponse implements ICache
                 $names[$areaId] = ZoneList::getName($areaId);
             }
 
-            if ($cp = WorldPosition::toContinentPos($mapId, $posX, $posY))
+            // only for a point in no zone, the zone's own map shows it larger
+            if (!$mapData && ($cp = WorldPosition::toContinentPos($mapId, $posX, $posY)))
             {
                 $mapData[$cp[0]][0] = ['coords' => [[$cp[1], $cp[2], []]], 'count' => 1];
                 $names[$cp[0]]      = array(-3 => Lang::maps('EasternKingdoms'), -6 => Lang::maps('Kalimdor'), -2 => Lang::maps('Outland'), -5 => Lang::maps('Northrend'))[$cp[0]];
