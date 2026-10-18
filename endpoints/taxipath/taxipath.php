@@ -58,6 +58,14 @@ class TaxipathBaseResponse extends TemplateResponse implements ICache
         // a transport is the flight itself, there is no flight master - even where a node of the path lies next to one
         $isTransport = !empty($src[TaxiPath::SRC_OBJECT]);
 
+        // ... and its nodes are named for the transport, not placed where it sails from and to (the Booty Bay boat's
+        // start node lies in the Barrens, next to the Ratchet dock) - the first and last point of the route are
+        if ($isTransport && ($routeZones = array_values(array_filter(array_column(TaxiPath::getPoints($this->typeId), 'areaId')))))
+        {
+            $this->path['fromArea'] = $routeZones[0];
+            $this->path['toArea']   = $routeZones[array_key_last($routeZones)];
+        }
+
         foreach ([['from', 'fromArea', 'fromNpc'], ['to', 'toArea', 'toNpc']] as $i => [$nk, $ak, $npck])
         {
             $line = Lang::taxipath($i ? 'endsAt' : 'startsAt').Lang::main('colon');

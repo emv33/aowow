@@ -152,7 +152,7 @@ class GameObjectList extends DBTypeList
     {
         $pathId = (int)DB::World()->selectCell('SELECT `data0` FROM gameobject_template WHERE `entry` = %i AND `type` = %i', $entry, GO_TYPE_MO_TRANSPORT);
 
-        return $pathId ? (self::getTransportRoutes([$pathId])[$pathId] ?? null) : null;
+        return $pathId && ($route = self::getTransportRoutes([$pathId])[$pathId] ?? null) ? $route + ['pathId' => $pathId] : null;
     }
 
     /** every transport template, with the route of those that run one */

@@ -242,17 +242,9 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
             $route = GameObjectList::getTransportRoute($this->typeId);
             if ($route)
             {
-                foreach ([['from', 'fromArea'], ['to', 'toArea']] as [$nameKey, $areaKey])
-                {
-                    if ($_ = $route[$areaKey])
-                    {
-                        $this->extendGlobalIds(Type::ZONE, $_);
-                        $route[$nameKey] = '[zone='.$_.']';
-                    }
-                }
-
+                // the flight path page of the route, named as it is there and in the transport listing;
                 // a literal arrow, not &rarr;: Markup._safeHtml() escapes every & and re-allows only nbsp and ndash
-                $infobox[] = Lang::transport('route').Lang::main('colon').$route['from'].' → '.$route['to'];
+                $infobox[] = Lang::transport('route').Lang::main('colon').'[url=?taxipath='.$route['pathId'].']'.$route['from'].' → '.$route['to'].'[/url]';
             }
         }
         // aowow - custom end
