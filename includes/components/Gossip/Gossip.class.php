@@ -576,7 +576,7 @@ class Gossip
             {
                 $poi      = $pois[$o['actionPoiId']] ?? null;
                 $poiName  = $poi && $poi['name'] ? $poi['name'] : Lang::gossip('unnamedPoi', [$o['actionPoiId']]);
-                $action[] = Lang::gossip('marksPoi', [$poiName]) . ($poi ? ' [i][small class=q0]'.sprintf('%.1f, %.1f', $poi['x'], $poi['y']).'[/small][/i]' : '');
+                $action[] = Lang::gossip('marksPoi', ['[url=?poi='.$o['actionPoiId'].']'.$poiName.'[/url]']) . ($poi ? ' [i][small class=q0]'.sprintf('%.1f, %.1f', $poi['x'], $poi['y']).'[/small][/i]' : '');
             }
 
             if ($byScript = ($handlers[$oId] ?? []))
