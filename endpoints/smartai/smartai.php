@@ -125,8 +125,8 @@ class SmartaiBaseResponse extends TemplateResponse implements ICache
             $this->fiMenuExtension = $fiQuery;
 
         $this->srcTypeList = Lang::smartaiBrowser('srcTypes');
-        $this->evtTypeList = self::nameList(Lang::smartAI('events'));
-        $this->actTypeList = self::nameList(Lang::smartAI('actions'));
+        $this->evtTypeList = self::nameList(Lang::smartAI('events'), 'SmartEvent', 'EVENT_');
+        $this->actTypeList = self::nameList(Lang::smartAI('actions'), 'SmartAction', 'ACTION_');
 
         $rows = SmartAI::browse($opts + ['limit' => Listview::DEFAULT_SIZE]);
 
@@ -138,17 +138,24 @@ class SmartaiBaseResponse extends TemplateResponse implements ICache
         parent::generate();
     }
 
-    /** Lang::smartAI() returns [format, formatRepeat] pairs; the form only needs the first line of each */
-    private static function nameList(array $src) : array
+    /**
+     * type id => name for the filter's dropdowns, from the names of the defines ("EVENT_HEALTH_PCT" > "Health Pct"):
+     * the texts in Lang::smartAI() are sentences with holes in them, and read as "At  Health" once those are cut out
+     *
+     * @param  array  $known   type ids the texts name, anything else is not a type
+     * @param  string $class   SmartEvent / SmartAction
+     * @param  string $prefix  EVENT_ / ACTION_
+     */
+    private static function nameList(array $known, string $class, string $prefix) : array
     {
-        $out = [];
-        foreach ($src as $id => $fmt)
-        {
-            $name = is_array($fmt) ? ($fmt[0] ?? '') : (string)$fmt;
-            $name = trim(preg_replace('/\[[^\]]*\]|\([^)]*\)\?.*|%\d*\$?[a-z.\d]*/i', '', $name));
+        $names = [];
+        foreach ((new \ReflectionClass(__NAMESPACE__.'\\'.$class))->getConstants() as $const => $id)
+            if (is_int($id) && str_starts_with($const, $prefix) && !isset($names[$id]))
+                $names[$id] = ucwords(strtolower(str_replace('_', ' ', substr($const, strlen($prefix)))));
 
-            $out[$id] = $name !== '' ? $name : '#'.$id;
-        }
+        $out = [];
+        foreach (array_keys($known) as $id)
+            $out[$id] = $names[$id] ?? '#'.$id;
 
         return $out;
     }
