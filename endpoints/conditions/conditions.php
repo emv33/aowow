@@ -128,7 +128,8 @@ class ConditionsBaseResponse extends TemplateResponse implements ICache
             'value1'  => $this->formValues['val'],
             'entry'   => $this->formValues['ent'],
             'limit'   => Listview::DEFAULT_SIZE
-        ));
+        ), $cndGlobals);
+        $this->extendGlobalData($cndGlobals);
 
         // one tab per known source type; types without a hit get no tab, but the page keeps one
         // (empty) so the listview's own "no results" state still shows. Anything the browser has
@@ -299,17 +300,19 @@ class ConditionsBaseResponse extends TemplateResponse implements ICache
                 $row['groupurl']  = Type::getFileString(Type::GOSSIP);
             }
 
-            // the entities the conditions themselves name, where each one is a single linkable element; otherwise just a count
+            // what the conditions themselves name; if some name nothing, just their count
             foreach ($r['targets'] as [$tType, $tId, $tNote])
-                if (is_string($tType))                      // plain text, there is nothing to link to
+                if ($tType == 'cnd')                        // worded like the detail page does, $tId is the prepared condition
+                    $row['targets'][] = ['c' => $tId, 'g' => $tNote];
+                else if (is_string($tType))                 // plain text, there is nothing to link to
                 {
                     $op    = [Conditions::OP_E => '', Conditions::OP_GT => '>', Conditions::OP_LT => '<', Conditions::OP_GT_E => "\u{2265}", Conditions::OP_LT_E => "\u{2264}", Conditions::OP_NE => "\u{2260}"][$tNote] ?? '';
                     $label = $tType == 'level' ? Lang::game('level') : Lang::spell('powerTypes', -2);
-                    $row['targets'][] = [null, null, $tId, trim($label.' '.$op.' '.$tId.($tType == 'health%' ? '%' : ''))];
+                    $row['targets'][] = ['t' => trim($label.' '.$op.' '.$tId.($tType == 'health%' ? '%' : ''))];
                 }
-                else if ($tId > 0 && ($_ = Type::getJSGlobalString($tType)))
+                else
                 {
-                    $row['targets'][] = [$_, Type::getFileString($tType), $tId, $tNote];
+                    $row['targets'][] = ['l' => Type::getJSGlobalString($tType), 'u' => Type::getFileString($tType), 'i' => $tId, 'n' => $tNote];
                     $jsg[$tType][$tId] = $tId;
                 }
 

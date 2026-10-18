@@ -117,26 +117,33 @@ Listview.templates.condition = {
                     return;
                 }
 
+                var targets = g_condition_sources[cnd.srctype] ? g_condition_sources[cnd.srctype][0] : [];
+
                 for (var i = 0; i < cnd.targets.length; i++) {
-                    if (!cnd.targets[i][0]) {                   // plain text, nothing to link (player level)
-                        if (i)
-                            $WH.ae(td, $WH.ct(LANG.comma));
-
-                        $WH.ae(td, $WH.ct(cnd.targets[i][3]));
-                        continue;
-                    }
-
-                    var t      = cnd.targets[i],
-                        lookup = window[t[0]],
-                        entry  = lookup && lookup[t[2]];
+                    var t = cnd.targets[i];
 
                     if (i)
                         $WH.ae(td, $WH.ct(LANG.comma));
 
-                    Listview.templates.condition.appendLink(td, t[0], entry, '?' + t[1] + '=' + t[2], (entry && entry[nameCol]) || ('#' + t[2]));
+                    if (t.t) {                                  // plain text (player level, target health)
+                        $WH.ae(td, $WH.ct(t.t));
+                        continue;
+                    }
 
-                    if (t[3])                                   // e.g. the rank a skill is needed at
-                        $WH.ae(td, $WH.ct(' (' + t[3] + ')'));
+                    if (t.c) {                                  // a condition, worded like the detail page does
+                        var span = $WH.ce('span');
+                        Markup.printHtml(ConditionList.parseEntry(t.c, targets, t.g), span);
+                        $WH.ae(td, span);
+                        continue;
+                    }
+
+                    var lookup = window[t.l],
+                        entry  = lookup && lookup[t.i];
+
+                    Listview.templates.condition.appendLink(td, t.l, entry, '?' + t.u + '=' + t.i, (entry && entry[nameCol]) || ('#' + t.i));
+
+                    if (t.n)                                    // e.g. the rank a skill is needed at
+                        $WH.ae(td, $WH.ct(' (' + t.n + ')'));
                 }
 
                 if (cnd.moretargets)
@@ -147,11 +154,13 @@ Listview.templates.condition = {
                     parts   = [];
 
                 (cnd.targets || []).forEach(function(t) {
-                    var lookup = t[0] ? window[t[0]] : null,
-                        entry  = lookup && lookup[t[2]];
+                    var lookup = t.l ? window[t.l] : null,
+                        entry  = lookup && lookup[t.i];
 
-                    if (!t[0])
-                        parts.push(t[3]);
+                    if (t.t)
+                        parts.push(t.t);
+                    else if (t.c)
+                        parts.push(Markup.removeTags(ConditionList.parseEntry(t.c, [], t.g)));
                     else if (entry && entry[nameCol])
                         parts.push(entry[nameCol]);
                 });

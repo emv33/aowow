@@ -23,6 +23,12 @@ var ConditionList = new function() {
         return _createTab();
     };
 
+    // the markup text of a single condition, for listings that show conditions of their own accord
+    self.parseEntry = function(entry, targets, target)
+    {
+        return _parseEntry(entry, targets, target);
+    };
+
     function _makeList(mask, src, tpl)
     {
         var arr  = Listview.funcBox.assocBinFlags(mask, src).sort(),

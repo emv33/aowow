@@ -124,8 +124,6 @@ class Conditions
 //  public const int LABEL                    = 59;         // ❌ reserved for TC master
     public const int GROUP_STATUS             = 60;         // player in (raid) group   group status,   NULL,           NULL
 
-    private const array IGNORABLE_IN_LISTING = [self::ALIVE];
-
     private const int IDX_SRC_GROUP = 0;
     private const int IDX_SRC_ENTRY = 1;
     private const int IDX_SRC_ID    = 2;
@@ -264,11 +262,12 @@ class Conditions
      * the detail view of a single source stays with getBySource(); this only enumerates them
      *
      * @param  array $opts  srcType: int[], cndType: int, value1: int, entry: int, limit: int (0 = uncapped)
+     * @param  ?array $jsGlobals  receives the global data the conditions' texts refer to
      * @return array        list of [srcType, group, entry, srcId, nConditions, cndTypes[], nTargets, targets[[Type::, id], ..]]
      *                      targets are the entities the conditions' Value1 names, the first few only - nTargets is the full count;
      *                      only set for sources where every condition names something, see listingTargets()
      */
-    public static function browse(array $opts = []) : array
+    public static function browse(array $opts = [], ?array &$jsGlobals = null) : array
     {
         $where = [];
 
@@ -303,7 +302,7 @@ class Conditions
 
         $rows = DB::World()->selectAssoc(
            'SELECT   c.`SourceTypeOrReferenceId` AS "srcType", c.`SourceGroup` AS "group", c.`SourceEntry` AS "entry", c.`SourceId` AS "srcId",
-                     c.`ElseGroup`, c.`ConditionTypeOrReference`, c.`ConditionTarget`, c.`ConditionValue1`, c.`ConditionValue2`, c.`NegativeCondition`
+                     c.`ElseGroup`, c.`ConditionTypeOrReference`, c.`ConditionTarget`, c.`ConditionValue1`, c.`ConditionValue2`, c.`ConditionValue3`, c.`ConditionStringValue1`, c.`NegativeCondition`
             FROM     conditions c
             WHERE    %and
             ORDER BY c.`SourceTypeOrReferenceId`, c.`SourceGroup`, c.`SourceEntry`, c.`SourceId` ASC',
@@ -314,11 +313,13 @@ class Conditions
         foreach ($rows as $r)
             $sources[implode(':', [$r['srcType'], $r['group'], $r['entry'], $r['srcId']])][] = $r;
 
+        $prep = new self();                                 // prepares the conditions that are shown as text, collecting what they refer to
+
         $out = [];
         foreach ($sources as $conditions)
         {
             $first = $conditions[0];
-            $names = self::listingTargets($conditions);
+            $names = self::listingTargets($conditions, $prep);
 
             $out[] = array(
                 'srcType'     => (int)$first['srcType'],
@@ -335,55 +336,37 @@ class Conditions
                 break;
         }
 
+        $jsGlobals = $prep->getJSGlobals();
+
         return $out;
     }
 
     /**
      * what the ?conditions listing names for one source instead of just counting its conditions
-     * every condition has to name something (an entity to link or a value to print), conditions that
-     * don't take part in the logic anyway (IGNORABLE_IN_LISTING) excepted. What is named is a plain, deduplicated
-     * list: how the conditions combine (and / or) is for the detail page to show
+     * every condition has to name something - an entity to link, a value to print or, failing that, its
+     * text as the detail page words it. How they combine (and / or) is for the detail page to show,
+     * the list here is plain and deduplicated
      *
      * @param  array[] $conditions  rows of one source
-     * @return array                [Type::, id, note] for an entity, [kind, value, comparator] for plain text
+     * @return array                [Type::, id, note] for an entity, [kind, value, comparator] for plain text, ['cnd', condition, target] for a condition shown as text
      */
-    private static function listingTargets(array $conditions) : array
+    private static function listingTargets(array $conditions, self $prep) : array
     {
-        $kept   = [];
-        $groups = [];                                       // else-group, target => number of kept conditions
-        foreach ($conditions as $c)
-        {
-            if (in_array((int)$c['ConditionTypeOrReference'], self::IGNORABLE_IN_LISTING, true))
-                continue;
-
-            $kept[] = $c;
-            $key = $c['ElseGroup'].':'.$c['ConditionTarget'];
-            $groups[$key] = ($groups[$key] ?? 0) + 1;
-        }
-
-        if (!$kept)
-            return [];
-
-        // an ignored condition standing in an else-group of its own would be an alternative we'd silently drop
-        foreach ($conditions as $c)
-            if (!isset($groups[$c['ElseGroup'].':'.$c['ConditionTarget']]))
-                return [];
-
         $out = [];
-        foreach ($kept as $c)
+        foreach ($conditions as $c)
         {
-            if (!($names = self::conditionTargets($c)))
+            if (!($names = self::conditionTargets($c, $prep)))
                 return [];
 
             foreach ($names as $n)
-                $out[implode(':', $n)] = $n;
+                $out[json_encode($n)] = $n;
         }
 
         return array_values($out);
     }
 
     /** the entities / values a single condition names; none, if it names nothing the listing can show */
-    private static function conditionTargets(array $c) : array
+    private static function conditionTargets(array $c, self $prep) : array
     {
         $type = (int)$c['ConditionTypeOrReference'];        // negative: reference to a condition template
         $val1 = (int)$c['ConditionValue1'];
@@ -401,26 +384,33 @@ class Conditions
             case self::HP_VAL:
                 return [['health', $val1, $cmp]];
             case self::OBJECT_ENTRY_GUID:                   // the object type is in Value1, its entry in Value2
-                if ($val2 <= 0)
-                    return [];
-
-                return match ($val1)
-                {
-                    self::TYPEID_UNIT       => [[Type::NPC,    $val2, 0]],
-                    self::TYPEID_GAMEOBJECT => [[Type::OBJECT, $val2, 0]],
-                    default                 => []
-                };
+                if ($val2 > 0 && $val1 == self::TYPEID_UNIT)
+                    return [[Type::NPC, $val2, 0]];
+                if ($val2 > 0 && $val1 == self::TYPEID_GAMEOBJECT)
+                    return [[Type::OBJECT, $val2, 0]];
+                break;                                      // a player, a corpse or any of its kind: text
             case self::CHR_CLASS:                           // masks name every class / race they contain
-                return array_map(fn($id) => [Type::CHR_CLASS, $id, 0], Util::mask2bits($val1 & ChrClass::MASK_ALL, 1));
+                if ($_ = Util::mask2bits($val1 & ChrClass::MASK_ALL, 1))
+                    return array_map(fn($id) => [Type::CHR_CLASS, $id, 0], $_);
+                break;
             case self::CHR_RACE:
-                return array_map(fn($id) => [Type::CHR_RACE, $id, 0], Util::mask2bits($val1 & ChrRace::MASK_ALL, 1));
+                if ($_ = Util::mask2bits($val1 & ChrRace::MASK_ALL, 1))
+                    return array_map(fn($id) => [Type::CHR_RACE, $id, 0], $_);
+                break;
         }
 
-        $valType = self::$conditions[$type][self::IDX_CND_VAL1] ?? null;
-        if (!is_int($valType) || $valType <= 0 || $val1 <= 0)
+        if ($type <= 0 || !isset(self::$conditions[$type]))
             return [];
 
-        return [[$valType, $val1, $type == self::SKILL ? $val2 : 0]];   // a skill comes with the rank it needs
+        // an entity of a type with a page of its own: a link
+        $valType = self::$conditions[$type][self::IDX_CND_VAL1];
+        if (is_int($valType) && $valType > 0 && $val1 > 0 && Type::getJSGlobalString($valType))
+            return [[$valType, $val1, $type == self::SKILL ? $val2 : 0]];   // a skill comes with the rank it needs
+
+        // anything else is worded the way the detail page words it
+        $cnd = $prep->prepareCondition($c['NegativeCondition'] ? -$type : $type, $val1, $val2, (int)$c['ConditionValue3'], (string)$c['ConditionStringValue1']);
+
+        return $cnd ? [['cnd', $cnd, (int)$c['ConditionTarget']]] : [];
     }
 
     public function getBySource(int|array $type, null|int|array $group = null, null|int|array $entry = null, null|int|array $id = null) : self
