@@ -53,15 +53,7 @@ Listview.templates.poi = {
                 if (!t.x && !t.y)
                     return -1;
 
-                var txt = $WH.ct(t.x + ', ' + t.y);
-                if (t.maplink) {
-                    var a = $WH.ce('a');
-                    a.href = t.maplink;
-                    $WH.ae(a, txt);
-                    $WH.ae(td, a);
-                }
-                else
-                    $WH.ae(td, txt);
+                $WH.ae(td, $WH.ct(t.x + ', ' + t.y));
             },
             getVisibleText: function(t) {
                 return t.x + ', ' + t.y;

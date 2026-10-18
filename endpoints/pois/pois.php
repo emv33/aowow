@@ -84,7 +84,6 @@ class PoisBaseResponse extends TemplateResponse implements ICache
             {
                 $poi['zone']    = (int)$pt[0]['areaId'];
                 $poi['location'] = [$poi['zone']];
-                $poi['maplink'] = '?maps='.$poi['zone'].':'.self::pinStr($pt[0]['posX']).self::pinStr($pt[0]['posY']);
 
                 $jsg[Type::ZONE][$poi['zone']] = $poi['zone'];
             }
@@ -296,12 +295,6 @@ class PoisBaseResponse extends TemplateResponse implements ICache
         }
 
         return $seen;
-    }
-
-    /** the three-digit pin block the Mapper link format uses per coordinate */
-    private static function pinStr(float $coord) : string
-    {
-        return sprintf('%03d', (int)round($coord * 10));
     }
 
     protected function generateMetadata(bool $useArticle = true) : void

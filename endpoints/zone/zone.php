@@ -1014,7 +1014,7 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
         // aowow - custom start: the points of interest this zone's gossip options mark on the map
         // points_of_interest has no zone column; it is reached through the gossip menus of the
         // NPCs that spawn here
-        if ($poiData = self::getPOIsForZone($this->typeId, $mapId))
+        if ($poiData = self::getPOIsForZone($this->typeId))
         {
             $this->lvTabs->addListviewTab(new Listview(array(
                 'data' => $poiData,
@@ -1223,7 +1223,7 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
      * `points_of_interest` has no zone column, so the ones a zone page can show are reached
      * through the gossip menus of the NPCs that spawn there
      */
-    private static function getPOIsForZone(int $areaId, int $mapId) : array
+    private static function getPOIsForZone(int $areaId) : array
     {
         foreach (['points_of_interest', 'gossip_menu', 'gossip_menu_option', 'creature_template', 'creature'] as $tbl)
             if (!self::hasTable($tbl, false))
@@ -1272,24 +1272,13 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
                 'zone'    => $areaId,
                 'location' => [$areaId],
                 'x'       => $x,
-                'y'       => $y,
-                'icon'    => (int)$r['icon'],
-                'maplink' => '?maps='.$areaId               // pin-less fallback; refined below when a pin resolves
+                'y'       => $y
             );
-
-            if ($mapId > 0 && ($pt = WorldPosition::toZonePos($mapId, $x, $y, $areaId)))
-                $poi['maplink'] = '?maps='.$areaId.':'.self::pinStr($pt[0]['posX']).self::pinStr($pt[0]['posY']);
 
             $data[] = $poi;
         }
 
         return $data;
-    }
-
-    /** the three-digit pin block the Mapper link format uses per coordinate */
-    private static function pinStr(float $coord) : string
-    {
-        return sprintf('%03d', (int)round($coord * 10));
     }
     // aowow - custom end
 
