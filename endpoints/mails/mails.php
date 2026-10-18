@@ -50,7 +50,7 @@ class MailsBaseResponse extends TemplateResponse implements ICache
 
         $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"]);
 
-        $this->lvTabs->addListviewTab(new Listview(['data' => $mails->getListviewData()], MailList::$brickFile, 'mail'));
+        $this->lvTabs->addListviewTab(new Listview(['data' => $mails->getListviewData(), 'name' => Util::ucFirst(Lang::game('mails'))], MailList::$brickFile, 'mail'));
 
         // aowow - custom start: `mail_level_reward` - the mails the server sends for reaching a
         // level, which the detail page could only ever resolve backwards
