@@ -80,10 +80,11 @@ Listview.templates.graveyard = {
                         if (!(sides & s[0]))
                             return;
 
+                        // a margin rather than a space, the gap is the same in front of either emblem and wherever the cell wraps
                         var sp = $WH.ce('span');
                         sp.className = s[1];
+                        sp.style.marginLeft = '5px';
                         g_addTooltip(sp, g_sides[s[0]]);
-                        $WH.ae(td, $WH.ct(' '));
                         $WH.ae(td, sp);
                     });
                 }
