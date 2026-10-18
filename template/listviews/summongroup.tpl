@@ -22,7 +22,6 @@ Listview.templates.summongroup = {
                     entry   = lookup ? lookup[id] : null,
                     a       = $WH.ce('a');
 
-                a.className = 'q1';
                 a.href = (isNpc ? '?npc=' : '?object=') + id;
                 $WH.ae(a, $WH.ct((entry && entry[nameCol]) ? entry[nameCol] : ('#' + id)));
                 $WH.ae(td, a);
@@ -54,6 +53,7 @@ Listview.templates.summongroup = {
             id: 'members',
             name: LANG.fisummongroup.members,
             type: 'text',
+            align: 'left',
             compute: function(t, td) {
                 var nameCol = 'name_' + Locale.getName();
 
@@ -64,7 +64,6 @@ Listview.templates.summongroup = {
                     var entry = g_npcs ? g_npcs[m[0]] : null,
                         a     = $WH.ce('a');
 
-                    a.className = 'q1';
                     a.href = '?npc=' + m[0];
                     $WH.ae(td, $WH.ct(m[1] + 'x '));
                     $WH.ae(a, $WH.ct((entry && entry[nameCol]) ? entry[nameCol] : ('#' + m[0])));
@@ -84,6 +83,7 @@ Listview.templates.summongroup = {
             id: 'summonType',
             name: LANG.fisummongroup.summonType,
             type: 'text',
+            align: 'left',
             width: '18%',
             value: 'summonTypeLabel',
             sortFunc: function(a, b, col) {
@@ -94,6 +94,7 @@ Listview.templates.summongroup = {
             id: 'summonTime',
             name: LANG.fisummongroup.summonTime,
             type: 'text',
+            align: 'left',
             width: '12%',
             compute: function(t, td) {
                 if (t.summonTime)

@@ -43,10 +43,10 @@ Listview.templates.achievementcriteria = {
             id: 'type',
             name: LANG.type,
             type: 'text',
+            align: 'left',
             width: '16%',
             compute: function(crt, td) {
                 var a = $WH.ce('a');
-                a.className = 'q1';
                 a.href = '?achievement-criteria&ty=' + crt.type;
 
                 $WH.ae(a, $WH.ct(crt.typename));
@@ -76,6 +76,7 @@ Listview.templates.achievementcriteria = {
             id: 'asset',
             name: 'Asset',
             type: 'text',
+            align: 'left',
             width: '14%',
             compute: function(crt, td) {
                 if (!crt.asset)
@@ -90,7 +91,6 @@ Listview.templates.achievementcriteria = {
 
                 if (crt.asseturl && name) {
                     var a = $WH.ce('a');
-                    a.className = 'q1';
                     a.href = crt.asseturl;
 
                     $WH.ae(a, $WH.ct(name));
@@ -126,6 +126,7 @@ Listview.templates.achievementcriteria = {
             id: 'flags',
             name: 'Flags',
             type: 'text',
+            align: 'left',
             width: '16%',
             compute: function(crt, td) {
                 if (crt.flagnames)

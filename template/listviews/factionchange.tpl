@@ -7,6 +7,7 @@ Listview.templates.factionchange = {
             id: 'type',
             name: LANG.fifactionchange.type,
             type: 'text',
+            align: 'left',
             width: '14%',
             compute: function(t, td) {
                 $WH.ae(td, $WH.ct(LANG.fifactionchange.types[t.type] || ('#' + t.type)));
@@ -26,8 +27,7 @@ Listview.templates.factionchange = {
             align: 'left',
             compute: function(t, td) {
                 if (!t.alliance) {
-                    $WH.ae(td, $WH.ct('-'));
-                    return;
+                    return -1;
                 }
 
                 var file = {3: 'item', 5: 'quest', 6: 'spell', 8: 'faction', 11: 'title'}[t.type],
@@ -36,7 +36,6 @@ Listview.templates.factionchange = {
                     entry  = lookup[t.alliance],
                     a      = $WH.ce('a');
 
-                a.className = 'q1';
                 a.href = '?' + file + '=' + t.alliance;
                 $WH.ae(a, $WH.ct((entry && entry[nameCol]) ? entry[nameCol] : ('#' + t.alliance)));
 
@@ -64,8 +63,7 @@ Listview.templates.factionchange = {
             align: 'left',
             compute: function(t, td) {
                 if (!t.horde) {
-                    $WH.ae(td, $WH.ct('-'));
-                    return;
+                    return -1;
                 }
 
                 var file = {3: 'item', 5: 'quest', 6: 'spell', 8: 'faction', 11: 'title'}[t.type],
@@ -74,7 +72,6 @@ Listview.templates.factionchange = {
                     entry  = lookup[t.horde],
                     a      = $WH.ce('a');
 
-                a.className = 'q1';
                 a.href = '?' + file + '=' + t.horde;
                 $WH.ae(a, $WH.ct((entry && entry[nameCol]) ? entry[nameCol] : ('#' + t.horde)));
 

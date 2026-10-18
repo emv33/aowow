@@ -40,7 +40,6 @@ Listview.templates.text = {
                 }
 
                 var a = $WH.ce('a');
-                a.className = 'q1';
                 a.href = '?' + t.ownerurl + '=' + t.ownerid;
                 $WH.ae(a, $WH.ct(text));
                 $WH.ae(td, a);

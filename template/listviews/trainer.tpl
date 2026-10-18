@@ -70,10 +70,10 @@ Listview.templates.trainer = {
             width: '12%',
             value: 'cost',
             compute: function(t, td) {
-                if (t.cost)
-                    Listview.funcBox.appendMoney(td, t.cost);
-                else
-                    $WH.ae(td, $WH.ct('-'));
+                if (!t.cost)
+                    return -1;
+
+                Listview.funcBox.appendMoney(td, t.cost);
             },
             getVisibleText: function(t) {
                 return t.cost;
@@ -87,8 +87,7 @@ Listview.templates.trainer = {
             align: 'left',
             compute: function(t, td) {
                 if (!t.reqSkill) {
-                    $WH.ae(td, $WH.ct('-'));
-                    return;
+                    return -1;
                 }
 
                 var icon = g_skills.createIcon(t.reqSkill, 0);
@@ -121,7 +120,10 @@ Listview.templates.trainer = {
             width: '7%',
             value: 'reqSkillRank',
             compute: function(t, td) {
-                $WH.ae(td, $WH.ct(t.reqSkillRank || '-'));
+                if (!t.reqSkillRank)
+                    return -1;
+
+                $WH.ae(td, $WH.ct(t.reqSkillRank));
             },
             getVisibleText: function(t) {
                 return t.reqSkillRank;
@@ -134,7 +136,10 @@ Listview.templates.trainer = {
             width: '7%',
             value: 'reqLevel',
             compute: function(t, td) {
-                $WH.ae(td, $WH.ct(t.reqLevel || '-'));
+                if (!t.reqLevel)
+                    return -1;
+
+                $WH.ae(td, $WH.ct(t.reqLevel));
             },
             getVisibleText: function(t) {
                 return t.reqLevel;

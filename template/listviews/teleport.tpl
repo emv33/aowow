@@ -39,7 +39,6 @@ Listview.templates.teleport = {
                 var zone = g_zones ? g_zones[t.zone] : null,
                     a    = $WH.ce('a');
 
-                a.className = 'q1';
                 a.href = '?zone=' + t.zone;
                 $WH.ae(a, $WH.ct(zone || ('#' + t.zone)));
                 $WH.ae(td, a);
@@ -55,9 +54,13 @@ Listview.templates.teleport = {
             id: 'pos',
             name: LANG.fiteleport.position,
             type: 'text',
+            align: 'left',
             width: '20%',
             compute: function(t, td) {
-                $WH.ae(td, $WH.ct(t.posx || t.posy ? (t.posx + ', ' + t.posy) : '-'));
+                if (!t.posx && !t.posy)
+                    return -1;
+
+                $WH.ae(td, $WH.ct(t.posx + ', ' + t.posy));
             },
             getVisibleText: function(t) {
                 return t.posx + ', ' + t.posy;
@@ -78,6 +81,7 @@ Listview.templates.teleport = {
             id: 'orientation',
             name: LANG.fiteleport.orientation,
             type: 'text',
+            align: 'left',
             width: '15%',
             compute: function(t, td) {
                 $WH.ae(td, $WH.ct(t.o + '° (' + t.odir + ')'));

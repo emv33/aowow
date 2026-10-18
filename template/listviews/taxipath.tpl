@@ -24,6 +24,7 @@ Listview.templates.taxipath = {
             align: 'left',
             compute: function(tp, td) {
                 var a = $WH.ce('a');
+                a.style.fontFamily = 'Verdana, sans-serif';
                 a.href = this.getItemLink(tp);
                 $WH.ae(a, $WH.ct(tp.from + ' → ' + tp.to));
                 $WH.ae(td, a);
@@ -36,12 +37,12 @@ Listview.templates.taxipath = {
             id: 'zones',
             name: LANG.fitaxipath.zones,
             type: 'text',
+            align: 'left',
             width: '25%',
             compute: function(tp, td) {
                 var part = function(areaId, name) {
                     if (areaId && g_zones[areaId]) {
                         var a = $WH.ce('a');
-                        a.className = 'q1';
                         a.href = '?zone=' + areaId;
                         $WH.ae(a, $WH.ct(g_zones[areaId]));
                         $WH.ae(td, a);
@@ -65,6 +66,7 @@ Listview.templates.taxipath = {
             id: 'flightmaster',
             name: LANG.fitaxipath.flightmaster,
             type: 'text',
+            align: 'left',
             width: '20%',
             compute: function(tp, td) {
                 if (!tp.flightmaster || !tp.flightmaster.length)
@@ -82,7 +84,6 @@ Listview.templates.taxipath = {
                         $WH.ae(td, $WH.ct(LANG.comma));
 
                     var a = $WH.ce('a');
-                    a.className = 'q1';
                     a.href = '?npc=' + id;
                     $WH.ae(a, $WH.ct(e[nameCol]));
                     $WH.ae(td, a);
@@ -106,6 +107,7 @@ Listview.templates.taxipath = {
             id: 'triggers',
             name: LANG.fitaxipath.triggers,
             type: 'text',
+            align: 'left',
             width: '25%',
             compute: function(tp, td) {
                 var nameCol = 'name_' + Locale.getName();
@@ -120,7 +122,6 @@ Listview.templates.taxipath = {
                             $WH.ae(td, $WH.ct(LANG.comma));
 
                         var a = $WH.ce('a');
-                        a.className = 'q1';
                         a.href = '?' + s[1] + '=' + s[2];
                         $WH.ae(a, $WH.ct((entry && entry[nameCol]) || ('#' + s[2])));
 

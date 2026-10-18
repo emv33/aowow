@@ -40,7 +40,6 @@ Listview.templates.graveyard = {
                 var label = t.mapName || ('#' + t.map);
                 if (t.mapLink) {
                     var a = $WH.ce('a');
-                    a.className = 'q1';
                     a.href = t.mapLink;
                     $WH.ae(a, $WH.ct(label));
                     $WH.ae(td, a);
@@ -62,8 +61,7 @@ Listview.templates.graveyard = {
             align: 'left',
             compute: function(t, td) {
                 if (!t.zones || !t.zones.length) {
-                    $WH.ae(td, $WH.ct('-'));
-                    return;
+                    return -1;
                 }
 
                 for (var i = 0; i < t.zones.length; i++) {
@@ -84,7 +82,6 @@ Listview.templates.graveyard = {
                         name = (g_zones && g_zones[z]) ? g_zones[z] : ('#' + z);
 
                     var a = $WH.ce('a');
-                    a.className = 'q1';
                     a.href = '?zone=' + z;
                     $WH.ae(a, $WH.ct(name));
 
@@ -122,6 +119,7 @@ Listview.templates.graveyard = {
             id: 'faction',
             name: LANG.figraveyard.faction,
             type: 'text',
+            align: 'left',
             width: '12%',
             compute: function(t, td) {
                 // the side's emblem in front of its name, as the other listings show it; both sides get both

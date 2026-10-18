@@ -37,12 +37,10 @@ Listview.templates.poi = {
             align: 'left',
             compute: function(t, td) {
                 if (!t.zone) {
-                    $WH.ae(td, $WH.ct('-'));
-                    return;
+                    return -1;
                 }
 
                 var a = $WH.ce('a');
-                a.className = 'q1';
                 a.href = t.maplink || ('?maps=' + t.zone);
                 $WH.ae(a, $WH.ct((g_zones && g_zones[t.zone]) ? g_zones[t.zone] : ('#' + t.zone)));
                 $WH.ae(td, a);
@@ -58,9 +56,13 @@ Listview.templates.poi = {
             id: 'pos',
             name: LANG.fipoi.position,
             type: 'text',
+            align: 'left',
             width: '16%',
             compute: function(t, td) {
-                $WH.ae(td, $WH.ct((t.x || t.y) ? (t.x + ', ' + t.y) : '-'));
+                if (!t.x && !t.y)
+                    return -1;
+
+                $WH.ae(td, $WH.ct(t.x + ', ' + t.y));
             },
             getVisibleText: function(t) {
                 return t.x + ', ' + t.y;

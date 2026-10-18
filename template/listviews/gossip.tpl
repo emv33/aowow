@@ -42,6 +42,7 @@ Listview.templates.gossip = {
             id: 'textids',
             name: LANG.figossip.textid,
             type: 'text',
+            align: 'left',
             width: '15%',
             compute: function(gossip, td) {
                 if (!gossip.textids || !gossip.textids.length)
@@ -81,6 +82,7 @@ Listview.templates.gossip = {
             id: 'openedby',
             name: LANG.gossip_openedby,
             type: 'text',
+            align: 'left',
             compute: function(gossip, td) {
                 var nameCol = 'name_' + Locale.getName();
                 var first   = true;
@@ -98,7 +100,6 @@ Listview.templates.gossip = {
                             $WH.ae(td, $WH.ct(LANG.comma));
 
                         var a = $WH.ce('a');
-                        a.className = 'q1';
                         a.href = '?' + urlPart + '=' + ids[i];
                         $WH.ae(a, $WH.ct(entry[nameCol]));
                         $WH.ae(td, a);
@@ -116,7 +117,6 @@ Listview.templates.gossip = {
                         $WH.ae(td, $WH.ct(LANG.comma));
 
                     var a = $WH.ce('a');
-                    a.className = 'q1';
                     a.href = '?gossip=' + m.id;
                     $WH.ae(a, $WH.ct(m.name));
                     $WH.ae(td, a);

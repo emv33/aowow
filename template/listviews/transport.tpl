@@ -11,7 +11,7 @@ Listview.templates.transport = {
             value: 'name',
             compute: function(tr_, td) {
                 var a = $WH.ce('a');
-                a.className = 'q1';
+                a.style.fontFamily = 'Verdana, sans-serif';
                 a.href = '?object=' + tr_.id;
 
                 $WH.ae(a, $WH.ct(tr_.name));
@@ -32,6 +32,7 @@ Listview.templates.transport = {
             id: 'type',
             name: LANG.fitransport.type,
             type: 'text',
+            align: 'left',
             width: '15%',
             compute: function(tr_, td) {
                 $WH.ae(td, $WH.ct(LANG.transport_types[tr_.type] || ('#' + tr_.type)));
@@ -47,6 +48,7 @@ Listview.templates.transport = {
             id: 'route',
             name: LANG.fitransport.route,
             type: 'text',
+            align: 'left',
             width: '40%',
             compute: function(tr_, td) {
                 if (!tr_.from && !tr_.to)
@@ -55,7 +57,6 @@ Listview.templates.transport = {
                 var append = function(name, areaId) {
                     if (areaId && g_zones[areaId]) {
                         var a = $WH.ce('a');
-                        a.className = 'q1';
                         a.href = '?zone=' + areaId;
                         $WH.ae(a, $WH.ct(name || g_zones[areaId]));
                         $WH.ae(td, a);

@@ -41,7 +41,6 @@ Listview.templates.smartai = {
 
                 if (name && sai.url) {
                     var a = $WH.ce('a');
-                    a.className = 'q1';
                     a.href = '?' + sai.url + '=' + sai.linkid;
                     $WH.ae(a, $WH.ct(name));
                     $WH.ae(td, a);
@@ -61,7 +60,6 @@ Listview.templates.smartai = {
                             $WH.ae(td, $WH.ct(', '));
 
                         var a = $WH.ce('a');
-                        a.className = 'q1';
                         a.href = '?' + o.url + '=' + o.id;
                         $WH.ae(a, $WH.ct(smartaiResolveName(o.url, o.id, o.lookup, o.name) || ('#' + o.id)));
                         $WH.ae(td, a);
@@ -96,6 +94,7 @@ Listview.templates.smartai = {
             id: 'eventtypes',
             name: LANG.fismartai.events,
             type: 'text',
+            align: 'left',
             width: '27%',
             compute: function(sai, td) {
                 if (!sai.eventtypes || !sai.eventtypes.length)
@@ -114,6 +113,7 @@ Listview.templates.smartai = {
             id: 'actiontypes',
             name: LANG.fismartai.actions,
             type: 'text',
+            align: 'left',
             width: '27%',
             compute: function(sai, td) {
                 if (!sai.actiontypes || !sai.actiontypes.length)

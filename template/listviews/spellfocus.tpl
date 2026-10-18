@@ -37,12 +37,10 @@ Listview.templates.spellfocus = {
             align: 'left',
             compute: function(t, td) {
                 if (!t.objlink) {
-                    $WH.ae(td, $WH.ct('-'));
-                    return;
+                    return -1;
                 }
 
                 var a = $WH.ce('a');
-                a.className = 'q1';
                 a.href = t.objlink;
                 $WH.ae(a, $WH.ct(t.objcount == 1 ? t.objname : (t.objcount + ' ' + LANG.types[2][3])));
                 $WH.ae(td, a);
