@@ -299,6 +299,17 @@ class ConditionsBaseResponse extends TemplateResponse implements ICache
                 $row['groupurl']  = Type::getFileString(Type::GOSSIP);
             }
 
+            // the entities the conditions themselves name; a source whose conditions name none keeps just its count
+            foreach ($r['targets'] as [$tType, $tId])
+                if ($tId > 0 && ($_ = Type::getJSGlobalString($tType)))
+                {
+                    $row['targets'][] = [$_, Type::getFileString($tType), $tId];
+                    $jsg[$tType][$tId] = $tId;
+                }
+
+            if ($r['nTargets'] > count($r['targets']))
+                $row['moretargets'] = Lang::condition('andMore', [$r['nTargets'] - count($r['targets'])]);
+
             $data[] = $row;
         }
 

@@ -90,9 +90,60 @@ Listview.templates.condition = {
         {
             id: 'nconditions',
             name: LANG.ficondition.count,
-            type: 'num',
-            width: '10%',
-            value: 'nconditions'
+            type: 'text',
+            width: '28%',
+            align: 'left',
+            compute: function(cnd, td) {
+                var nameCol = 'name_' + Locale.getName();
+
+                // the entities the conditions refer to; a source that names none shows how many it has
+                if (!cnd.targets || !cnd.targets.length) {
+                    $WH.ae(td, $WH.ct(cnd.nconditions));
+                    return;
+                }
+
+                for (var i = 0; i < cnd.targets.length; i++) {
+                    var t      = cnd.targets[i],
+                        lookup = window[t[0]],
+                        entry  = lookup && lookup[t[2]],
+                        a      = $WH.ce('a');
+
+                    a.className = 'q1';
+                    a.href = '?' + t[1] + '=' + t[2];
+                    $WH.ae(a, $WH.ct((entry && entry[nameCol]) || ('#' + t[2])));
+
+                    if (i)
+                        $WH.ae(td, $WH.ct(LANG.comma));
+
+                    if (entry && entry.icon) {
+                        var icon = Icon.create(entry.icon, 0, null, a.href, null, null, null, null, true);
+                        $WH.ae(td, icon);
+                        $WH.ae(td, $WH.ct(' '));
+                    }
+
+                    $WH.ae(td, a);
+                }
+
+                if (cnd.moretargets)
+                    $WH.ae(td, $WH.ct(' ' + cnd.moretargets));
+            },
+            getVisibleText: function(cnd) {
+                var nameCol = 'name_' + Locale.getName(),
+                    parts   = [];
+
+                (cnd.targets || []).forEach(function(t) {
+                    var lookup = window[t[0]],
+                        entry  = lookup && lookup[t[2]];
+
+                    if (entry && entry[nameCol])
+                        parts.push(entry[nameCol]);
+                });
+
+                return parts.join(' ');
+            },
+            sortFunc: function(a, b, col) {
+                return a.nconditions - b.nconditions;
+            }
         },
         {
             id: 'cndtypes',

@@ -261,7 +261,8 @@ class Conditions
      * the detail view of a single source stays with getBySource(); this only enumerates them
      *
      * @param  array $opts  srcType: int[], cndType: int, value1: int, entry: int, limit: int (0 = uncapped)
-     * @return array        list of [srcType, group, entry, srcId, nConditions, cndTypes[]]
+     * @return array        list of [srcType, group, entry, srcId, nConditions, cndTypes[], nTargets, targets[[Type::, id], ..]]
+     *                      targets are the entities the conditions' Value1 names, the first few only - nTargets is the full count
      */
     public static function browse(array $opts = []) : array
     {
@@ -296,9 +297,21 @@ class Conditions
         $limit = intVal($opts['limit'] ?? 0);
         $limit = $limit > 0 && $limit < PHP_INT_MAX ? ' LIMIT '.$limit : '';
 
+        // Value1 of these condition types is the id of an entity the listing can link (masks are not)
+        $linkable = [];
+        foreach (self::$conditions as $cndId => $def)
+            if (is_int($def[self::IDX_CND_VAL1]) && $def[self::IDX_CND_VAL1] > 0 && !in_array($cndId, [self::CHR_CLASS, self::CHR_RACE], true))
+                $linkable[] = $cndId;
+
+        $target = '(CASE ABS(c.`ConditionTypeOrReference`)';
+        foreach ($linkable as $cndId)
+            $target .= ' WHEN '.$cndId.' THEN CONCAT('.self::$conditions[$cndId][self::IDX_CND_VAL1].', ":", c.`ConditionValue1`)';
+        $target .= ' END)';
+
         $rows = DB::World()->selectAssoc(
            'SELECT   c.`SourceTypeOrReferenceId` AS "srcType", c.`SourceGroup` AS "group", c.`SourceEntry` AS "entry", c.`SourceId` AS "srcId",
-                     COUNT(1) AS "nConditions", GROUP_CONCAT(DISTINCT ABS(c.`ConditionTypeOrReference`)) AS "cndTypes"
+                     COUNT(1) AS "nConditions", GROUP_CONCAT(DISTINCT ABS(c.`ConditionTypeOrReference`)) AS "cndTypes",
+                     COUNT(DISTINCT '.$target.') AS "nTargets", SUBSTRING_INDEX(GROUP_CONCAT(DISTINCT '.$target.'), ",", 3) AS "targets"
             FROM     conditions c
             WHERE    %and
             GROUP BY c.`SourceTypeOrReferenceId`, c.`SourceGroup`, c.`SourceEntry`, c.`SourceId`
@@ -308,14 +321,22 @@ class Conditions
 
         $out = [];
         foreach ($rows as $r)
+        {
+            $targets = [];
+            foreach (array_filter(explode(',', (string)$r['targets'])) as $t)
+                $targets[] = array_map('intVal', explode(':', $t));
+
             $out[] = array(
                 'srcType'     => (int)$r['srcType'],
                 'group'       => (int)$r['group'],
                 'entry'       => (int)$r['entry'],
                 'srcId'       => (int)$r['srcId'],
                 'nConditions' => (int)$r['nConditions'],
-                'cndTypes'    => array_map('intVal', explode(',', (string)$r['cndTypes']))
+                'cndTypes'    => array_map('intVal', explode(',', (string)$r['cndTypes'])),
+                'nTargets'    => (int)$r['nTargets'],
+                'targets'     => $targets
             );
+        }
 
         return $out;
     }
