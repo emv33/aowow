@@ -95,7 +95,7 @@ class PoiBaseResponse extends TemplateResponse implements ICache
         if ($icon)
             $infobox[] = Lang::poi('icon').Lang::main('colon').$icon;
 
-        if ($mapId && ($pt = WorldPosition::toZonePos($mapId, $posX, $posY)))
+        if ($mapId !== null && ($pt = WorldPosition::toZonePos($mapId, $posX, $posY)))
         {
             $p      = $pt[0];
             $areaId = (int)$p['areaId'];
@@ -123,16 +123,16 @@ class PoiBaseResponse extends TemplateResponse implements ICache
      * the same menu-ancestor walk pois.php's getPoiMaps() does for the whole table, scoped to one
      * point and collecting the actual owners rather than just the map they resolve to
      *
-     * @return array [mapId, npcEntries, objectEntries]
+     * @return array [mapId (null: unknown - map 0 is Eastern Kingdoms), npcEntries, objectEntries]
      */
     private function findOwners(int $poiId) : array
     {
         if (!self::hasTable('gossip_menu_option'))
-            return [0, [], []];
+            return [null, [], []];
 
         $menus = DB::World()->selectCol('SELECT DISTINCT `MenuID` FROM gossip_menu_option WHERE `ActionPoiID` = %i', $poiId) ?: [];
         if (!$menus)
-            return [0, [], []];
+            return [null, [], []];
 
         $allMenus = [];
         foreach ($menus as $m)
@@ -195,12 +195,15 @@ class PoiBaseResponse extends TemplateResponse implements ICache
         $npcs    = array_values(array_unique(array_map('intval', $npcs)));
         $objects = array_values(array_unique(array_map('intval', $objects)));
 
-        $mapId = 0;
+        $mapId = null;
         if ($npcs && self::hasTable('creature'))
-            $mapId = (int)DB::World()->selectCell('SELECT MIN(`map`) FROM creature WHERE `id` IN %in', $npcs);
+            $mapId = DB::World()->selectCell('SELECT MIN(`map`) FROM creature WHERE `id` IN %in', $npcs);
 
-        if (!$mapId && $objects && self::hasTable('gameobject'))
-            $mapId = (int)DB::World()->selectCell('SELECT MIN(`map`) FROM gameobject WHERE `id` IN %in', $objects);
+        if ($mapId === null && $objects && self::hasTable('gameobject'))
+            $mapId = DB::World()->selectCell('SELECT MIN(`map`) FROM gameobject WHERE `id` IN %in', $objects);
+
+        if ($mapId !== null)
+            $mapId = (int)$mapId;
 
         return [$mapId, $npcs, $objects];
     }

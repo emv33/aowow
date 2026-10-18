@@ -75,7 +75,7 @@ class GraveyardBaseResponse extends TemplateResponse implements ICache
 
         // optional position table on cores that still ship it; its name, map and exact position win where present
         $name  = '';
-        $mapId = 0;
+        $mapId = null;                                      // map 0 is Eastern Kingdoms, so "unknown" is null
         $posX  = 0.0;
         $posY  = 0.0;
 
@@ -86,7 +86,8 @@ class GraveyardBaseResponse extends TemplateResponse implements ICache
             {
                 $lc    = array_change_key_case($pos, CASE_LOWER);
                 $name  = trim((string)($lc['comment'] ?? $lc['name'] ?? ''));
-                $mapId = (int)($lc['map'] ?? $lc['mapid'] ?? $lc['map_id'] ?? 0);
+                $mapId = $lc['map'] ?? $lc['mapid'] ?? $lc['map_id'] ?? null;
+                $mapId = $mapId === null ? null : (int)$mapId;
                 $posX  = (float)($lc['position_x'] ?? $lc['x'] ?? 0);
                 $posY  = (float)($lc['position_y'] ?? $lc['y'] ?? 0);
             }
@@ -95,10 +96,10 @@ class GraveyardBaseResponse extends TemplateResponse implements ICache
         if ($name === '')
             $name = $comment;
 
-        if (!$mapId && $zones)
+        if ($mapId === null && $zones)
         {
             $mapByZone = DB::Aowow()->selectCell('SELECT `mapId` FROM ::zones WHERE `id` = %i', $zones[0]);
-            $mapId     = (int)$mapByZone;
+            $mapId     = $mapByZone === null || $mapByZone === false ? null : (int)$mapByZone;
         }
 
 
@@ -146,7 +147,7 @@ class GraveyardBaseResponse extends TemplateResponse implements ICache
 
         // a point only when the position table actually named one; the link-table-only case has
         // no coordinates at all, same gap the listing lives with
-        if ($mapId && ($posX || $posY) && ($pt = WorldPosition::toZonePos($mapId, $posX, $posY)))
+        if ($mapId !== null && ($posX || $posY) && ($pt = WorldPosition::toZonePos($mapId, $posX, $posY)))
         {
             $p      = $pt[0];
             $areaId = (int)$p['areaId'];
@@ -161,7 +162,7 @@ class GraveyardBaseResponse extends TemplateResponse implements ICache
                 null
             );
         }
-        else if ($mapId)
+        else if ($mapId !== null)
             $infobox[] = Lang::graveyard('map').Lang::main('colon').$mapId;
 
         $this->infobox = new InfoboxMarkup($infobox, ['allow' => Markup::CLASS_STAFF, 'dbpage' => true], 'infobox-contents0');
