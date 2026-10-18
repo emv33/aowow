@@ -4,7 +4,7 @@ Listview.templates.condition = {
 
     // a link to an entity the way its own listings show it: item / spell / ... icon in front,
     // quests with the marker the game shows for them (yellow, or blue if repeatable)
-    appendLink: function(td, lookupName, entry, href, name) {
+    appendLink: function(td, lookupName, id, entry, href, name) {
         var a = $WH.ce('a');
         a.className = 'q1';
         a.href = href;
@@ -14,9 +14,18 @@ Listview.templates.condition = {
             a.className += ' icontiny tinyspecial';
             a.style.backgroundImage = 'url(' + Icon.url(entry && (entry.daily || entry.weekly) ? 'quest_start_daily' : 'quest_start', null, true) + ')';
         }
-        else if (entry && entry.icon) {
-            $WH.ae(td, Icon.create(entry.icon, 0, null, href, null, null, null, null, true));
-            $WH.ae(td, $WH.ct(' '));
+        else {
+            // classes and races have no icon in their data, the client knows them by file name
+            var icon = entry && entry.icon;
+            if (lookupName == 'g_classes')
+                icon = 'class_' + g_file_classes[id];
+            else if (lookupName == 'g_races')
+                icon = 'race_' + g_file_races[id] + '_' + g_file_genders[0];
+
+            if (icon) {
+                $WH.ae(td, Icon.create(icon, 0, null, href, null, null, null, null, true));
+                $WH.ae(td, $WH.ct(' '));
+            }
         }
 
         $WH.ae(td, a);
@@ -64,7 +73,7 @@ Listview.templates.condition = {
                     var name = (entry && entry[nameCol]) || inlineName;
 
                     if (name)
-                        Listview.templates.condition.appendLink(td, lookupName, entry, '?' + urlPart + '=' + id, name);
+                        Listview.templates.condition.appendLink(td, lookupName, id, entry, '?' + urlPart + '=' + id, name);
                     else
                         $WH.ae(td, $WH.ct('#' + id));
 
@@ -140,7 +149,7 @@ Listview.templates.condition = {
                     var lookup = window[t.l],
                         entry  = lookup && lookup[t.i];
 
-                    Listview.templates.condition.appendLink(td, t.l, entry, '?' + t.u + '=' + t.i, (entry && entry[nameCol]) || ('#' + t.i));
+                    Listview.templates.condition.appendLink(td, t.l, t.i, entry, '?' + t.u + '=' + t.i, (entry && entry[nameCol]) || ('#' + t.i));
 
                     if (t.n)                                    // the rank a skill is needed at, or the standings of a faction
                         $WH.ae(td, $WH.ct(' (' + (t.l == 'g_factions' ? ConditionList.standings(t.n) : t.n) + ')'));
