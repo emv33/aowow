@@ -142,10 +142,16 @@ class SmartaiBaseResponse extends TemplateResponse implements ICache
         $talIds    = array_column(array_filter($rows, fn($r) => $r['srcType'] == SmartAI::SRC_TYPE_ACTIONLIST), 'entry');
         $talOwners = $talIds ? SmartAI::getActionListOwners($talIds) : [];
 
-        foreach ($rows as $i => $r)
+        // a script has no id of its own; source type + entry is the key. The entry is zero-padded to
+        // the widest one of its source type, like the game text ids, so the keys order as numbers do
+        $width = [];
+        foreach ($rows as $r)
+            $width[$r['srcType']] = max($width[$r['srcType']] ?? 0, strlen((string)abs($r['entry'])));
+
+        foreach ($rows as $r)
         {
             $row = array(
-                'id'          => $i,                        // a script has no id of its own; source type + entry is the key
+                'id'          => $r['srcType'].':'.($r['entry'] < 0 ? '-' : '').str_pad((string)abs($r['entry']), $width[$r['srcType']], '0', STR_PAD_LEFT),
                 'srctype'     => $r['srcType'],
                 'entry'       => $r['entry'],
                 'nrows'       => $r['nRows'],
