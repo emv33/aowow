@@ -36,28 +36,22 @@ Listview.templates.trainer = {
             width: '30%',
             align: 'left',
             compute: function(t, td) {
-                // icon and name share one flex row so the text sits at the icon's vertical center -
-                // floated, the text started at the top edge
-                var wrapper = $WH.ce('div');
-                wrapper.style.display = 'flex';
-                wrapper.style.alignItems = 'center';
-                wrapper.style.gap = '4px';
-
-                var icon = g_spells.createIcon(t.spell, 0);
-                icon.style.cssFloat = icon.style.styleFloat = 'none';
-                icon.style.flex = '0 0 auto';
-                $WH.ae(wrapper, icon);
-
                 var nameCol = 'name_' + Locale.getName(),
                     entry   = g_spells[t.spell],
                     a       = $WH.ce('a');
+
+                // inline icon followed by the link, as the conditions listing does - a floated
+                // icon left the text at the top edge
+                if (entry && entry.icon) {
+                    $WH.ae(td, Icon.create(entry.icon, 0, null, '?spell=' + t.spell, null, null, null, null, true));
+                    $WH.ae(td, $WH.ct(' '));
+                }
 
                 a.className = 'q';
                 a.style.fontFamily = 'Verdana, sans-serif';
                 a.href = '?spell=' + t.spell;
                 $WH.ae(a, $WH.ct((entry && entry[nameCol]) ? entry[nameCol] : ('#' + t.spell)));
-                $WH.ae(wrapper, a);
-                $WH.ae(td, wrapper);
+                $WH.ae(td, a);
             },
             getVisibleText: function(t) {
                 var nameCol = 'name_' + Locale.getName(),
