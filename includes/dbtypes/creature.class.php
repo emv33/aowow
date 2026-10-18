@@ -312,8 +312,8 @@ class CreatureListFilter extends Filter
         42 => parent::ENUM_FACTION,                         // increasesrepwith
         43 => parent::ENUM_FACTION,                         // decreasesrepwith
         38 => parent::ENUM_EVENT,                           // relatedevent
-        // aowow - custom: VisibilityDistanceType of `creature_template_addon` (0 = map default is not offered)
-       106 => [1, 2, 3, 4, 5]                               // visibilityrange
+        // aowow - custom: VisibilityDistanceType of `creature_template_addon`
+       106 => [0, 1, 2, 3, 4, 5]                               // visibilityrange
     );
 
     protected static array $genericFilter = array(
@@ -644,6 +644,12 @@ class CreatureListFilter extends Filter
     {
         if ($crs == parent::ENUM_ANY)
             $ids = DB::World()->selectCol('SELECT `entry` FROM creature_template_addon WHERE `VisibilityDistanceType` > 0');
+        else if ($crs == 0)                                 // map default: no addon row at all counts too
+        {
+            $ids = DB::World()->selectCol('SELECT `entry` FROM creature_template_addon WHERE `VisibilityDistanceType` > 0');
+
+            return $ids ? ['id', $ids, '!'] : ['id', 0, '>'];
+        }
         else if (in_array($crs, self::$enums[$cr]))
             $ids = DB::World()->selectCol('SELECT `entry` FROM creature_template_addon WHERE `VisibilityDistanceType` = %i', $crs);
         else
