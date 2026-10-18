@@ -109,8 +109,9 @@ class PoiBaseResponse extends TemplateResponse implements ICache
                 ['parent' => 'mapper-generic'],
                 [$areaId => [(int)$p['floor'] => ['coords' => [[$p['posX'], $p['posY'], []]], 'count' => 1]]],
                 null,
-                null
-            );
+                [Lang::poi('foundIn')]                  // triggers the auto-click in mapper.tpl.php that sets the
+            );                                          // mapper's zone - without it the map defaults to zone 0 (black)
+            $this->map[3][$areaId] = ZoneList::getName($areaId);
         }
 
         $this->infobox = new InfoboxMarkup($infobox, ['allow' => Markup::CLASS_STAFF, 'dbpage' => true], 'infobox-contents0');
