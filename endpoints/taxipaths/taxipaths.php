@@ -43,6 +43,8 @@ class TaxipathsBaseResponse extends TemplateResponse implements ICache
 
         $this->extendGlobalData($jsg);
 
+        $this->addDataLoader('zones');                      // the Location column names its zones from g_zones
+
         parent::generate();
     }
 

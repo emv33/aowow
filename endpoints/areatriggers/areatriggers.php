@@ -98,6 +98,8 @@ class AreatriggersBaseResponse extends TemplateResponse implements ICache
 
         $this->lvTabs->addListviewTab(new Listview($tabData, AreaTriggerList::$brickFile, 'areatrigger'));
 
+        $this->addDataLoader('zones');                      // the Location column names its zones from g_zones
+
         parent::generate();
     }
 }

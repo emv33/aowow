@@ -48,6 +48,8 @@ class GraveyardsBaseResponse extends TemplateResponse implements ICache
         $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"]);
         $this->lvTabs->addListviewTab(new Listview(['data' => $this->buildListviewData()], 'graveyard', 'graveyard'));
 
+        $this->addDataLoader('zones');                      // the Location column names its zones from g_zones
+
         parent::generate();
     }
 

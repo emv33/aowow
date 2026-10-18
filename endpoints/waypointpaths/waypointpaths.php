@@ -83,6 +83,8 @@ class WaypointpathsBaseResponse extends TemplateResponse implements ICache
         $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"]);
         $this->lvTabs->addListviewTab(new Listview($tabData, WaypointPathList::$brickFile, 'waypointpath'));
 
+        $this->addDataLoader('zones');                      // the Location column names its zones from g_zones
+
         parent::generate();
     }
 }
