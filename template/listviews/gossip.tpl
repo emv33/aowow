@@ -110,6 +110,20 @@ Listview.templates.gossip = {
                 append(gossip.npcs,    g_npcs,    'npc');
                 append(gossip.objects, g_objects, 'object');
 
+                // no entity opens this menu, directly or through a chain: the menus linking to it
+                (gossip.menus || []).forEach(function(m) {
+                    if (!first)
+                        $WH.ae(td, $WH.ct(LANG.comma));
+
+                    var a = $WH.ce('a');
+                    a.className = 'q1';
+                    a.href = '?gossip=' + m.id;
+                    $WH.ae(a, $WH.ct(m.name));
+                    $WH.ae(td, a);
+
+                    first = false;
+                });
+
                 if (first)
                     return -1;
             },
@@ -119,6 +133,7 @@ Listview.templates.gossip = {
 
                 (gossip.npcs    || []).forEach(function(id) { if (g_npcs[id])    buff.push(g_npcs[id][nameCol]);    });
                 (gossip.objects || []).forEach(function(id) { if (g_objects[id]) buff.push(g_objects[id][nameCol]); });
+                (gossip.menus   || []).forEach(function(m)  { buff.push(m.name); });
 
                 return buff.join(' ');
             },
