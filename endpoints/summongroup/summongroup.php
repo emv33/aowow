@@ -79,10 +79,11 @@ class SummongroupBaseResponse extends TemplateResponse implements ICache
 
         $mapId = match ($sType)
         {
-            SUMMONER_TYPE_CREATURE   => (int)(DB::World()->selectCell('SELECT `map` FROM creature WHERE `id` = %i', $sId) ?? 0),
-            SUMMONER_TYPE_GAMEOBJECT => (int)(DB::World()->selectCell('SELECT `map` FROM gameobject WHERE `id` = %i', $sId) ?? 0),
+            SUMMONER_TYPE_CREATURE   => DB::World()->selectCell('SELECT `map` FROM creature WHERE `id` = %i', $sId),
+            SUMMONER_TYPE_GAMEOBJECT => DB::World()->selectCell('SELECT `map` FROM gameobject WHERE `id` = %i', $sId),
             default                  => $sId                // SUMMONER_TYPE_MAP - summonerId is the map itself
         };
+        $mapId = $mapId === null ? null : (int)$mapId;
 
 
         /**************/
@@ -141,7 +142,7 @@ class SummongroupBaseResponse extends TemplateResponse implements ICache
         /* Map */
         /*******/
 
-        if ($mapId)
+        if ($mapId !== null)                                // map 0 is Eastern Kingdoms, so "unknown" is null
         {
             $data = [];
             foreach ($points as [$entry, $x, $y])
