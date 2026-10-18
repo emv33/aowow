@@ -714,6 +714,15 @@ var fi_filters = {
         { id: 3, name: 'textid',   type: 'num'  }
     ],
 
+    condition: [
+        { id: 1, name: 'sepgeneral'                       },
+        { id: 2, name: 'sourcegroup',      type: 'num'    },
+        { id: 3, name: 'sourceentry',      type: 'num'    },
+        { id: 4, name: 'sourcegroupentry', type: 'num'    },
+        { id: 5, name: 'conditiontype',     type: 'conditiontype' },
+        { id: 6, name: 'conditionvalue',    type: 'num'    }
+    ],
+
     encounter: [
         { id: 1, name: 'sepgeneral'             },
         { id: 2, name: 'id',       type: 'num'  },
@@ -1840,6 +1849,13 @@ function fi_dropdownSync(_this) {
 
 function fi_init(type) {
     fi_type = type;
+
+    // aowow - custom: the condition types are named once, in LANG.condition_types; offer them as the dropdown, too
+    if (type == 'condition' && !LANG.fidropdowns.conditiontype) {
+        LANG.fidropdowns.conditiontype = [];
+        for (var id in LANG.condition_types)
+            LANG.fidropdowns.conditiontype.push([id * 1, LANG.condition_types[id]]);
+    }
 
     var
         s = $WH.ge('fi_subcat'),

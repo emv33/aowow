@@ -4821,6 +4821,12 @@ var LANG = {
     gossip_openedby: "打开者",
     gossip_menu:     "Gossip menu #$1",
     ficondition: {
+        sepgeneral:       "General",
+        sourcegroup:      "Source group",
+        sourceentry:      "Source entry",
+        sourcegroupentry: "Source group or entry",
+        conditiontype:    "Condition type",
+        conditionvalue:   "Condition value",
         srctype:    "Source type",
         gates:      "Gates",
         count:      "Conditions",

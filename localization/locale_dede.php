@@ -1225,11 +1225,6 @@ $lang = array(
     ),
     'conditionBrowser' => array(
         'srcType'       => "Source type",
-        'cndType'       => "Condition type",
-        'value1'        => "Condition value",
-        'entry'         => "Source group or entry",
-        'anySource'     => "Any source type",
-        'anyCondition'  => "Any condition type",
         'titleNpc'      => "Conditions: %s",
         'srcTypes'      => array(
             Conditions::SRC_CREATURE_LOOT_TEMPLATE      => "Creature loot",

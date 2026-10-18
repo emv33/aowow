@@ -29,10 +29,12 @@ class ConditionsBaseResponse extends TemplateResponse implements ICache
     protected  array  $scripts           = [[SC_JS_FILE, 'js/filters.js']];   // fi_toggle(), used to (un)collapse the search form
 
     protected  array  $expectedGET       = array(
-        'src' => ['filter' => FILTER_VALIDATE_INT, 'flags' => FILTER_REQUIRE_SCALAR],
-        'cnd' => ['filter' => FILTER_VALIDATE_INT, 'flags' => FILTER_REQUIRE_SCALAR],
-        'val' => ['filter' => FILTER_VALIDATE_INT, 'flags' => FILTER_REQUIRE_SCALAR],
-        'ent' => ['filter' => FILTER_VALIDATE_INT, 'flags' => FILTER_REQUIRE_SCALAR]
+        'filter' => ['filter' => FILTER_CALLBACK,     'options' => [self::class, 'sanitizeFilter']],
+        // the search form used to be plain GET parameters; kept so existing links keep working
+        'src'    => ['filter' => FILTER_VALIDATE_INT, 'flags' => FILTER_REQUIRE_SCALAR],
+        'cnd'    => ['filter' => FILTER_VALIDATE_INT, 'flags' => FILTER_REQUIRE_SCALAR],
+        'val'    => ['filter' => FILTER_VALIDATE_INT, 'flags' => FILTER_REQUIRE_SCALAR],
+        'ent'    => ['filter' => FILTER_VALIDATE_INT, 'flags' => FILTER_REQUIRE_SCALAR]
     );
 
 
@@ -68,38 +70,65 @@ class ConditionsBaseResponse extends TemplateResponse implements ICache
     );
 
     public array $srcTypeList = [];                         // for the form in the template
-    public array $cndTypeList = [];
-    public array $formValues  = [];
 
-    // no single Type:: - a browser over `conditions`, filtered by ?src/?cnd/?val/?ent rather than
-    // a Filter object that TrListPage's default key would pick up on its own
+    public function __construct(string $rawParam)
+    {
+        parent::__construct($rawParam);
+
+        // old-style parameters: translate into the equivalent filter and continue there
+        if (!isset($this->_get['filter']) && array_filter([$this->_get['src'] ?? 0, $this->_get['cnd'] ?? 0, $this->_get['val'] ?? 0, $this->_get['ent'] ?? 0]))
+        {
+            $legacy = [];
+            if ($_ = (int)($this->_get['src'] ?? 0))
+                $legacy[] = 'ty='.$_;
+
+            $cr = [];
+            if ($_ = (int)($this->_get['ent'] ?? 0))
+                $cr[] = [ConditionsFilter::CR_SOURCE_GROUP_ENTRY, 3, $_];
+            if ($_ = (int)($this->_get['cnd'] ?? 0))
+                $cr[] = [ConditionsFilter::CR_CONDITION_TYPE, $_, 0];
+            if ($_ = (int)($this->_get['val'] ?? 0))
+                $cr[] = [ConditionsFilter::CR_CONDITION_VALUE, 3, $_];
+
+            if ($cr)
+                array_push($legacy, 'cr='.implode(':', array_column($cr, 0)), 'crs='.implode(':', array_column($cr, 1)), 'crv='.implode(':', array_column($cr, 2)));
+
+            $this->forward('?conditions&filter='.implode(';', $legacy));
+        }
+
+        $this->filter = new ConditionsFilter($this->_get['filter'] ?? '');
+        if ($this->filter->shouldReload)
+        {
+            $_SESSION['error']['fi'] = $this->filter::class;
+            $get = $this->filter->buildGETParam();
+            $this->forward('?' . $this->pageName . ($get ? '&filter=' . $get : ''));
+        }
+        $this->filterError = $this->filter->error;
+    }
+
+    // no single Type:: - a browser over `conditions`
     public function getCacheKeyComponents() : array
     {
-        return array(-9, -1, User::$groups, md5(serialize($this->_get)));
+        return array(-9, -1, User::$groups, md5($this->filter->buildGETParam()));
     }
 
     protected function generate() : void
     {
-        $this->formValues  = array(
-            'src' => (int)($this->_get['src'] ?? 0),
-            'cnd' => (int)($this->_get['cnd'] ?? 0),
-            'val' => (int)($this->_get['val'] ?? 0),
-            'ent' => (int)($this->_get['ent'] ?? 0)
-        );
+        $opts = $this->filter->getBrowseOpts();
 
         // filtered to one entity's own gating conditions - name the page after it when that entity
         // is a creature; getSourceTypes() is the same [group, entry] type mapping buildListviewData()
         // below already trusts to link a row, so this only ever fires where that same lookup would.
-        // ?ent matches either SourceGroup or SourceEntry (browse()'s WHERE is an OR of both), so
-        // either side resolving to Type::NPC is enough - SRC_SMART_EVENT is excluded since its
-        // owner type comes from SourceId, not from this mapping
+        // "source group or entry" matches either side, so either resolving to Type::NPC is enough -
+        // SRC_SMART_EVENT is excluded since its owner type comes from SourceId, not from this mapping
         $this->h1 = Util::ucFirst(Lang::game('conditions'));
 
-        if ($this->formValues['src'] && $this->formValues['ent'] && $this->formValues['src'] != Conditions::SRC_SMART_EVENT)
+        $entCr = array_values(array_filter($opts['criteria'], fn($cr) => $cr['kind'] == ConditionsFilter::CR_SOURCE_GROUP_ENTRY && $cr['op'] == '='));
+        if (count($opts['srcType']) == 1 && count($entCr) == 1 && $opts['srcType'][0] != Conditions::SRC_SMART_EVENT)
         {
-            [$grpType, $entryType] = Conditions::getSourceTypes()[$this->formValues['src']] ?? [null, null, null];
+            [$grpType, $entryType] = Conditions::getSourceTypes()[$opts['srcType'][0]] ?? [null, null, null];
 
-            if (($grpType == Type::NPC || $entryType == Type::NPC) && ($npcName = CreatureList::getName($this->formValues['ent'])))
+            if (($grpType == Type::NPC || $entryType == Type::NPC) && ($npcName = CreatureList::getName($entCr[0]['value'])))
                 $this->h1 = Lang::conditionBrowser('titleNpc', [(string)$npcName]);
         }
 
@@ -117,18 +146,12 @@ class ConditionsBaseResponse extends TemplateResponse implements ICache
 
         $this->redButtons[BUTTON_WOWHEAD] = false;
 
+        if ($fiQuery = $this->filter->buildGETParam())
+            $this->fiMenuExtension = $fiQuery;
+
         $this->srcTypeList = Lang::conditionBrowser('srcTypes');
-        $this->cndTypeList = Lang::conditionBrowser('cndTypes');
 
-        $this->pageTemplate['filter'] = array_filter($this->formValues) ? 1 : 0;
-
-        $rows = Conditions::browse(array(
-            'srcType' => $this->formValues['src'] ? [$this->formValues['src']] : [],
-            'cndType' => $this->formValues['cnd'],
-            'value1'  => $this->formValues['val'],
-            'entry'   => $this->formValues['ent'],
-            'limit'   => Listview::DEFAULT_SIZE
-        ), $cndGlobals);
+        $rows = Conditions::browse($opts + ['limit' => Listview::DEFAULT_SIZE], $cndGlobals);
         $this->extendGlobalData($cndGlobals);
 
         // one tab per known source type; types without a hit get no tab, but the page keeps one
