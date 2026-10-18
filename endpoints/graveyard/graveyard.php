@@ -113,7 +113,7 @@ class GraveyardBaseResponse extends TemplateResponse implements ICache
         else
         {
             $zoneNames = array_values(array_filter(array_map(fn($z) => (string)(ZoneList::getName($z) ?? ''), $zones)));
-            $this->h1  = $zoneNames ? Lang::graveyard('unnamed', [implode(', ', $zoneNames)]) : ('Graveyard #'.$this->typeId);
+            $this->h1  = $zoneNames ? Lang::graveyard('unnamed', [implode(', ', $zoneNames)]) : Lang::zone('graveyardUnnamed', [$this->typeId]);
         }
 
         array_unshift($this->title, $this->h1, Util::ucFirst(Lang::graveyard('title')));

@@ -137,7 +137,7 @@ class GraveyardsBaseResponse extends TemplateResponse implements ICache
 
             $rows[] = array(
                 'id'      => $id,
-                'name'    => $name !== '' && $name[0] == '$' ? ' '.$name : $name,
+                'name'    => $name === '' ? Lang::zone('graveyardUnnamed', [$id]) : ($name[0] == '$' ? ' '.$name : $name),
                 'map'     => $map,
                 'mapLink' => isset($zones[0]) ? '?maps='.$zones[0] : '',
                 'zones'   => $zones,
