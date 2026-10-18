@@ -341,8 +341,8 @@ class Conditions
     /**
      * what the ?conditions listing names for one source instead of just counting its conditions
      * every condition has to name something (an entity to link or a value to print), conditions that
-     * don't take part in the logic anyway (IGNORABLE_IN_LISTING) excepted. Alternatives (several else-groups)
-     * can only be told apart while each holds a single condition, so anything more elaborate is left to the detail page
+     * don't take part in the logic anyway (IGNORABLE_IN_LISTING) excepted. What is named is a plain, deduplicated
+     * list: how the conditions combine (and / or) is for the detail page to show
      *
      * @param  array[] $conditions  rows of one source
      * @return array                [Type::, id, note] for an entity, [kind, value, comparator] for plain text
@@ -368,9 +368,6 @@ class Conditions
         foreach ($conditions as $c)
             if (!isset($groups[$c['ElseGroup'].':'.$c['ConditionTarget']]))
                 return [];
-
-        if (count(array_unique(array_column($kept, 'ElseGroup'))) > 1 && max($groups) > 1)
-            return [];
 
         $out = [];
         foreach ($kept as $c)
