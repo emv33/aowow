@@ -1434,8 +1434,21 @@ class ItemBaseResponse extends TemplateResponse implements ICache
     private function tabConditionFor() : ?array
     {
         $cnd = new Conditions();
-        $cnd->getByCondition(Type::ITEM, $this->typeId)->prepare();
-        if (!($tab = $cnd->toListviewTab('condition-for', '$LANG.tab_condition_for')))
+        $cnd->getByCondition(Type::ITEM, $this->typeId);
+
+        // aowow - custom start: conditions on the item itself - its drop from any loot template (SourceEntry), and the loot it holds (SourceGroup)
+        $cnd->getBySource(array(
+            Conditions::SRC_CREATURE_LOOT_TEMPLATE, Conditions::SRC_DISENCHANT_LOOT_TEMPLATE, Conditions::SRC_FISHING_LOOT_TEMPLATE, Conditions::SRC_GAMEOBJECT_LOOT_TEMPLATE,
+            Conditions::SRC_ITEM_LOOT_TEMPLATE, Conditions::SRC_MAIL_LOOT_TEMPLATE, Conditions::SRC_MILLING_LOOT_TEMPLATE, Conditions::SRC_PICKPOCKETING_LOOT_TEMPLATE,
+            Conditions::SRC_PROSPECTING_LOOT_TEMPLATE, Conditions::SRC_REFERENCE_LOOT_TEMPLATE, Conditions::SRC_SKINNING_LOOT_TEMPLATE, Conditions::SRC_SPELL_LOOT_TEMPLATE
+        ), entry: $this->typeId);
+        $cnd->getBySource([Conditions::SRC_ITEM_LOOT_TEMPLATE, Conditions::SRC_MILLING_LOOT_TEMPLATE, Conditions::SRC_PROSPECTING_LOOT_TEMPLATE], group: $this->typeId);
+        if ($_ = $this->subject->getField('disenchantId'))
+            $cnd->getBySource(Conditions::SRC_DISENCHANT_LOOT_TEMPLATE, group: $_);
+        // aowow - custom end
+
+        $cnd->prepare();
+        if (!($tab = $cnd->toListviewTab()))                // aowow - custom: no longer only "condition for" (upstream: 'condition-for', '$LANG.tab_condition_for')
             return null;
 
         $this->extendGlobalData($cnd->getJSGlobals());
