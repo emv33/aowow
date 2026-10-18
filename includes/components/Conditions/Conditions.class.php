@@ -123,6 +123,8 @@ class Conditions
 //  public const int LABEL                    = 59;         // ❌ reserved for TC master
     public const int GROUP_STATUS             = 60;         // player in (raid) group   group status,   NULL,           NULL
 
+    private const array IGNORABLE_IN_LISTING = [self::ALIVE, self::HP_VAL, self::HP_PCT];
+
     private const int IDX_SRC_GROUP = 0;
     private const int IDX_SRC_ENTRY = 1;
     private const int IDX_SRC_ID    = 2;
@@ -313,10 +315,14 @@ class Conditions
                  . ' WHEN c.`ConditionValue1` = '.self::TYPEID_GAMEOBJECT.' THEN CONCAT('.Type::OBJECT.', ":", c.`ConditionValue2`) END)';
         $target .= ' END)';
 
+        // plain state checks on the target; they add little next to the entity they accompany, so they don't keep a source from being listed by name
+        $keep = '(CASE WHEN c.`ConditionTypeOrReference` IN ('.implode(', ', self::IGNORABLE_IN_LISTING).') THEN NULL ELSE 1 END)';
+
         $rows = DB::World()->selectAssoc(
            'SELECT   c.`SourceTypeOrReferenceId` AS "srcType", c.`SourceGroup` AS "group", c.`SourceEntry` AS "entry", c.`SourceId` AS "srcId",
                      COUNT(1) AS "nConditions", GROUP_CONCAT(DISTINCT ABS(c.`ConditionTypeOrReference`)) AS "cndTypes",
-                     COUNT(DISTINCT c.`ElseGroup`) AS "nGroups", COUNT('.$target.') AS "nLinkable", GROUP_CONCAT(DISTINCT '.$target.') AS "targets"
+                     COUNT(DISTINCT c.`ElseGroup`) AS "nGroups", COUNT('.$keep.') AS "nKept",
+                     COUNT(DISTINCT IF('.$keep.' IS NULL, NULL, c.`ElseGroup`)) AS "nKeptGroups", COUNT('.$target.') AS "nLinkable", GROUP_CONCAT(DISTINCT '.$target.') AS "targets"
             FROM     conditions c
             WHERE    %and
             GROUP BY c.`SourceTypeOrReferenceId`, c.`SourceGroup`, c.`SourceEntry`, c.`SourceId`
@@ -331,7 +337,8 @@ class Conditions
             // anything more elaborate is left to the detail page
             $targets = [];
             $nTargets = 0;
-            if ($r['nConditions'] == $r['nGroups'] && $r['nConditions'] == $r['nLinkable'] && strlen((string)$r['targets']) < 1000)
+            //  - the ignorable conditions only count when they sit next to a kept one, not as an alternative of their own
+            if ($r['nKept'] && $r['nKept'] == $r['nKeptGroups'] && $r['nKeptGroups'] == $r['nGroups'] && $r['nKept'] == $r['nLinkable'] && strlen((string)$r['targets']) < 1000)
             {
                 foreach (array_filter(explode(',', (string)$r['targets'])) as $t)
                 {
