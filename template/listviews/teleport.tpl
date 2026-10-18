@@ -8,7 +8,21 @@ Listview.templates.teleport = {
             name: LANG.fiteleport.name,
             type: 'text',
             align: 'left',
-            value: 'name'
+            value: 'name',
+            compute: function(t, td) {
+                var a = $WH.ce('a');
+                a.style.fontFamily = 'Verdana, sans-serif';
+                a.href = this.getItemLink(t);
+
+                $WH.ae(a, $WH.ct(t.name || ('#' + t.id)));
+                $WH.ae(td, a);
+            },
+            getVisibleText: function(t) {
+                return t.name || ('#' + t.id);
+            },
+            sortFunc: function(a, b, col) {
+                return $WH.strcmp(this.getVisibleText(a), this.getVisibleText(b));
+            }
         },
         {
             id: 'zone',

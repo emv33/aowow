@@ -16,7 +16,12 @@ Listview.templates.graveyard = {
             width: '28%',
             align: 'left',
             compute: function(t, td) {
-                $WH.ae(td, $WH.ct(t.name || ('#' + t.id)));
+                var a = $WH.ce('a');
+                a.style.fontFamily = 'Verdana, sans-serif';
+                a.href = this.getItemLink(t);
+
+                $WH.ae(a, $WH.ct(t.name || ('#' + t.id)));
+                $WH.ae(td, a);
             },
             getVisibleText: function(t) {
                 return t.name || ('#' + t.id);
