@@ -56,7 +56,6 @@ class TransportsBaseResponse extends TemplateResponse implements ICache
 
     private function buildListviewData() : array
     {
-        $jsg  = [];
         $data = [];
 
         foreach (GameObjectList::getTransports() as $entry => $t)
@@ -73,19 +72,10 @@ class TransportsBaseResponse extends TemplateResponse implements ICache
             {
                 $row['from'] = $t['route']['from'];
                 $row['to']   = $t['route']['to'];
-
-                foreach (['fromArea', 'toArea'] as $k)
-                    if ($_ = $t['route'][$k])
-                        $jsg[Type::ZONE][$_] = $_;
-
-                $row['fromarea'] = $t['route']['fromArea'];
-                $row['toarea']   = $t['route']['toArea'];
             }
 
             $data[] = $row;
         }
-
-        $this->extendGlobalData($jsg);
 
         return $data;
     }

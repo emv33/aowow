@@ -51,51 +51,28 @@ Listview.templates.transport = {
             align: 'left',
             width: '40%',
             compute: function(tr_, td) {
-                if (!tr_.from && !tr_.to)
-                    return -1;
-
-                var append = function(name, areaId) {
-                    if (areaId && g_zones[areaId]) {
-                        var a = $WH.ce('a');
-                        a.href = '?zone=' + areaId;
-                        $WH.ae(a, $WH.ct(name || g_zones[areaId]));
-                        $WH.ae(td, a);
-                    }
-                    else
-                        $WH.ae(td, $WH.ct(name || '?'));
-                };
-
-                append(tr_.from, tr_.fromarea);
-                $WH.ae(td, $WH.ct(' → '));
-                append(tr_.to, tr_.toarea);
-            },
-            getVisibleText: function(tr_) {
-                return (tr_.from || '') + ' ' + (tr_.to || '');
-            },
-            sortFunc: function(a, b, col) {
-                return $WH.strcmp(this.getVisibleText(a), this.getVisibleText(b));
-            }
-        },
-        {
-            id: 'pathid',
-            name: LANG.fitransport.path,
-            type: 'num',
-            width: '10%',
-            value: 'pathid',
-            compute: function(tr_, td) {
                 if (!tr_.pathid)
                     return -1;
 
-                // a route only resolves where ?taxipath has the path, so that is where it can be linked
+                // the path page exists exactly where the route resolves; a path without one is only a number
                 if (!tr_.from && !tr_.to) {
-                    $WH.ae(td, $WH.ct(tr_.pathid));
+                    $WH.ae(td, $WH.ct($WH.sprintf(LANG.transport_path, tr_.pathid)));
                     return;
                 }
 
                 var a = $WH.ce('a');
                 a.href = '?taxipath=' + tr_.pathid;
-                $WH.ae(a, $WH.ct(tr_.pathid));
+                $WH.ae(a, $WH.ct((tr_.from || '?') + ' \u2192 ' + (tr_.to || '?')));
                 $WH.ae(td, a);
+            },
+            getVisibleText: function(tr_) {
+                if (!tr_.pathid)
+                    return '';
+
+                return (tr_.from || tr_.to) ? ((tr_.from || '') + ' ' + (tr_.to || '')) : $WH.sprintf(LANG.transport_path, tr_.pathid);
+            },
+            sortFunc: function(a, b, col) {
+                return $WH.strcmp(this.getVisibleText(a), this.getVisibleText(b));
             }
         }
     ],

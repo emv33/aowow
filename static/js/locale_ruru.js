@@ -4927,9 +4927,9 @@ var LANG = {
     encounter_lastboss: "final boss",
     fitransport: {
         type:       "Type",
-        route:      "Route",
-        path:       "Path"
+        route:      "Route"
     },
+    transport_path: "Path #$1",
     transport_types: {
         11: "Elevator",
         15: "Transport"
