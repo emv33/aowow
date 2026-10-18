@@ -4892,7 +4892,6 @@ var LANG = {
         storm:      "Storm"
     },
     fioutdoorpvp: {
-        typeId:     "Type",
         scriptName: "Script",
         comment:    "Comment"
     },
