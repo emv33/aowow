@@ -54,15 +54,7 @@ Listview.templates.teleport = {
                 if (!t.posx && !t.posy)
                     return -1;
 
-                var txt = $WH.ct(t.posx + ', ' + t.posy);
-                if (t.maplink) {
-                    var a = $WH.ce('a');
-                    a.href = t.maplink;
-                    $WH.ae(a, txt);
-                    $WH.ae(td, a);
-                }
-                else
-                    $WH.ae(td, txt);
+                $WH.ae(td, $WH.ct(t.posx + ', ' + t.posy));
             },
             getVisibleText: function(t) {
                 return t.posx + ', ' + t.posy;
