@@ -98,7 +98,7 @@ class TeleportBaseResponse extends TemplateResponse implements ICache
             $this->map[3][$areaId] = ZoneList::getName($areaId);
         }
         else
-            $infobox[] = Lang::teleport('map', [$mapId]);
+            $infobox[] = ($mapName = WorldPosition::getMapNames([$mapId])[$mapId] ?? '') ? Lang::teleport('mapName').Lang::main('colon').$mapName : Lang::teleport('map', [$mapId]);
 
         // raw world values, independent of whether the point above resolved to a zone
         $infobox[] = Lang::teleport('height').Lang::main('colon').sprintf('%.1f', (float)$row['position_z']);

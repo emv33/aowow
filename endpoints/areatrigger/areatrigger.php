@@ -113,7 +113,7 @@ class AreatriggerBaseResponse extends TemplateResponse implements ICache
                 $infobox[] = Lang::areatrigger('teleportsTo').Lang::main('colon').'[zone='.$dest['areaId'].']';
             }
             else
-                $infobox[] = Lang::areatrigger('teleportsTo').Lang::main('colon').Lang::areatrigger('map', [$dest['mapId']]);
+                $infobox[] = Lang::areatrigger('teleportsTo').Lang::main('colon').(WorldPosition::getMapNames([$dest['mapId']])[$dest['mapId']] ?? Lang::areatrigger('map', [$dest['mapId']]));
 
             $infobox[] = Lang::areatrigger('destination').Lang::main('colon').sprintf('%.1f, %.1f, %.1f', $dest['x'], $dest['y'], $dest['z']);
 

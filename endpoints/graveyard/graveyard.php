@@ -164,7 +164,7 @@ class GraveyardBaseResponse extends TemplateResponse implements ICache
             $this->map[3][$areaId] = ZoneList::getName($areaId);
         }
         else if ($mapId !== null)
-            $infobox[] = Lang::graveyard('map').Lang::main('colon').$mapId;
+            $infobox[] = Lang::graveyard('map').Lang::main('colon').(WorldPosition::getMapNames([$mapId])[$mapId] ?? $mapId);
 
         $this->infobox = new InfoboxMarkup($infobox, ['allow' => Markup::CLASS_STAFF, 'dbpage' => true], 'infobox-contents0');
 

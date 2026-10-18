@@ -145,31 +145,12 @@ class GraveyardsBaseResponse extends TemplateResponse implements ICache
             );
         }
 
-        // Map.dbc is written into the aowow DB by the zones setup step and names every map, so
-        // the raw id only survives where the table is gone
-        $mapNameByMap = [];
-        if ($mapIds && DB::Aowow()->selectCell('SHOW TABLES LIKE %s', 'dbc_map'))
-            foreach (DB::Aowow()->selectAssoc('SELECT `id` AS ARRAY_KEY, `name_loc'.Lang::getLocale()->value.'` AS "name" FROM dbc_map WHERE `id` IN %in', array_values($mapIds)) ?: [] as $mId => $mRow)
-                $mapNameByMap[(int)$mId] = (string)$mRow['name'];
+        $mapNameByMap = WorldPosition::getMapNames(array_values($mapIds));
 
         $data = [];
         foreach ($rows as $row)
         {
-            $mapName = $mapNameByMap[$row['map']] ?? '';
-
-            if ($mapName === '')
-            {
-                $mapName = match ($row['map'])
-                {
-                    0   => Lang::maps('EasternKingdoms'),
-                    1   => Lang::maps('Kalimdor'),
-                    530 => Lang::maps('Outland'),
-                    571 => Lang::maps('Northrend'),
-                    default => ''
-                };
-            }
-
-            $row['mapName'] = $mapName;
+            $row['mapName'] = $mapNameByMap[$row['map']] ?? '';
             $data[] = $row;
         }
 

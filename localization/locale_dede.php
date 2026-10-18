@@ -1377,6 +1377,7 @@ $lang = array(
         'id'            => "ID",
         'zone'          => "Zone",
         'map'           => 'Map [b]%1$d[/b]',
+        'mapName'       => "Map",
         'position'      => "Position",
         'height'        => "Height",
         'orientation'   => "Orientation",

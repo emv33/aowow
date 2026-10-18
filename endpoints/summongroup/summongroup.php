@@ -94,7 +94,7 @@ class SummongroupBaseResponse extends TemplateResponse implements ICache
         {
             SUMMONER_TYPE_CREATURE   => (string)(CreatureList::getName($sId) ?? ('#'.$sId)),
             SUMMONER_TYPE_GAMEOBJECT => (string)(GameObjectList::getName($sId) ?? ('#'.$sId)),
-            default                  => self::mapName($sId)
+            default                  => (WorldPosition::getMapNames([$sId])[$sId] ?? '#'.$sId)
         };
 
         $this->h1 = Lang::summongroup('titleOf', [$summonerLabel, $gId]);
@@ -182,26 +182,6 @@ class SummongroupBaseResponse extends TemplateResponse implements ICache
         }
 
         parent::generate();
-    }
-
-    /** SUMMONER_TYPE_MAP has no owning entity - name the map instead, same fallback graveyards.php uses */
-    private static function mapName(int $mapId) : string
-    {
-        if (DB::Aowow()->selectCell('SHOW TABLES LIKE %s', 'dbc_map'))
-        {
-            $name = DB::Aowow()->selectCell('SELECT `name_loc'.Lang::getLocale()->value.'` FROM dbc_map WHERE `id` = %i', $mapId);
-            if ($name !== null && $name !== '')
-                return (string)$name;
-        }
-
-        return match ($mapId)
-        {
-            0   => Lang::maps('EasternKingdoms'),
-            1   => Lang::maps('Kalimdor'),
-            530 => Lang::maps('Outland'),
-            571 => Lang::maps('Northrend'),
-            default => '#'.$mapId
-        };
     }
 }
 
