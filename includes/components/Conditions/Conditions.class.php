@@ -262,7 +262,8 @@ class Conditions
      *
      * @param  array $opts  srcType: int[], cndType: int, value1: int, entry: int, limit: int (0 = uncapped)
      * @return array        list of [srcType, group, entry, srcId, nConditions, cndTypes[], nTargets, targets[[Type::, id], ..]]
-     *                      targets are the entities the conditions' Value1 names, the first few only - nTargets is the full count
+     *                      targets are the entities the conditions' Value1 names, the first few only - nTargets is the full count;
+     *                      only set for sources where every else-group holds a single, linkable condition
      */
     public static function browse(array $opts = []) : array
     {
@@ -300,10 +301,10 @@ class Conditions
         // Value1 of these condition types is the id of an entity the listing can link (masks are not)
         $linkable = [];
         foreach (self::$conditions as $cndId => $def)
-            if (is_int($def[self::IDX_CND_VAL1]) && $def[self::IDX_CND_VAL1] > 0 && !in_array($cndId, [self::CHR_CLASS, self::CHR_RACE], true))
+            if (is_int($def[self::IDX_CND_VAL1]) && $def[self::IDX_CND_VAL1] > 0)
                 $linkable[] = $cndId;
 
-        $target = '(CASE ABS(c.`ConditionTypeOrReference`)';
+        $target = '(CASE c.`ConditionTypeOrReference`';   // a negative id is a reference to a condition template, not a type
         foreach ($linkable as $cndId)
             $target .= ' WHEN '.$cndId.' THEN CONCAT('.self::$conditions[$cndId][self::IDX_CND_VAL1].', ":", c.`ConditionValue1`)';
         $target .= ' END)';
@@ -311,7 +312,7 @@ class Conditions
         $rows = DB::World()->selectAssoc(
            'SELECT   c.`SourceTypeOrReferenceId` AS "srcType", c.`SourceGroup` AS "group", c.`SourceEntry` AS "entry", c.`SourceId` AS "srcId",
                      COUNT(1) AS "nConditions", GROUP_CONCAT(DISTINCT ABS(c.`ConditionTypeOrReference`)) AS "cndTypes",
-                     COUNT(DISTINCT '.$target.') AS "nTargets", SUBSTRING_INDEX(GROUP_CONCAT(DISTINCT '.$target.'), ",", 3) AS "targets"
+                     COUNT(DISTINCT c.`ElseGroup`) AS "nGroups", COUNT('.$target.') AS "nLinkable", GROUP_CONCAT(DISTINCT '.$target.') AS "targets"
             FROM     conditions c
             WHERE    %and
             GROUP BY c.`SourceTypeOrReferenceId`, c.`SourceGroup`, c.`SourceEntry`, c.`SourceId`
@@ -322,9 +323,30 @@ class Conditions
         $out = [];
         foreach ($rows as $r)
         {
+            // one condition per else-group, each naming an entity: they can be listed by name.
+            // anything more elaborate is left to the detail page
             $targets = [];
-            foreach (array_filter(explode(',', (string)$r['targets'])) as $t)
-                $targets[] = array_map('intVal', explode(':', $t));
+            $nTargets = 0;
+            if ($r['nConditions'] == $r['nGroups'] && $r['nConditions'] == $r['nLinkable'] && strlen((string)$r['targets']) < 1000)
+            {
+                foreach (array_filter(explode(',', (string)$r['targets'])) as $t)
+                {
+                    [$tType, $tId] = array_map('intVal', explode(':', $t));
+                    if ($tId <= 0)
+                        continue;
+
+                    $ids = match ($tType)                   // masks name every class / race they contain
+                    {
+                        Type::CHR_CLASS => Util::mask2bits($tId & ChrClass::MASK_ALL, 1),
+                        Type::CHR_RACE  => Util::mask2bits($tId & ChrRace::MASK_ALL, 1),
+                        default         => [$tId]
+                    };
+                    foreach ($ids as $id)
+                        $targets[$tType.':'.$id] = [$tType, $id];
+                }
+                $nTargets = count($targets);
+                $targets  = array_slice(array_values($targets), 0, 3);
+            }
 
             $out[] = array(
                 'srcType'     => (int)$r['srcType'],
@@ -333,7 +355,7 @@ class Conditions
                 'srcId'       => (int)$r['srcId'],
                 'nConditions' => (int)$r['nConditions'],
                 'cndTypes'    => array_map('intVal', explode(',', (string)$r['cndTypes'])),
-                'nTargets'    => (int)$r['nTargets'],
+                'nTargets'    => $nTargets,
                 'targets'     => $targets
             );
         }

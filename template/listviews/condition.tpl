@@ -98,7 +98,7 @@ Listview.templates.condition = {
 
                 // the entities the conditions refer to; a source that names none shows how many it has
                 if (!cnd.targets || !cnd.targets.length) {
-                    $WH.ae(td, $WH.ct(cnd.nconditions));
+                    $WH.ae(td, $WH.ct(cnd.ncondtext));
                     return;
                 }
 
