@@ -1534,6 +1534,7 @@ $lang = array(
         'startsAt'      => "Departs from",
         'endsAt'        => "Arrives at",
         'flightMaster'  => "Flight master",
+        'mount'         => "Mount",
         'flightMasters' => "Flight masters",
         'sentBySpell'   => "Sent by spell",
         'sentByScript'  => "Sent by script",

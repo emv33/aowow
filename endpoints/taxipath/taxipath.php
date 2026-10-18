@@ -79,6 +79,13 @@ class TaxipathBaseResponse extends TemplateResponse implements ICache
             }
         }
 
+        // the creature a player is put on - a transport is the ride itself
+        if (!$isTransport && $this->path['mount'])
+        {
+            $this->extendGlobalIds(Type::NPC, ...$this->path['mount']);
+            $infobox[] = Lang::taxipath('mount').Lang::main('colon').Lang::concat($this->path['mount'], Lang::CONCAT_NONE, fn($x) => '[npc='.$x.']');
+        }
+
         $this->infobox = new InfoboxMarkup($infobox, ['allow' => Markup::CLASS_STAFF, 'dbpage' => true], 'infobox-contents0');
 
         $this->redButtons = [BUTTON_LINKS => false, BUTTON_WOWHEAD => false];

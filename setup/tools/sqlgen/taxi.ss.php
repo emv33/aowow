@@ -61,7 +61,7 @@ CLISetup::registerSetup("sql", new class extends SetupScript
         /* nodes */
         /*********/
 
-        // all sensible nodes
+        // all sensible nodes (aowow - custom: with the creatures a player is mounted on, mountCreatureIdA / -H)
         $fNodes  = DB::Aowow()->selectAssoc(
            'SELECT tn.`id`,
                    tn.`mapId`,
@@ -72,6 +72,7 @@ CLISetup::registerSetup("sql", new class extends SetupScript
                    0 AS "areaY",
                    1 AS `type`, 0 AS `typeId`, 1 AS "reactA", 1 AS "reactH",
                    tn.`name_loc0`, tn.`name_loc2`, tn.`name_loc3`, tn.`name_loc4`, tn.`name_loc6`, tn.`name_loc8`,
+                   tn.`mountCreatureIdA` AS "mountA", tn.`mountCreatureIdH` AS "mountH",
                    tn.`mapId` AS "_mapId", tn.`posX` AS "_posX", tn.`posY` AS "_posY",
                    IF (tn.`id` NOT IN (15, 148, 225, 235) AND (
                           tn.`id` IN (64, 250) OR (
@@ -92,6 +93,7 @@ CLISetup::registerSetup("sql", new class extends SetupScript
                    0 AS "areaY",
                    1 AS `type`, 0 AS `typeId`, 1 AS "reactA", 1 AS "reactH",
                    tn.`name_loc0`, tn.`name_loc2`, tn.`name_loc3`, tn.`name_loc4`, tn.`name_loc6`, tn.`name_loc8`,
+                   tn.`mountCreatureIdA` AS "mountA", tn.`mountCreatureIdH` AS "mountH",
                    tn.`mapId` AS "_mapId", tn.`posX` AS "_posX", tn.`posY` AS "_posY",
                    IF (tn.name_loc0 NOT LIKE "%Transport%" AND tn.name_loc0 NOT LIKE "%Quest%" AND tn.name_loc0 NOT LIKE "%Start%" AND tn.name_loc0 NOT LIKE "%End%",
                        0, 1 ) AS "_scripted"
@@ -160,7 +162,8 @@ CLISetup::registerSetup("sql", new class extends SetupScript
         // ocean, a test map, a transport node without coordinates), the path would have no name to show without it
         $unplaced = DB::Aowow()->selectAssoc(
            'SELECT tn.`id`, IF(tn.`mapId` < 65536, tn.`mapId`, 0) AS "mapId", 0 AS "mapX", 0 AS "mapY", 0 AS "areaId", 0 AS "areaX", 0 AS "areaY", 0 AS "type", 0 AS "typeId", 1 AS "reactA", 1 AS "reactH",
-                   tn.`name_loc0`, tn.`name_loc2`, tn.`name_loc3`, tn.`name_loc4`, tn.`name_loc6`, tn.`name_loc8`
+                   tn.`name_loc0`, tn.`name_loc2`, tn.`name_loc3`, tn.`name_loc4`, tn.`name_loc6`, tn.`name_loc8`,
+                   tn.`mountCreatureIdA` AS "mountA", tn.`mountCreatureIdH` AS "mountH"
             FROM   dbc_taxinodes tn
             WHERE  tn.`id` NOT IN (SELECT `id` FROM ::taxinodes) AND
                    (tn.`id` IN (SELECT `startNodeId` FROM ::taxipath) OR tn.`id` IN (SELECT `endNodeId` FROM ::taxipath))'

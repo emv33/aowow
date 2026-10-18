@@ -32,13 +32,13 @@ class TaxiPath
 
     /**
      * @param  array $pathIds  empty for every path
-     * @return array           pathId => [from, fromArea, fromNpc, fromAreaX, fromAreaY, to, toArea, toNpc, toAreaX, toAreaY, mapId]
+     * @return array           pathId => [from, fromArea, fromNpc, fromAreaX, fromAreaY, to, toArea, toNpc, toAreaX, toAreaY, mapId, mount]
      */
     public static function getPaths(array $pathIds = []) : array
     {
         $loc  = Lang::getLocale()->value;
         $sql  = 'SELECT   tp.`id` AS ARRAY_KEY, tp.`id`,
-                          n1.`name_loc0` AS "from0", n1.`name_loc'.$loc.'` AS "fromLoc", n1.`areaId` AS "fromArea", n1.`type` AS "fromType", n1.`typeId` AS "fromTypeId", n1.`mapId`, n1.`areaX` AS "fromAreaX", n1.`areaY` AS "fromAreaY",
+                          n1.`name_loc0` AS "from0", n1.`name_loc'.$loc.'` AS "fromLoc", n1.`areaId` AS "fromArea", n1.`type` AS "fromType", n1.`typeId` AS "fromTypeId", n1.`mapId`, n1.`areaX` AS "fromAreaX", n1.`areaY` AS "fromAreaY", n1.`mountA`, n1.`mountH`,
                           n2.`name_loc0` AS "to0",   n2.`name_loc'.$loc.'` AS "toLoc",   n2.`areaId` AS "toArea",   n2.`type` AS "toType",   n2.`typeId` AS "toTypeId",             n2.`areaX` AS "toAreaX",   n2.`areaY` AS "toAreaY"
                  FROM     ::taxipath tp
                  JOIN     ::taxinodes n1 ON n1.`id` = tp.`startNodeId`
@@ -64,7 +64,8 @@ class TaxiPath
                 'toNpc'     => $r['toType'] == 'NPC' ? (int)$r['toTypeId'] : 0,
                 'toAreaX'   => (float)$r['toAreaX'],
                 'toAreaY'   => (float)$r['toAreaY'],
-                'mapId'     => (int)$r['mapId']
+                'mapId'     => (int)$r['mapId'],
+                'mount'     => array_values(array_unique(array_filter([(int)$r['mountA'], (int)$r['mountH']])))   // the creature(s) a player rides, by faction, at the start node
             );
 
         return $out;
