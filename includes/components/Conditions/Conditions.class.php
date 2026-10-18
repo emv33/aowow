@@ -25,6 +25,7 @@ class Conditions
     public const int OP_LT   = 2;                           // <
     public const int OP_GT_E = 3;                           // >=
     public const int OP_LT_E = 4;                           // <=
+    public const int OP_NE   = 5;                           // != - only ever the negation of OP_E
                                                             // Group,      Entry,     Id
     public const int SRC_NONE                        = 0;   // null,       null,      null - use when adding external conditions
     public const int SRC_CREATURE_LOOT_TEMPLATE      = 1;   // tplEntry,   itemId,    null
@@ -265,7 +266,7 @@ class Conditions
      * @param  array $opts  srcType: int[], cndType: int, value1: int, entry: int, limit: int (0 = uncapped)
      * @return array        list of [srcType, group, entry, srcId, nConditions, cndTypes[], nTargets, targets[[Type::, id], ..]]
      *                      targets are the entities the conditions' Value1 names, the first few only - nTargets is the full count;
-     *                      only set for sources where every else-group holds a single, linkable condition
+     *                      only set for sources where every condition names something, see listingTargets()
      */
     public static function browse(array $opts = []) : array
     {
@@ -298,94 +299,131 @@ class Conditions
 
         // listings in this fork are uncapped by default - see Listview::DEFAULT_SIZE
         $limit = intVal($opts['limit'] ?? 0);
-        $limit = $limit > 0 && $limit < PHP_INT_MAX ? ' LIMIT '.$limit : '';
-
-        // Value1 of these condition types is the id of an entity the listing can link (masks are not)
-        $linkable = [];
-        foreach (self::$conditions as $cndId => $def)
-            if (is_int($def[self::IDX_CND_VAL1]) && $def[self::IDX_CND_VAL1] > 0)
-                $linkable[] = $cndId;
-
-        $target = '(CASE c.`ConditionTypeOrReference`';   // a negative id is a reference to a condition template, not a type
-        foreach ($linkable as $cndId)
-            $target .= ' WHEN '.$cndId.' THEN CONCAT('.self::$conditions[$cndId][self::IDX_CND_VAL1].', ":", c.`ConditionValue1`'.($cndId == self::SKILL ? ', ":", c.`ConditionValue2`' : '').')';   // a skill comes with the rank it needs
-        // player level: not an entity, listed as plain text; a negation is folded into the comparator (5 is "not equal")
-        $target .= ' WHEN '.self::LEVEL.' THEN CONCAT("0:", c.`ConditionValue1`, ":", IF(c.`NegativeCondition`, ELT(c.`ConditionValue2` + 1, 5, 4, 3, 2, 1), c.`ConditionValue2`))';
-
-        // target health: plain text as well, "-1" being a percentage and "-2" an absolute amount; same comparator handling as the level
-        foreach ([self::HP_PCT => -1, self::HP_VAL => -2] as $cndId => $pseudo)
-            $target .= ' WHEN '.$cndId.' THEN CONCAT("'.$pseudo.'", ":", c.`ConditionValue1`, ":", IF(c.`NegativeCondition`, ELT(c.`ConditionValue2` + 1, 5, 4, 3, 2, 1), c.`ConditionValue2`))';
-
-        // "target is creature / gameobject #id" names its entity in Value2, with the type in Value1
-        $target .= ' WHEN '.self::OBJECT_ENTRY_GUID.' THEN (CASE WHEN c.`ConditionValue2` <= 0 THEN NULL'
-                 . ' WHEN c.`ConditionValue1` = '.self::TYPEID_UNIT.' THEN CONCAT('.Type::NPC.', ":", c.`ConditionValue2`)'
-                 . ' WHEN c.`ConditionValue1` = '.self::TYPEID_GAMEOBJECT.' THEN CONCAT('.Type::OBJECT.', ":", c.`ConditionValue2`) END)';
-        $target .= ' END)';
-
-        // plain state checks on the target; they add little next to the entity they accompany, so they don't keep a source from being listed by name
-        $keep = '(CASE WHEN c.`ConditionTypeOrReference` IN ('.implode(', ', self::IGNORABLE_IN_LISTING).') THEN NULL ELSE 1 END)';
+        $limit = $limit > 0 && $limit < PHP_INT_MAX ? $limit : 0;
 
         $rows = DB::World()->selectAssoc(
            'SELECT   c.`SourceTypeOrReferenceId` AS "srcType", c.`SourceGroup` AS "group", c.`SourceEntry` AS "entry", c.`SourceId` AS "srcId",
-                     COUNT(1) AS "nConditions", GROUP_CONCAT(DISTINCT ABS(c.`ConditionTypeOrReference`)) AS "cndTypes",
-                     COUNT(DISTINCT c.`ElseGroup`, c.`ConditionTarget`) AS "nGroups", COUNT('.$keep.') AS "nKept",
-                     COUNT(DISTINCT IF('.$keep.' IS NULL, NULL, c.`ElseGroup`), c.`ConditionTarget`) AS "nKeptGroups",
-                     COUNT(DISTINCT IF('.$keep.' IS NULL, NULL, c.`ElseGroup`), c.`ConditionTarget`, c.`ConditionTypeOrReference`) AS "nKeptTypes", COUNT('.$target.') AS "nLinkable", GROUP_CONCAT(DISTINCT '.$target.') AS "targets"
+                     c.`ElseGroup`, c.`ConditionTypeOrReference`, c.`ConditionTarget`, c.`ConditionValue1`, c.`ConditionValue2`, c.`NegativeCondition`
             FROM     conditions c
             WHERE    %and
-            GROUP BY c.`SourceTypeOrReferenceId`, c.`SourceGroup`, c.`SourceEntry`, c.`SourceId`
-            ORDER BY c.`SourceTypeOrReferenceId`, c.`SourceGroup`, c.`SourceEntry`, c.`SourceId` ASC'.$limit,
+            ORDER BY c.`SourceTypeOrReferenceId`, c.`SourceGroup`, c.`SourceEntry`, c.`SourceId` ASC',
             $where
         ) ?: [];
 
-        $out = [];
+        $sources = [];
         foreach ($rows as $r)
+            $sources[implode(':', [$r['srcType'], $r['group'], $r['entry'], $r['srcId']])][] = $r;
+
+        $out = [];
+        foreach ($sources as $conditions)
         {
-            // every else-group and condition target (the detail page shows those apart) holds conditions of one kind only, each naming an entity: they can be listed by name.
-            // anything more elaborate is left to the detail page
-            $targets = [];
-            $nTargets = 0;
-            //  - the ignorable conditions only count when they sit next to a kept one, not as an alternative of their own
-            if ($r['nKept'] && $r['nKeptTypes'] == $r['nKeptGroups'] && $r['nKeptGroups'] == $r['nGroups'] && $r['nKept'] == $r['nLinkable'] && strlen((string)$r['targets']) < 1000)
-            {
-                foreach (array_filter(explode(',', (string)$r['targets'])) as $t)
-                {
-                    [$tType, $tId, $tNote] = array_pad(array_map('intVal', explode(':', $t)), 3, 0);
-                    if ($tId <= 0)
-                        continue;
-
-                    if ($tType <= 0)                        // player level and target health, see above
-                    {
-                        $targets['txt'.$tType.':'.$tId.':'.$tNote] = [$tType, $tId, $tNote];
-                        continue;
-                    }
-
-                    $ids = match ($tType)                   // masks name every class / race they contain
-                    {
-                        Type::CHR_CLASS => Util::mask2bits($tId & ChrClass::MASK_ALL, 1),
-                        Type::CHR_RACE  => Util::mask2bits($tId & ChrRace::MASK_ALL, 1),
-                        default         => [$tId]
-                    };
-                    foreach ($ids as $id)
-                        $targets[$tType.':'.$id] = [$tType, $id, $tNote];
-                }
-                $nTargets = count($targets);
-                $targets  = array_slice(array_values($targets), 0, 3);
-            }
+            $first = $conditions[0];
+            $names = self::listingTargets($conditions);
 
             $out[] = array(
-                'srcType'     => (int)$r['srcType'],
-                'group'       => (int)$r['group'],
-                'entry'       => (int)$r['entry'],
-                'srcId'       => (int)$r['srcId'],
-                'nConditions' => (int)$r['nConditions'],
-                'cndTypes'    => array_map('intVal', explode(',', (string)$r['cndTypes'])),
-                'nTargets'    => $nTargets,
-                'targets'     => $targets
+                'srcType'     => (int)$first['srcType'],
+                'group'       => (int)$first['group'],
+                'entry'       => (int)$first['entry'],
+                'srcId'       => (int)$first['srcId'],
+                'nConditions' => count($conditions),
+                'cndTypes'    => array_values(array_unique(array_map(fn($c) => abs((int)$c['ConditionTypeOrReference']), $conditions))),
+                'nTargets'    => count($names),
+                'targets'     => array_slice($names, 0, 3)
             );
+
+            if ($limit && count($out) >= $limit)
+                break;
         }
 
         return $out;
+    }
+
+    /**
+     * what the ?conditions listing names for one source instead of just counting its conditions
+     * every condition has to name something (an entity to link or a value to print), conditions that
+     * don't take part in the logic anyway (IGNORABLE_IN_LISTING) excepted. Alternatives (several else-groups)
+     * can only be told apart while each holds a single condition, so anything more elaborate is left to the detail page
+     *
+     * @param  array[] $conditions  rows of one source
+     * @return array                [Type::, id, note] for an entity, [kind, value, comparator] for plain text
+     */
+    private static function listingTargets(array $conditions) : array
+    {
+        $kept   = [];
+        $groups = [];                                       // else-group, target => number of kept conditions
+        foreach ($conditions as $c)
+        {
+            if (in_array((int)$c['ConditionTypeOrReference'], self::IGNORABLE_IN_LISTING, true))
+                continue;
+
+            $kept[] = $c;
+            $key = $c['ElseGroup'].':'.$c['ConditionTarget'];
+            $groups[$key] = ($groups[$key] ?? 0) + 1;
+        }
+
+        if (!$kept)
+            return [];
+
+        // an ignored condition standing in an else-group of its own would be an alternative we'd silently drop
+        foreach ($conditions as $c)
+            if (!isset($groups[$c['ElseGroup'].':'.$c['ConditionTarget']]))
+                return [];
+
+        if (count(array_unique(array_column($kept, 'ElseGroup'))) > 1 && max($groups) > 1)
+            return [];
+
+        $out = [];
+        foreach ($kept as $c)
+        {
+            if (!($names = self::conditionTargets($c)))
+                return [];
+
+            foreach ($names as $n)
+                $out[implode(':', $n)] = $n;
+        }
+
+        return array_values($out);
+    }
+
+    /** the entities / values a single condition names; none, if it names nothing the listing can show */
+    private static function conditionTargets(array $c) : array
+    {
+        $type = (int)$c['ConditionTypeOrReference'];        // negative: reference to a condition template
+        $val1 = (int)$c['ConditionValue1'];
+        $val2 = (int)$c['ConditionValue2'];
+
+        // a negated comparison reads as the opposite comparison
+        $cmp = $c['NegativeCondition'] ? [self::OP_E => self::OP_NE, self::OP_GT => self::OP_LT_E, self::OP_LT => self::OP_GT_E, self::OP_GT_E => self::OP_LT, self::OP_LT_E => self::OP_GT][$val2] ?? -1 : $val2;
+
+        switch ($type)
+        {
+            case self::LEVEL:
+                return [['level', $val1, $cmp]];
+            case self::HP_PCT:
+                return [['health%', $val1, $cmp]];
+            case self::HP_VAL:
+                return [['health', $val1, $cmp]];
+            case self::OBJECT_ENTRY_GUID:                   // the object type is in Value1, its entry in Value2
+                if ($val2 <= 0)
+                    return [];
+
+                return match ($val1)
+                {
+                    self::TYPEID_UNIT       => [[Type::NPC,    $val2, 0]],
+                    self::TYPEID_GAMEOBJECT => [[Type::OBJECT, $val2, 0]],
+                    default                 => []
+                };
+            case self::CHR_CLASS:                           // masks name every class / race they contain
+                return array_map(fn($id) => [Type::CHR_CLASS, $id, 0], Util::mask2bits($val1 & ChrClass::MASK_ALL, 1));
+            case self::CHR_RACE:
+                return array_map(fn($id) => [Type::CHR_RACE, $id, 0], Util::mask2bits($val1 & ChrRace::MASK_ALL, 1));
+        }
+
+        $valType = self::$conditions[$type][self::IDX_CND_VAL1] ?? null;
+        if (!is_int($valType) || $valType <= 0 || $val1 <= 0)
+            return [];
+
+        return [[$valType, $val1, $type == self::SKILL ? $val2 : 0]];   // a skill comes with the rank it needs
     }
 
     public function getBySource(int|array $type, null|int|array $group = null, null|int|array $entry = null, null|int|array $id = null) : self

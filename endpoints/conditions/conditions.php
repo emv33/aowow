@@ -301,11 +301,11 @@ class ConditionsBaseResponse extends TemplateResponse implements ICache
 
             // the entities the conditions themselves name, where each one is a single linkable element; otherwise just a count
             foreach ($r['targets'] as [$tType, $tId, $tNote])
-                if ($tType <= 0)                            // player level and target health: text only, there is nothing to link to
+                if (is_string($tType))                      // plain text, there is nothing to link to
                 {
-                    $op    = [0 => '', 1 => '>', 2 => '<', 3 => "\u{2265}", 4 => "\u{2264}", 5 => "\u{2260}"][$tNote] ?? '';
-                    $label = $tType == 0 ? Lang::game('level') : Lang::spell('powerTypes', -2);
-                    $row['targets'][] = [null, null, $tId, trim($label.' '.$op.' '.$tId.($tType == -1 ? '%' : ''))];
+                    $op    = [Conditions::OP_E => '', Conditions::OP_GT => '>', Conditions::OP_LT => '<', Conditions::OP_GT_E => "\u{2265}", Conditions::OP_LT_E => "\u{2264}", Conditions::OP_NE => "\u{2260}"][$tNote] ?? '';
+                    $label = $tType == 'level' ? Lang::game('level') : Lang::spell('powerTypes', -2);
+                    $row['targets'][] = [null, null, $tId, trim($label.' '.$op.' '.$tId.($tType == 'health%' ? '%' : ''))];
                 }
                 else if ($tId > 0 && ($_ = Type::getJSGlobalString($tType)))
                 {
