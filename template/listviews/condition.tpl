@@ -1,5 +1,5 @@
 Listview.templates.condition = {
-    sort: [1],
+    sort: [2],
     searchable: 1,
 
     columns: [

@@ -34,15 +34,6 @@
                     </div>
                     <table>
                         <tr>
-                            <td><?=$this->ucFirst(Lang::conditionBrowser('srcType')).Lang::main('colon'); ?></td>
-                            <td>
-                                <select name="src">
-                                    <option value="0"><?=Lang::conditionBrowser('anySource'); ?></option>
-<?php foreach ($this->srcTypeList as $id => $name): ?>
-                                    <option value="<?=$id; ?>"<?=($f['src'] == $id ? ' selected="selected"' : ''); ?>><?=$this->escHTML($name); ?></option>
-<?php endforeach; ?>
-                                </select>
-                            </td>
                             <td><?=$this->ucFirst(Lang::conditionBrowser('entry')).Lang::main('colon'); ?></td>
                             <td><input type="text" name="ent" size="10" value="<?=($f['ent'] ?: ''); ?>" /></td>
                         </tr>

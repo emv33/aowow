@@ -99,10 +99,24 @@ class ConditionsBaseResponse extends TemplateResponse implements ICache
             'limit'   => Listview::DEFAULT_SIZE
         ));
 
-        $tabData = ['data' => $this->buildListviewData($rows)];
+        // one tab per source type; types without a hit get no tab, but the page keeps one
+        // (empty) so the listview's own "no results" state still shows
+        $bySrc = [];
+        foreach ($rows as $r)
+            $bySrc[$r['srcType']][] = $r;
 
         $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"]);
-        $this->lvTabs->addListviewTab(new Listview($tabData, 'condition', 'condition'));
+        $first = true;
+        foreach ($bySrc ?: [0 => []] as $src => $srcRows)
+        {
+            $this->lvTabs->addListviewTab(new Listview(array(
+                'id'         => 'conditions-'.$src,
+                'name'       => $this->srcTypeList[$src] ?? ($src ? '#'.$src : $this->h1),
+                'data'       => $this->buildListviewData($srcRows),
+                'hiddenCols' => ['srctype']                 // the tab says it already
+            ), 'condition', $first ? 'condition' : ''));    // the template only needs defining once
+            $first = false;
+        }
 
         parent::generate();
     }
