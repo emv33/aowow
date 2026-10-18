@@ -11,6 +11,7 @@ Listview.templates.waypointpath = {
             name: LANG.waypointpath_npc,
             type: 'text',
             width: '25%',
+            align: 'left',
             compute: function(wp, td) {
                 var nameCol = 'name_' + Locale.getName(),
                     e       = wp.npc && g_npcs[wp.npc];
@@ -19,7 +20,7 @@ Listview.templates.waypointpath = {
                     return -1;
 
                 var a = $WH.ce('a');
-                a.className = 'q1';
+                a.style.fontFamily = 'Verdana, sans-serif';
                 a.href = '?npc=' + wp.npc;
                 $WH.ae(a, $WH.ct(e[nameCol]));
                 $WH.ae(td, a);
@@ -79,12 +80,13 @@ Listview.templates.waypointpath = {
             name: LANG.fiwaypointpath.foundin,
             type: 'text',
             width: '25%',
+            align: 'left',
             compute: function(wp, td) {
                 if (!wp.areaId || !g_zones[wp.areaId])
                     return -1;
 
                 var a = $WH.ce('a');
-                a.className = 'q1';
+                a.style.fontFamily = 'Verdana, sans-serif';
                 a.href = '?zone=' + wp.areaId;
                 $WH.ae(a, $WH.ct(g_zones[wp.areaId]));
                 $WH.ae(td, a);
@@ -108,6 +110,7 @@ Listview.templates.waypointpath = {
             name: LANG.fiwaypointpath.viasmartai,
             type: 'text',
             width: '12%',
+            align: 'left',
             compute: function(wp, td) {
                 $WH.ae(td, $WH.ct(wp.viaSmartAI ? LANG.waypointpath_sourcesmartai : LANG.waypointpath_sourcedefault));
             },
