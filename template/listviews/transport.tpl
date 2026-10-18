@@ -81,7 +81,22 @@ Listview.templates.transport = {
             name: LANG.fitransport.path,
             type: 'num',
             width: '10%',
-            value: 'pathid'
+            value: 'pathid',
+            compute: function(tr_, td) {
+                if (!tr_.pathid)
+                    return -1;
+
+                // a route only resolves where ?taxipath has the path, so that is where it can be linked
+                if (!tr_.from && !tr_.to) {
+                    $WH.ae(td, $WH.ct(tr_.pathid));
+                    return;
+                }
+
+                var a = $WH.ce('a');
+                a.href = '?taxipath=' + tr_.pathid;
+                $WH.ae(a, $WH.ct(tr_.pathid));
+                $WH.ae(td, a);
+            }
         }
     ],
     getItemLink: function(tr_) {
