@@ -2550,7 +2550,7 @@ var g_conditions = {
     30: 'Das Ziel befindet sich$N: nicht; innerhalb von $2m zu [object=$1]',
     31: 'Die Entität ist$N: nicht; $C$2: vom Typ; $1$C$3 (GUID $3):;',
     32: 'Die Entität ist$N: nicht; vom Typ $1',
-    33: '$1 $2',                                            // see g_relation_types
+    33: 'The $1 $2',                                            // see g_relation_types
     34: 'Die Kreatur is$N: nicht; $2 gegenüber $1',
     35: 'Das Ziel ist$N: nicht; $3 $2m von $1 entfernt',
     36: 'Das Ziel ist$Nlebendig:tot;',

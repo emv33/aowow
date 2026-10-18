@@ -2550,7 +2550,7 @@ var g_conditions = {
     30: 'El objetivo $Nestá: no está; a $2yd de [object=$1]',
     31: 'La entidad $Nestá: no está; $C$2: un; $1$C$3 (GUID $3):;',
     32: 'La entidad $Nestá: no está; un $1',
-    33: '$1 $2',
+    33: 'The $1 $2',
     34: 'La unidad $Nestá: no está; $2 hacia $1',
     35: 'La distancia entre la unidad y $1 es$N: no es; $3 $2yd',
     36: 'La unidad $Nestá: no está; viva',
