@@ -748,7 +748,8 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
         {
             $tabData = array(
                 'data' => $atSpawns->getListviewData(),
-                'name' => Lang::game('areatriggers')
+                'name' => Lang::game('areatriggers'),
+                'id'   => 'areatriggers'
             );
 
             if (!is_null(AreaTriggerListFilter::getCriteriaIndex(3, $this->typeId)))
