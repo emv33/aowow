@@ -2171,7 +2171,8 @@ class SpellBaseResponse extends TemplateResponse implements ICache
             $_icon = $_perfItem = $_footer = [];
 
             $_footer['value'] = [0, 0, null];
-            $valueFmt = '%s';
+            $valueFmt  = '%s';
+            $valueTime = false;                             // the value is a number of milliseconds
 
             // Icons:
             // .. from item
@@ -2626,6 +2627,9 @@ class SpellBaseResponse extends TemplateResponse implements ICache
                         case SPELL_AURA_ADD_PCT_MODIFIER:
                             $valueFmt = '%s%%';
                         case SPELL_AURA_ADD_FLAT_MODIFIER:
+                            // flat durations, casting times, cooldowns and tick intervals are in ms
+                            if ($effAura == SPELL_AURA_ADD_FLAT_MODIFIER)       // the percent case falls through to here
+                                $valueTime = in_array($effMV, SpellList::SPELLMOD_MSEC);   // aowow - custom
                             if ($_ = Lang::spell('spellModOp', $effMV))
                                 $_nameMV = $this->fmtStaffTip($_, 'MiscValue: '.$effMV);
                             break;
@@ -2779,16 +2783,21 @@ class SpellBaseResponse extends TemplateResponse implements ICache
             {
                 [$min, $max, $staffTT] = $_footer['value'];
 
+                // aowow - custom: milliseconds as time, signed
+                $fmtVal = $valueTime
+                    ? fn($v) => ($v < 0 ? '-' : '').DateTime::formatTimeElapsedFloat((int)$v)
+                    : fn($v) => sprintf($valueFmt, $v);
+
                 $buffer = Lang::spell('_value').Lang::main('colon');
                 if ($min && $max && $min != $max)
-                    $buffer .= Lang::spell('pointsSpread', [sprintf($valueFmt, $min), sprintf($valueFmt, $max)]);
+                    $buffer .= Lang::spell('pointsSpread', [$fmtVal($min), $fmtVal($max)]);
                 else
-                    $buffer .= sprintf($valueFmt, $min ?: $max);
+                    $buffer .= $fmtVal($min ?: $max);
 
                 if ($effRPPL != 0)
-                    $buffer .= Lang::spell('costPerLevel', [sprintf($valueFmt, $effRPPL)]);
+                    $buffer .= Lang::spell('costPerLevel', [$fmtVal($effRPPL)]);
                 if ($effPPCP != 0)
-                    $buffer .= Lang::spell('pointsPerCP', [sprintf($valueFmt, $effPPCP)]);
+                    $buffer .= Lang::spell('pointsPerCP', [$fmtVal($effPPCP)]);
                 if ($staffTT)
                     $buffer .= $staffTT;
 
