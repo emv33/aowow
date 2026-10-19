@@ -498,7 +498,7 @@ class Gossip
                 // slot - a plain [url], not a tag: neither of these is a Type Markup knows about
                 $gender     = $slot['male'] ? 0 : 1;
                 $textLinkId = $slot['bct']
-                    ? 'bt:'.$slot['bct'].':'.GameText::SRC_NPC_TEXT.':'.$this->menuId
+                    ? 'bt:'.$slot['bct']
                     : 'nt:'.$textId.':'.$i.':'.$gender.':'.$this->menuId;
 
                 if ($slot['bct'])

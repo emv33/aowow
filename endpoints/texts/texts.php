@@ -102,16 +102,15 @@ class TextsBaseResponse extends TemplateResponse implements ICache
 
         // none picked searches every kind of text
         if ($opts['src'])
-            $rows = array_filter($rows, fn($r) => in_array($r['src'], $opts['src']));
+            $rows = array_filter($rows, fn($r) => array_intersect($r['srcs'], $opts['src']));
 
         // one tab per kind of text; kinds without a hit get no tab, but the page keeps one
         // (empty) so the listview's own "no results" state still shows.
-        // A broadcast text is one kind of text however it is reached: the ones some other table
-        // points at (row kind 'br', src = that table) share the tab with the unreferenced ones, and
-        // the source and owner columns say what speaks them
+        // a broadcast text is one line however many tables point at it; the source and owner
+        // columns of its row say what does
         $bySrc = [];
         foreach ($rows as $r)
-            $bySrc[$r['kind'] == 'br' ? GameText::SRC_BROADCAST : $r['src']][] = $r;
+            $bySrc[$r['src']][] = $r;
 
         $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"]);
         $first = true;
@@ -153,6 +152,27 @@ class TextsBaseResponse extends TemplateResponse implements ICache
             // all, so the component hands over a label for the cases a g_* lookup cannot cover
             if ($r['ownerName'])
                 $row['ownername'] = $r['ownerName'];
+
+            foreach ($r['refs'] as $ref)
+            {
+                $x = ['src' => $ref['src']];
+                if ($ref['ownerName'])
+                    $x['ownername'] = $ref['ownerName'];
+
+                if ($ref['ownerType'] && $ref['ownerId'] > 0)
+                {
+                    $x['ownerid']  = $ref['ownerId'];
+                    $x['ownerurl'] = Type::getFileString($ref['ownerType']);
+
+                    if ($_ = Type::getJSGlobalString($ref['ownerType']))
+                    {
+                        $x['ownerlookup'] = $_;
+                        $jsg[$ref['ownerType']][$ref['ownerId']] = $ref['ownerId'];
+                    }
+                }
+
+                $row['refs'][] = $x;
+            }
 
             if ($r['ownerType'] && $r['ownerId'] > 0)
             {

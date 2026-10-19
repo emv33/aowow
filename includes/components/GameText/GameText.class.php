@@ -70,7 +70,8 @@ class GameText
         $out  = [];
         foreach ($rows as $r)
         {
-            $key = $r['src'].':'.$r['ownerType'].':'.$r['ownerId'].':'.$r['text'];
+            // a broadcast text that something points at is its own line however its text reads
+            $key = $r['refs'] ? $r['id'] : $r['src'].':'.$r['ownerType'].':'.$r['ownerId'].':'.$r['text'];
             if (isset($seen[$key]))
                 continue;
 
@@ -78,7 +79,7 @@ class GameText
 
             // filtered last: a broadcast text re-attributed to a gossip menu must answer to the
             // gossip filter rather than to the one naming the table it happens to live in
-            if (!$src || $src == $r['src'])
+            if (!$src || in_array($src, $r['srcs']))
                 $out[] = $r;
         }
 
@@ -89,18 +90,23 @@ class GameText
      * zero-pad the numeric parts of the composite row ids so they order the way the numbers do -
      * to the widest value found in that position among the rows of the same source, not to a fixed
      * width. Every getOne() parser casts to int, so unpadded links keep resolving.
-     * The positions mean something different per kind of id ('ct', 'br', ...), so widths are kept per kind.
+     * The positions mean something different per kind of id ('ct', 'nt', ...), so widths are kept per kind.
      */
     private static function padIds(array $rows) : array
     {
+        // a lone number (bt:8186, pt:12) is the id of the thing itself and stays as written
         $width = [];
         foreach ($rows as $r)
-            foreach (explode(':', $r['id']) as $i => $part)
+            if (substr_count($r['id'], ':') > 1)
+                foreach (explode(':', $r['id']) as $i => $part)
                 if ($i && ctype_digit($part))
                     $width[$r['kind']][$i] = max($width[$r['kind']][$i] ?? 0, strlen($part));
 
         foreach ($rows as &$r)
         {
+            if (substr_count($r['id'], ':') < 2)
+                continue;
+
             $parts = explode(':', $r['id']);
             foreach ($parts as $i => &$part)
                 if ($i && ctype_digit($part))
@@ -162,8 +168,28 @@ class GameText
             'text'      => self::excerpt($text),
             'ownerType' => $ownerType,
             'ownerId'   => $ownerId,
-            'ownerName' => $ownerName
+            'ownerName' => $ownerName,
+            'refs'      => [],                              // broadcast text only: everything that points at it, [src, ownerType, ownerId, ownerName]
+            'srcs'      => [$src]                           // the sources a source filter has to match
         );
+    }
+
+    /** @param array $refs  [[src, ownerType, ownerId], ...] as broadcastReferrers() hands them out */
+    private static function attachRefs(array &$row, array $refs) : void
+    {
+        $seen = [];
+        foreach ($refs as [$src, $ownerType, $ownerId])
+        {
+            if (isset($seen[$src.':'.$ownerType.':'.$ownerId]))
+                continue;
+
+            $seen[$src.':'.$ownerType.':'.$ownerId] = true;
+
+            $name = $ownerType == Type::GOSSIP ? Lang::gossip('menu', [$ownerId]) : '';
+            $row['refs'][] = ['src' => $src, 'ownerType' => $ownerType, 'ownerId' => $ownerId, 'ownerName' => $name];
+        }
+
+        $row['srcs'] = array_values(array_unique(array_merge([self::SRC_BROADCAST], array_column($row['refs'], 'src'))));
     }
 
     /** what a creature says, yells or whispers - the speaker is the row's own key */
@@ -221,15 +247,12 @@ class GameText
             if ((string)$r['Text1'] && (string)$r['Text'] && $r['Text'] != $r['Text1'])
                 $txt = $r['Text'].' / '.$r['Text1'];
 
-            // reported as whatever speaks it; the table it lives in is an implementation detail
-            if (!isset($refs[$id]))
-            {
-                $out[] = self::row(self::SRC_BROADCAST, 'bt:'.$id, $id, $txt);
-                continue;
-            }
+            // one row per line, however many tables point at it; what does is listed on the row
+            $row = self::row(self::SRC_BROADCAST, 'bt:'.$id, $id, $txt);
+            if (isset($refs[$id]))
+                self::attachRefs($row, $refs[$id]);
 
-            foreach ($refs[$id] as [$src, $ownerType, $ownerId])
-                $out[] = self::row($src, 'br:'.$ownerId.':'.$src.':'.$id, $id, $txt, $ownerType, $ownerId);
+            $out[] = $row;
         }
 
         return $out;
@@ -559,7 +582,7 @@ class GameText
      * source table - the ?text=<id> detail page's only query.
      *
      * @param  string $id  the composite key browse() hands out: 'ct:creature:group:row',
-     *                     'bt:id[:src:ownerId]' (older form of 'br:ownerId:src:id'), 'nt:id:slot:gender:menu', 'go:menu:option:col',
+     *                     'bt:id', 'nt:id:slot:gender:menu', 'go:menu:option:col',
      *                     'pt:id'
      */
     public static function getOne(string $id) : ?array
@@ -575,9 +598,8 @@ class GameText
         {
             'ct'    => self::oneCreatureText($id, $rest),
             'bt'    => self::oneBroadcastText($id, $rest),
-            // owner first, like the other kinds: 'br:owner:src:broadcastTextId'; handled as the
-            // older 'bt:broadcastTextId:src:owner', which is still accepted
-            'br'    => count($rest) == 3 ? self::oneBroadcastText($id, [$rest[2], $rest[1], $rest[0]]) : null,
+            // the per-referrer 'br:owner:src:broadcastTextId' of older links: same line, now one page
+            'br'    => count($rest) == 3 ? self::oneBroadcastText('bt:'.(int)$rest[2], [$rest[2]]) : null,
             'nt'    => self::oneNpcText($id, $rest),
             'go'    => self::oneGossipOption($id, $rest),
             'pt'    => self::onePageText($id, $rest),
@@ -631,24 +653,9 @@ class GameText
         if ((string)$row['Text1'] && (string)$row['Text'] && $row['Text'] != $row['Text1'])
             $txt = $row['Text'].' / '.$row['Text1'];
 
-        // a specific referrer was encoded into the id; reconstruct its owner rather than re-walking
-        // every referrer table for the one that matches
-        if (count($p) >= 3)
-        {
-            $encSrc    = (int)$p[1];
-            $ownerId   = (int)$p[2];
-            $ownerType = match ($encSrc)
-            {
-                self::SRC_CREATURE_TEXT => Type::NPC,
-                self::SRC_NPC_TEXT      => ($ownerId ? Type::GOSSIP : null),
-                self::SRC_GOSSIP_OPTION => Type::GOSSIP,
-                default                 => null
-            };
-
-            $out = self::row($encSrc, $id, $btId, $txt, $ownerType, $ownerId);
-        }
-        else
-            $out = self::row(self::SRC_BROADCAST, $id, $btId, $txt);
+        $out = self::row(self::SRC_BROADCAST, $id, $btId, $txt);
+        if ($refs = self::broadcastReferrers([$btId])[$btId] ?? [])
+            self::attachRefs($out, $refs);
 
         $out['raw'] = $txt;
 
