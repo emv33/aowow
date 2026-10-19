@@ -33,15 +33,13 @@ class TextsBaseResponse extends TemplateResponse implements ICache
         'q'      => ['filter' => FILTER_CALLBACK, 'options' => [self::class, 'checkTextLine']]
     );
 
-    // the listview id doubles as the tab's #anchor; named after the label rather than the table.
-    // 'br' is a broadcast text some other table points at, attributed to that table's source
+    // the listview id doubles as the tab's #anchor; named after the label rather than the table
     private const array TAB_IDS = array(
-        'ct' => 'creature-text',
-        'bt' => 'broadcast-text',
-        'nt' => 'gossip-text',
-        'go' => 'gossip-option',
-        'pt' => 'page-text',
-        'br' => 'broadcast-text-of'
+        GameText::SRC_CREATURE_TEXT => 'creature-text',
+        GameText::SRC_BROADCAST     => 'broadcast-text',
+        GameText::SRC_NPC_TEXT      => 'gossip-text',
+        GameText::SRC_GOSSIP_OPTION => 'gossip-option',
+        GameText::SRC_PAGE_TEXT     => 'page-text'
     );
 
     public string $notice = '';
@@ -106,45 +104,31 @@ class TextsBaseResponse extends TemplateResponse implements ICache
         if ($opts['src'])
             $rows = array_filter($rows, fn($r) => in_array($r['src'], $opts['src']));
 
-        // one tab per kind of text - a source can hold rows of more than one kind (its own and the
-        // broadcast texts pointing at it), which are different things and so get tabs of their own;
-        // kinds without a hit get no tab, but the page keeps one (empty) so the listview's own
-        // "no results" state still shows
-        $byTab = [];
+        // one tab per kind of text; kinds without a hit get no tab, but the page keeps one
+        // (empty) so the listview's own "no results" state still shows.
+        // A broadcast text is one kind of text however it is reached: the ones some other table
+        // points at (row kind 'br', src = that table) share the tab with the unreferenced ones, and
+        // the source and owner columns say what speaks them
+        $bySrc = [];
         foreach ($rows as $r)
-            $byTab[$r['src']][$r['kind']][] = $r;
+            $bySrc[$r['kind'] == 'br' ? GameText::SRC_BROADCAST : $r['src']][] = $r;
 
         $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"]);
         $first = true;
         foreach (GameText::SOURCES as $src => $_)
         {
-            if (!$byTab && $src != GameText::SRC_CREATURE_TEXT)
+            if (!$bySrc && $src != GameText::SRC_CREATURE_TEXT)
+                continue;
+            if ($bySrc && empty($bySrc[$src]))
                 continue;
 
-            $kinds = $byTab[$src] ?? [];
-            if ($byTab && !$kinds)
-                continue;
-            if (!$kinds)
-                $kinds = [GameText::KIND_OWN[$src] => []];
-
-            foreach ($kinds as $kind => $kindRows)
-            {
-                $name = Lang::gameText('sources', $src);
-                $id   = self::TAB_IDS[$kind];
-                if ($kind == 'br')
-                {
-                    $name .= ' ('.Lang::gameText('sources', GameText::SRC_BROADCAST).')';
-                    $id   .= '-'.$src;
-                }
-
-                $this->lvTabs->addListviewTab(new Listview(array(
-                    'id'         => $id,
-                    'name'       => $name,
-                    'data'       => $this->buildListviewData($kindRows),
-                    'hiddenCols' => ['src']                 // the tab says it already
-                ), 'text', $first ? 'text' : ''));          // the template only needs defining once
-                $first = false;
-            }
+            $this->lvTabs->addListviewTab(new Listview(array(
+                'id'         => self::TAB_IDS[$src],
+                'name'       => Lang::gameText('sources', $src),
+                'data'       => $this->buildListviewData($bySrc[$src] ?? []),
+                'hiddenCols' => $src == GameText::SRC_BROADCAST ? [] : ['src']   // elsewhere the tab says it already
+            ), 'text', $first ? 'text' : ''));              // the template only needs defining once
+            $first = false;
         }
 
         parent::generate();

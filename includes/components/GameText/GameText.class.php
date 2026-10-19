@@ -36,15 +36,6 @@ class GameText
         self::SRC_PAGE_TEXT     => 'page_text'
     );
 
-    // the id prefix of the rows a source holds itself
-    public const array KIND_OWN = array(
-        self::SRC_CREATURE_TEXT => 'ct',
-        self::SRC_BROADCAST     => 'bt',
-        self::SRC_NPC_TEXT      => 'nt',
-        self::SRC_GOSSIP_OPTION => 'go',
-        self::SRC_PAGE_TEXT     => 'pt'
-    );
-
     private static function hasTable(string $tbl) : bool
     {
         static $known = [];
