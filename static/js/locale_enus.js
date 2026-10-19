@@ -1000,7 +1000,7 @@ var mn_database = [
     [, "Other"],
     [31, "Icons", "?icons", mn_icons],
     [19,"Sounds","?sounds",mn_sounds],
-    [102, 'Areatrigger', '?areatriggers', mn_areatrigger],    // aowow - custom
+    [102, 'Areatriggers', '?areatriggers', mn_areatrigger],    // aowow - custom
     [103, 'Mails', '?mails'],                                // aowow - custom
     [104, 'Gossip', '?gossips'],    // aowow - custom
     [105, 'Conditions', '?conditions'],    // aowow - custom
