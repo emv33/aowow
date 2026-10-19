@@ -36,6 +36,15 @@ class GameText
         self::SRC_PAGE_TEXT     => 'page_text'
     );
 
+    // the id prefix of the rows a source holds itself
+    public const array KIND_OWN = array(
+        self::SRC_CREATURE_TEXT => 'ct',
+        self::SRC_BROADCAST     => 'bt',
+        self::SRC_NPC_TEXT      => 'nt',
+        self::SRC_GOSSIP_OPTION => 'go',
+        self::SRC_PAGE_TEXT     => 'pt'
+    );
+
     private static function hasTable(string $tbl) : bool
     {
         static $known = [];
@@ -89,6 +98,7 @@ class GameText
      * zero-pad the numeric parts of the composite row ids so they order the way the numbers do -
      * to the widest value found in that position among the rows of the same source, not to a fixed
      * width. Every getOne() parser casts to int, so unpadded links keep resolving.
+     * The positions mean something different per kind of id ('ct', 'br', ...), so widths are kept per kind.
      */
     private static function padIds(array $rows) : array
     {
@@ -96,14 +106,14 @@ class GameText
         foreach ($rows as $r)
             foreach (explode(':', $r['id']) as $i => $part)
                 if ($i && ctype_digit($part))
-                    $width[$r['src']][$i] = max($width[$r['src']][$i] ?? 0, strlen($part));
+                    $width[$r['kind']][$i] = max($width[$r['kind']][$i] ?? 0, strlen($part));
 
         foreach ($rows as &$r)
         {
             $parts = explode(':', $r['id']);
             foreach ($parts as $i => &$part)
                 if ($i && ctype_digit($part))
-                    $part = str_pad($part, $width[$r['src']][$i], '0', STR_PAD_LEFT);
+                    $part = str_pad($part, $width[$r['kind']][$i], '0', STR_PAD_LEFT);
             unset($part);
 
             $r['id'] = implode(':', $parts);
@@ -156,6 +166,7 @@ class GameText
         return array(
             'src'       => $src,
             'id'        => $id,                             // listviews need a unique key; none of these tables has a single column one
+            'kind'      => strtok($id, ':'),                // the id's prefix: ct, bt, br, nt, go, pt - rows of one kind are alike, one source can hold several
             'entry'     => $entry,
             'text'      => self::excerpt($text),
             'ownerType' => $ownerType,

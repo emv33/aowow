@@ -74,6 +74,6 @@ Listview.templates.text = {
         }
     ],
     getItemLink: function(t) {
-        return '?text=' + encodeURIComponent(t.id);
+        return '?text=' + encodeURIComponent(t.kind + ':' + t.id);
     }
 }

@@ -33,13 +33,15 @@ class TextsBaseResponse extends TemplateResponse implements ICache
         'q'      => ['filter' => FILTER_CALLBACK, 'options' => [self::class, 'checkTextLine']]
     );
 
-    // the listview id doubles as the tab's #anchor; named after the label rather than the table
+    // the listview id doubles as the tab's #anchor; named after the label rather than the table.
+    // 'br' is a broadcast text some other table points at, attributed to that table's source
     private const array TAB_IDS = array(
-        GameText::SRC_CREATURE_TEXT => 'creature-text',
-        GameText::SRC_BROADCAST     => 'broadcast-text',
-        GameText::SRC_NPC_TEXT      => 'gossip-text',
-        GameText::SRC_GOSSIP_OPTION => 'gossip-option',
-        GameText::SRC_PAGE_TEXT     => 'page-text'
+        'ct' => 'creature-text',
+        'bt' => 'broadcast-text',
+        'nt' => 'gossip-text',
+        'go' => 'gossip-option',
+        'pt' => 'page-text',
+        'br' => 'broadcast-text-of'
     );
 
     public string $notice = '';
@@ -104,28 +106,45 @@ class TextsBaseResponse extends TemplateResponse implements ICache
         if ($opts['src'])
             $rows = array_filter($rows, fn($r) => in_array($r['src'], $opts['src']));
 
-        // one tab per kind of text; kinds without a hit get no tab, but the page keeps one
-        // (empty) so the listview's own "no results" state still shows
-        $bySrc = [];
+        // one tab per kind of text - a source can hold rows of more than one kind (its own and the
+        // broadcast texts pointing at it), which are different things and so get tabs of their own;
+        // kinds without a hit get no tab, but the page keeps one (empty) so the listview's own
+        // "no results" state still shows
+        $byTab = [];
         foreach ($rows as $r)
-            $bySrc[$r['src']][] = $r;
+            $byTab[$r['src']][$r['kind']][] = $r;
 
         $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"]);
         $first = true;
         foreach (GameText::SOURCES as $src => $_)
         {
-            if (!$bySrc && $src != GameText::SRC_CREATURE_TEXT)
-                continue;
-            if ($bySrc && empty($bySrc[$src]))
+            if (!$byTab && $src != GameText::SRC_CREATURE_TEXT)
                 continue;
 
-            $this->lvTabs->addListviewTab(new Listview(array(
-                'id'         => self::TAB_IDS[$src],
-                'name'       => Lang::gameText('sources', $src),
-                'data'       => $this->buildListviewData($bySrc[$src] ?? []),
-                'hiddenCols' => ['src']                     // the tab says it already
-            ), 'text', $first ? 'text' : ''));              // the template only needs defining once
-            $first = false;
+            $kinds = $byTab[$src] ?? [];
+            if ($byTab && !$kinds)
+                continue;
+            if (!$kinds)
+                $kinds = [GameText::KIND_OWN[$src] => []];
+
+            foreach ($kinds as $kind => $kindRows)
+            {
+                $name = Lang::gameText('sources', $src);
+                $id   = self::TAB_IDS[$kind];
+                if ($kind == 'br')
+                {
+                    $name .= ' ('.Lang::gameText('sources', GameText::SRC_BROADCAST).')';
+                    $id   .= '-'.$src;
+                }
+
+                $this->lvTabs->addListviewTab(new Listview(array(
+                    'id'         => $id,
+                    'name'       => $name,
+                    'data'       => $this->buildListviewData($kindRows),
+                    'hiddenCols' => ['src']                 // the tab says it already
+                ), 'text', $first ? 'text' : ''));          // the template only needs defining once
+                $first = false;
+            }
         }
 
         parent::generate();
@@ -139,7 +158,8 @@ class TextsBaseResponse extends TemplateResponse implements ICache
         foreach ($rows as $r)
         {
             $row = array(
-                'id'    => $r['id'],
+                'id'    => substr($r['id'], strlen($r['kind']) + 1),   // the tab is one kind, the prefix is its 'kind'
+                'kind'  => $r['kind'],
                 'src'   => $r['src'],
                 'entry' => $r['entry'],
                 'text'  => $r['text']
