@@ -737,9 +737,16 @@ class SpellList extends DBTypeList
 
         if ($op !== null && $oparg !== null)
         {
-            eval("\$min  = floor($min $op $oparg);");
-            eval("\$max  = ceil($max $op $oparg);");
+            // a range is widened to whole numbers, a fixed value keeps its fraction: -500 / 1000 is 0.5, not "1 to 0"
+            $single = $min == $max;                         // aowow - custom
+            eval("\$min  = $min $op $oparg;");
+            eval("\$max  = $max $op $oparg;");
             eval("\$rppl = $rppl $op $oparg;");
+            if (!$single)
+            {
+                $min = floor($min);
+                $max = ceil($max);
+            }
         }
 
         if ($rppl)
