@@ -2789,6 +2789,16 @@ class SpellBaseResponse extends TemplateResponse implements ICache
                         case SPELL_AURA_MOD_ATTACK_POWER_PCT:
                         case SPELL_AURA_MOD_RANGED_ATTACK_POWER_PCT:
                         case SPELL_AURA_MOD_WATER_BREATHING:
+                        case SPELL_AURA_MOD_SHIELD_BLOCKVALUE_PCT:
+                        case SPELL_AURA_PERIODIC_DAMAGE_PERCENT:
+                        case SPELL_AURA_MOD_RANGED_DAMAGE_TAKEN_PCT:
+                        case SPELL_AURA_MOD_MELEE_DAMAGE_TAKEN_PCT:
+                        case SPELL_AURA_MOD_OFFHAND_DAMAGE_PCT:
+                        case SPELL_AURA_MOD_CRIT_PERCENT_VERSUS:
+                        case SPELL_AURA_MOD_BASE_HEALTH_PCT:
+                        case SPELL_AURA_MOD_XP_PCT:
+                        case SPELL_AURA_MOD_XP_QUEST_PCT:
+                        case SPELL_AURA_MOD_HONOR_GAIN_PCT:
                         // aowow - custom end
                             $valueFmt = '%s%%';
                             break;
