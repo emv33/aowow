@@ -2333,6 +2333,7 @@ $lang = array(
         '_castTime'     => "Zauberzeit",
         '_cooldown'     => "Abklingzeit",
         '_distUnit'     => " Meter",
+        '_per5Sec'      => " pro 5 Sek.",
         '_forms'        => "Gestalten",
         '_aura'         => "Aura",
         '_effect'       => "Effekt",

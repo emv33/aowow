@@ -2172,7 +2172,7 @@ class SpellBaseResponse extends TemplateResponse implements ICache
 
             $_footer['value'] = [0, 0, null];
             $valueFmt  = '%s';
-            $valueTime = false;                             // the value is a number of milliseconds
+            $valueTime = 0;                                 // factor to milliseconds, when the value is a time
 
             // Icons:
             // .. from item
@@ -2502,6 +2502,9 @@ class SpellBaseResponse extends TemplateResponse implements ICache
 
                             if ($effMV == POWER_RAGE || $effMV == POWER_RUNIC_POWER)
                                 array_walk($_footer['value'], fn(&$x) => $x /= 10);
+
+                            if ($effAura == SPELL_AURA_MOD_POWER_REGEN)           // aowow - custom
+                                $valueFmt = '%s'.Lang::spell('_per5Sec');
                             break;
                         case SPELL_AURA_MOD_PERCENT_STAT:
                         case SPELL_AURA_MOD_TOTAL_STAT_PERCENTAGE:
@@ -2624,12 +2627,24 @@ class SpellBaseResponse extends TemplateResponse implements ICache
                             else
                                 $_nameMV = Util::ucFirst(Lang::game('skill')).' #'.$effMV;
                             break;
+                        // aowow - custom start
+                        case SPELL_AURA_MOD_COOLDOWN:                         // flat seconds on the caster's own spells' cooldowns
+                            $valueTime = 1000;
+                            break;
+                        case SPELL_AURA_MOD_DETECT_RANGE:                     // yards, added to the aggro radius
+                        case SPELL_AURA_MOD_DETECTED_RANGE:
+                            $valueFmt = '%s'.Lang::spell('_distUnit');
+                            break;
+                        case SPELL_AURA_MOD_REGEN:                            // health per 5 sec
+                            $valueFmt = '%s'.Lang::spell('_per5Sec');
+                            break;
+                        // aowow - custom end
                         case SPELL_AURA_ADD_PCT_MODIFIER:
                             $valueFmt = '%s%%';
                         case SPELL_AURA_ADD_FLAT_MODIFIER:
                             // flat durations, casting times, cooldowns and tick intervals are in ms
                             if ($effAura == SPELL_AURA_ADD_FLAT_MODIFIER)       // the percent case falls through to here
-                                $valueTime = in_array($effMV, SpellList::SPELLMOD_MSEC);   // aowow - custom
+                                $valueTime = in_array($effMV, SpellList::SPELLMOD_MSEC) ? 1 : 0;   // aowow - custom
                             if ($_ = Lang::spell('spellModOp', $effMV))
                                 $_nameMV = $this->fmtStaffTip($_, 'MiscValue: '.$effMV);
                             break;
@@ -2763,6 +2778,18 @@ class SpellBaseResponse extends TemplateResponse implements ICache
                         case SPELL_AURA_MOD_SPELL_CRIT_CHANCE:
                         case SPELL_AURA_MOD_MELEE_RANGED_HASTE:
                         case SPELL_AURA_MOD_CASTING_SPEED_NOT_STACK:
+                        // aowow - custom start
+                        case SPELL_AURA_MOD_REGEN_DURING_COMBAT:
+                        case SPELL_AURA_MOD_MANA_REGEN_INTERRUPT:
+                        case SPELL_AURA_MOD_MELEE_HASTE:
+                        case SPELL_AURA_MOD_RANGED_HASTE:
+                        case SPELL_AURA_MOD_RANGED_AMMO_HASTE:
+                        case SPELL_AURA_HASTE_SPELLS:
+                        case SPELL_AURA_HASTE_RANGED:
+                        case SPELL_AURA_MOD_ATTACK_POWER_PCT:
+                        case SPELL_AURA_MOD_RANGED_ATTACK_POWER_PCT:
+                        case SPELL_AURA_MOD_WATER_BREATHING:
+                        // aowow - custom end
                             $valueFmt = '%s%%';
                             break;
                     }
@@ -2783,9 +2810,9 @@ class SpellBaseResponse extends TemplateResponse implements ICache
             {
                 [$min, $max, $staffTT] = $_footer['value'];
 
-                // aowow - custom: milliseconds as time, signed
+                // aowow - custom: time values as time, signed
                 $fmtVal = $valueTime
-                    ? fn($v) => ($v < 0 ? '-' : '').DateTime::formatTimeElapsedFloat((int)$v)
+                    ? fn($v) => ($v < 0 ? '-' : '').DateTime::formatTimeElapsedFloat((int)($v * $valueTime))
                     : fn($v) => sprintf($valueFmt, $v);
 
                 $buffer = Lang::spell('_value').Lang::main('colon');
