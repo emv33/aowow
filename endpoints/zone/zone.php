@@ -743,6 +743,21 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
             $this->lvTabs->addListviewTab(new Listview($tabData, GameObjectList::$brickFile));
         }
 
+        // aowow - custom start: the areatriggers that lie in this zone, next to the objects
+        if (!$atSpawns->error)
+        {
+            $tabData = array(
+                'data' => $atSpawns->getListviewData(),
+                'name' => Lang::game('areatriggers')
+            );
+
+            if (!is_null(AreaTriggerListFilter::getCriteriaIndex(3, $this->typeId)))
+                $tabData['note'] = sprintf(Util::$filterResultString, '?areatriggers&filter=cr=3;crs='.$this->typeId.';crv=0');
+
+            $this->lvTabs->addListviewTab(new Listview($tabData, AreaTriggerList::$brickFile, AreaTriggerList::$brickFile));
+        }
+        // aowow - custom end
+
         $quests = new QuestList(array(['questSortId', $this->typeId]));
         if (!$quests->error)
         {
