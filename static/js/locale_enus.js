@@ -4746,6 +4746,8 @@ var LANG = {
         wearingitem:          "Wearing item #...",
         wearingpermenchant:   "Wearing enchantment #...",
         completedachievement: "Completed achievement #...",
+        ownsmount:            "Owns mount #...",
+        ownspet:              "Owns companion #...",
 
         sepprofession:        "Professions",
         alchemy:              "Alchemy skill",

@@ -4702,6 +4702,8 @@ var LANG = {
         wearingitem:          "Llevando objeto #...",
         wearingpermenchant:   "Llevando encantamiento #...",
         completedachievement: "Logro completado #...",
+        ownsmount:            "Tiene montura #...",
+        ownspet:              "Tiene mascota #...",
 
         sepprofession:        "Profesiones",
         alchemy:              "Habilidad de Alquimia",
