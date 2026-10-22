@@ -1572,6 +1572,7 @@ $lang = array(
         'movement'      => "Movement",
         'mount'         => "Mount",
         'mountOf'       => "Mount of",
+        'skin'          => "Skin",
         'mountDisplayId' => 'Display ID #%1$d',
         'noMount'       => "No mount",
         'noEmote'       => "No emote",

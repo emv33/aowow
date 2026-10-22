@@ -244,6 +244,10 @@ class NpcBaseResponse extends TemplateResponse implements ICache
             $infobox[] = Lang::npcExtra('mountOf').Lang::main('colon').Lang::concat(array_map(fn($x) => '[npc='.$x.']', $_), Lang::CONCAT_NONE);
         }
 
+        // skin, linking to the npc search for every creature sharing it (same filter as the listview skin column)
+        if ($_ = $this->subject->getField('textureString'))
+            $infobox[] = Lang::npcExtra('skin').Lang::main('colon').'[url=?npcs&filter=cr=35;crs=0;crv='.urlencode($_).']'.$_.'[/url]';
+
         // `pet_levelstats` and `pet_name_generation` are keyed by creature entry, not by the pet
         // family `?pet=` is built on, so this is the only page they can hang off
         $this->levelCurve = self::buildPetTable($this->typeId);
