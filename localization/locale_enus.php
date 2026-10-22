@@ -2374,6 +2374,7 @@ $lang = array(
         'special'       => "Special",
 
         'currentArea'   => '&lt;current area&gt;',
+        'durabilityItems' => [-2 => '&lt;all items, equipped and in bags&gt;', -1 => '&lt;all equipped items&gt;'], // aowow - custom: SPELL_EFFECT_DURABILITY_DAMAGE(_PCT) MiscValue < 0
         'discovered'    => "Learned via discovery",
         'ppm'           => "(%.1f procs per minute)",
         'procChance'    => "Proc chance: %.4g%%",

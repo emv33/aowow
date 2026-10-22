@@ -2459,6 +2459,26 @@ class SpellBaseResponse extends TemplateResponse implements ICache
                         $_nameMV = $this->fmtStaffTip('<span class="breadcrumb-arrow">'.$start.'</span>'.$end.' <a href="?taxipath='.$effMV.'" class="q0">#'.$effMV.'</a>', 'MiscValue: '.$effMV);
                     }
                     break;
+                // aowow - custom start: MiscValue is the player's equipment slot (EQUIPMENT_SLOT_*, bags 19 - 22),
+                // -1 all equipped items, -2 also those in backpack and bags (Spell::EffectDurabilityDamage(PCT))
+                case SPELL_EFFECT_DURABILITY_DAMAGE_PCT:
+                    $valueFmt = '%s%%';
+                    // DO NOT BREAK !
+                case SPELL_EFFECT_DURABILITY_DAMAGE:
+                    $_ = match (true)
+                    {
+                        $effMV < -1  => Lang::spell('durabilityItems', -2),
+                        $effMV < 0   => Lang::spell('durabilityItems', -1),
+                        $effMV < 10  => Lang::item('inventoryType', $effMV + 1),             // head .. hands
+                        $effMV < 12  => Lang::item('inventoryType', INVTYPE_FINGER).' '.($effMV - 9),
+                        $effMV < 14  => Lang::item('inventoryType', INVTYPE_TRINKET).' '.($effMV - 11),
+                        $effMV < 23  => Lang::item('inventoryType', [INVTYPE_CLOAK, INVTYPE_WEAPONMAINHAND, INVTYPE_WEAPONOFFHAND, INVTYPE_RANGED, INVTYPE_TABARD, INVTYPE_BAG, INVTYPE_BAG, INVTYPE_BAG, INVTYPE_BAG][$effMV - 14]),
+                        default      => ''
+                    };
+                    if ($_)
+                        $_nameMV = $this->fmtStaffTip($_, 'MiscValue: '.$effMV);
+                    break;
+                // aowow - custom end
                 case SPELL_EFFECT_TITAN_GRIP:
                     $effMV = 0;                             // effMV is trigger spell and was handled earlier
                     break;
@@ -2805,7 +2825,6 @@ class SpellBaseResponse extends TemplateResponse implements ICache
                 case SPELL_EFFECT_RESURRECT:
                 case SPELL_EFFECT_SPIRIT_HEAL:
                 case SPELL_EFFECT_WEAPON_PERCENT_DAMAGE:
-                case SPELL_EFFECT_DURABILITY_DAMAGE_PCT:
                 case SPELL_EFFECT_MODIFY_THREAT_PERCENT:
                 case SPELL_EFFECT_REDIRECT_THREAT:
                 case SPELL_EFFECT_HEAL_PCT:
