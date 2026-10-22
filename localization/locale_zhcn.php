@@ -2059,6 +2059,8 @@ $lang = array(
             6 => "Random"
         ),
         'battlemasters' => "Battlemasters",
+        'areaSpells'    => "Spells usable here",
+        'areaItems'     => "Items usable here",
         'holiday'       => "Call to Arms",
         'poi'           => "Points of interest",
         'hcAvailable'   => "英雄模式可用&nbsp;(%d)",

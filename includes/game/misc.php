@@ -179,6 +179,22 @@ class Game
         return DB::Aowow()->selectCol('SELECT `id` FROM ::zones WHERE `id` IN %in ORDER BY `id` ASC', array_unique($areas));
     }
 
+    // reverse of getAreaGroupZones(): areagroup.dbc ids whose (nextGroup-chained) area list includes $zoneId
+    public static function getAreaGroupsFor(int $zoneId) : array
+    {
+        $groups = DB::Aowow()->selectCol('SELECT `id` FROM ::areagroup WHERE %i IN (`areaId1`, `areaId2`, `areaId3`, `areaId4`, `areaId5`, `areaId6`)', $zoneId);
+        $queue  = $groups;
+
+        // a group continued by nextGroup also covers the continuation's areas
+        while ($queue && ($prev = DB::Aowow()->selectCol('SELECT `id` FROM ::areagroup WHERE `nextGroup` IN %in AND `id` NOT IN %in', $queue, $groups)))
+        {
+            $groups = array_merge($groups, $prev);
+            $queue  = $prev;
+        }
+
+        return $groups;
+    }
+
     public static function getTaughtSpells(mixed &$spell) : array
     {
         $extraIds = [-1];                                    // init with -1 to prevent empty-array errors

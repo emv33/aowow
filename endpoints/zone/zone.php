@@ -933,6 +933,44 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
             }
         }
 
+        // aowow - custom start: spells restricted to this area (spell.dbc -> areaGroupId) and the items casting them on use
+        // reverse of the "Requires: [zone]" infobox line on spell and item pages
+        if ($areaGroups = Game::getAreaGroupsFor($this->typeId))
+        {
+            $areaSpells = new SpellList(array(['areaGroupId', $areaGroups]));
+            if (!$areaSpells->error)
+            {
+                $this->extendGlobalData($areaSpells->getJSGlobals(GLOBALINFO_SELF));
+                $this->lvTabs->addListviewTab(new Listview(array(
+                    'data'       => $areaSpells->getListviewData(),
+                    'name'       => Lang::zone('areaSpells'),
+                    'id'         => 'area-spells',
+                    'hiddenCols' => ['skill']
+                ), SpellList::$brickFile));
+
+                $spellIds = $areaSpells->getFoundIDs();
+                $nonUse   = [SPELL_TRIGGER_EQUIP, SPELL_TRIGGER_HIT];
+                $areaItems = new ItemList(array(
+                    DB::OR,
+                    [DB::AND, ['spellTrigger1', $nonUse, '!'], ['spellId1', $spellIds]],
+                    [DB::AND, ['spellTrigger2', $nonUse, '!'], ['spellId2', $spellIds]],
+                    [DB::AND, ['spellTrigger3', $nonUse, '!'], ['spellId3', $spellIds]],
+                    [DB::AND, ['spellTrigger4', $nonUse, '!'], ['spellId4', $spellIds]],
+                    [DB::AND, ['spellTrigger5', $nonUse, '!'], ['spellId5', $spellIds]]
+                ));
+                if (!$areaItems->error)
+                {
+                    $this->extendGlobalData($areaItems->getJSGlobals(GLOBALINFO_SELF));
+                    $this->lvTabs->addListviewTab(new Listview(array(
+                        'data' => $areaItems->getListviewData(),
+                        'name' => Lang::zone('areaItems'),
+                        'id'   => 'area-items'
+                    ), ItemList::$brickFile));
+                }
+            }
+        }
+        // aowow - custom end
+
         // tab: subzones
         $subZones = new ZoneList(array(['parentArea', $this->typeId]));
         if (!$subZones->error)
