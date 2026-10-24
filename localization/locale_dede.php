@@ -38,7 +38,7 @@ $lang = array(
             'quest'       => 'Ein%s%s Quest%s.',
             'guild'       => '%s von %s ist eine %s-Gilde mit %d Mitgliedern.',
             'arena-team'  => '%s von %s ist ein %dvs%3$d Arena-Team.',
-            'profile'     => 'World of Warcraft Profil von %s: Level %d %s %s von %s auf %s %s.'
+            'profile'     => 'World of Warcraft Profil von %s: Level %d %s %s auf %s %s.'
         ),
         'inCategory'    => 'In der Kategorie %s.',
         'eventEndsFmt'  => "'Endet am' d. MMMM 'um' HH:mm.", // intl
@@ -896,7 +896,7 @@ $lang = array(
             SmartAction::ACTION_START_CLOSEST_WAYPOINT             => ['#target# beginnt Pfad. Betritt den Pfad am nächstliegenden dieser Punkte: %11$s.', ''],
             SmartAction::ACTION_MOVE_OFFSET                        => ['Bewege zu relativer Position — [b]X: %12$.2f,  Y: %13$.2f,  Z: %14$.2f[/b]', ''],
             SmartAction::ACTION_RANDOM_SOUND                       => ['Spiele zufälliges Audio für (%5$d)?auslösenden Spieler:alle Spieler im Sichtfeld;:%11$s', 'Wiedergabe durch Umwelt'],
-            SmartAction::ACTION_SET_CORPSE_DELAY                   => ['(%1$d)?Setze Verzögerung für das Verschwindne der Leiche von #target# auf %11$s:Die Leiche von #target# verschwindet sofort;.', 'Zeitfaktor für geplünderte Leichen wird angewendet'],
+            SmartAction::ACTION_SET_CORPSE_DELAY                   => ['(%1$d)?Setze Verzögerung für das Verschwinden der Leiche von #target# auf %11$s:Die Leiche von #target# verschwindet sofort;.', 'Zeitfaktor für geplünderte Leichen wird angewendet'],
             SmartAction::ACTION_DISABLE_EVADE                      => ['(%1$d)?Verhindere:Lasse; Entkommen(%1$d)?: zu;.', ''],
             SmartAction::ACTION_GO_SET_GO_STATE                    => ['Setze Gameobject Status auf %11$s.', ''],
             SmartAction::ACTION_SET_CAN_FLY                        => ['(%1$d)?Lasse:Verhindere; Fliegen(%1$d)? zu:;.', ''],
@@ -2376,7 +2376,7 @@ $lang = array(
         'special'       => "Besonders",
 
         'currentArea'   => '&lt;Momentanes Gebiet&gt;',
-        'durabilityItems' => [-2 => '&lt;Alle Gegenstände, angelegt und in Taschen&gt;', -1 => '&lt;Alle angelegten Gegenstände&gt;'], // aowow - custom: SPELL_EFFECT_DURABILITY_DAMAGE(_PCT) MiscValue < 0
+        'durabilityItems' => [-2 => '&lt;Alle Gegenstände, angelegt und in Taschen&gt;', -1 => '&lt;Alle angelegten Gegenstände&gt;'],
         'discovered'    => "Durch Geistesblitz erlernt",
         'ppm'           => "(%.1f Auslösungen pro Minute)",
         'procChance'    => "Procchance: %.4g%%",

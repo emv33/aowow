@@ -2459,36 +2459,26 @@ class SpellBaseResponse extends TemplateResponse implements ICache
                         $_nameMV = $this->fmtStaffTip('<span class="breadcrumb-arrow">'.$start.'</span>'.$end.' <a href="?taxipath='.$effMV.'" class="q0">#'.$effMV.'</a>', 'MiscValue: '.$effMV);
                     }
                     break;
-                // aowow - custom start: MiscValue is the player's equipment slot (EQUIPMENT_SLOT_*, bags 19 - 22),
-                // -1 all equipped items, -2 also those in backpack and bags (Spell::EffectDurabilityDamage(PCT))
                 case SPELL_EFFECT_DURABILITY_DAMAGE_PCT:
                     $valueFmt = '%s%%';
                     // DO NOT BREAK !
                 case SPELL_EFFECT_DURABILITY_DAMAGE:
-                    // CharacterSlot => [InventoryType, ordinal of a paired slot]
-                    $slots = array(
-                        SLOT_HEAD      => [INVTYPE_HEAD],            SLOT_NECK      => [INVTYPE_NECK],           SLOT_SHOULDERS => [INVTYPE_SHOULDERS],
-                        SLOT_SHIRT     => [INVTYPE_BODY],            SLOT_CHEST     => [INVTYPE_CHEST],          SLOT_WAIST     => [INVTYPE_WAIST],
-                        SLOT_LEGS      => [INVTYPE_LEGS],            SLOT_FEET      => [INVTYPE_FEET],           SLOT_WRISTS    => [INVTYPE_WRISTS],
-                        SLOT_HANDS     => [INVTYPE_HANDS],           SLOT_FINGER1   => [INVTYPE_FINGER, 1],      SLOT_FINGER2   => [INVTYPE_FINGER, 2],
-                        SLOT_TRINKET1  => [INVTYPE_TRINKET, 1],      SLOT_TRINKET2  => [INVTYPE_TRINKET, 2],     SLOT_BACK      => [INVTYPE_CLOAK],
-                        SLOT_MAIN_HAND => [INVTYPE_WEAPONMAINHAND],  SLOT_OFF_HAND  => [INVTYPE_WEAPONOFFHAND],  SLOT_RANGED    => [INVTYPE_RANGED],
-                        SLOT_TABARD    => [INVTYPE_TABARD],
-                        19             => [INVTYPE_BAG, 1],          20             => [INVTYPE_BAG, 2],         21             => [INVTYPE_BAG, 3],    // bag slots
-                        22             => [INVTYPE_BAG, 4]
+                    $slotMap = array(
+                        SLOT_HEAD      => [INVTYPE_HEAD,           ''  ], SLOT_NECK     => [INVTYPE_NECK,          ''  ], SLOT_SHOULDERS => [INVTYPE_SHOULDERS, ''  ],
+                        SLOT_SHIRT     => [INVTYPE_BODY,           ''  ], SLOT_CHEST    => [INVTYPE_CHEST,         ''  ], SLOT_WAIST     => [INVTYPE_WAIST,     ''  ],
+                        SLOT_LEGS      => [INVTYPE_LEGS,           ''  ], SLOT_FEET     => [INVTYPE_FEET,          ''  ], SLOT_WRISTS    => [INVTYPE_WRISTS,    ''  ],
+                        SLOT_HANDS     => [INVTYPE_HANDS,          ''  ], SLOT_FINGER1  => [INVTYPE_FINGER,        ' 1'], SLOT_FINGER2   => [INVTYPE_FINGER,    ' 2'],
+                        SLOT_TRINKET1  => [INVTYPE_TRINKET,        ' 1'], SLOT_TRINKET2 => [INVTYPE_TRINKET,       ' 2'], SLOT_BACK      => [INVTYPE_CLOAK,     ''  ],
+                        SLOT_MAIN_HAND => [INVTYPE_WEAPONMAINHAND, ''  ], SLOT_OFF_HAND => [INVTYPE_WEAPONOFFHAND, ''  ], SLOT_RANGED    => [INVTYPE_RANGED,    ''  ],
+                        SLOT_TABARD    => [INVTYPE_TABARD,         ''  ], SLOT_BAG1     => [INVTYPE_BAG,           ' 1'], SLOT_BAG2      => [INVTYPE_BAG,       ' 2'],
+                        SLOT_BAG3      => [INVTYPE_BAG,            ' 3'], SLOT_BAG4     => [INVTYPE_BAG,           ' 4']
                     );
 
                     if ($effMV < 0)
-                        $_ = Lang::spell('durabilityItems', $effMV < -1 ? -2 : -1);
-                    else if ($slot = $slots[$effMV] ?? null)
-                        $_ = Lang::item('inventoryType', $slot[0]).(isset($slot[1]) ? ' '.$slot[1] : '');
-                    else
-                        $_ = '';
-
-                    if ($_)
-                        $_nameMV = $this->fmtStaffTip($_, 'MiscValue: '.$effMV);
+                        $_nameMV = $this->fmtStaffTip(Lang::spell('durabilityItems', $effMV < -1 ? -2 : -1), 'MiscValue: '.$effMV);
+                    else if ([$invType, $slotSuffix] = ($slotMap[$effMV] ?? null))
+                        $_nameMV = $this->fmtStaffTip(Lang::item('inventoryType', $invType).$slotSuffix, 'MiscValue: '.$effMV);
                     break;
-                // aowow - custom end
                 case SPELL_EFFECT_TITAN_GRIP:
                     $effMV = 0;                             // effMV is trigger spell and was handled earlier
                     break;
