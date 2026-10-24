@@ -63,27 +63,48 @@ CLISetup::registerUtility(new class extends UtilityScript
             $nFiles++;
 
             $updQuery = '';
-            $nQuerys  = 0;
+            $queries  = [];
             foreach (file($file) as $line)
             {
-                // skip comments
-                if (substr($line, 0, 2) == '--' || $line == '')
+                if (($line = trim($line)) === '')
                     continue;
 
-                $updQuery .= $line;
+                // skip line comments entirely
+                if (str_starts_with($line, '--'))
+                    continue;
+
+                if (preg_match('/\)[,;] *--/', $line, $m, PREG_OFFSET_CAPTURE))
+                    $line = substr($line, 0, $m[0][1] + 2);
+
+                $updQuery .= ' ' . $line;
 
                 // semicolon at the end -> end of query
-                if (substr(trim($line), -1, 1) == ';')
+                if (str_ends_with($updQuery, ';'))
                 {
-                    if (DB::Aowow()->qry($updQuery))
-                        $nQuerys++;
-
-                    $updQuery = '';
+                    $queries[] = $updQuery;
+                    $updQuery  = '';
                 }
             }
 
+            if ($queries)
+            {
+                DB::Aowow()->begin();
+
+                foreach ($queries as $i => $q)
+                {
+                    if (DB::Aowow()->nativeQuery($q) === null)
+                    {
+                        DB::Aowow()->rollback();
+                        CLI::write('[update] failed to apply query #'.(++$i).' from file '.CLI::bold($file), CLI::LOG_ERROR);
+                        return false;
+                    }
+                }
+
+                DB::Aowow()->commit();
+            }
+
             DB::Aowow()->qry('UPDATE ::dbversion SET `date`= %i, `part` = %i', $fDate, $fPart);
-            CLI::write(' -> '.date('d.m.Y', $fDate).' #'.$fPart.': '.$nQuerys.' queries applied', CLI::LOG_OK);
+            CLI::write(' -> '.date('d.m.Y', $fDate).' #'.$fPart.': '.count($queries).' queries applied', CLI::LOG_OK);
         }
 
         CLI::write('[update] ' . ($nFiles ? 'applied '.$nFiles.' update(s)' : 'db is already up to date'), CLI::LOG_OK);
