@@ -1349,7 +1349,6 @@ $lang = array(
         'required'         => 'required: [b]%1$s[/b]',
         'worldStates'      => 'world states %1$d / %2$d',
         'pools'            => 'Spawn pools (%1$d)',
-        'seasonalQuests'   => "Seasonal quests",
         'questCondition'   => 'condition #[b]%1$d[/b] needs %2$s',
         'modelEquip'       => "Dresses as",
         'modelEquipLine'   => 'model #[b]%1$d[/b] with equipment #[b]%2$d[/b]',
