@@ -2359,6 +2359,7 @@ $lang = array(
         '_speedUnit'    => " м/с",
         '_radius'       => "Радиус действия: ",
         '_targets'      => "Цели: ",  // aowow - custom: implicit effect targets
+        '_weapon'       => "Оружие: ",  // aowow - custom: attack type of weapon damage effects
         '_interval'     => "Интервал: ",
         '_customAttr'   => "Custom attributes", // aowow - custom: spell_custom_attr (TDB), separate from the DBC Flags row
         '_inSlot'       => "в слот: ",
@@ -2536,6 +2537,7 @@ $lang = array(
         'summonControl' => ['[Uncontrolled]', "Стражи", "Питомец", "Подчинённый", '[Possessed Vehicle]', '[Uncontrolled Vehicle]'],
         'summonSlot'    => ["Питомец", "Тотем огня", "Тотем земли", "Тотем воды", "Тотем воздуха", "Спутник", "Задание"],
         'unkEffect'     => 'Unknown Effect (%1$d)',
+        'attackTypes'   => ["Правая рука", "Левая рука", "Дальний бой"], // aowow - custom: SpellInfo::GetAttackType()
         // aowow - custom: who/what an effect affects (effectNImplicitTargetA/B); labels are English in all locales
         'implicitTargets' => array(
             1   => "Caster",

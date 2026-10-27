@@ -2359,6 +2359,7 @@ $lang = array(
         '_speedUnit'    => "码/秒",
         '_radius'       => "半径：",
         '_targets'      => "目标：",  // aowow - custom: implicit effect targets
+        '_weapon'       => "武器：",  // aowow - custom: attack type of weapon damage effects
         '_interval'     => "间隔：", //Interval
         '_customAttr'   => "Custom attributes", // aowow - custom: spell_custom_attr (TDB), separate from the DBC Flags row
         '_inSlot'       => "在插槽中：",
@@ -2536,6 +2537,7 @@ $lang = array(
         'summonControl' => ['[Uncontrolled]', "守护者", "宠物", "被魅惑", '[Possessed Vehicle]', '[Uncontrolled Vehicle]'],
         'summonSlot'    => ["宠物", "火焰图腾", "大地图腾", "水图腾", "空气图腾", "非战斗宠物", "任务"],
         'unkEffect'     => '未知效果 (%1$d)',
+        'attackTypes'   => ["主手", "副手", "远程"], // aowow - custom: SpellInfo::GetAttackType()
         // aowow - custom: who/what an effect affects (effectNImplicitTargetA/B); labels are English in all locales
         'implicitTargets' => array(
             1   => "Caster",

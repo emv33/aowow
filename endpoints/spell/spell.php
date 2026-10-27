@@ -2278,6 +2278,10 @@ class SpellBaseResponse extends TemplateResponse implements ICache
             if ($targets)
                 $_footer['targets'] = Lang::spell('_targets').implode(', ', array_keys($targets));
 
+            // aowow - custom: which weapon a weapon damage effect strikes with
+            if (in_array($effId, [SPELL_EFFECT_WEAPON_DAMAGE_NOSCHOOL, SPELL_EFFECT_WEAPON_PERCENT_DAMAGE, SPELL_EFFECT_WEAPON_DAMAGE, SPELL_EFFECT_NORMALIZED_WEAPON_DMG]))
+                $_footer['weapon'] = Lang::spell('_weapon').Lang::spell('attackTypes', $this->getAttackType());
+
             if ($this->subject->getField('effect'.$i.'Periode') > 0)
                 $_footer['interval'] = Lang::spell('_interval').DateTime::formatTimeElapsedFloat($this->subject->getField('effect'.$i.'Periode'));
 
@@ -2976,6 +2980,26 @@ class SpellBaseResponse extends TemplateResponse implements ICache
     private function createNumRange(int $bp, int $ds, int $mult = 1) : string
     {
         return Util::createNumRange($bp + 1, ($bp + $ds) * $mult, '-');
+    }
+
+    // aowow - custom: mirrors SpellInfo::GetAttackType() (0: main hand, 1: off hand, 2: ranged)
+    private function getAttackType() : int
+    {
+        $rangedMask = (1 << ITEM_SUBCLASS_BOW) | (1 << ITEM_SUBCLASS_GUN) | (1 << ITEM_SUBCLASS_CROSSBOW) | (1 << ITEM_SUBCLASS_THROWN);
+
+        switch ($this->subject->getField('damageClass'))
+        {
+            case SPELL_DAMAGE_CLASS_MELEE:
+                return $this->subject->getField('attributes3') & SPELL_ATTR3_REQ_OFFHAND ? 1 : 0;
+            case SPELL_DAMAGE_CLASS_RANGED:
+                // SpellInfo::IsRangedWeaponSpell(); spellFamilyFlags2 & 0x10000000 excludes 53352 (Explosive Shot)
+                $isRanged = ($this->subject->getField('spellFamilyId') == SPELLFAMILY_HUNTER && !($this->subject->getField('spellFamilyFlags2') & 0x10000000))
+                    || ($this->subject->getField('equippedItemSubClassMask') & $rangedMask)
+                    || ($this->subject->getField('attributes0') & SPELL_ATTR0_REQ_AMMO);
+                return $isRanged ? 2 : 0;
+            default:
+                return $this->subject->getField('attributes2') & SPELL_ATTR2_AUTOREPEAT_FLAG ? 2 : 0;
+        }
     }
 
     private function getIconNo() : int

@@ -2359,6 +2359,7 @@ $lang = array(
         '_speedUnit'    => " m/s",
         '_radius'       => "Radio: ",
         '_targets'      => "Objetivos: ",  // aowow - custom: implicit effect targets
+        '_weapon'       => "Arma: ",  // aowow - custom: attack type of weapon damage effects
         '_interval'     => "Intérvalo: ",
         '_customAttr'   => "Custom attributes", // aowow - custom: spell_custom_attr (TDB), separate from the DBC Flags row
         '_inSlot'       => "en la casilla: ",
@@ -2536,6 +2537,7 @@ $lang = array(
         'summonControl' => ["Sin control", "Guardián", "Mascota", "Embelesado", "Vehículo poseído", "Vehículo sin control"],
         'summonSlot'    => ["Mascota", "Tótem de Fuego", "Tótem de Tierra", "Tótem de Agua", "Tótem de Aire", "Mascota mansa", "Misión"],
         'unkEffect'     => 'Efecto desconocido (%1$d)',
+        'attackTypes'   => ["Mano derecha", "Mano izquierda", "A distancia"], // aowow - custom: SpellInfo::GetAttackType()
         // aowow - custom: who/what an effect affects (effectNImplicitTargetA/B); labels are English in all locales
         'implicitTargets' => array(
             1   => "Caster",

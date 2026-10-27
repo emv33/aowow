@@ -2358,6 +2358,7 @@ $lang = array(
         '_speedUnit'    => " m/s",
         '_radius'       => "Radius: ",
         '_targets'      => "Ziele: ",  // aowow - custom: implicit effect targets
+        '_weapon'       => "Waffe: ",  // aowow - custom: attack type of weapon damage effects
         '_interval'     => "Interval: ",
         '_customAttr'   => "Custom attributes", // aowow - custom: spell_custom_attr (TDB), separate from the DBC Flags row
         '_inSlot'       => "im Platz: ",
@@ -2535,6 +2536,7 @@ $lang = array(
         'summonControl' => ["Ungesteuert", "Wächter", "Begleiter", "Bezaubert", "Gesteuertes Fahrzeug", "Ungesteuertes Fahrzeug"],
         'summonSlot'    => ["Begleiter", "Feuertotem", "Erdtotem", "Wassertotem", "Lufttotem", "Haustier", "Quest"],
         'unkEffect'     => 'Unknown Effect (%1$d)',
+        'attackTypes'   => ["Waffenhand", "Schildhand", "Distanz"], // aowow - custom: SpellInfo::GetAttackType()
         // aowow - custom: who/what an effect affects (effectNImplicitTargetA/B); labels are English in all locales
         'implicitTargets' => array(
             1   => "Caster",
