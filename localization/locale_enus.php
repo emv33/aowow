@@ -2361,6 +2361,7 @@ $lang = array(
         '_targets'      => "Targets: ",  // aowow - custom: implicit effect targets
         '_weapon'       => "Weapon: ",  // aowow - custom: attack type of weapon damage effects
         '_powerType'    => "Power type",   // aowow - custom: prevent power regeneration
+        '_maxTargetLevel' => "Max. target level",   // aowow - custom: charm / possess level cap
         '_interval'     => "Interval: ",
         '_customAttr'   => "Custom attributes", // aowow - custom: spell_custom_attr (TDB), separate from the DBC Flags row
         '_inSlot'       => "in slot: ",
