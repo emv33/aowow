@@ -2362,6 +2362,7 @@ $lang = array(
         '_weapon'       => "武器：",  // aowow - custom: attack type of weapon damage effects
         '_powerType'    => "能量类型",   // aowow - custom: prevent power regeneration
         '_maxTargetLevel' => "目标最高等级",   // aowow - custom: charm / possess level cap
+        '_seat'         => "座位",   // aowow - custom: control vehicle
         '_interval'     => "间隔：", //Interval
         '_customAttr'   => "Custom attributes", // aowow - custom: spell_custom_attr (TDB), separate from the DBC Flags row
         '_inSlot'       => "在插槽中：",
