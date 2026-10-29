@@ -457,8 +457,21 @@ class PageTemplate
         if (!$queryVars)
             return $host;
 
-        // http_build_query uses unset values e.g.: "/?items="
-        array_walk($queryVars, fn(&$v, $k) => $v = $k . (strlen($v) ? '=' . $v : ''));
+        // http_build_query uses unset values for trailing equals signs e.g.: "/?items="
+        array_walk($queryVars, function(mixed &$val, string $key) {
+            if (!is_array($val))
+                return $val = $key . (strlen($val) ? '=' . $val : '');
+
+            // just in case; currently GET requests with arrays are discarded
+            $isVector = ($k = array_keys($val)) === array_keys($k);
+
+            $_ = '';
+            foreach ($val as $i => $v)
+                $_ .= sprintf('&%s[%s]', $key, $isVector ? '' : $i) . (strlen($v) ? '=' . $v : '');
+
+            $val = substr($_, 1);
+        });
+
         return $host.'/?'.implode('&', $queryVars);
     }
 
@@ -560,10 +573,11 @@ class PageTemplate
         unset(                                              // must be recreated on __wakeup
             $this->gStaticUrl,
             $this->gHost,
-            $this->hasAnalytics,
             $this->gServerTime,
             $this->gUser,
-            $this->gFavorites
+            $this->gFavorites,
+            $this->hasAnalytics,
+            $this->dbProfiles
         );
 
         if ($this->lvTabs)                                  // do not store lvErrors in cache
