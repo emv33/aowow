@@ -2364,6 +2364,7 @@ $lang = array(
         '_maxTargetLevel' => "目标最高等级",   // aowow - custom: charm / possess level cap
         '_seat'         => "座位",   // aowow - custom: control vehicle
         '_ppmUnit'      => "次触发/分钟",   // aowow - custom: flat procs per minute modifier
+        '_totemBarSlots' => "图腾栏位置",   // aowow - custom: cast button
         '_interval'     => "间隔：", //Interval
         '_customAttr'   => "Custom attributes", // aowow - custom: spell_custom_attr (TDB), separate from the DBC Flags row
         '_inSlot'       => "在插槽中：",

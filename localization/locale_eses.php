@@ -2364,6 +2364,7 @@ $lang = array(
         '_maxTargetLevel' => "Nivel máx. del objetivo",   // aowow - custom: charm / possess level cap
         '_seat'         => "Asiento",   // aowow - custom: control vehicle
         '_ppmUnit'      => " activaciones por minuto",   // aowow - custom: flat procs per minute modifier
+        '_totemBarSlots' => "Huecos de la barra de tótems",   // aowow - custom: cast button
         '_interval'     => "Intérvalo: ",
         '_customAttr'   => "Custom attributes", // aowow - custom: spell_custom_attr (TDB), separate from the DBC Flags row
         '_inSlot'       => "en la casilla: ",
