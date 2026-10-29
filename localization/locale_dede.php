@@ -2359,6 +2359,16 @@ $lang = array(
         '_radius'       => "Radius: ",
         '_targets'      => "Ziele: ",  // aowow - custom: implicit effect targets
         '_weapon'       => "Waffe: ",  // aowow - custom: attack type of weapon damage effects
+        '_maxTargetLevel' => "Max. Zielstufe",   // aowow - custom: charm / possess level cap
+        '_minArcHeight' => "Min. Bogenhöhe",   // aowow - custom: jump effects
+        '_maxArcHeight' => "Max. Bogenhöhe",
+        '_seat'         => "Sitz",   // aowow - custom: control vehicle
+        '_skillTier'    => "Fertigkeitsstufe",   // aowow - custom: learn skill (step)
+        '_totemBarSlots' => "Totemleistenplätze",   // aowow - custom: cast button
+        '_powerType'    => "Energieart",   // aowow - custom: prevent power regeneration
+        '_ppmUnit'      => " Auslösungen pro Minute",   // aowow - custom: flat proc per minute modifier
+        'honorItem'     => "von einem Gegenstand gewirkt: ein Zehntel davon als Ehrenpunkte",   // aowow - custom: give honor (Spell::EffectAddHonor)
+        'honorKills'    => "Ehre von %d ehrenhaften Siegen auf Stufe des Ziels",
         '_interval'     => "Interval: ",
         '_customAttr'   => "Custom attributes", // aowow - custom: spell_custom_attr (TDB), separate from the DBC Flags row
         '_inSlot'       => "im Platz: ",
@@ -2537,6 +2547,14 @@ $lang = array(
         'summonSlot'    => ["Begleiter", "Feuertotem", "Erdtotem", "Wassertotem", "Lufttotem", "Haustier", "Quest"],
         'unkEffect'     => 'Unknown Effect (%1$d)',
         'attackTypes'   => ["Waffenhand", "Schildhand", "Distanz"], // aowow - custom: SpellInfo::GetAttackType()
+        'destructibleState' => ["Intakt", "Beschädigt", "Zerstört", "Im Wiederaufbau"], // aowow - custom: GameObjectDestructibleState
+        // aowow - custom: AuraStateType, as checked by SPELL_AURA_MOD_DAMAGE_DONE_VERSUS_AURASTATE; labels are English in all locales
+        'auraStates'    => array(
+             1 => "Dodged, parried or blocked",     2 => "Health below 20%",               3 => "Berserking",                     4 => "Frozen",
+             5 => "Judgement",                      7 => "Hunter parry",                  10 => "Victory Rush",                  12 => "Faerie Fire",
+            13 => "Health below 35%",              14 => "Immolate (Conflagrate)",        15 => "Rejuvenation / Regrowth (Swiftmend)", 16 => "Deadly Poison",
+            17 => "Enraged",                       18 => "Bleeding",                      23 => "Health above 75%"
+        ),
         // aowow - custom: who/what an effect affects (effectNImplicitTargetA/B); labels are English in all locales
         'implicitTargets' => array(
             1   => "Caster",
@@ -2726,7 +2744,7 @@ $lang = array(
 /*250+ */   'Mod Maximum Health - Flat (stacking)', 'Mod Enemy Dodge Chance',               'Mod Haste % (loss)',                   'Mod Critical Block Chance',            'Disarm Offhand',
             'Mod Mechanic Damage Taken %',          'No Reagent Cost',                      'Mod Target Resistance by Spell Class', 'Mod Spell Visual',                     'Mod Periodic Healing Taken %',
             'Screen Effect',                        'Phase',                                'Ability Ignore Aurastate',             'Allow Only Ability',                   '',
-            '',                                     '',                                     'Cancel Aura Buffer at % of Caster Health','Mod Attack Power by % of Stat',     'Ignore Target Resistance',
+            '',                                     '',                                     'Immune to Harmful Auras of School','Mod Attack Power by % of Stat',     'Ignore Target Resistance',
             'Ignore Target Resistance for Ability', 'Mod Damage Taken % from Caster',       'Ignore Swing Timer Reset',             'X-Ray',                                'Ability Consume No Ammo',
 /*275+ */   'Mod Ability Ignore Shapeshift',        'Mod Mechanic Damage Done %',           'Mod Max Affected Targets',             'Disarm Ranged Weapon',                 'Spawn Effect',
             'Mod Armor Penetration %',              'Mod Honor Gain %',                     'Mod Base Health %',                    'Mod Healing Taken % from Caster',      'Linked Aura',
