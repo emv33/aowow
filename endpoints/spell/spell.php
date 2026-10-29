@@ -2825,6 +2825,7 @@ class SpellBaseResponse extends TemplateResponse implements ICache
                         case SPELL_AURA_MOD_HONOR_GAIN_PCT:
                         // aowow - custom start: chances and multipliers, as TrinityCore 3.3.5 reads them
                         case SPELL_AURA_MOD_ATTACKSPEED:
+                        case SPELL_AURA_MELEE_SLOW:
                         // aowow - custom end
                             $valueFmt = '%s%%';
                             break;
