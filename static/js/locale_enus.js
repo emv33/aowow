@@ -4898,7 +4898,9 @@ var LANG = {
         alliance:   "Alliance",
         horde:      "Horde",
         both:       "Both",
-        neutral:    "Neutral"
+        neutral:    "Neutral",
+        unused:     "Not used: $1 is picked instead",
+        unusedNear: "Not used: a graveyard on the same map is picked instead"
     },
     fiweather: {
         zone:       "Zone",

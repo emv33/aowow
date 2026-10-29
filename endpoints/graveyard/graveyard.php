@@ -195,16 +195,41 @@ class GraveyardBaseResponse extends TemplateResponse implements ICache
             $this->extendGlobalData($zl->getJSGlobals());
             $this->addDataLoader('zones');
 
+            // aowow - custom start: links the core never sends a ghost through, and the graveyard it picks instead
+            $checkUse = $zoneTbl == 'graveyard_zone' && DB::Aowow()->selectCell('SHOW TABLES LIKE %s', 'dbc_worldsafelocs') && DB::Aowow()->selectCell('SHOW TABLES LIKE %s', 'dbc_map');
+            $winNames = [];
+            // aowow - custom end
+
             $data = $zl->getListviewData();
             foreach ($data as &$row)
+            {
                 $row['side'] = $sides[$row['id']] ?? 0;
+
+                // aowow - custom start
+                if (!$checkUse)
+                    continue;
+
+                $unused = [];                               // winner => side bits
+                foreach (Graveyard::supersededBy($this->typeId, $row['id']) as $side => $winner)
+                    $unused[$winner] = ($unused[$winner] ?? 0) | $side;
+
+                foreach ($unused as $winner => $bits)
+                {
+                    if ($winner && !isset($winNames[$winner]))
+                        $winNames[$winner] = trim((string)DB::World()->selectCell('SELECT `Comment` FROM graveyard_zone WHERE `ID` = %i AND `Comment` <> "" LIMIT 1', $winner)) ?: Lang::zone('graveyardUnnamed', [$winner]);
+
+                    $row['unused'][] = [$bits, $winner, $winner ? $winNames[$winner] : ''];
+                }
+                // aowow - custom end
+            }
             unset($row);
 
             $this->lvTabs->addListviewTab(new Listview(array(
                 'data'      => $data,
                 'name'      => Lang::graveyard('resurrects'),
                 'id'        => 'resurrects',
-                'extraCols' => ['$Listview.extraCols.graveyardSide']
+                'extraCols' => ['$Listview.extraCols.graveyardSide'],
+                'onBeforeCreate' => '$Listview.funcBox.beforeGraveyardZones'   // aowow - custom: notes on unused links
             ), ZoneList::$brickFile, 'graveyardSideCol'));
         }
 

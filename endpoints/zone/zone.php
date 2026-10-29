@@ -1341,27 +1341,36 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
     /** @return string[] one line per graveyard serving this zone */
     private static function getGraveyards(int $areaId) : array
     {
-        if (!self::hasTable('graveyard_zone', false) || !self::hasTable('game_graveyard', false))
+        // 3.3.5 cores keep the position in WorldSafeLocs.dbc, not `game_graveyard`; the link's `Comment` names it
+        if (!self::hasTable('graveyard_zone', false))
             return [];
 
-        $rows = DB::World()->selectAssoc(
-           'SELECT gy.`ID`, gy.`Map`, gy.`Comment`, gz.`Faction`
-            FROM   graveyard_zone gz JOIN game_graveyard gy ON gy.`ID` = gz.`ID`
-            WHERE  gz.`GhostZone` = %i', $areaId
-        ) ?: [];
+        $rows = DB::World()->selectAssoc('SELECT `ID`, `Faction`, `Comment` FROM graveyard_zone WHERE `GhostZone` = %i ORDER BY `ID`', $areaId) ?: [];
+
+        $checkUse = self::hasTable('dbc_worldsafelocs') && self::hasTable('dbc_map');
 
         $out = [];
         foreach ($rows as $r)
         {
-            $name = trim((string)$r['Comment']) ?: Lang::zone('graveyardUnnamed', [(int)$r['ID']]);
-            $side = match ((int)$r['Faction'])
+            $id   = (int)$r['ID'];
+            $name = trim((string)$r['Comment']) ?: Lang::zone('graveyardUnnamed', [$id]);
+            $line = '[url=?graveyard='.$id.']'.$name.'[/url]';
+            $line = match ((int)$r['Faction'])             // faction template: 469 Alliance, 67 Horde, 0 any
             {
-                TEAM_ALLIANCE => '[span class=icon-alliance]%s[/span]',
-                TEAM_HORDE    => '[span class=icon-horde]%s[/span]',
-                default       => '%s'
+                469     => '[span class=icon-alliance]'.$line.'[/span]',
+                67      => '[span class=icon-horde]'.$line.'[/span]',
+                default => $line
             };
 
-            $out[] = sprintf($side, $name);
+            // links the core never sends a ghost through, see Graveyard::supersededBy()
+            if ($checkUse && ($lost = Graveyard::supersededBy($id, $areaId)))
+            {
+                $open = match ((int)$r['Faction']) { 469 => Graveyard::SIDE_ALLIANCE, 67 => Graveyard::SIDE_HORDE, default => Graveyard::SIDE_ALLIANCE | Graveyard::SIDE_HORDE };
+                if (array_sum(array_keys($lost)) == $open)
+                    $line = '[span class=q0]'.$line.' ('.Lang::zone('graveyardUnused').')[/span]';
+            }
+
+            $out[] = $line;
         }
 
         return $out;

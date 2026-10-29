@@ -30,3 +30,37 @@ Listview.extraCols.graveyardSide = {
         return (a.side || 0) - (b.side || 0);
     }
 };
+
+// aowow - custom: under the zone's name, the graveyard the core picks instead of an unused link
+// zone.unused: [[side bits, graveyard picked instead (0: depends on where the ghost died), its name], ...]
+Listview.funcBox.beforeGraveyardZones = function() {
+    var i = $WH.in_array(this.columns, 'name', function(x) { return x.id; });
+    if (i == -1)
+        return;
+
+    var compute = this.columns[i].compute;
+    this.columns[i].compute = function(zone, td) {
+        var result = compute.apply(this, arguments);
+
+        (zone.unused || []).forEach(function(u) {
+            var div = $WH.ce('div', { className: 'q0 small' });
+
+            if (u[0] != (zone.side || 3))
+                $WH.ae(div, $WH.ce('span', { className: u[0] == 1 ? 'icon-alliance' : 'icon-horde' }, $WH.ct((u[0] == 1 ? LANG.figraveyard.alliance : LANG.figraveyard.horde) + LANG.colon)));
+
+            if (!u[1])
+                $WH.ae(div, $WH.ct(LANG.figraveyard.unusedNear));
+            else
+            {
+                var parts = LANG.figraveyard.unused.split('$1');
+                $WH.ae(div, $WH.ct(parts[0]));
+                $WH.ae(div, $WH.ce('a', { href: '?graveyard=' + u[1] }, $WH.ct(u[2])));
+                $WH.ae(div, $WH.ct(parts[1] || ''));
+            }
+
+            $WH.ae(td, div);
+        });
+
+        return result;
+    };
+};
