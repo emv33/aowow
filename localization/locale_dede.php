@@ -2359,6 +2359,7 @@ $lang = array(
         '_radius'       => "Radius: ",
         '_targets'      => "Ziele: ",  // aowow - custom: implicit effect targets
         '_weapon'       => "Waffe: ",  // aowow - custom: attack type of weapon damage effects
+        '_powerType'    => "Energieart",   // aowow - custom: prevent power regeneration
         '_interval'     => "Interval: ",
         '_customAttr'   => "Custom attributes", // aowow - custom: spell_custom_attr (TDB), separate from the DBC Flags row
         '_inSlot'       => "im Platz: ",

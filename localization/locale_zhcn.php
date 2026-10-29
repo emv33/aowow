@@ -2360,6 +2360,7 @@ $lang = array(
         '_radius'       => "半径：",
         '_targets'      => "目标：",  // aowow - custom: implicit effect targets
         '_weapon'       => "武器：",  // aowow - custom: attack type of weapon damage effects
+        '_powerType'    => "能量类型",   // aowow - custom: prevent power regeneration
         '_interval'     => "间隔：", //Interval
         '_customAttr'   => "Custom attributes", // aowow - custom: spell_custom_attr (TDB), separate from the DBC Flags row
         '_inSlot'       => "在插槽中：",
