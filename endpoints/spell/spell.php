@@ -2827,6 +2827,7 @@ class SpellBaseResponse extends TemplateResponse implements ICache
                         case SPELL_AURA_MOD_ATTACKSPEED:
                         case SPELL_AURA_MELEE_SLOW:
                         case SPELL_AURA_REFLECT_SPELLS:
+                        case SPELL_AURA_ADD_CASTER_HIT_TRIGGER:
                         // aowow - custom end
                             $valueFmt = '%s%%';
                             break;
