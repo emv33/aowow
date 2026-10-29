@@ -2361,6 +2361,26 @@ class SpellBaseResponse extends TemplateResponse implements ICache
                         $_nameMV = $a;
                     else
                         $_nameMV = Util::ucFirst(Lang::game('enchantment')).' #'.$effMV;
+
+                    // aowow - custom start: the duration of a temporary enchantment is not in the spell, Spell::EffectEnchantItemTmp() picks it
+                    //                       Rockbiter Weapon is scripted there and returns before that, its value selects the enchantment
+                    if ($effId == SPELL_EFFECT_ENCHANT_ITEM_TEMPORARY && !($this->subject->getField('spellFamilyId') == SPELLFAMILY_SHAMAN && $this->subject->getField('spellFamilyFlags1') & 0x400000))
+                    {
+                        $visual  = $this->subject->getField('spellVisualId');
+                        $tmpDur  = match (true)
+                        {
+                            $this->typeId == 38615                                     => 1800,
+                            $this->subject->getField('spellFamilyId') == SPELLFAMILY_ROGUE  => 3600,
+                            $this->subject->getField('spellFamilyId') == SPELLFAMILY_SHAMAN => 1800,
+                            $visual == 215                                             => 1800,
+                            $visual == 563 && $this->typeId != 64401                   => 600,
+                            $visual == 0                                               => 1800,
+                            in_array($this->typeId, [29702, 37360])                    => 300,
+                            default                                                    => 3600
+                        };
+                        $_footer = array_slice($_footer, 0, 1, true) + ['duration' => Lang::game('duration').Lang::main('colon').DateTime::formatTimeElapsed($tmpDur * 1000)] + $_footer;
+                    }
+                    // aowow - custom end
                     break;
                 case SPELL_EFFECT_DISPEL:
                 case SPELL_EFFECT_STEAL_BENEFICIAL_BUFF:
