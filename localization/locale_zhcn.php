@@ -2369,6 +2369,7 @@ $lang = array(
         '_maxArcHeight' => "最高弧线高度",
         'honorKills'    => "相当于目标等级下%d次荣誉击杀的荣誉",   // aowow - custom: give honor (Spell::EffectAddHonor)
         '_skillTier'    => "技能等级",   // aowow - custom: learn skill (step)
+        '_maxSkill'     => "最高%d",   // aowow - custom: max. skill of a learn skill step (SkillTiers.dbc)
         '_interval'     => "间隔：", //Interval
         '_customAttr'   => "Custom attributes", // aowow - custom: spell_custom_attr (TDB), separate from the DBC Flags row
         '_inSlot'       => "在插槽中：",

@@ -2369,6 +2369,7 @@ $lang = array(
         '_maxArcHeight' => "Макс. высота дуги",
         'honorKills'    => "честь за %d почетных побед на уровне цели",   // aowow - custom: give honor (Spell::EffectAddHonor)
         '_skillTier'    => "Ступень навыка",   // aowow - custom: learn skill (step)
+        '_maxSkill'     => "макс. %d",   // aowow - custom: max. skill of a learn skill step (SkillTiers.dbc)
         '_interval'     => "Интервал: ",
         '_customAttr'   => "Custom attributes", // aowow - custom: spell_custom_attr (TDB), separate from the DBC Flags row
         '_inSlot'       => "в слот: ",

@@ -2415,6 +2415,27 @@ class SpellBaseResponse extends TemplateResponse implements ICache
                 case SPELL_EFFECT_SKILL_STEP:
                 case SPELL_EFFECT_SKILL:
                     $valueLabel = Lang::spell('_skillTier'); // aowow - custom: the value is the step into SkillTiers.dbc (Spell::EffectLearnSkill)
+                    // aowow - custom start: name the tier by the rank of the spell of that skill this spell also teaches (e.g. "Grand Master"),
+                    //                       and the max. skill that step sets, where the skill has a single tier row
+                    $tierInfo = [];
+                    for ($j = 1; $j <= 3; $j++)
+                    {
+                        if ($this->subject->getField('effect'.$j.'Id') != SPELL_EFFECT_LEARN_SPELL || !($learned = $this->subject->getField('effect'.$j.'TriggerSpell')))
+                            continue;
+
+                        $ls = new SpellList(array(['id', $learned]));
+                        if (!$ls->error && in_array($effMV, (array)$ls->getField('skillLines')) && ($r = $ls->getField('rank', true)))
+                        {
+                            $tierInfo[] = $r;
+                            break;
+                        }
+                    }
+                    $step = $_footer['value'][1];
+                    if ($step >= 1 && $step <= 16 && ($max = DB::Aowow()->selectCell('SELECT st.%n FROM ::skillline sl JOIN ::skilltiers st ON st.`id` = sl.`skillTierId` WHERE sl.`id` = %i', 'value'.$step, $effMV)))
+                        $tierInfo[] = sprintf(Lang::spell('_maxSkill'), $max);
+                    if ($tierInfo)
+                        $_footer['value'][2] = Lang::main('parensFmt', ['', implode(Lang::main('comma'), $tierInfo)]);
+                    // aowow - custom end
                     if ($a = SkillList::makeLink($effMV))
                         $_nameMV = $a;
                     else

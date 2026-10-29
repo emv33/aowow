@@ -2369,6 +2369,7 @@ $lang = array(
         '_maxArcHeight' => "Hauteur max. de l'arc",
         'honorKills'    => "honneur de %d victoires honorables au niveau de la cible",   // aowow - custom: give honor (Spell::EffectAddHonor)
         '_skillTier'    => "Palier de compétence",   // aowow - custom: learn skill (step)
+        '_maxSkill'     => "max. %d",   // aowow - custom: max. skill of a learn skill step (SkillTiers.dbc)
         '_interval'     => "Intervalle : ",
         '_customAttr'   => "Custom attributes", // aowow - custom: spell_custom_attr (TDB), separate from the DBC Flags row
         '_inSlot'       => "dans l'emplacement : ",
