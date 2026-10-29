@@ -2368,6 +2368,7 @@ $lang = array(
         '_maxArcHeight' => "Max. Bogenhöhe",
         'honorItem'     => "von einem Gegenstand gewirkt: ein Zehntel davon als Ehrenpunkte",   // aowow - custom: give honor (Spell::EffectAddHonor)
         'honorKills'    => "Ehre von %d ehrenhaften Siegen auf Stufe des Ziels",
+        '_skillTier'    => "Fertigkeitsstufe",   // aowow - custom: learn skill (step)
         '_interval'     => "Interval: ",
         '_customAttr'   => "Custom attributes", // aowow - custom: spell_custom_attr (TDB), separate from the DBC Flags row
         '_inSlot'       => "im Platz: ",

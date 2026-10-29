@@ -2369,6 +2369,7 @@ $lang = array(
         '_maxArcHeight' => "Altura máx. del arco",
         'honorItem'     => "lanzado desde un objeto: una décima parte en puntos de honor",   // aowow - custom: give honor (Spell::EffectAddHonor)
         'honorKills'    => "honor de %d muertes con honor al nivel del objetivo",
+        '_skillTier'    => "Rango de habilidad",   // aowow - custom: learn skill (step)
         '_interval'     => "Intérvalo: ",
         '_customAttr'   => "Custom attributes", // aowow - custom: spell_custom_attr (TDB), separate from the DBC Flags row
         '_inSlot'       => "en la casilla: ",

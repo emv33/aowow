@@ -2369,6 +2369,7 @@ $lang = array(
         '_maxArcHeight' => "Max. arc height",
         'honorItem'     => "cast from an item: tenth of this in honor points",   // aowow - custom: give honor (Spell::EffectAddHonor)
         'honorKills'    => "honor of %d honorable kills at the target's level",
+        '_skillTier'    => "Skill tier",   // aowow - custom: learn skill (step)
         '_interval'     => "Interval: ",
         '_customAttr'   => "Custom attributes", // aowow - custom: spell_custom_attr (TDB), separate from the DBC Flags row
         '_inSlot'       => "in slot: ",
