@@ -2550,6 +2550,7 @@ $lang = array(
             13 => "Health below 35%",              14 => "Immolate (Conflagrate)",        15 => "Rejuvenation / Regrowth (Swiftmend)", 16 => "Deadly Poison",
             17 => "Enraged",                       18 => "Bleeding",                      23 => "Health above 75%"
         ),
+        'destructibleState' => ["完好", "受损", "被摧毁", "重建中"], // aowow - custom: GameObjectDestructibleState
         // aowow - custom: who/what an effect affects (effectNImplicitTargetA/B); labels are English in all locales
         'implicitTargets' => array(
             1   => "Caster",
