@@ -2360,16 +2360,6 @@ $lang = array(
         '_radius'       => "Radio: ",
         '_targets'      => "Objetivos: ",  // aowow - custom: implicit effect targets
         '_weapon'       => "Arma: ",  // aowow - custom: attack type of weapon damage effects
-        '_maxTargetLevel' => "Nivel máx. del objetivo",   // aowow - custom: charm / possess level cap
-        '_minArcHeight' => "Altura mín. del arco",   // aowow - custom: jump effects
-        '_maxArcHeight' => "Altura máx. del arco",
-        '_seat'         => "Asiento",   // aowow - custom: control vehicle
-        '_skillTier'    => "Rango de habilidad",   // aowow - custom: learn skill (step)
-        '_totemBarSlots' => "Huecos de la barra de tótems",   // aowow - custom: cast button
-        '_powerType'    => "Tipo de poder",   // aowow - custom: prevent power regeneration
-        '_ppmUnit'      => " activaciones por minuto",   // aowow - custom: flat proc per minute modifier
-        'honorItem'     => "lanzado desde un objeto: una décima parte en puntos de honor",   // aowow - custom: give honor (Spell::EffectAddHonor)
-        'honorKills'    => "honor de %d muertes con honor al nivel del objetivo",
         '_interval'     => "Intérvalo: ",
         '_customAttr'   => "Custom attributes", // aowow - custom: spell_custom_attr (TDB), separate from the DBC Flags row
         '_inSlot'       => "en la casilla: ",
@@ -2548,14 +2538,6 @@ $lang = array(
         'summonSlot'    => ["Mascota", "Tótem de Fuego", "Tótem de Tierra", "Tótem de Agua", "Tótem de Aire", "Mascota mansa", "Misión"],
         'unkEffect'     => 'Efecto desconocido (%1$d)',
         'attackTypes'   => ["Mano derecha", "Mano izquierda", "A distancia"], // aowow - custom: SpellInfo::GetAttackType()
-        'destructibleState' => ["Intacto", "Dañado", "Destruido", "En reconstrucción"], // aowow - custom: GameObjectDestructibleState
-        // aowow - custom: AuraStateType, as checked by SPELL_AURA_MOD_DAMAGE_DONE_VERSUS_AURASTATE; labels are English in all locales
-        'auraStates'    => array(
-             1 => "Dodged, parried or blocked",     2 => "Health below 20%",               3 => "Berserking",                     4 => "Frozen",
-             5 => "Judgement",                      7 => "Hunter parry",                  10 => "Victory Rush",                  12 => "Faerie Fire",
-            13 => "Health below 35%",              14 => "Immolate (Conflagrate)",        15 => "Rejuvenation / Regrowth (Swiftmend)", 16 => "Deadly Poison",
-            17 => "Enraged",                       18 => "Bleeding",                      23 => "Health above 75%"
-        ),
         // aowow - custom: who/what an effect affects (effectNImplicitTargetA/B); labels are English in all locales
         'implicitTargets' => array(
             1   => "Caster",
@@ -2745,7 +2727,7 @@ $lang = array(
 /*250+ */   "Modificar salud máxima - Fijo (acumulable)",               "Modificar probabilidad de esquiva enemiga",                         "Modificar celeridad % (pérdida)",                                "Modificar probabilidad de bloqueo crítico",                  "Desarmar mano secundaria",
             "Modificar daño de mecánica %",                             "Sin coste de reagente",                                             "Modificar resistencia objetivo por clase de hechizo",            "Modificar visual de hechizo",                                "Modificar sanación periódica recibida %",
             "Efecto de pantalla",                                       "Fase",                                                              "Ignorar estado de aura de habilidad",                            "Permitir solo habilidad",                                    "",
-            "",                                                         "",                                                                  "Inmunidad a auras perjudiciales de la escuela",                  "Modificar poder de ataque con % de estadística",             "Ignorar resistencia del objetivo",
+            "",                                                         "",                                                                  "Cancelar buffer de aura al % de salud del lanzador",             "Modificar poder de ataque con % de estadística",             "Ignorar resistencia del objetivo",
             "Ignorar resistencia del objetivo para habilidad",          "Modificar daño recibido % del lanzador",                            "Ignorar reinicio de temporizador de golpe",                      "Rayos X",                                                    "Habilidad no consume munición",
 /*275+ */   "Ignorar cambio de forma para habilidad",                   "Modificar daño de mecánica hecho %",                                "Modificar máximo de objetivos afectados",                        "Desarmar arma a distancia",                                  "Efecto de aparición",
             "Modificar penetración de armadura %",                      "Modificar ganancia de honor %",                                     "Modificar salud base %",                                         "Modificar sanación recibida % del lanzador",                 "Aura vinculada",

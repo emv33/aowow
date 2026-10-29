@@ -39,13 +39,6 @@ class SpellList extends DBTypeList
         SPELLMOD_DURATION,                  SPELLMOD_CASTING_TIME,                          SPELLMOD_COOLDOWN,                              SPELLMOD_ACTIVATION_TIME,
         SPELLMOD_GLOBAL_COOLDOWN
     );
-    public const array SPELLMOD_PCT_POINTS      = array( // aowow - custom: a flat modifier of these adds percentage points (crit / hit / proc / dispel resist chance, sp coefficient)
-        SPELLMOD_CRITICAL_CHANCE,           SPELLMOD_RESIST_MISS_CHANCE,                    SPELLMOD_CHANCE_OF_SUCCESS,                     SPELLMOD_RESIST_DISPEL_CHANCE,
-        SPELLMOD_BONUS_MULTIPLIER
-    );
-    public const array SPELLMOD_YARDS           = array( // aowow - custom: a flat modifier of these is a distance
-        SPELLMOD_RANGE,                     SPELLMOD_RADIUS
-    );
     public const array EFFECTS_SCALING_HEAL     = array( // as per Unit::SpellHealingBonusDone() calls in TC
         SPELL_EFFECT_HEAL,                  SPELL_EFFECT_HEAL_PCT,                          SPELL_EFFECT_HEAL_MECHANICAL,                   SPELL_EFFECT_HEALTH_LEECH
     );
