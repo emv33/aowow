@@ -2362,6 +2362,7 @@ $lang = array(
         '_powerType'    => "Energieart",   // aowow - custom: prevent power regeneration
         '_maxTargetLevel' => "Max. Zielstufe",   // aowow - custom: charm / possess level cap
         '_seat'         => "Sitz",   // aowow - custom: control vehicle
+        '_ppmUnit'      => " Auslösungen pro Minute",   // aowow - custom: flat procs per minute modifier
         '_interval'     => "Interval: ",
         '_customAttr'   => "Custom attributes", // aowow - custom: spell_custom_attr (TDB), separate from the DBC Flags row
         '_inSlot'       => "im Platz: ",

@@ -2363,6 +2363,7 @@ $lang = array(
         '_powerType'    => "Тип энергии",   // aowow - custom: prevent power regeneration
         '_maxTargetLevel' => "Макс. уровень цели",   // aowow - custom: charm / possess level cap
         '_seat'         => "Место",   // aowow - custom: control vehicle
+        '_ppmUnit'      => " срабатываний в минуту",   // aowow - custom: flat procs per minute modifier
         '_interval'     => "Интервал: ",
         '_customAttr'   => "Custom attributes", // aowow - custom: spell_custom_attr (TDB), separate from the DBC Flags row
         '_inSlot'       => "в слот: ",
