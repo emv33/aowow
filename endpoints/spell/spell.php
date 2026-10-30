@@ -25,6 +25,7 @@ class SpellBaseResponse extends TemplateResponse implements ICache
     public  array  $effects    = [];
     public  array  $attributes = [];
     public  array  $customAttributes = [];  // aowow - custom: see createCustomAttributesList()
+    public  array  $procConditions   = [];  // aowow - custom: see createProcConditions()
     public  string $powerCost  = '';
     public  string $castTime   = '';
     public  string $level      = '';
@@ -48,6 +49,7 @@ class SpellBaseResponse extends TemplateResponse implements ICache
     private array     $modelInfo    = [];
     private array     $difficulties = [];
     private int       $mapType      = 0;
+    private array|false|null $procEntry = false;    // aowow - custom: see getProcEntry()
 
     // aowow - custom start
     private static function hasTable(string $tbl) : bool
@@ -267,6 +269,7 @@ class SpellBaseResponse extends TemplateResponse implements ICache
         $this->createReagentList();         // Reagent Listing
         $this->createRequiredItems();       // Required Items
         $this->createEffects();             // Spell Effect Block
+        $this->createProcConditions();      // aowow - custom: SpellProcEntry the core builds for this spell
         $this->createAttributesList();      // Spell Attributes listing and SpellFilter links
         $this->createCustomAttributesList(); // aowow - custom: TDB spell_custom_attr, separate from the DBC Flags row
         $this->createSpellSchool();         // Schools cell and filter link
@@ -2147,17 +2150,12 @@ class SpellBaseResponse extends TemplateResponse implements ICache
 
     private function createEffects() : void
     {
-        // proc data .. maybe use more information..?
-        $procData = array(
-            'chance'   => $this->subject->getField('procChance'),
-            'cooldown' => 0
+        // aowow - custom: chance and cooldown of the SpellProcEntry the core builds, see getProcEntry()
+        $procEntry = $this->getProcEntry();
+        $procData  = array(
+            'chance'   => $procEntry ? ($procEntry['ProcsPerMinute'] > 0 ? -$procEntry['ProcsPerMinute'] : $procEntry['Chance']) : $this->subject->getField('procChance'),
+            'cooldown' => $procEntry['Cooldown'] ?? 0
         );
-
-        if ($sp = DB::World()->selectRow('SELECT IF(`ProcsPerMinute` > 0, -`ProcsPerMinute`, `Chance`) AS "chance", `Cooldown` AS "cooldown" FROM `spell_proc` WHERE ABS(`SpellId`) = %i', $this->firstRank))
-        {
-            $procData['chance']   = $sp['chance']   ?: $procData['chance'];
-            $procData['cooldown'] = $sp['cooldown'] ?: $procData['cooldown'];
-        }
 
         $effects  = [];
         $spellIdx = array_unique(array_merge($this->subject->canTriggerSpell(), $this->subject->canTeachSpell()));
@@ -3152,6 +3150,232 @@ class SpellBaseResponse extends TemplateResponse implements ICache
         }
 
         $this->customAttributes = $list;
+    }
+
+    private const int PROC_FLAG_KILL                     = 0x0000002;
+    private const int PROC_SPELL_TYPE_MASK_ALL           = 0x7;
+    private const int PROC_SPELL_PHASE_HIT               = 0x2;
+    private const int PROC_SPELL_PHASE_FINISH            = 0x4;
+    private const int PROC_HIT_CRITICAL                  = 0x0000002;
+    private const int PROC_HIT_MISS                      = 0x0000004;
+    private const int PROC_HIT_BLOCK                     = 0x0000040;
+    private const int PROC_HIT_REFLECT                   = 0x0000800;
+    private const int PROC_ATTR_REQ_EXP_OR_HONOR         = 0x0000001;
+    private const int PROC_ATTR_TRIGGERED_CAN_PROC       = 0x0000002;
+    private const int SPELL_PROC_FLAG_MASK               = 0x02FFFF0;   // SpellMgr.h ProcFlags masks
+    private const int DONE_HIT_PROC_FLAG_MASK            = 0x0E55554;
+    private const int TAKEN_HIT_PROC_FLAG_MASK           = 0x01AAAA8;
+    private const int REQ_SPELL_PHASE_PROC_FLAG_MASK     = self::SPELL_PROC_FLAG_MASK & self::DONE_HIT_PROC_FLAG_MASK;
+
+    // SpellMgr::LoadSpellProcs isTriggerAura / isAlwaysTriggeredAura / spellTypeMask
+    private const array PROC_TRIGGER_AURAS = array(
+        SPELL_AURA_DUMMY,                       SPELL_AURA_MOD_CONFUSE,                 SPELL_AURA_MOD_THREAT,                  SPELL_AURA_MOD_STUN,
+        SPELL_AURA_MOD_DAMAGE_DONE,             SPELL_AURA_MOD_DAMAGE_TAKEN,            SPELL_AURA_MOD_RESISTANCE,              SPELL_AURA_MOD_STEALTH,
+        SPELL_AURA_MOD_FEAR,                    SPELL_AURA_MOD_ROOT,                    SPELL_AURA_TRANSFORM,                   SPELL_AURA_REFLECT_SPELLS,
+        SPELL_AURA_DAMAGE_IMMUNITY,             SPELL_AURA_PROC_TRIGGER_SPELL,          SPELL_AURA_PROC_TRIGGER_DAMAGE,         SPELL_AURA_MOD_CASTING_SPEED_NOT_STACK,
+        SPELL_AURA_MOD_POWER_COST_SCHOOL_PCT,   SPELL_AURA_MOD_POWER_COST_SCHOOL,       SPELL_AURA_REFLECT_SPELLS_SCHOOL,       SPELL_AURA_MOD_DAMAGE_PERCENT_TAKEN,
+        SPELL_AURA_MOD_ATTACK_POWER,            SPELL_AURA_ADD_CASTER_HIT_TRIGGER,      SPELL_AURA_OVERRIDE_CLASS_SCRIPTS,      SPELL_AURA_MOD_MELEE_HASTE,
+        SPELL_AURA_MOD_ATTACKER_MELEE_HIT_CHANCE, SPELL_AURA_RAID_PROC_FROM_CHARGE,     SPELL_AURA_RAID_PROC_FROM_CHARGE_WITH_VALUE, SPELL_AURA_PROC_TRIGGER_SPELL_WITH_VALUE,
+        SPELL_AURA_MOD_SPELL_CRIT_CHANCE,       SPELL_AURA_ADD_FLAT_MODIFIER,           SPELL_AURA_ADD_PCT_MODIFIER,            SPELL_AURA_ABILITY_IGNORE_AURASTATE,
+        SPELL_AURA_MOD_INVISIBILITY,            SPELL_AURA_FORCE_REACTION,              SPELL_AURA_MOD_TAUNT,                   SPELL_AURA_MOD_DETAUNT,
+        SPELL_AURA_MOD_DAMAGE_PERCENT_DONE,     SPELL_AURA_MOD_ATTACK_POWER_PCT,        SPELL_AURA_MOD_HIT_CHANCE,              SPELL_AURA_MOD_WEAPON_CRIT_PERCENT,
+        SPELL_AURA_MOD_BLOCK_PERCENT
+    );
+    private const array PROC_ALWAYS_TRIGGERED_AURAS = array(
+        SPELL_AURA_OVERRIDE_CLASS_SCRIPTS,      SPELL_AURA_MOD_STEALTH,                 SPELL_AURA_MOD_CONFUSE,                 SPELL_AURA_MOD_FEAR,
+        SPELL_AURA_MOD_ROOT,                    SPELL_AURA_MOD_STUN,                    SPELL_AURA_TRANSFORM,                   SPELL_AURA_MOD_INVISIBILITY
+    );
+    private const array PROC_AURA_SPELL_TYPE = array(  // PROC_SPELL_TYPE_DAMAGE: 0x1, PROC_SPELL_TYPE_NO_DMG_HEAL: 0x4
+        SPELL_AURA_MOD_STEALTH => 0x5,          SPELL_AURA_MOD_CONFUSE => 0x1,          SPELL_AURA_MOD_FEAR => 0x1,             SPELL_AURA_MOD_ROOT => 0x1,
+        SPELL_AURA_MOD_STUN    => 0x1,          SPELL_AURA_TRANSFORM   => 0x1,          SPELL_AURA_MOD_INVISIBILITY => 0x1
+    );
+
+    /*
+     * The SpellProcEntry SpellMgr::LoadSpellProcs builds for this spell: the `spell_proc` row of the spell itself or of
+     * its first rank as a negative id (all ranks), its zero fields taken from Spell.dbc; without a row, the entry the core
+     * generates from Spell.dbc's procFlags for spells with a proc aura. null if the spell does not proc.
+     */
+    private function getProcEntry() : ?array
+    {
+        if ($this->procEntry !== false)
+            return $this->procEntry;
+
+        $entry = &$this->procEntry;
+
+        $dbcFlags = (int)$this->subject->getField('procFlags');
+
+        $row = DB::World()->selectRow('SELECT * FROM spell_proc WHERE `SpellId` IN %in ORDER BY `SpellId` = %i DESC LIMIT 1', array_unique([$this->typeId, -$this->firstRank]), $this->typeId);
+        if ($row)
+        {
+            $entry = array(
+                'SchoolMask'         => (int)$row['SchoolMask'],
+                'SpellFamilyName'    => (int)$row['SpellFamilyName'],
+                'SpellFamilyMask'    => [(int)$row['SpellFamilyMask0'], (int)$row['SpellFamilyMask1'], (int)$row['SpellFamilyMask2']],
+                'ProcFlags'          => (int)$row['ProcFlags'] ?: $dbcFlags,
+                'SpellTypeMask'      => (int)$row['SpellTypeMask'],
+                'SpellPhaseMask'     => (int)$row['SpellPhaseMask'],
+                'HitMask'            => (int)$row['HitMask'],
+                'AttributesMask'     => (int)$row['AttributesMask'],
+                'DisableEffectsMask' => (int)($row['DisableEffectsMask'] ?? 0),
+                'ProcsPerMinute'     => (float)$row['ProcsPerMinute'],
+                'Chance'             => (float)$row['Chance'],
+                'Cooldown'           => (int)$row['Cooldown'],
+                'Charges'            => (int)$row['Charges'] ?: (int)$this->subject->getField('procCharges')
+            );
+
+            if (!$entry['Chance'] && !$entry['ProcsPerMinute'])
+                $entry['Chance'] = (float)$this->subject->getField('procChance');
+
+            return $entry;
+        }
+
+        $entry = null;
+        if (!$dbcFlags)
+            return $entry;
+
+        $typeMask    = 0;
+        $nonProcMask = 0;
+        $addTrigger  = false;
+        $familyMask  = [0, 0, 0];
+        for ($i = 1; $i < 4; $i++)
+        {
+            $aura = $this->subject->getField('effect'.$i.'AuraId');
+            if (!$this->subject->getField('effect'.$i.'Id') || !$aura)
+                continue;
+
+            if (!in_array($aura, self::PROC_TRIGGER_AURAS))
+            {
+                $nonProcMask |= 1 << ($i - 1);
+                continue;
+            }
+
+            $typeMask |= self::PROC_AURA_SPELL_TYPE[$aura] ?? self::PROC_SPELL_TYPE_MASK_ALL;
+            if (in_array($aura, self::PROC_ALWAYS_TRIGGERED_AURAS))
+                $addTrigger = true;
+
+            // many proc auras with taken procFlag mask don't have attribute "can proc with triggered"
+            if (!$addTrigger && ($dbcFlags & self::TAKEN_HIT_PROC_FLAG_MASK) && in_array($aura, [SPELL_AURA_PROC_TRIGGER_SPELL, SPELL_AURA_PROC_TRIGGER_DAMAGE]))
+                $addTrigger = true;
+
+            foreach (['A', 'B', 'C'] as $j => $k)
+                $familyMask[$j] |= $this->subject->getField('effect'.$i.'SpellClassMask'.$k);
+        }
+
+        if (!$typeMask)                                     // no proc aura: the core creates no entry
+            return $entry;
+
+        $hitMask = 0;
+        for ($i = 1; $i < 4; $i++)
+        {
+            $hitMask = match ((int)$this->subject->getField('effect'.$i.'AuraId'))
+            {
+                SPELL_AURA_REFLECT_SPELLS, SPELL_AURA_REFLECT_SPELLS_SCHOOL => self::PROC_HIT_REFLECT,
+                SPELL_AURA_MOD_WEAPON_CRIT_PERCENT                          => self::PROC_HIT_CRITICAL,
+                SPELL_AURA_MOD_BLOCK_PERCENT                                => self::PROC_HIT_BLOCK,
+                SPELL_AURA_MOD_HIT_CHANCE                                   => $this->subject->getField('effect'.$i.'BasePoints') + min(1, $this->subject->getField('effect'.$i.'DieSides')) <= -100 ? self::PROC_HIT_MISS : 0,
+                default                                                     => -1
+            };
+
+            if ($hitMask >= 0)
+                break;
+        }
+
+        $entry = array(
+            'SchoolMask'         => 0,
+            'SpellFamilyName'    => array_filter($familyMask) ? (int)$this->subject->getField('spellFamilyId') : 0,
+            'SpellFamilyMask'    => $familyMask,
+            'ProcFlags'          => $dbcFlags,
+            'SpellTypeMask'      => $typeMask,
+            'SpellPhaseMask'     => self::PROC_SPELL_PHASE_HIT,
+            'HitMask'            => max(0, $hitMask),
+            'AttributesMask'     => ($dbcFlags & self::PROC_FLAG_KILL ? self::PROC_ATTR_REQ_EXP_OR_HONOR : 0) | ($addTrigger ? self::PROC_ATTR_TRIGGERED_CAN_PROC : 0),
+            'DisableEffectsMask' => $nonProcMask,
+            'ProcsPerMinute'     => 0.0,
+            'Chance'             => (float)$this->subject->getField('procChance'),
+            'Cooldown'           => 0,
+            'Charges'            => (int)$this->subject->getField('procCharges')
+        );
+
+        return $entry;
+    }
+
+    // what SpellMgr::CanSpellTriggerProcOnEvent checks against an event, for the fields that apply to the entry's ProcFlags
+    private function createProcConditions() : void
+    {
+        if (!($e = $this->getProcEntry()) || !$e['ProcFlags'])
+            return;
+
+        $list  = [];
+        $flags = $e['ProcFlags'];
+
+        $names = function (string $key, int $mask) : string
+        {
+            $out = [];
+            for ($j = 1; $j <= $mask; $j <<= 1)
+                if ($mask & $j)
+                    $out[] = Lang::exist('spell', $key, (string)$j) ?? Util::asHex($j);
+
+            return implode(', ', $out);
+        };
+
+        $list[] = Lang::spell('_procOn').$this->fmtStaffTip($names('procFlags', $flags), 'ProcFlags: '.Util::asHex($flags));
+
+        if ($e['SchoolMask'])
+            $list[] = Lang::spell('_procSchool').$this->fmtStaffTip(Lang::getMagicSchools($e['SchoolMask']), 'SchoolMask: '.Util::asHex($e['SchoolMask']));
+
+        if ($flags & self::SPELL_PROC_FLAG_MASK)
+        {
+            if ($e['SpellFamilyName'] && array_filter($e['SpellFamilyMask']) && ($from = $this->procFromSpells($e['SpellFamilyName'], $e['SpellFamilyMask'])))
+                $list[] = Lang::spell('_procFrom').$this->fmtStaffTip($from, 'SpellFamily: '.$e['SpellFamilyName'].', Mask: '.implode(' ', array_map(Util::asHex(...), $e['SpellFamilyMask'])));
+
+            if ($e['SpellTypeMask'] && ($e['SpellTypeMask'] & self::PROC_SPELL_TYPE_MASK_ALL) != self::PROC_SPELL_TYPE_MASK_ALL)
+                $list[] = Lang::spell('_procSpellType').$this->fmtStaffTip($names('procSpellType', $e['SpellTypeMask']), 'SpellTypeMask: '.Util::asHex($e['SpellTypeMask']));
+        }
+
+        if ($flags & self::REQ_SPELL_PHASE_PROC_FLAG_MASK && $e['SpellPhaseMask'])
+            $list[] = Lang::spell('_procPhase').$this->fmtStaffTip($names('procPhase', $e['SpellPhaseMask']), 'SpellPhaseMask: '.Util::asHex($e['SpellPhaseMask']));
+
+        if ($e['HitMask'] && ($flags & self::TAKEN_HIT_PROC_FLAG_MASK || ($flags & self::DONE_HIT_PROC_FLAG_MASK && (!$e['SpellPhaseMask'] || $e['SpellPhaseMask'] & (self::PROC_SPELL_PHASE_HIT | self::PROC_SPELL_PHASE_FINISH)))))
+            $list[] = Lang::spell('_procHit').$this->fmtStaffTip($names('procHit', $e['HitMask']), 'HitMask: '.Util::asHex($e['HitMask']));
+
+        for ($j = 1; $j <= $e['AttributesMask']; $j <<= 1)
+            if ($e['AttributesMask'] & $j)
+                $list[] = $this->fmtStaffTip(Lang::exist('spell', 'procAttr', (string)$j) ?? Util::asHex($j), 'AttributesMask: '.Util::asHex($j));
+
+        for ($i = 1; $i < 4; $i++)
+            if ($e['DisableEffectsMask'] & (1 << ($i - 1)) && $this->subject->getField('effect'.$i.'Id'))
+                $list[] = $this->fmtStaffTip(Lang::spell('_procNoEffect', [$i]), 'DisableEffectsMask: '.Util::asHex($e['DisableEffectsMask']));
+
+        if ($e['Charges'])
+            $list[] = Lang::spell('_procCharges', [$e['Charges']]);
+
+        $this->procConditions = $list;
+    }
+
+    // spells SpellInfo::IsAffected() matches against the entry's family mask, ranks folded into their first rank
+    private function procFromSpells(int $family, array $mask) : string
+    {
+        $spells = new SpellList(array(
+            ['s.typeCat', [-9], '!'],
+            ['s.spellFamilyId', $family],
+            [DB::OR, ['s.spellFamilyFlags1', $mask[0], '&'], ['s.spellFamilyFlags2', $mask[1], '&'], ['s.spellFamilyFlags3', $mask[2], '&']]
+        ));
+        if ($spells->error)
+            return '';
+
+        $names = [];
+        foreach ($spells->iterate() as $id => $__)
+            $names[$id] = $spells->getField('name', true);
+
+        foreach (self::getSpellRanks(array_keys($names)) as $spellId => [$firstSpellId, ])
+            if ($spellId != $firstSpellId && isset($names[$firstSpellId]))
+                unset($names[$spellId]);
+
+        $out = [];
+        foreach ($names as $id => $name)
+            $out[] = '<a href="?spell='.$id.'">'.Util::htmlEscape($name).'</a>';
+
+        return implode(', ', $out);
     }
     // aowow - custom end
 

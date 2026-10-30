@@ -106,7 +106,8 @@ CLISetup::registerSetup("sql", new class extends SetupScript
                            schoolMask,
                            0 AS spellDescriptionVariable,
                            0 AS trainingCost,
-                           0 AS areaGroupId
+                           0 AS areaGroupId,
+                           ProcFlags
                     FROM   spell_dbc
                     LIMIT  %i,%i';
 
@@ -193,7 +194,8 @@ CLISetup::registerSetup("sql", new class extends SetupScript
                               schoolMask,
                               GREATEST(spellDescriptionVariable, 0),
                               0 AS trainingCost,
-                              areaGroupId
+                              areaGroupId,
+                              procTypeMask
                     FROM      dbc_spell s
                     LEFT JOIN dbc_spellcasttimes sct ON s.castTimeId      = sct.id
                     LEFT JOIN dbc_spellrunecost  src ON s.runeCostId      = src.id

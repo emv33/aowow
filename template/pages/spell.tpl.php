@@ -330,6 +330,23 @@ $WH.aE(window,\'load\',function(){$WH.ge(\'spelleffectmarkup-'.$i.'\').innerHTML
 <?php
 endforeach;
 
+if ($this->procConditions):                                 // aowow - custom: SpellProcEntry
+?>
+
+                    <tr>
+                        <th><?=Lang::spell('_procConditions');?></th>
+                            <td colspan="3" style="line-height:17px">
+                                <ul style="margin:0"><?php
+    foreach ($this->procConditions as $c):
+        echo '<li>'.$c.'</li>';
+    endforeach;
+?></ul>
+                        </td>
+                    </tr>
+
+<?php
+endif;
+
 if ($this->attributes):
 ?>
 

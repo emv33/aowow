@@ -2374,6 +2374,44 @@ $lang = array(
         '_maxSkill'     => "max. %d",   // aowow - custom: max. skill of a learn skill step (SkillTiers.dbc)
         '_interval'     => "Interval: ",
         '_customAttr'   => "Custom attributes", // aowow - custom: spell_custom_attr (TDB), separate from the DBC Flags row
+        '_procConditions' => "Proc conditions",   // aowow - custom: SpellProcEntry (spell_proc / Spell.dbc procFlags)
+        '_procOn'       => "On: ",
+        '_procSchool'   => "School: ",
+        '_procFrom'     => "Only from: ",
+        '_procSpellType' => "Spell type: ",
+        '_procPhase'    => "Spell phase: ",
+        '_procHit'      => "Hit result: ",
+        '_procNoEffect' => "Effect #%d does not proc",
+        '_procCharges'  => "Charges: %d",
+        'procFlags'     => array(                           // SpellMgr.h ProcFlags
+            0x0000001 => "being killed",                    0x0000002 => "killing a target",
+            0x0000004 => "your melee auto attacks",         0x0000008 => "melee auto attacks against you",
+            0x0000010 => "your melee abilities",            0x0000020 => "melee abilities against you",
+            0x0000040 => "your ranged auto attacks",        0x0000080 => "ranged auto attacks against you",
+            0x0000100 => "your ranged abilities",           0x0000200 => "ranged abilities against you",
+            0x0000400 => "your helpful spells (no damage class)", 0x0000800 => "helpful spells (no damage class) on you",
+            0x0001000 => "your harmful spells (no damage class)", 0x0002000 => "harmful spells (no damage class) against you",
+            0x0004000 => "your helpful magic spells",       0x0008000 => "helpful magic spells on you",
+            0x0010000 => "your harmful magic spells",       0x0020000 => "harmful magic spells against you",
+            0x0040000 => "your periodic damage / healing",  0x0080000 => "periodic damage / healing on you",
+            0x0100000 => "taking any damage",               0x0200000 => "trap activation",
+            0x0400000 => "your main hand attacks",          0x0800000 => "your off hand attacks",
+            0x1000000 => "dying"
+        ),
+        'procSpellType' => [0x1 => "damage", 0x2 => "healing", 0x4 => "neither damage nor healing"],   // ProcFlagsSpellType
+        'procPhase'     => [0x1 => "cast", 0x2 => "hit", 0x4 => "finish"],                              // ProcFlagsSpellPhase
+        'procHit'       => array(                           // ProcFlagsHit
+            0x0001 => "normal", 0x0002 => "critical", 0x0004 => "miss",    0x0008 => "full resist", 0x0010 => "dodge",     0x0020 => "parry",     0x0040 => "block",
+            0x0080 => "evade",  0x0100 => "immune",   0x0200 => "deflect", 0x0400 => "absorb",      0x0800 => "reflect",   0x1000 => "interrupt", 0x2000 => "full block"
+        ),
+        'procAttr'      => array(                           // ProcAttributes
+            0x001 => "Target must yield experience or honor",
+            0x002 => "Can proc from triggered spells",
+            0x004 => "Triggering spell must cost mana",
+            0x008 => "Only spells it modifies use up a charge",
+            0x080 => "Lower chance above level 60",
+            0x100 => "Can't proc from spells cast by items"
+        ),
         '_inSlot'       => "im Platz: ",
         '_collapseAll'  => "Alle einklappen",
         '_expandAll'    => "Alle ausklappen",
