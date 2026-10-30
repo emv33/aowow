@@ -26,6 +26,7 @@ class SpellBaseResponse extends TemplateResponse implements ICache
     public  array  $attributes = [];
     public  array  $customAttributes = [];  // aowow - custom: see createCustomAttributesList()
     public  array  $procConditions   = [];  // aowow - custom: see createProcConditions()
+    public  array  $procFrom         = [];  // aowow - custom: [label, [[IconElement, ?rankRange]]], see procFromSpells()
     public  string $powerCost  = '';
     public  string $castTime   = '';
     public  string $level      = '';
@@ -3326,7 +3327,7 @@ class SpellBaseResponse extends TemplateResponse implements ICache
         if ($flags & self::SPELL_PROC_FLAG_MASK)
         {
             if ($e['SpellFamilyName'] && array_filter($e['SpellFamilyMask']) && ($from = $this->procFromSpells($e['SpellFamilyName'], $e['SpellFamilyMask'])))
-                $list[] = Lang::spell('_procFrom').$this->fmtStaffTip($from, 'SpellFamily: '.$e['SpellFamilyName'].', Mask: '.implode(' ', array_map(Util::asHex(...), $e['SpellFamilyMask'])));
+                $this->procFrom = [$this->fmtStaffTip(Lang::spell('_procFrom'), 'SpellFamily: '.$e['SpellFamilyName'].', Mask: '.implode(' ', array_map(Util::asHex(...), $e['SpellFamilyMask']))), $from];
 
             if ($e['SpellTypeMask'] && ($e['SpellTypeMask'] & self::PROC_SPELL_TYPE_MASK_ALL) != self::PROC_SPELL_TYPE_MASK_ALL)
                 $list[] = Lang::spell('_procSpellType').$this->fmtStaffTip($names('procSpellType', $e['SpellTypeMask']), 'SpellTypeMask: '.Util::asHex($e['SpellTypeMask']));
@@ -3353,7 +3354,7 @@ class SpellBaseResponse extends TemplateResponse implements ICache
     }
 
     // spells SpellInfo::IsAffected() matches against the entry's family mask, ranks folded into their first rank
-    private function procFromSpells(int $family, array $mask) : string
+    private function procFromSpells(int $family, array $mask) : array
     {
         $spells = new SpellList(array(
             ['s.typeCat', [-9], '!'],
@@ -3361,21 +3362,29 @@ class SpellBaseResponse extends TemplateResponse implements ICache
             [DB::OR, ['s.spellFamilyFlags1', $mask[0], '&'], ['s.spellFamilyFlags2', $mask[1], '&'], ['s.spellFamilyFlags3', $mask[2], '&']]
         ));
         if ($spells->error)
-            return '';
+            return [];
 
-        $names = [];
+        $this->extendGlobalData($spells->getJSGlobals(GLOBALINFO_SELF));
+
+        $icons = [];
         foreach ($spells->iterate() as $id => $__)
-            $names[$id] = $spells->getField('name', true);
+            $icons[$id] = [new IconElement(Type::SPELL, $id, $spells->getField('name', true), size: IconElement::SIZE_SMALL, element: 'proctab-icon'), null];
 
-        foreach (self::getSpellRanks(array_keys($names)) as $spellId => [$firstSpellId, ])
-            if ($spellId != $firstSpellId && isset($names[$firstSpellId]))
-                unset($names[$spellId]);
+        foreach (self::getSpellRanks(array_keys($icons)) as $spellId => [$firstSpellId, $rank])
+        {
+            if (!isset($icons[$firstSpellId]))
+                continue;
 
-        $out = [];
-        foreach ($names as $id => $name)
-            $out[] = '<a href="?spell='.$id.'">'.Util::htmlEscape($name).'</a>';
+            $icons[$firstSpellId][1] = [min($icons[$firstSpellId][1][0] ?? $rank, $rank), max($icons[$firstSpellId][1][1] ?? $rank, $rank)];
+            if ($spellId != $firstSpellId)
+                unset($icons[$spellId]);
+        }
 
-        return implode(', ', $out);
+        foreach ($icons as &$icon)                          // only one rank => no range
+            if ($icon[1] && $icon[1][0] == $icon[1][1])
+                $icon[1] = null;
+
+        return array_values($icons);
     }
     // aowow - custom end
 

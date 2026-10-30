@@ -340,6 +340,35 @@ if ($this->procConditions):                                 // aowow - custom: S
     foreach ($this->procConditions as $c):
         echo '<li>'.$c.'</li>';
     endforeach;
+
+    if ($this->procFrom):
+        [$label, $icons] = $this->procFrom;
+        $procIconIdx = 0;
+        $folded      = false;
+
+        echo '<li>'.$label.'<table class="icontab">';
+
+        foreach ($icons as $idx => [$icon, $ranks]):
+            if (!($idx % 3))
+                echo '<tr'.($folded ? ' style="display:none;"' : '').'>';
+
+            $icon->renderContainer(iconIdxOffset: $procIconIdx); // just to assign iconOffset
+            echo '<th id="proctab-icon'.$procIconIdx.'"></th><td><a href="?spell='.$icon->typeId.'">'.Util::htmlEscape($icon->text).'</a>'.($ranks ? '<br /><small>('.Lang::spell('_rankRange', $ranks).')</small>' : '').'</td>'.PHP_EOL;
+
+            if ($idx == count($icons) - 1 || !(($idx + 1) % 3))
+                echo '</tr>';
+
+            if ($idx == 17 && count($icons) > 21):
+                $folded = true;
+                echo '<tr class="icontab-revealer"><td colspan="6"><a onclick="$(this).closest(\'table\').addClass(\'show-all\')">'.Lang::spell('_showXmore', [count($icons) - 18]).'</a></td></tr>';
+            endif;
+        endforeach;
+
+        echo '</table><script type="text/javascript">//<![CDATA['.PHP_EOL;
+        foreach ($icons as [$icon, ])
+            echo $icon->renderJS(32);
+        echo '//]]></script></li>';
+    endif;
 ?></ul>
                         </td>
                     </tr>
