@@ -2314,9 +2314,11 @@ class SpellBaseResponse extends TemplateResponse implements ICache
             if ($_ = $this->subject->getField('effect'.$i.'Mechanic'))
                 $_footer['mechanic'] = Lang::game('mechanic').Lang::main('colon').Lang::game('me', $_);
 
-            if (in_array($i, $this->subject->canTriggerSpell()) && $procData['chance'] && $procData['chance'] < 100)
+            if (in_array($i, $this->subject->canTriggerSpell()))
             {
-                $_footer['proc']   = $procData['chance'] < 0 ? Lang::spell('ppm', [-$procData['chance']]) : Lang::spell('procChance', [$procData['chance']]);
+                if ($procData['chance'] && $procData['chance'] < 100)
+                    $_footer['proc'] = $procData['chance'] < 0 ? Lang::spell('ppm', [-$procData['chance']]) : Lang::spell('procChance', [$procData['chance']]);
+                // aowow - custom: a proc cooldown applies whatever the chance, e.g. 51349 procs on every kill at most every 10 sec (upstream: only shown with a chance below 100%)
                 if ($procData['cooldown'])
                     $_footer['procCD'] = Lang::game('cooldown', [DateTime::formatTimeElapsed($procData['cooldown'])]);
             }
