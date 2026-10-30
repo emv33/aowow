@@ -56,6 +56,36 @@ class SpellBaseResponse extends TemplateResponse implements ICache
 
         return $known[$tbl] ??= (bool)DB::World()->selectCell('SHOW TABLES LIKE %s', $tbl);
     }
+
+    // spellId => [firstRank, rank]; talents are not in spell_ranks, the core chains them from
+    // Talent.dbc first (SpellMgr::LoadSpellTalentRanks) and lets spell_ranks override that
+    private static function getSpellRanks(array $spellIds) : array
+    {
+        $ranks = DB::World()->selectAssoc('SELECT `spell_id` AS ARRAY_KEY, `first_spell_id` AS "0", `rank` AS "1" FROM spell_ranks WHERE `spell_id` IN %in', $spellIds) ?: [];
+
+        $missing = array_diff($spellIds, array_keys($ranks));
+        if (!$missing || !DB::Aowow()->selectCell('SHOW TABLES LIKE %s', 'dbc_talent'))
+            return $ranks;
+
+        $talents = DB::Aowow()->selectAssoc(
+           'SELECT `rank1`, `rank2`, `rank3`, `rank4`, `rank5`
+            FROM   dbc_talent
+            WHERE  `rank1` IN %in OR `rank2` IN %in OR `rank3` IN %in OR `rank4` IN %in OR `rank5` IN %in',
+            $missing, $missing, $missing, $missing, $missing
+        );
+
+        foreach ($talents ?: [] as $t)
+            foreach (array_values($t) as $i => $spellId)
+            {
+                if (!$spellId)                              // chain ends at the first empty rank
+                    break;
+
+                if (in_array($spellId, $missing))
+                    $ranks[$spellId] = [$t['rank1'], $i + 1];
+            }
+
+        return $ranks;
+    }
     // aowow - custom end
 
     public function __construct(string $id)
@@ -93,10 +123,7 @@ class SpellBaseResponse extends TemplateResponse implements ICache
         }
 
         // returns self or firstRank
-        if ($fr = DB::World()->selectCell('SELECT `first_spell_id` FROM spell_ranks WHERE `spell_id` = %i', $this->typeId))
-            $this->firstRank = $fr;
-        else
-            $this->firstRank = $this->typeId;
+        $this->firstRank = self::getSpellRanks([$this->typeId])[$this->typeId][0] ?? $this->typeId; // aowow - custom: also talent ranks
 
         $this->h1       = Util::htmlEscape($this->subject->getField('name', true));
         $this->disabled = !!($this->subject->getField('cuFlags') & CUSTOM_DISABLED);
@@ -502,7 +529,7 @@ class SpellBaseResponse extends TemplateResponse implements ICache
 
                 if ($classSpells)
                 {
-                    foreach (DB::World()->selectAssoc('SELECT `spell_id` AS ARRAY_KEY, `first_spell_id` AS "0", `rank` AS "1" FROM spell_ranks WHERE `spell_id` IN %in', array_keys($classSpells)) as $spellId => [$firstSpellId, $rank])
+                    foreach (self::getSpellRanks(array_keys($classSpells)) as $spellId => [$firstSpellId, $rank]) // aowow - custom: also talent ranks
                     {
                         $classSpells[$firstSpellId][1][0] = min($classSpells[$firstSpellId][1][0] ?? $rank, $rank);
                         $classSpells[$firstSpellId][1][1] = max($classSpells[$firstSpellId][1][1] ?? $rank, $rank);
