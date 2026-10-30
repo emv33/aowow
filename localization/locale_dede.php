@@ -1456,6 +1456,8 @@ $lang = array(
         'respawnGates'  => "Controls respawn of",
         'equippedBy'    => "Equipped by",
         'leadsFormation'=> "Leads formation of",
+        'startOutfit'   => "Starting equipment of",
+        'startItem'     => "Given at creation to",
     ),
     'spellOverride' => array(
         'title'         => "Server overrides",

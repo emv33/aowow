@@ -125,7 +125,10 @@ class StartOutfit
         return $out;
     }
 
-    /** CharStartOutfit.dbc, merged over both genders - the two differ only in shirt/model items */
+    /**
+     * CharStartOutfit.dbc, merged over both genders - the two differ only in shirt/model items
+     * an item `playercreateinfo_item` gives a negative amount is struck from the outfit
+     */
     private function outfitItems(int $race, int $class) : array
     {
         if (!self::hasDBC())
@@ -140,10 +143,12 @@ class StartOutfit
             $race, $class
         ) ?: [];
 
+        $removed = self::createItems($race, $class)[1];
+
         $items = [];
         foreach ($rows as $r)
             foreach ($r as $v)
-                if (($v = (int)$v) > 0)
+                if (($v = (int)$v) > 0 && !in_array($v, $removed))
                     $items[$v] = $v;
 
         return array_values($items);
@@ -151,12 +156,86 @@ class StartOutfit
 
     private function extraItems(int $race, int $class) : array
     {
-        $rows = DB::World()->selectAssoc('SELECT `itemid`, `amount` FROM playercreateinfo_item WHERE `race` = %i AND `class` = %i', $race, $class) ?: [];
+        return self::createItems($race, $class)[0];
+    }
 
-        $out = [];
+    /**
+     * `playercreateinfo_item` for one race/class pair as [[itemId => amount], removedItemIds]
+     * ObjectMgr::LoadPlayerInfo reads a race or class of 0 as every race/class, and
+     * PlayerCreateInfoAddItemHelper takes a negative amount as "remove from CharStartOutfit" -
+     * independent of any positive row, which hands the item out on top
+     */
+    private static function createItems(int $race, int $class) : array
+    {
+        $rows = DB::World()->selectAssoc(
+           'SELECT `itemid`, `amount` FROM playercreateinfo_item WHERE `race` IN (0, %i) AND `class` IN (0, %i)',
+            $race, $class
+        ) ?: [];
+
+        $add = $del = [];
         foreach ($rows as $r)
-            if (($id = (int)$r['itemid']) > 0)
-                $out[$id] = max(1, (int)$r['amount']);
+        {
+            if (($id = (int)$r['itemid']) <= 0)
+                continue;
+
+            if (($n = (int)$r['amount']) > 0)
+                $add[$id] = ($add[$id] ?? 0) + $n;
+            else if ($n < 0)
+                $del[$id] = $id;
+        }
+
+        return [$add, array_values($del)];
+    }
+
+    /**
+     * the reverse lookup: every race/class pair that starts with this item
+     *
+     * @return array ['outfit' => [[race, class], ..], 'extra' => [[race, class], ..], 'all' => [class => races[]]]
+     */
+    public static function pairsForItem(int $itemId) : array
+    {
+        $out = ['outfit' => [], 'extra' => [], 'all' => []];
+
+        $pairs = DB::World()->selectAssoc('SELECT `race`, `class` FROM playercreateinfo ORDER BY `class`, `race` ASC') ?: [];
+        if (!$pairs)
+            return $out;
+
+        $outfit = [];
+        if (self::hasDBC())
+        {
+            $cols = [];
+            for ($i = 1; $i <= 20; $i++)
+                $cols[] = '`item'.$i.'`';
+
+            foreach (DB::Aowow()->selectAssoc('SELECT DISTINCT `raceId`, `classId` FROM dbc_charstartoutfit WHERE %i IN ('.implode(', ', $cols).')', $itemId) ?: [] as $r)
+                $outfit[$r['raceId'].':'.$r['classId']] = true;
+        }
+
+        $create = DB::World()->selectAssoc('SELECT `race`, `class`, `amount` FROM playercreateinfo_item WHERE `itemid` = %i', $itemId) ?: [];
+
+        foreach ($pairs as $p)
+        {
+            $race  = (int)$p['race'];
+            $class = (int)$p['class'];
+
+            $out['all'][$class][] = $race;
+
+            $add = $del = false;
+            foreach ($create as $c)
+            {
+                if (((int)$c['race'] && (int)$c['race'] != $race) || ((int)$c['class'] && (int)$c['class'] != $class))
+                    continue;
+
+                $add = $add || (int)$c['amount'] > 0;
+                $del = $del || (int)$c['amount'] < 0;
+            }
+
+            if (isset($outfit[$race.':'.$class]) && !$del)
+                $out['outfit'][] = [$race, $class];
+
+            if ($add)
+                $out['extra'][] = [$race, $class];
+        }
 
         return $out;
     }

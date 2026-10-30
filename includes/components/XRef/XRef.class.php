@@ -293,6 +293,51 @@ class XRef
         $this->add(Lang::xRef('leadsFormation'), $this->linksFor([Type::NPC => $ids]));
     }
 
+    /**
+     * CharStartOutfit.dbc and `playercreateinfo_item` read backwards - who starts out with this item
+     * the forward direction is the "Starting out" block on the race and class pages
+     */
+    private function startingItem() : void
+    {
+        if ($this->type != Type::ITEM)
+            return;
+
+        $pairs = StartOutfit::pairsForItem($this->typeId);
+
+        foreach (['outfit' => 'startOutfit', 'extra' => 'startItem'] as $key => $label)
+        {
+            $byClass = [];
+            foreach ($pairs[$key] as [$race, $class])
+                $byClass[$class][] = $race;
+
+            // a class every race of which gets the item is named alone
+            $links = [];
+            $split = false;
+            foreach ($byClass as $class => $races)
+            {
+                $this->jsGlobals[Type::CHR_CLASS][$class] = $class;
+
+                if (!array_diff($pairs['all'][$class], $races))
+                {
+                    $links[] = '[class='.$class.']';
+                    continue;
+                }
+
+                foreach ($races as $race)
+                    $this->jsGlobals[Type::CHR_RACE][$race] = $race;
+
+                $links[] = '[class='.$class.'] ('.Lang::concat(array_map(fn($r) => '[race='.$r.']', $races), Lang::CONCAT_NONE).')';
+                $split   = true;
+            }
+
+            // race lists in parentheses read as one run-on list when comma joined, so those go one class per line
+            if ($split)
+                $this->rows[] = [Lang::xRef($label), implode('[br]', $links)];
+            else
+                $this->add(Lang::xRef($label), $links);
+        }
+    }
+
     public function getMarkup() : ?Markup
     {
         $this->smartAI();
@@ -302,6 +347,7 @@ class XRef
         $this->spawnGroups();
         $this->linkedRespawn();
         $this->leadsFormation();
+        $this->startingItem();
 
         if (!$this->rows)
             return null;
