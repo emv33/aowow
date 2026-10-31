@@ -163,6 +163,49 @@ class LegacyScript
         return array_values(array_filter(array_map('intVal', $ids)));
     }
 
+    /**
+     * the reverse of the getter above: who runs a script containing $command with $datalong as its first argument
+     * spell_scripts belong to their spell, event_scripts to the spells and objects sending that event,
+     * waypoint_scripts to the creatures walking a path that calls them
+     * returns [Type => [typeId, ..]]
+     */
+    public static function getCommandOwners(int $command, int $datalong) : array
+    {
+        $result = [];
+        $ids    = fn(string $tbl) : array => self::tableExists($tbl) ? array_map('intVal', DB::World()->selectCol('SELECT DISTINCT `id` FROM %n WHERE `command` = %i AND `datalong` = %i', $tbl, $command, $datalong) ?: []) : [];
+
+        if ($spells = $ids('spell_scripts'))
+            $result[Type::SPELL] = $spells;
+
+        if ($events = $ids('event_scripts'))
+        {
+            $spells = DB::Aowow()->selectCol(
+               'SELECT `id` FROM ::spell WHERE (`effect1Id` = %i AND `effect1MiscValue` IN %in) OR (`effect2Id` = %i AND `effect2MiscValue` IN %in) OR (`effect3Id` = %i AND `effect3MiscValue` IN %in)',
+                SPELL_EFFECT_SEND_EVENT, $events, SPELL_EFFECT_SEND_EVENT, $events, SPELL_EFFECT_SEND_EVENT, $events
+            );
+            if ($spells)
+                $result[Type::SPELL] = array_merge($result[Type::SPELL] ?? [], array_map('intVal', $spells));
+
+            $col = 'IF(`type` = '.GO_TYPE_GOOBER.', `data1`, IF(`type` = '.GO_TYPE_CHEST.', `data6`, IF(`type` = '.GO_TYPE_CAMERA.', `data2`, 0)))';
+            if ($objects = DB::World()->selectCol('SELECT `entry` FROM gameobject_template WHERE '.$col.' IN %in', $events))
+                $result[Type::OBJECT] = array_map('intVal', $objects);
+        }
+
+        if (($wpScripts = $ids('waypoint_scripts')) && self::tableExists('waypoint_data'))
+        {
+            $npcs = DB::World()->selectCol(
+               'SELECT c.`id` FROM creature c JOIN creature_addon ca ON ca.`guid` = c.`guid` WHERE ca.`path_id` IN (SELECT `id` FROM waypoint_data WHERE `action` IN %in)
+                UNION
+                SELECT cta.`entry` FROM creature_template_addon cta WHERE cta.`path_id` IN (SELECT `id` FROM waypoint_data WHERE `action` IN %in)',
+                $wpScripts, $wpScripts
+            );
+            if ($npcs)
+                $result[Type::NPC] = array_map('intVal', $npcs);
+        }
+
+        return array_map(fn($x) => array_values(array_unique($x)), $result);
+    }
+
     private function fetchRows() : array
     {
         if ($this->srcId <= 0 || !($tbl = self::TABLES[$this->srcType] ?? null) || !self::tableExists($tbl))

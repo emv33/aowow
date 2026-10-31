@@ -708,6 +708,11 @@ class NpcBaseResponse extends TemplateResponse implements ICache
             [DB::AND, ['effect3Id', [SPELL_EFFECT_SUMMON, SPELL_EFFECT_SUMMON_PET, SPELL_EFFECT_SUMMON_DEMON]], ['effect3MiscValue', $this->typeId]]
         );
 
+        // aowow - custom: also the spells, objects and creatures whose legacy scripts summon it
+        $lsOwners = LegacyScript::getCommandOwners(LegacyScript::CMD_TEMP_SUMMON_CREATURE, $this->typeId);
+        if (!empty($lsOwners[Type::SPELL]))
+            $conditions[] = ['id', $lsOwners[Type::SPELL]];
+
         $sbSpell = new SpellList($conditions);
         if (!$sbSpell->error)
         {
@@ -722,6 +727,9 @@ class NpcBaseResponse extends TemplateResponse implements ICache
 
         // tab: summoned by [NPC]
         $sb = SmartAI::getOwnerOfNPCSummon($this->typeId);
+        foreach ([Type::NPC, Type::OBJECT] as $t)           // aowow - custom: legacy script summons
+            if (!empty($lsOwners[$t]))
+                $sb[$t] = array_values(array_unique(array_merge($sb[$t] ?? [], $lsOwners[$t])));
         if (!empty($sb[Type::NPC]))
         {
             $sbNPC = new CreatureList(array(['id', $sb[Type::NPC]]));
