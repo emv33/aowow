@@ -472,6 +472,11 @@ class EventBaseResponse extends TemplateResponse implements ICache
             $poolIds = array_map('intVal', DB::World()->selectCol('SELECT `pool_entry` FROM game_event_pool WHERE `eventEntry` = %i', $this->typeId) ?: []);
             $nPools  = count($poolIds);
 
+            // the pools themselves, each with its own page
+            $poolLinks = [];
+            foreach (Pool::getRows($poolIds) as $pId => $p)
+                $poolLinks[] = '[url=?spawnpool='.$pId.']'.($p['name'] ?: Lang::pool('unnamed', [$pId])).'[/url]';
+
             // an event usually switches on a mother pool, whose members are further pools rather
             // than spawns, so the tree is walked before its leaves are read
             $poolIds = Pool::withChildren($poolIds);
@@ -484,8 +489,8 @@ class EventBaseResponse extends TemplateResponse implements ICache
                     $links[] = '['.Markup::getTagForType($type).'='.$id.']';
             }
 
-            if ($links)
-                $rows[] = [Lang::eventExtra('pools', [$nPools]), Lang::concat($links, Lang::CONCAT_NONE)];
+            if ($poolLinks || $links)
+                $rows[] = [Lang::eventExtra('pools', [$nPools]), Lang::concat($poolLinks).($poolLinks && $links ? '[br]' : '').Lang::concat($links, Lang::CONCAT_NONE)];
         }
 
         // the holiday half of the event system, none of which was read anywhere

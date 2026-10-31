@@ -1555,6 +1555,19 @@ $lang = array(
         'viewFullRoute' => "View full route on map"
     ),
     'pool' => array(
+        'title'         => "Spawn Pools",
+        'notFound'      => "This spawn pool doesn't exist.",
+        'unnamed'       => 'Spawn pool #%1$d',
+        'id'            => "ID",
+        'active'        => 'Active at once: %1$d of %2$d',
+        'activeAll'     => 'Members: %1$d',
+        'members'       => "Members",
+        'mother'        => "Part of",
+        'event'         => "Spawned during",
+        'chanced'       => "Fixed chances",
+        'chance'        => 'Chance: %1$s%%',
+        'spawnPoints'   => "Spawn points",
+        'childPools'    => "Nested pools",
         'pools'         => "Spawn pools",
         'sharesPool'    => "Shares a spawn pool"
     ),

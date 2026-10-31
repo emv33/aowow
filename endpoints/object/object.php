@@ -709,9 +709,10 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
         {
             $this->addDataLoader('zones');
             $this->lvTabs->addListviewTab(new Listview(array(
-                'data' => Pool::getListviewData($pools),
+                'data' => $pools,
                 'name' => Lang::pool('pools'),
-                'id'   => 'spawn-pools'
+                'id'   => 'spawn-pools',
+                'sort' => ['-mine', 'name']
             ), 'spawnpool', 'spawnpool'));
 
             // what this entry competes with for the same slots

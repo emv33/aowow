@@ -1,12 +1,12 @@
 Listview.templates.spawnpool = {
-    sort: [-4, 1],
+    sort: [1],
     searchable: 1,
 
     columns: [
         {
             id: 'id',
             name: 'ID',
-            width: '8%',
+            width: '7%',
             value: 'id'
         },
         {
@@ -14,14 +14,20 @@ Listview.templates.spawnpool = {
             name: LANG.spawnpool.name,
             type: 'text',
             align: 'left',
+            value: 'name',
             compute: function(t, td) {
-                $WH.ae(td, $WH.ct(this.getVisibleText(t)));
+                var a = $WH.ce('a');
+                a.style.fontFamily = 'Verdana, sans-serif';
+                a.href = this.getItemLink(t);
+
+                $WH.ae(a, $WH.ct(t.name || $WH.sprintf(LANG.spawnpool.unnamed, t.id)));
+                $WH.ae(td, a);
             },
             getVisibleText: function(t) {
                 return t.name || $WH.sprintf(LANG.spawnpool.unnamed, t.id);
             },
             sortFunc: function(a, b, col) {
-                return $WH.strcmp(this.getVisibleText(a), this.getVisibleText(b));
+                return $WH.strcmp(a.name || '', b.name || '') || $WH.strcmp(a.id, b.id);
             }
         },
         {
@@ -42,9 +48,9 @@ Listview.templates.spawnpool = {
             id: 'active',
             name: LANG.spawnpool.active,
             tooltip: LANG.spawnpool.activetip,
-            width: '14%',
+            width: '12%',
             compute: function(t, td) {
-                $WH.ae(td, $WH.ct(this.getVisibleText(t)));
+                return (t.active || '?') + ' / ' + t.total;
             },
             getVisibleText: function(t) {
                 return (t.active || '?') + ' / ' + t.total;
@@ -57,8 +63,23 @@ Listview.templates.spawnpool = {
             id: 'mine',
             name: LANG.spawnpool.mine,
             tooltip: LANG.spawnpool.minetip,
-            width: '12%',
+            width: '9%',
             value: 'mine'
+        },
+        {
+            id: 'members',
+            name: LANG.spawnpool.members,
+            type: 'text',
+            width: '18%',
+            compute: function(t, td) {
+                return Listview.templates.spawnpool.membersText(t);
+            },
+            getVisibleText: function(t) {
+                return Listview.templates.spawnpool.membersText(t);
+            },
+            sortFunc: function(a, b, col) {
+                return $WH.strcmp(a.total, b.total);
+            }
         },
         {
             id: 'respawn',
@@ -66,19 +87,43 @@ Listview.templates.spawnpool = {
             tooltip: LANG.spawnpool.respawntip,
             width: '14%',
             compute: function(t, td) {
-                $WH.ae(td, $WH.ct(this.getVisibleText(t)));
+                return Listview.templates.spawnpool.respawnText(t);
             },
             getVisibleText: function(t) {
-                if (t.respawn[0] == t.respawn[1])
-                    return g_formatTimeElapsed(t.respawn[0]);
-
-                return g_formatTimeElapsed(t.respawn[0]) + ' - ' + g_formatTimeElapsed(t.respawn[1]);
+                return Listview.templates.spawnpool.respawnText(t);
             },
             sortFunc: function(a, b, col) {
-                return $WH.strcmp(a.respawn[0], b.respawn[0]) || $WH.strcmp(a.respawn[1], b.respawn[1]);
+                return $WH.strcmp(a.respawn ? a.respawn[0] : -1, b.respawn ? b.respawn[0] : -1);
             }
         }
     ],
+
+    membersText: function(t) {
+        var parts = [];
+        if (t.creatures)
+            parts.push(t.creatures + ' ' + LANG.types[1][3]);
+        if (t.objects)
+            parts.push(t.objects + ' ' + LANG.types[2][3]);
+        if (t.pools)
+            parts.push(t.pools + ' ' + LANG.spawnpool.pools);
+
+        return parts.join(LANG.comma);
+    },
+
+    respawnText: function(t) {
+        if (!t.respawn)
+            return '';
+
+        if (t.respawn[0] == t.respawn[1])
+            return g_formatTimeElapsed(t.respawn[0]);
+
+        return g_formatTimeElapsed(t.respawn[0]) + ' - ' + g_formatTimeElapsed(t.respawn[1]);
+    },
+
+    getItemLink: function(t) {
+        return '?spawnpool=' + t.id;
+    },
+
     onBeforeCreate: function() {
         // hide the template's own id col when the debug id col is shown
         if (this.debug || g_user?.debug) {

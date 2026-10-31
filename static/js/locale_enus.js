@@ -1019,7 +1019,8 @@ var mn_database = [
     [117, 'Faction change', '?factionchange'],    // aowow - custom
     [119, 'Spell Focuses', '?spellfocuses'],    // aowow - custom
     [120, 'Waypoint Paths', '?waypointpaths'],    // aowow - custom
-    [121, 'Summon Groups', '?summongroups']    // aowow - custom
+    [121, 'Summon Groups', '?summongroups'],    // aowow - custom
+    [122, 'Spawn Pools', '?spawnpools']    // aowow - custom
 ];
 
 var mn_guides = [
@@ -4934,11 +4935,14 @@ var LANG = {
         name:        "Pool",
         unnamed:     "Spawn pool #$1",
         active:      "Active",
-        activetip:   "Spawn points of the pool live at once / all spawn points of the pool, of any creature or object",
+        activetip:   "Members of the pool live at once / all members of the pool: creature and object spawn points, and nested pools",
         mine:        "Here",
         minetip:     "Spawn points of this entry in the pool",
+        members:     "Members",
+        pools:       "pools",
+        points:      "Spawn points",
         respawn:     "Replaced after",
-        respawntip:  "When a spawn of the pool despawns, a random inactive spawn point of the pool is spawned after this time"
+        respawntip:  "When a spawn of the pool despawns, a random inactive member of the pool is spawned after this time"
     },
     fispellfocus: {
         name:       "Name",
