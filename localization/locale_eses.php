@@ -1556,7 +1556,8 @@ $lang = array(
         'viewFullRoute' => "View full route on map"
     ),
     'pool' => array(
-        'pooled'        => 'Pooled spawn: %1$d of %2$d points active',
+        'pooled'        => '%3$s: %1$d of %2$d spawn points active',
+        'poolName'      => 'Spawn pool #%1$d',
         'pooledUnknown' => 'Part of spawn pool #%1$d',
         'sharesPool'    => "Shares a spawn pool"
     ),

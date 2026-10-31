@@ -474,16 +474,7 @@ class EventBaseResponse extends TemplateResponse implements ICache
 
             // an event usually switches on a mother pool, whose members are further pools rather
             // than spawns, so the tree is walked before its leaves are read
-            if ($poolIds && self::hasTable('pool_pool'))
-            {
-                $open = $poolIds;
-                while ($open)
-                {
-                    $children = array_map('intVal', DB::World()->selectCol('SELECT `pool_id` FROM pool_pool WHERE `mother_pool` IN %in', $open) ?: []);
-                    $open     = array_values(array_diff($children, $poolIds));
-                    $poolIds  = array_merge($poolIds, $open);
-                }
-            }
+            $poolIds = Pool::withChildren($poolIds);
 
             $links = [];
             foreach (Pool::getMembers($poolIds) as $type => $ids)

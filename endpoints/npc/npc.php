@@ -267,8 +267,9 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         $pools = Pool::getForEntry(Type::NPC, $this->typeId);
         foreach ($pools as $pId => $pool)
         {
+            $name      = $pool['description'] ?: Lang::pool('poolName', [$pId]);
             $infobox[] = $pool['maxActive'] && $pool['nMembers']
-                       ? Lang::pool('pooled', [$pool['maxActive'], $pool['nMembers']])
+                       ? Lang::pool('pooled', [$pool['maxActive'], $pool['nMembers'], $name])
                        : Lang::pool('pooledUnknown', [$pId]);
         }
         // aowow - custom end
