@@ -24,7 +24,7 @@ class Pool
     private const int MEMBER_GAMEOBJECT = 1;
     private const int MEMBER_POOL       = 2;
 
-    /** @return array poolId => [maxActive, nMembers, nMine, description] for the pools this entry spawns in */
+    /** @return array poolId => [maxActive, nMembers, nMine, description, respawn: [min, max], areas: [areaId => n]] for the pools this entry spawns in */
     public static function getForEntry(int $type, int $entry) : array
     {
         if ($entry <= 0)
@@ -40,72 +40,72 @@ class Pool
         if ($memberType === null || !self::hasTable('pool_members') || !self::hasTable('pool_template'))
             return [];
 
-        // which pools hold a spawn of this entry, and how many of that pool's slots are ours
+        // this entry's pooled spawns
         $mine = DB::World()->selectAssoc(
-           'SELECT   p.`poolSpawnId` AS ARRAY_KEY, COUNT(1) AS "nMine"
-            FROM     pool_members p
-            JOIN     %n s ON s.`guid` = p.`spawnId`
-            WHERE    p.`type` = %i AND s.`id` = %i
-            GROUP BY p.`poolSpawnId`',
+           'SELECT p.`spawnId` AS ARRAY_KEY, p.`poolSpawnId` AS "poolId", s.`spawntimesecs` AS "respawn"
+            FROM   pool_members p
+            JOIN   %n s ON s.`guid` = p.`spawnId`
+            WHERE  p.`type` = %i AND s.`id` = %i',
             $spawnTbl, $memberType, $entry
         ) ?: [];
 
         if (!$mine)
             return [];
 
-        $info = self::describe(array_keys($mine));
-
-        $out = [];
-        foreach ($mine as $pId => $r)
-            $out[(int)$pId] = $info[(int)$pId] + ['nMine' => (int)$r['nMine']];
-
-        return $out;
-    }
-
-    /** @return array guid => [poolId, maxActive, nMembers, description] for those of the given spawns that are pooled */
-    public static function getForGuids(int $type, array $guids) : array
-    {
-        $memberType = match ($type)
-        {
-            Type::NPC    => self::MEMBER_CREATURE,
-            Type::OBJECT => self::MEMBER_GAMEOBJECT,
-            default      => null
-        };
-
-        if ($memberType === null || !($guids = array_values(array_filter(array_map('intVal', $guids), fn($x) => $x > 0))) || !self::hasTable('pool_members') || !self::hasTable('pool_template'))
-            return [];
-
-        if (!$pools = DB::World()->selectPairs('SELECT `spawnId`, `poolSpawnId` FROM pool_members WHERE `type` = %i AND `spawnId` IN %in', $memberType, $guids))
-            return [];
-
-        $info = self::describe(array_unique($pools));
-
-        $out = [];
-        foreach ($pools as $guid => $pId)
-            $out[(int)$guid] = ['poolId' => (int)$pId] + $info[(int)$pId];
-
-        return $out;
-    }
-
-    /** @return array poolId => [maxActive, nMembers, description] */
-    private static function describe(array $poolIds) : array
-    {
-        $poolIds = array_values(array_map('intVal', $poolIds));
+        $poolIds = array_values(array_unique(array_map('intVal', array_column($mine, 'poolId'))));
 
         $tpl = DB::World()->selectAssoc('SELECT `entry` AS ARRAY_KEY, `max_limit`, `description` FROM pool_template WHERE `entry` IN %in', $poolIds) ?: [];
 
         // total members of each pool: spawns of either kind and nested pools, as a mother pool's slots are shared with its children
         $total = DB::World()->selectPairs('SELECT `poolSpawnId`, COUNT(1) FROM pool_members WHERE `poolSpawnId` IN %in GROUP BY `poolSpawnId`', $poolIds) ?: [];
 
+        // the world spawn's zoneId is mostly unset, ::spawns has the area resolved from the position
+        $areas = DB::Aowow()->selectPairs('SELECT `guid`, `areaId` FROM ::spawns WHERE `type` = %i AND `guid` IN %in', $type, array_keys($mine)) ?: [];
+
         $out = [];
         foreach ($poolIds as $pId)
             $out[$pId] = array(
                 'maxActive'   => (int)($tpl[$pId]['max_limit'] ?? 0),
                 'nMembers'    => (int)($total[$pId] ?? 0),
-                'description' => (string)($tpl[$pId]['description'] ?? '')
+                'nMine'       => 0,
+                'description' => (string)($tpl[$pId]['description'] ?? ''),
+                'respawn'     => [PHP_INT_MAX, 0],
+                'areas'       => []
             );
 
+        foreach ($mine as $guid => $m)
+        {
+            $p = &$out[(int)$m['poolId']];
+            $p['nMine']++;
+            $p['respawn'] = [min($p['respawn'][0], (int)$m['respawn']), max($p['respawn'][1], (int)$m['respawn'])];
+            if ($a = (int)($areas[$guid] ?? 0))
+                $p['areas'][$a] = ($p['areas'][$a] ?? 0) + 1;
+        }
+        unset($p);
+
+        foreach ($out as &$p)
+            arsort($p['areas']);
+        unset($p);
+
         return $out;
+    }
+
+    /** rows for the `spawnpool` listview from the result of getForEntry() */
+    public static function getListviewData(array $pools) : array
+    {
+        $data = [];
+        foreach ($pools as $pId => $p)
+            $data[$pId] = array(
+                'id'       => $pId,
+                'name'     => $p['description'],
+                'location' => array_keys($p['areas']),
+                'active'   => $p['maxActive'],
+                'total'    => $p['nMembers'],
+                'mine'     => $p['nMine'],
+                'respawn'  => $p['respawn']
+            );
+
+        return $data;
     }
 
     /** @return array of pool ids: the given pools plus every pool nested below them */

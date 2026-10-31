@@ -1556,12 +1556,8 @@ $lang = array(
         'viewFullRoute' => "View full route on map"
     ),
     'pool' => array(
-        'pooled'        => '%3$s: %1$d of %2$d spawn points active',
-        'poolName'      => 'Spawn pool #%1$d',
-        'pooledUnknown' => 'Part of spawn pool #%1$d',
-        'sharesPool'    => "Shares a spawn pool",
-        'pinPooled'     => 'Pooled: %1$s<br />%2$d of %3$d spawn points active',
-        'pinReplaced'   => 'A random one replaces it after: %1$s'
+        'pools'         => "Spawn pools",
+        'sharesPool'    => "Shares a spawn pool"
     ),
     'levelCurve' => array(
         'levelCurve'    => "Levelling",

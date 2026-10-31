@@ -262,18 +262,6 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         }
         // aowow - custom end
 
-        // aowow - custom start: spawn pooling
-        // without this the map shows every spawn point as if all of them were live at once
-        $pools = Pool::getForEntry(Type::NPC, $this->typeId);
-        foreach ($pools as $pId => $pool)
-        {
-            $name      = $pool['description'] ?: Lang::pool('poolName', [$pId]);
-            $infobox[] = $pool['maxActive'] && $pool['nMembers']
-                       ? Lang::pool('pooled', [$pool['maxActive'], $pool['nMembers'], $name])
-                       : Lang::pool('pooledUnknown', [$pId]);
-        }
-        // aowow - custom end
-
         $infobox[] = Lang::npc('id') . $this->typeId;
 
         // original name
@@ -534,26 +522,6 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         /**************/
 
         $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"], 'tabsRelated', true);
-
-        // aowow - custom start: what shares this entry's spawn pools
-        if ($pools)
-        {
-            foreach (Pool::getMembers(array_keys($pools), Type::NPC, $this->typeId) as $mType => $mIds)
-            {
-                $mList = $mType == Type::NPC ? new CreatureList([['id', array_values($mIds)]]) : new GameObjectList([['id', array_values($mIds)]]);
-                if ($mList->error)
-                    continue;
-
-                $this->extendGlobalData($mList->getJSGlobals());
-                $this->addDataLoader('zones');
-                $this->lvTabs->addListviewTab(new Listview(array(
-                    'data' => $mList->getListviewData(),
-                    'name' => Lang::pool('sharesPool'),
-                    'id'   => 'shares-pool-'.$mType
-                ), $mType == Type::NPC ? CreatureList::$brickFile : GameObjectList::$brickFile));
-            }
-        }
-        // aowow - custom end
 
         // aowow - custom start: flight paths
         // ::taxinodes points a node at the creature standing on it, so a flight master can name its routes
@@ -1118,6 +1086,35 @@ class NpcBaseResponse extends TemplateResponse implements ICache
                 ), CreatureList::$brickFile));
             }
         }
+
+        // aowow - custom start: spawn pools
+        // a pooled spawn is not respawned in place: the pool keeps a fixed number of its spawn points live and
+        // brings back a random one of them, so the map alone overstates how many of these are up at once
+        if ($pools = Pool::getForEntry(Type::NPC, $this->typeId))
+        {
+            $this->addDataLoader('zones');
+            $this->lvTabs->addListviewTab(new Listview(array(
+                'data' => Pool::getListviewData($pools),
+                'name' => Lang::pool('pools'),
+                'id'   => 'spawn-pools'
+            ), 'spawnpool', 'spawnpool'));
+
+            // what this entry competes with for the same slots
+            foreach (Pool::getMembers(array_keys($pools), Type::NPC, $this->typeId) as $mType => $mIds)
+            {
+                $mList = $mType == Type::NPC ? new CreatureList([['id', array_values($mIds)]]) : new GameObjectList([['id', array_values($mIds)]]);
+                if ($mList->error)
+                    continue;
+
+                $this->extendGlobalData($mList->getJSGlobals());
+                $this->lvTabs->addListviewTab(new Listview(array(
+                    'data' => $mList->getListviewData(),
+                    'name' => Lang::pool('sharesPool'),
+                    'id'   => 'shares-pool-'.$mType
+                ), $mType == Type::NPC ? CreatureList::$brickFile : GameObjectList::$brickFile));
+            }
+        }
+        // aowow - custom end
 
         // tab: passengers
         if ($_ = DB::World()->selectCol('SELECT `accessory_entry` AS ARRAY_KEY, GROUP_CONCAT(`seat_id` SEPARATOR ", ") FROM vehicle_template_accessory WHERE `entry` = %i GROUP BY `accessory_entry`', $this->typeId))

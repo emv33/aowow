@@ -641,12 +641,6 @@ trait spawnHelper
             if ($guids = array_column(array_filter($spawns, fn($x) => $x['guid'] > 0 || $x['type'] != Type::NPC), 'guid'))
                 $worldPos = WorldPosition::getForGUID(self::$type, ...$guids);
 
-        // aowow - custom start: a pooled spawn is not respawned in place; the pool brings back a random one of its members
-        $pools = [];
-        if (self::$type == Type::NPC || self::$type == Type::OBJECT)
-            $pools = Pool::getForGuids(self::$type, array_column($spawns, 'guid'));
-        // aowow - custom end
-
         foreach ($spawns as $s)
         {
             $isAccessory = $s['guid'] < 0 && $s['type'] == Type::NPC;
@@ -690,18 +684,7 @@ trait spawnHelper
             $opts   = $menu = $tt = $info = [];
             $footer = '';
 
-            // aowow - custom start: pooled spawns get a blue pin and name their pool
-            if ($pool = $pools[$s['guid']] ?? null)
-            {
-                $poolName = Util::htmlEscape($pool['description'] ?: Lang::pool('poolName', [$pool['poolId']]));
-                $info[1]  = '<span class="q0">'.Lang::pool('pinPooled', [$poolName, $pool['maxActive'], $pool['nMembers']]);
-                if ($s['respawn'] > 0)
-                    $info[1] .= '<br />'.Lang::pool('pinReplaced', [Lang::formatTime($s['respawn'] * 1000, 'game', 'timeAbbrev', true)]);
-                $info[1] .= '</span>';
-                $opts['type'] = 3;
-            }
-            // aowow - custom end
-            else if ($s['respawn'] > 0)                    // aowow - custom: else (upstream: if)
+            if ($s['respawn'] > 0)
                 $info[1] = '<span class="q0">'.Lang::npc('respawnIn', [Lang::formatTime($s['respawn'] * 1000, 'game', 'timeAbbrev', true)]).'</span>';
             else if ($s['respawn'] < 0)
             {

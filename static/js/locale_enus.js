@@ -4930,6 +4930,16 @@ var LANG = {
             11: "Title"
         }
     },
+    spawnpool: {
+        name:        "Pool",
+        unnamed:     "Spawn pool #$1",
+        active:      "Active",
+        activetip:   "Spawn points of the pool live at once / all spawn points of the pool, of any creature or object",
+        mine:        "Here",
+        minetip:     "Spawn points of this entry in the pool",
+        respawn:     "Replaced after",
+        respawntip:  "When a spawn of the pool despawns, a random inactive spawn point of the pool is spawned after this time"
+    },
     fispellfocus: {
         name:       "Name",
         objects:    "Objects",
