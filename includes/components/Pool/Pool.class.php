@@ -53,7 +53,44 @@ class Pool
         if (!$mine)
             return [];
 
-        $poolIds = array_map('intVal', array_keys($mine));
+        $info = self::describe(array_keys($mine));
+
+        $out = [];
+        foreach ($mine as $pId => $r)
+            $out[(int)$pId] = $info[(int)$pId] + ['nMine' => (int)$r['nMine']];
+
+        return $out;
+    }
+
+    /** @return array guid => [poolId, maxActive, nMembers, description] for those of the given spawns that are pooled */
+    public static function getForGuids(int $type, array $guids) : array
+    {
+        $memberType = match ($type)
+        {
+            Type::NPC    => self::MEMBER_CREATURE,
+            Type::OBJECT => self::MEMBER_GAMEOBJECT,
+            default      => null
+        };
+
+        if ($memberType === null || !($guids = array_values(array_filter(array_map('intVal', $guids), fn($x) => $x > 0))) || !self::hasTable('pool_members') || !self::hasTable('pool_template'))
+            return [];
+
+        if (!$pools = DB::World()->selectPairs('SELECT `spawnId`, `poolSpawnId` FROM pool_members WHERE `type` = %i AND `spawnId` IN %in', $memberType, $guids))
+            return [];
+
+        $info = self::describe(array_unique($pools));
+
+        $out = [];
+        foreach ($pools as $guid => $pId)
+            $out[(int)$guid] = ['poolId' => (int)$pId] + $info[(int)$pId];
+
+        return $out;
+    }
+
+    /** @return array poolId => [maxActive, nMembers, description] */
+    private static function describe(array $poolIds) : array
+    {
+        $poolIds = array_values(array_map('intVal', $poolIds));
 
         $tpl = DB::World()->selectAssoc('SELECT `entry` AS ARRAY_KEY, `max_limit`, `description` FROM pool_template WHERE `entry` IN %in', $poolIds) ?: [];
 
@@ -61,16 +98,12 @@ class Pool
         $total = DB::World()->selectPairs('SELECT `poolSpawnId`, COUNT(1) FROM pool_members WHERE `poolSpawnId` IN %in GROUP BY `poolSpawnId`', $poolIds) ?: [];
 
         $out = [];
-        foreach ($mine as $pId => $r)
-        {
-            $pId = (int)$pId;
+        foreach ($poolIds as $pId)
             $out[$pId] = array(
                 'maxActive'   => (int)($tpl[$pId]['max_limit'] ?? 0),
                 'nMembers'    => (int)($total[$pId] ?? 0),
-                'nMine'       => (int)$r['nMine'],
                 'description' => (string)($tpl[$pId]['description'] ?? '')
             );
-        }
 
         return $out;
     }
