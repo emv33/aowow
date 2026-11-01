@@ -448,6 +448,13 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
             [DB::AND, ['effect3Id', SpellList::EFFECTS_MODEL_OBJECT], ['effect3MiscValue', $this->typeId]]
         );
 
+        // aowow - custom start: legacy scripts respawning one of its spawns; the command points at a spawn guid, not the entry
+        $guids    = DB::Aowow()->selectCol('SELECT `guid` FROM ::spawns WHERE `type` = %i AND `typeId` = %i', Type::OBJECT, $this->typeId) ?: [];
+        $lsOwners = LegacyScript::getCommandOwners(LegacyScript::CMD_RESPAWN_GAMEOBJECT, array_map('intVal', $guids));
+        if (!empty($lsOwners[Type::SPELL]))
+            $conditions[] = ['id', $lsOwners[Type::SPELL]];
+        // aowow - custom end
+
         $summons = new SpellList($conditions);
         if (!$summons->error)
         {
@@ -459,6 +466,32 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
                 'name' => '$LANG.tab_summonedby'
             ), SpellList::$brickFile));
         }
+
+        // aowow - custom start: tab: summoned by [Object] / [NPC]
+        if (!empty($lsOwners[Type::OBJECT]) && !($sbGO = new GameObjectList(array(['id', $lsOwners[Type::OBJECT]])))->error)
+        {
+            $this->extendGlobalData($sbGO->getJSGlobals());
+
+            $this->addDataLoader('zones');
+            $this->lvTabs->addListviewTab(new Listview(array(
+                'data' => $sbGO->getListviewData(),
+                'id'   => 'summoned-by-object',
+                'name' => '$LANG.tab_summonedby'
+            ), GameObjectList::$brickFile));
+        }
+
+        if (!empty($lsOwners[Type::NPC]) && !($sbNPC = new CreatureList(array(['id', $lsOwners[Type::NPC]])))->error)
+        {
+            $this->extendGlobalData($sbNPC->getJSGlobals());
+
+            $this->addDataLoader('zones');
+            $this->lvTabs->addListviewTab(new Listview(array(
+                'data' => $sbNPC->getListviewData(),
+                'id'   => 'summoned-by-npc',
+                'name' => '$LANG.tab_summonedby'
+            ), CreatureList::$brickFile));
+        }
+        // aowow - custom end
 
         // tab: related spells
         if ($_ = $this->subject->getField('spells'))

@@ -82,6 +82,7 @@ class LegacyScript
     private string $gridCss   = '';
     private string $tbl       = '';
     private array  $strings   = [];                         // db_script_string, keyed by entry; only fetched if a TALK row needs it
+    private array  $goEntries = [];                         // gameobject spawn guid => entry; RESPAWN_GAMEOBJECT points at a spawn, not a template
 
     public function __construct(public readonly int $srcType, public readonly int $srcId, array $miscData = [])
     {
@@ -167,12 +168,16 @@ class LegacyScript
      * the reverse of the getter above: who runs a script containing $command with $datalong as its first argument
      * spell_scripts belong to their spell, event_scripts to the spells and objects sending that event,
      * waypoint_scripts to the creatures walking a path that calls them
+     * $datalong may be a list, e.g. the spawn guids of an object for CMD_RESPAWN_GAMEOBJECT
      * returns [Type => [typeId, ..]]
      */
-    public static function getCommandOwners(int $command, int $datalong) : array
+    public static function getCommandOwners(int $command, int|array $datalong) : array
     {
+        if (!($datalong = (array)$datalong))
+            return [];
+
         $result = [];
-        $ids    = fn(string $tbl) : array => self::tableExists($tbl) ? array_map('intVal', DB::World()->selectCol('SELECT DISTINCT `id` FROM %n WHERE `command` = %i AND `datalong` = %i', $tbl, $command, $datalong) ?: []) : [];
+        $ids    = fn(string $tbl) : array => self::tableExists($tbl) ? array_map('intVal', DB::World()->selectCol('SELECT DISTINCT `id` FROM %n WHERE `command` = %i AND `datalong` IN %in', $tbl, $command, $datalong) ?: []) : [];
 
         if ($spells = $ids('spell_scripts'))
             $result[Type::SPELL] = $spells;
@@ -275,12 +280,19 @@ class LegacyScript
             return true;
         }
 
-        $talkIds = [];
+        $talkIds = $goGuids = [];
         foreach ($this->rows as $r)
+        {
             if ($r['command'] == self::CMD_TALK && $r['dataint'] > 0)
                 $talkIds[] = $r['dataint'];
+            else if ($r['command'] == self::CMD_RESPAWN_GAMEOBJECT && $r['datalong'] > 0)
+                $goGuids[] = $r['datalong'];
+        }
 
         $this->strings = $this->fetchStrings($talkIds);
+        if ($goGuids)
+            $this->goEntries = DB::World()->selectCol('SELECT `guid` AS ARRAY_KEY, `id` FROM gameobject WHERE `guid` IN %in', $goGuids) ?: [];
+
         $this->tbl     = $this->buildTable();
 
         return true;
@@ -361,7 +373,7 @@ class LegacyScript
             self::CMD_TELEPORT_TO          => Lang::legacyScript('cmd', 'teleportTo', [$dl]),                        // datalong is a mapId, not an areaId - nothing to link to
             self::CMD_QUEST_EXPLORED       => Lang::legacyScript('cmd', 'questExplored', [$this->link(Type::QUEST, $dl), $dl2]),
             self::CMD_KILL_CREDIT          => Lang::legacyScript('cmd', 'killCredit', [$this->link(Type::NPC, $dl)]),
-            self::CMD_RESPAWN_GAMEOBJECT   => Lang::legacyScript('cmd', 'respawnObject', [$this->link(Type::OBJECT, $dl), Lang::formatTime($dl2 * 1000)]),
+            self::CMD_RESPAWN_GAMEOBJECT   => Lang::legacyScript('cmd', 'respawnObject', [isset($this->goEntries[$dl]) ? $this->link(Type::OBJECT, (int)$this->goEntries[$dl]) : Lang::legacyScript('spawnGuid', [$dl]), Lang::formatTime($dl2 * 1000)]),
             self::CMD_TEMP_SUMMON_CREATURE => Lang::legacyScript('cmd', 'summonCreature', [$this->link(Type::NPC, $dl), Lang::formatTime($dl2)]),
             self::CMD_OPEN_DOOR            => Lang::legacyScript('cmd', 'openDoor', [$this->link(Type::OBJECT, $dl), Lang::formatTime($dl2 * 1000)]),
             self::CMD_CLOSE_DOOR           => Lang::legacyScript('cmd', 'closeDoor', [$this->link(Type::OBJECT, $dl), Lang::formatTime($dl2 * 1000)]),

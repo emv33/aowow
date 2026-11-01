@@ -344,6 +344,8 @@ class SpellBaseResponse extends TemplateResponse implements ICache
         $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"], 'tabsRelated', true);
 
         $ubSAI = SmartAI::getOwnerOfSpellCast($this->typeId);
+        foreach (LegacyScript::getCommandOwners(LegacyScript::CMD_CAST_SPELL, $this->typeId) as $t => $ids)  // aowow - custom: legacy script casts
+            $ubSAI[$t] = array_values(array_unique(array_merge($ubSAI[$t] ?? [], $ids)));
 
         // unlocks
         [$tabUnlocksObject, $tabUnlocksItem] = $this->tabUnlocks();
@@ -386,7 +388,7 @@ class SpellBaseResponse extends TemplateResponse implements ICache
         if ($tab = $this->tabGlyphs())                      //
             $this->lvTabs->addListviewTab($tab);
 
-        if ($tab = $this->tabUsedBySpell())                 //
+        if ($tab = $this->tabUsedBySpell($ubSAI))           //
             $this->lvTabs->addListviewTab($tab);
 
         if ($tab = $this->tabUsedByItemset())               //
@@ -743,17 +745,22 @@ class SpellBaseResponse extends TemplateResponse implements ICache
         ), SpellList::$brickFile);
     }
 
-    private function tabUsedBySpell() : ?Listview
+    private function tabUsedBySpell(array $ubSAI) : ?Listview
     {
-        if (!($so = DB::Aowow()->selectCell('SELECT `id` FROM ::spelloverride WHERE `spellId1` = %i OR `spellId2` = %i OR `spellId3` = %i OR `spellId4` = %i OR `spellId5` = %i', $this->typeId, $this->typeId, $this->typeId, $this->typeId, $this->typeId)))
-            return null;
+        $conditions = [DB::OR];
 
-        $conditions = array(
-            DB::OR,
-            [DB::AND, ['effect1AuraId', SPELL_AURA_OVERRIDE_SPELLS], ['effect1MiscValue', $so]],
-            [DB::AND, ['effect2AuraId', SPELL_AURA_OVERRIDE_SPELLS], ['effect2MiscValue', $so]],
-            [DB::AND, ['effect3AuraId', SPELL_AURA_OVERRIDE_SPELLS], ['effect3MiscValue', $so]]
-        );
+        if ($so = DB::Aowow()->selectCell('SELECT `id` FROM ::spelloverride WHERE `spellId1` = %i OR `spellId2` = %i OR `spellId3` = %i OR `spellId4` = %i OR `spellId5` = %i', $this->typeId, $this->typeId, $this->typeId, $this->typeId, $this->typeId))
+            array_push($conditions,
+                [DB::AND, ['effect1AuraId', SPELL_AURA_OVERRIDE_SPELLS], ['effect1MiscValue', $so]],
+                [DB::AND, ['effect2AuraId', SPELL_AURA_OVERRIDE_SPELLS], ['effect2MiscValue', $so]],
+                [DB::AND, ['effect3AuraId', SPELL_AURA_OVERRIDE_SPELLS], ['effect3MiscValue', $so]]
+            );
+
+        if (!empty($ubSAI[Type::SPELL]))                    // aowow - custom: spells whose legacy script casts this one
+            $conditions[] = ['id', $ubSAI[Type::SPELL]];
+
+        if (count($conditions) < 2)
+            return null;
 
         if (($ubSpells = new SpellList($conditions))->error)
             return null;

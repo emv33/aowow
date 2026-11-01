@@ -1666,6 +1666,7 @@ $lang = array(
         'effIndex'      => '(effect %1$d)',
         'noText'        => "Say nothing",
         'stringId'      => 'Say text #[b]%1$d[/b]',
+        'spawnGuid'     => 'spawn guid [b]%1$d[/b]',
         'cmd'           => array(
             'talk'           => 'Say %1$s',
             'emote'          => 'Play emote %1$s',
