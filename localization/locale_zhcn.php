@@ -2192,6 +2192,7 @@ $lang = array(
     'skill' => array(
         'id'            => "技能ID：",
         'notFound'      => "这个技能不存在。",
+        'tiers'         => ["初级", "中级", "高级", "专家级", "大师级", "宗师级"],
         'cat'           => array(
             -6 => "伙伴",         -5 => "坐骑",             -4 => "种族特性",      5 => "属性",          6 => "武器技能",       7 => "职业技能",        8 => "护甲精通",
              9 => "辅助技能",   10 => "语言",          11 => "专业",             12 => "不显示"
@@ -2296,14 +2297,14 @@ $lang = array(
         '_cooldown'     => "冷却时间",
         '_distUnit'     => "码",
         '_regenPer5Sec' => array(                           // GlobalStrings.lua ITEM_MOD_POWER_REGEN<n>_SHORT, ITEM_MOD_HEALTH_REGEN_SHORT; keyed as 'powerTypes'
-             0 => "每5秒的法力值恢复 %s",
-             1 => "每5秒的怒气增长 %s",
-             2 => "每5秒的专注获得 %s",
-             3 => "每5秒的能量恢复 %s",
-             4 => "每5秒的快乐值获得 %s",
-             5 => "每5秒的符文恢复 %s",
-             6 => "每5秒的符文能量恢复 %s",
-            -2 => "每5秒的生命值恢复 %s",
+            POWER_MANA        => "每5秒的法力值恢复 %s",
+            POWER_RAGE        => "每5秒的怒气增长 %s",
+            POWER_FOCUS       => "每5秒的专注获得 %s",
+            POWER_ENERGY      => "每5秒的能量恢复 %s",
+            POWER_HAPPINESS   => "每5秒的快乐值获得 %s",
+            POWER_RUNE        => "每5秒的符文恢复 %s",
+            POWER_RUNIC_POWER => "每5秒的符文能量恢复 %s",
+            POWER_HEALTH      => "每5秒的生命值恢复 %s",
         ),
         '_forms'        => "形态",
         '_aura'         => "光环",
@@ -2317,6 +2318,13 @@ $lang = array(
         '_speedZ'       => "垂直速度",
         '_speedUnit'    => "码/秒",
         '_radius'       => "半径：",
+        '_maxTargetLevel' => "目标最高等级",   // charm / possess level cap
+        '_seat'         => "座位",   // control vehicle
+        '_ppmUnit'      => "次触发/分钟",   // flat procs per minute modifier
+        '_totemBarSlots' => "图腾栏位置",   // cast button
+        '_arcHeight'    => "弧线高度", // jump effects
+        '_honorKills'   => "%d荣誉击杀",
+        '_honorPoints'  => "%d荣誉 @ L%d",
         '_interval'     => "间隔：", //Interval
         '_inSlot'       => "在插槽中：",
         '_collapseAll'  => "折叠全部",
@@ -2383,12 +2391,12 @@ $lang = array(
             "剩余%d天"
         ),
         'powerCost'     => array(
-            -2 => ["%d生命值",   "%d生命值，每秒增加%d"     ],
-             0 => ["%d法力值",   "%d点法力值，外加每秒%d点" ],
-             1 => ["%d怒气",     "%d怒气，外加每秒%d"       ],
-             2 => ["%d集中",     "%d集中，外加每秒%d"       ],
-             3 => ["%d能量",     "%d能量，外加每秒%d"       ],
-             6 => ["%d符文能量", "%d点符文能量，外加每秒%d点"],
+            POWER_HEALTH      => ["%d生命值",   "%d生命值，每秒增加%d"     ],
+            POWER_MANA        => ["%d法力值",   "%d点法力值，外加每秒%d点" ],
+            POWER_RAGE        => ["%d怒气",     "%d怒气，外加每秒%d"       ],
+            POWER_FOCUS       => ["%d集中",     "%d集中，外加每秒%d"       ],
+            POWER_ENERGY      => ["%d能量",     "%d能量，外加每秒%d"       ],
+            POWER_RUNIC_POWER => ["%d符文能量", "%d点符文能量，外加每秒%d点"],
         ),
         'powerDisplayCost' => ["%d %s", "%d %s，再加上每秒%d"],
         'powerCostRunes'=> ["%d鲜血", "%d邪恶", "%d冰霜"],
@@ -2492,6 +2500,14 @@ $lang = array(
         'summonControl' => ['[Uncontrolled]', "守护者", "宠物", "被魅惑", '[Possessed Vehicle]', '[Uncontrolled Vehicle]'],
         'summonSlot'    => ["宠物", "火焰图腾", "大地图腾", "水图腾", "空气图腾", "非战斗宠物", "任务"],
         'unkEffect'     => '未知效果 (%1$d)',
+        // AuraStateType, as checked by SPELL_AURA_MOD_DAMAGE_DONE_VERSUS_AURASTATE; labels are English in all locales
+        'auraStates'    => array(
+             1 => "Dodged, parried or blocked",     2 => "Health below 20%",               3 => "Berserking",                     4 => "Frozen",
+             5 => "Judgement",                      7 => "Hunter parry",                  10 => "Victory Rush",                  12 => "Faerie Fire",
+            13 => "Health below 35%",              14 => "Immolate (Conflagrate)",        15 => "Rejuvenation / Regrowth (Swiftmend)", 16 => "Deadly Poison",
+            17 => "Enraged",                       18 => "Bleeding",                      23 => "Health above 75%"
+        ),
+        'destructibleState' => ["完好", "受损", "被摧毁", "重建中"], // GameObjectDestructibleState
         'effects'       => array(
 /*0-5    */ '无',                     '杀死',                '类型伤害',            'Dummy',                    '传送门',          '传送单位',
 /*6+     */ '应用光环',               '环境伤害',     'Drain Power',              'Drain Health',             'Heal',                     'Bind',
@@ -2577,7 +2593,7 @@ $lang = array(
 /*250+ */   'Mod Maximum Health - Flat (stacking)', 'Mod Enemy Dodge Chance',               'Mod Haste % (loss)',                   'Mod Critical Block Chance',            'Disarm Offhand',
             'Mod Mechanic Damage Taken %',          'No Reagent Cost',                      'Mod Target Resistance by Spell Class', 'Mod Spell Visual',                     'Mod Periodic Healing Taken %',
             'Screen Effect',                        'Phase',                                'Ability Ignore Aurastate',             'Allow Only Ability',                   '',
-            '',                                     '',                                     'Cancel Aura Buffer at % of Caster Health','Mod Attack Power by % of Stat',     'Ignore Target Resistance',
+            '',                                     '',                                     'Immune to Harmful Auras of School','Mod Attack Power by % of Stat',     'Ignore Target Resistance',
             'Ignore Target Resistance for Ability', 'Mod Damage Taken % from Caster',       'Ignore Swing Timer Reset',             'X-Ray',                                'Ability Consume No Ammo',
 /*275+ */   'Mod Ability Ignore Shapeshift',        'Mod Mechanic Damage Done %',           'Mod Max Affected Targets',             'Disarm Ranged Weapon',                 'Spawn Effect',
             'Mod Armor Penetration %',              'Mod Honor Gain %',                     'Mod Base Health %',                    'Mod Healing Taken % from Caster',      'Linked Aura',

@@ -2192,6 +2192,7 @@ $lang = array(
     'skill' => array(
         'id'            => "Навык ID: ",
         'notFound'      => "Этот навык не существует.",
+        'tiers'         => ["Ученик", "Подмастерье", "Умелец", "Мастеровой", "Мастер", "Великий мастер"],
         'cat'           => array(
             -6 => "Спутники",           -5 => "Транспорт",          -4 => "Классовые навыки",   5 => "Характеристики",      6 => "Оружейные навыки",    7 => "Классовые навыки",    8 => "Доспехи",
              9 => "Вторичные навыки",   10 => "Языки",              11 => "Профессии",         12 => "Не отображается"
@@ -2296,14 +2297,14 @@ $lang = array(
         '_cooldown'     => "Восстановление",
         '_distUnit'     => " метров",
         '_regenPer5Sec' => array(                           // GlobalStrings.lua ITEM_MOD_POWER_REGEN<n>_SHORT, ITEM_MOD_HEALTH_REGEN_SHORT; keyed as 'powerTypes'
-             0 => "%s маны в 5 сек.",
-             1 => "%s ярости в 5 сек.",
-             2 => "%s тонуса в 5 сек.",
-             3 => "%s энергии в 5 сек.",
-             4 => "%s настроения в 5 сек.",
-             5 => "%s рун в 5 сек.",
-             6 => "%s силы рун в 5 сек.",
-            -2 => "%s здоровья в 5 сек.",
+            POWER_MANA        => "%s маны в 5 сек.",
+            POWER_RAGE        => "%s ярости в 5 сек.",
+            POWER_FOCUS       => "%s тонуса в 5 сек.",
+            POWER_ENERGY      => "%s энергии в 5 сек.",
+            POWER_HAPPINESS   => "%s настроения в 5 сек.",
+            POWER_RUNE        => "%s рун в 5 сек.",
+            POWER_RUNIC_POWER => "%s силы рун в 5 сек.",
+            POWER_HEALTH      => "%s здоровья в 5 сек.",
         ),
         '_forms'        => "Форма",
         '_aura'         => "аура",
@@ -2317,6 +2318,13 @@ $lang = array(
         '_speedZ'       => "Вертикальная скорость",
         '_speedUnit'    => " м/с",
         '_radius'       => "Радиус действия: ",
+        '_maxTargetLevel' => "Макс. уровень цели",          // charm / possess level cap
+        '_seat'         => "Место",                         // control vehicle
+        '_ppmUnit'      => " срабатываний в минуту",        // flat procs per minute modifier
+        '_totemBarSlots' => "Ячейки панели тотемов",        // cast button
+        '_arcHeight'    => "Высота дуги",                   // jump effects
+        '_honorKills'   => "%d Почетные победы",            // HONORABLE_KILLS
+        '_honorPoints'  => "%d Честь @ L%d",                // HONOR
         '_interval'     => "Интервал: ",
         '_inSlot'       => "в слот: ",
         '_collapseAll'  => "Свернуть все",
@@ -2383,12 +2391,12 @@ $lang = array(
             "Осталось: %d |4день:дня:дней;"
         ),
         'powerCost'     => array(
-            -2 => ["Здоровье: %d",                                    "Здоровье: %d плюс %d/сек."],
-             0 => ["Мана: %d",                                        "Мана: %d плюс %d/сек"     ],
-             1 => ["Ярость: %d",                                      "Ярость: %d плюс %d/сек"   ],
-             2 => ["Тонус: %d",                                       "Тонус: %d плюс %d/сек."   ],
-             3 => ["Энергия: %d",                                     "Энергия: %d плюс %d/сек." ],
-             6 => ["Требуется %d |4единица:единицы:единиц; силы рун", "Cила рун: %d плюс %d/сек" ],
+            POWER_HEALTH      => ["Здоровье: %d",                                    "Здоровье: %d плюс %d/сек."],
+            POWER_MANA        => ["Мана: %d",                                        "Мана: %d плюс %d/сек"     ],
+            POWER_RAGE        => ["Ярость: %d",                                      "Ярость: %d плюс %d/сек"   ],
+            POWER_FOCUS       => ["Тонус: %d",                                       "Тонус: %d плюс %d/сек."   ],
+            POWER_ENERGY      => ["Энергия: %d",                                     "Энергия: %d плюс %d/сек." ],
+            POWER_RUNIC_POWER => ["Требуется %d |4единица:единицы:единиц; силы рун", "Cила рун: %d плюс %d/сек" ],
          ),
         'powerDisplayCost' => ['%2$s: %1$d', "%d %s и %d в сек. дополнительно"],
         'powerCostRunes'=> ["%d |4руна:руны:рун; крови", "%d |4руна:руны:рун; нечестивости", "%d |4руна:руны:рун; льда"],
@@ -2492,6 +2500,14 @@ $lang = array(
         'summonControl' => ['[Uncontrolled]', "Стражи", "Питомец", "Подчинённый", '[Possessed Vehicle]', '[Uncontrolled Vehicle]'],
         'summonSlot'    => ["Питомец", "Тотем огня", "Тотем земли", "Тотем воды", "Тотем воздуха", "Спутник", "Задание"],
         'unkEffect'     => 'Unknown Effect (%1$d)',
+        // AuraStateType, as checked by SPELL_AURA_MOD_DAMAGE_DONE_VERSUS_AURASTATE; labels are English in all locales
+        'auraStates'    => array(
+             1 => "Dodged, parried or blocked",     2 => "Health below 20%",               3 => "Berserking",                     4 => "Frozen",
+             5 => "Judgement",                      7 => "Hunter parry",                  10 => "Victory Rush",                  12 => "Faerie Fire",
+            13 => "Health below 35%",              14 => "Immolate (Conflagrate)",        15 => "Rejuvenation / Regrowth (Swiftmend)", 16 => "Deadly Poison",
+            17 => "Enraged",                       18 => "Bleeding",                      23 => "Health above 75%"
+        ),
+        'destructibleState' => ["Цело", "Повреждено", "Разрушено", "Восстанавливается"], // GameObjectDestructibleState
         'effects'       => array(
 /*0-5    */ 'None',                     'Instakill',                'School Damage',            'Dummy',                    'Portal Teleport',          'Teleport Units',
 /*6+     */ 'Apply Aura',               'Environmental Damage',     'Drain Power',              'Drain Health',             'Heal',                     'Bind',
@@ -2577,7 +2593,7 @@ $lang = array(
 /*250+ */   'Mod Maximum Health - Flat (stacking)', 'Mod Enemy Dodge Chance',               'Mod Haste % (loss)',                   'Mod Critical Block Chance',            'Disarm Offhand',
             'Mod Mechanic Damage Taken %',          'No Reagent Cost',                      'Mod Target Resistance by Spell Class', 'Mod Spell Visual',                     'Mod Periodic Healing Taken %',
             'Screen Effect',                        'Phase',                                'Ability Ignore Aurastate',             'Allow Only Ability',                   '',
-            '',                                     '',                                     'Cancel Aura Buffer at % of Caster Health','Mod Attack Power by % of Stat',     'Ignore Target Resistance',
+            '',                                     '',                                     'Immune to Harmful Auras of School','Mod Attack Power by % of Stat',     'Ignore Target Resistance',
             'Ignore Target Resistance for Ability', 'Mod Damage Taken % from Caster',       'Ignore Swing Timer Reset',             'X-Ray',                                'Ability Consume No Ammo',
 /*275+ */   'Mod Ability Ignore Shapeshift',        'Mod Mechanic Damage Done %',           'Mod Max Affected Targets',             'Disarm Ranged Weapon',                 'Spawn Effect',
             'Mod Armor Penetration %',              'Mod Honor Gain %',                     'Mod Base Health %',                    'Mod Healing Taken % from Caster',      'Linked Aura',

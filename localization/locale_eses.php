@@ -2192,6 +2192,7 @@ $lang = array(
     'skill' => array(
         'id'            => "ID de Habilidad: ",
         'notFound'      => "Esta habilidad no existe.",
+        'tiers'         => ["Aprendiz", "Oficial", "Experto", "Artesano", "Maestro", "Gran maestro"],
         'cat'           => array(
             -6 => "Compañeros",         -5 => "Monturas",           -4 => "Habilidades de raza", 5 => "Atributos",          6 => "Habilidades con armas", 7 => "Habilidades de clase", 8 => "Armaduras disponibles",
              9 => "Habilidades secundarias", 10 => "Idiomas",       11 => "Profesiones",        12 => "No se muestra"
@@ -2296,14 +2297,14 @@ $lang = array(
         '_cooldown'     => "Reutilización",
         '_distUnit'     => " metros",
         '_regenPer5Sec' => array(                           // GlobalStrings.lua ITEM_MOD_POWER_REGEN<n>_SHORT, ITEM_MOD_HEALTH_REGEN_SHORT; keyed as 'powerTypes'
-             0 => "%s Maná cada 5 s",
-             1 => "%s Ira cada 5 s",
-             2 => "%s Enfoque cada 5 s",
-             3 => "%s Energía cada 5 s",
-             4 => "%s Felicidad cada 5 s",
-             5 => "%s Runas cada 5 s",
-             6 => "%s Poder rúnico cada 5 s",
-            -2 => "%s Salud cada 5 s",
+            POWER_MANA        => "%s Maná cada 5 s",
+            POWER_RAGE        => "%s Ira cada 5 s",
+            POWER_FOCUS       => "%s Enfoque cada 5 s",
+            POWER_ENERGY      => "%s Energía cada 5 s",
+            POWER_HAPPINESS   => "%s Felicidad cada 5 s",
+            POWER_RUNE        => "%s Runas cada 5 s",
+            POWER_RUNIC_POWER => "%s Poder rúnico cada 5 s",
+            POWER_HEALTH      => "%s Salud cada 5 s",
         ),
         '_forms'        => "Formas",
         '_aura'         => "Aura",
@@ -2317,6 +2318,13 @@ $lang = array(
         '_speedZ'       => "Velocidad vertical",
         '_speedUnit'    => " m/s",
         '_radius'       => "Radio: ",
+        '_maxTargetLevel' => "Nivel máx. del objetivo",     // charm / possess level cap
+        '_seat'         => "Asiento",                       // control vehicle
+        '_ppmUnit'      => " activaciones por minuto",      // flat procs per minute modifier
+        '_totemBarSlots' => "Huecos de la barra de tótems", // cast button
+        '_arcHeight'    => "Altura del arco",               // jump effects
+        '_honorKills'   => "%d Muertes con honor",          // HONORABLE_KILLS
+        '_honorPoints'  => "%d Honor @ L%d",                // HONOR
         '_interval'     => "Intérvalo: ",
         '_inSlot'       => "en la casilla: ",
         '_collapseAll'  => "Contraer todo",
@@ -2383,12 +2391,12 @@ $lang = array(
             "%d |4día restante:días restantes;"
         ),
         'powerCost'     => array(
-            -2 => ["Salud %d",         "%d p. de salud, más %d p. por segundo"],
-             0 => ["%d p. de maná",    "%d p. de maná, más %d por s"],
-             1 => ["%d p. de ira",     "%d Ira, más %d por s"],
-             2 => ["%d p. de enfoque", "%d enfoque, más %d por s"],
-             3 => ["%d p. de energía", "%d energía, más %d por s"],
-             6 => ["%d Poder rúnico",  "%d poder rúnico, más %d por segundo"]
+            POWER_HEALTH      => ["Salud %d",         "%d p. de salud, más %d p. por segundo"],
+            POWER_MANA        => ["%d p. de maná",    "%d p. de maná, más %d por s"],
+            POWER_RAGE        => ["%d p. de ira",     "%d Ira, más %d por s"],
+            POWER_FOCUS       => ["%d p. de enfoque", "%d enfoque, más %d por s"],
+            POWER_ENERGY      => ["%d p. de energía", "%d energía, más %d por s"],
+            POWER_RUNIC_POWER => ["%d Poder rúnico",  "%d poder rúnico, más %d por segundo"]
         ),
         'powerDisplayCost' => ["%d %s", "%d %s, más %d por seg."],
         'powerCostRunes'=> ["%d sangre", "%d Profano", "%d Escarcha"],
@@ -2492,6 +2500,14 @@ $lang = array(
         'summonControl' => ["Sin control", "Guardián", "Mascota", "Embelesado", "Vehículo poseído", "Vehículo sin control"],
         'summonSlot'    => ["Mascota", "Tótem de Fuego", "Tótem de Tierra", "Tótem de Agua", "Tótem de Aire", "Mascota mansa", "Misión"],
         'unkEffect'     => 'Efecto desconocido (%1$d)',
+        // AuraStateType, as checked by SPELL_AURA_MOD_DAMAGE_DONE_VERSUS_AURASTATE; labels are English in all locales
+        'auraStates'    => array(
+             1 => "Dodged, parried or blocked",     2 => "Health below 20%",               3 => "Berserking",                     4 => "Frozen",
+             5 => "Judgement",                      7 => "Hunter parry",                  10 => "Victory Rush",                  12 => "Faerie Fire",
+            13 => "Health below 35%",              14 => "Immolate (Conflagrate)",        15 => "Rejuvenation / Regrowth (Swiftmend)", 16 => "Deadly Poison",
+            17 => "Enraged",                       18 => "Bleeding",                      23 => "Health above 75%"
+        ),
+        'destructibleState' => ["Intacto", "Dañado", "Destruido", "En reconstrucción"], // GameObjectDestructibleState
         'effects'       => array(
 /*0-5    */ "Ninguno",                       "Matar al instante",                    "Daño de escuela",                   "Ficticio",                       "Teletransporte por portal", "Teletransportar unidades",
 /*6+     */ "Aplicar aura",                  "Daño ambiental",                       "Drenar poder",                      "Drenar salud",                   "Sanar",                     "Vincular",
@@ -2577,7 +2593,7 @@ $lang = array(
 /*250+ */   "Modificar salud máxima - Fijo (acumulable)",               "Modificar probabilidad de esquiva enemiga",                         "Modificar celeridad % (pérdida)",                                "Modificar probabilidad de bloqueo crítico",                  "Desarmar mano secundaria",
             "Modificar daño de mecánica %",                             "Sin coste de reagente",                                             "Modificar resistencia objetivo por clase de hechizo",            "Modificar visual de hechizo",                                "Modificar sanación periódica recibida %",
             "Efecto de pantalla",                                       "Fase",                                                              "Ignorar estado de aura de habilidad",                            "Permitir solo habilidad",                                    "",
-            "",                                                         "",                                                                  "Cancelar buffer de aura al % de salud del lanzador",             "Modificar poder de ataque con % de estadística",             "Ignorar resistencia del objetivo",
+            "",                                                         "",                                                                  "Inmunidad a auras perjudiciales de la escuela",                  "Modificar poder de ataque con % de estadística",             "Ignorar resistencia del objetivo",
             "Ignorar resistencia del objetivo para habilidad",          "Modificar daño recibido % del lanzador",                            "Ignorar reinicio de temporizador de golpe",                      "Rayos X",                                                    "Habilidad no consume munición",
 /*275+ */   "Ignorar cambio de forma para habilidad",                   "Modificar daño de mecánica hecho %",                                "Modificar máximo de objetivos afectados",                        "Desarmar arma a distancia",                                  "Efecto de aparición",
             "Modificar penetración de armadura %",                      "Modificar ganancia de honor %",                                     "Modificar salud base %",                                         "Modificar sanación recibida % del lanzador",                 "Aura vinculada",
