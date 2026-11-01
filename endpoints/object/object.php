@@ -729,7 +729,11 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
         }
 
         // tab: Same model as
-        $sameModel = new GameObjectList(array(['displayId', $this->subject->getField('displayId')], ['id', $this->typeId, '!']));
+        // aowow - custom: match the model file, not only the displayId (upstream: ['displayId', ...] only)
+        if ($modelId = $this->subject->getField('modelId'))
+            $sameModel = new GameObjectList(array(['modelId', $modelId], ['id', $this->typeId, '!']));
+        else
+            $sameModel = new GameObjectList(array(['displayId', $this->subject->getField('displayId')], ['id', $this->typeId, '!']));
         if (!$sameModel->error)
         {
             $this->extendGlobalData($sameModel->getJSGlobals());

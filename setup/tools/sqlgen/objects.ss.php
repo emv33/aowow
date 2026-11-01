@@ -15,7 +15,7 @@ CLISetup::registerSetup("sql", new class extends SetupScript
         'objects' => [[], CLISetup::ARGV_PARAM, 'Compiles data for type: Gameobject from dbc and world db.']
     );
 
-    protected array $dbcSourceFiles  = ['lock'];
+    protected array $dbcSourceFiles  = ['lock', 'gameobjectdisplayinfo'];
     protected array $worldDependency = ['gameobject_template', 'gameobject_template_addon', 'gameobject_template_locale', 'gameobject_questitem'];
 
     public function generate() : bool
@@ -58,7 +58,8 @@ CLISetup::registerSetup("sql", new class extends SetupScript
                                       ""                                                                                                   -- miscInfo: <none>
                       ))))                                                                                                                 AS "miscInfo",
                       NULLIF(IF(`ScriptName` <> "", `ScriptName`, `AIName`), ""),
-                      `StringId`
+                      `StringId`,
+                      0 AS "modelId"                                                                                                       -- aowow - custom: see below
             FROM      gameobject_template go
             LEFT JOIN gameobject_template_addon  goa  ON go.`entry` =  goa.`entry`
             LEFT JOIN gameobject_template_locale gtl2 ON go.`entry` = gtl2.`entry` AND gtl2.`locale` = "frFR"
@@ -80,6 +81,19 @@ CLISetup::registerSetup("sql", new class extends SetupScript
             foreach ($objects as $object)
                 DB::Aowow()->qry('INSERT INTO ::objects VALUES %l', $object);
         }
+
+        // aowow - custom start: modelId
+        // GameObjectDisplayInfo.dbc has no texture variations, but several of its rows may point at the same model file,
+        // so group displayIds by that file, keyed on the lowest displayId using it. The client loads .mdx/.mdl as .m2
+        CLI::write('[objects] - grouping displayIds by model file..');
+
+        DB::Aowow()->qry(
+           'UPDATE ::objects o
+            JOIN   (SELECT `id`, REGEXP_REPLACE(LOWER(`modelName`), "[.](mdx|mdl)$", ".m2") AS "path" FROM dbc_gameobjectdisplayinfo WHERE `modelName` <> "") d ON d.`id` = o.`displayId`
+            JOIN   (SELECT REGEXP_REPLACE(LOWER(`modelName`), "[.](mdx|mdl)$", ".m2") AS "path", MIN(`id`) AS "modelId" FROM dbc_gameobjectdisplayinfo WHERE `modelName` <> "" GROUP BY `path`) m ON m.`path` = d.`path`
+            SET    o.`modelId` = m.`modelId`'
+        );
+        // aowow - custom end
 
         CLI::write('[objects] - updating categories..');
 
