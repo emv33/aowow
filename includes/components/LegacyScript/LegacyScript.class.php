@@ -57,6 +57,8 @@ class LegacyScript
     public const int CMD_MOVEMENT             = 35;
     public const int CMD_PLAY_ANIMKIT         = 36;
 
+    public const string OWNER_TAXIPATH = 'taxipath';   // getCommandOwners() key of flight paths, which have no Type
+
     private const string BASE_CSS = <<<CSS
         #legacy-script-generic .grid { clear:left; display: grid; }
         #legacy-script-generic .grid thead,
@@ -138,7 +140,21 @@ class LegacyScript
 
         $ids = DB::World()->selectCol('SELECT '.$col.' FROM gameobject_template WHERE `entry` = %i', $objectId) ?: [];
 
-        return array_values(array_filter(array_map('intVal', $ids)));
+        // a MO_TRANSPORT fires the node events of the TaxiPath in its `data0` (Transport::DoEventIfAny)
+        if ($pathId = DB::World()->selectCell('SELECT `data0` FROM gameobject_template WHERE `entry` = %i AND `type` = %i', $objectId, GO_TYPE_MO_TRANSPORT))
+            $ids = array_merge($ids, self::getEventIdsForPath($pathId));
+
+        return array_values(array_unique(array_filter(array_map('intVal', $ids))));
+    }
+
+    /** arrival / departure events of the nodes of a TaxiPath, fired by whoever runs it - a transport or a flying player (FlightPathMovementGenerator::DoEventIfAny) */
+    public static function getEventIdsForPath(int $pathId) : array
+    {
+        $ids = [];
+        foreach (DB::Aowow()->selectAssoc('SELECT `arrivalEventId`, `departureEventId` FROM dbc_taxipathnode WHERE `pathId` = %i ORDER BY `nodeIdx` ASC', $pathId) ?: [] as $n)
+            array_push($ids, $n['arrivalEventId'], $n['departureEventId']);
+
+        return array_values(array_unique(array_filter(array_map('intVal', $ids))));
     }
 
     /**
@@ -166,10 +182,10 @@ class LegacyScript
 
     /**
      * the reverse of the getter above: who runs a script containing $command with $datalong as its first argument
-     * spell_scripts belong to their spell, event_scripts to the spells and objects sending that event,
+     * spell_scripts belong to their spell, event_scripts to the spells and objects sending that event (transports through their path's nodes),
      * waypoint_scripts to the creatures walking a path that calls them
      * $datalong may be a list, e.g. the spawn guids of an object for CMD_RESPAWN_GAMEOBJECT
-     * returns [Type => [typeId, ..]]
+     * returns [Type => [typeId, ..]], flight paths under OWNER_TAXIPATH as they have no Type
      */
     public static function getCommandOwners(int $command, int|array $datalong) : array
     {
@@ -194,6 +210,17 @@ class LegacyScript
             $col = 'IF(`type` = '.GO_TYPE_GOOBER.', `data1`, IF(`type` = '.GO_TYPE_CHEST.', `data6`, IF(`type` = '.GO_TYPE_CAMERA.', `data2`, 0)))';
             if ($objects = DB::World()->selectCol('SELECT `entry` FROM gameobject_template WHERE '.$col.' IN %in', $events))
                 $result[Type::OBJECT] = array_map('intVal', $objects);
+
+            // ... and the paths with a node firing it on arrival or departure: the transport running one, else the flight itself
+            if ($paths = array_map('intVal', DB::Aowow()->selectCol('SELECT DISTINCT `pathId` FROM dbc_taxipathnode WHERE `arrivalEventId` IN %in OR `departureEventId` IN %in', $events, $events) ?: []))
+            {
+                $transports = DB::World()->selectCol('SELECT `entry` AS ARRAY_KEY, `data0` FROM gameobject_template WHERE `type` = %i AND `data0` IN %in', GO_TYPE_MO_TRANSPORT, $paths) ?: [];
+                if ($transports)
+                    $result[Type::OBJECT] = array_merge($result[Type::OBJECT] ?? [], array_map('intVal', array_keys($transports)));
+
+                if ($flights = array_diff($paths, array_map('intVal', $transports)))
+                    $result[self::OWNER_TAXIPATH] = $flights;
+            }
         }
 
         if (($wpScripts = $ids('waypoint_scripts')) && self::tableExists('waypoint_data'))

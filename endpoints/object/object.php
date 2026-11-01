@@ -491,6 +491,13 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
                 'name' => '$LANG.tab_summonedby'
             ), CreatureList::$brickFile));
         }
+
+        $tpJSG = [];
+        if (!empty($lsOwners[LegacyScript::OWNER_TAXIPATH]) && ($tab = TaxiPath::getListview($lsOwners[LegacyScript::OWNER_TAXIPATH], '$LANG.tab_summonedby', 'summoned-by-taxipath', $tpJSG)))
+        {
+            $this->extendGlobalData($tpJSG);
+            $this->lvTabs->addListviewTab($tab);
+        }
         // aowow - custom end
 
         // tab: related spells

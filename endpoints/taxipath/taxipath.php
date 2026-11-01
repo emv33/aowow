@@ -98,6 +98,12 @@ class TaxipathBaseResponse extends TemplateResponse implements ICache
 
         $this->redButtons = [BUTTON_LINKS => false, BUTTON_WOWHEAD => false];
 
+        // the event_scripts its nodes fire on arrival / departure
+        $lsJSG = [];
+        $lsSources = array_map(fn($e) => [LegacyScript::SRC_EVENT, $e], LegacyScript::getEventIdsForPath($this->typeId));
+        $this->legacyScript = LegacyScript::buildMarkupFor($lsSources, 'lscript-taxipath-'.$this->typeId, $lsJSG);
+        $this->extendGlobalData($lsJSG);
+
         // the full route as pinned, curve and all, when `taxi` has computed it; each point
         // connects to the previous one by a line as long as both fall in the same zone
         $data   = [];

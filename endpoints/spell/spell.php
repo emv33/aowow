@@ -406,6 +406,9 @@ class SpellBaseResponse extends TemplateResponse implements ICache
         if ($tab = $this->tabUsedByAreatrigger($ubSAI))     //
             $this->lvTabs->addListviewTab($tab);
 
+        if ($tab = $this->tabUsedByTaxipath($ubSAI))        // aowow - custom: flight paths whose node events cast it
+            $this->lvTabs->addListviewTab($tab);
+
         if ($tab = $this->tabZone())                        // custom: implicit used-by-zone
             $this->lvTabs->addListviewTab($tab);
 
@@ -892,6 +895,19 @@ class SpellBaseResponse extends TemplateResponse implements ICache
             'id'   => 'used-by-areatrigger',
             'name' => '$LANG.tab_usedby'
         ), AreaTriggerList::$brickFile, 'areatrigger');
+    }
+
+    private function tabUsedByTaxipath(array $ubSAI) : ?Listview
+    {
+        if (empty($ubSAI[LegacyScript::OWNER_TAXIPATH]))
+            return null;
+
+        $jsg = [];
+        if (!$tab = TaxiPath::getListview($ubSAI[LegacyScript::OWNER_TAXIPATH], '$LANG.tab_usedby', 'used-by-taxipath', $jsg))
+            return null;
+
+        $this->extendGlobalData($jsg);
+        return $tab;
     }
 
     private function tabZone() : ?Listview

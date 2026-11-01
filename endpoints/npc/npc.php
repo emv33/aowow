@@ -525,19 +525,11 @@ class NpcBaseResponse extends TemplateResponse implements ICache
 
         // aowow - custom start: flight paths
         // ::taxinodes points a node at the creature standing on it, so a flight master can name its routes
-        if ($tpIds = TaxiPath::getPathIdsForNPC($this->typeId))
+        $tpJSG = [];
+        if (($tpIds = TaxiPath::getPathIdsForNPC($this->typeId)) && ($tab = TaxiPath::getListview($tpIds, Lang::game('taxipaths'), 'taxipaths', $tpJSG)))
         {
-            $tpJSG = [];
-            $tpData = TaxiPath::getListviewData($tpIds, $tpJSG);
-            if ($tpData)
-            {
-                $this->extendGlobalData($tpJSG);
-                $this->lvTabs->addListviewTab(new Listview(array(
-                    'data' => $tpData,
-                    'name' => Lang::game('taxipaths'),
-                    'id'   => 'taxipaths'
-                ), 'taxipath', 'taxipath'));
-            }
+            $this->extendGlobalData($tpJSG);
+            $this->lvTabs->addListviewTab($tab);
         }
         // aowow - custom end
 
@@ -761,6 +753,14 @@ class NpcBaseResponse extends TemplateResponse implements ICache
                     'id'   => 'summoned-by-object'
                 ), GameObjectList::$brickFile));
             }
+        }
+
+        // aowow - custom: tab: summoned by [flight path] - a node of the path fires the event as the player passes it
+        $tpJSG = [];
+        if (!empty($lsOwners[LegacyScript::OWNER_TAXIPATH]) && ($tab = TaxiPath::getListview($lsOwners[LegacyScript::OWNER_TAXIPATH], '$LANG.tab_summonedby', 'summoned-by-taxipath', $tpJSG)))
+        {
+            $this->extendGlobalData($tpJSG);
+            $this->lvTabs->addListviewTab($tab);
         }
 
         // tab: teaches
