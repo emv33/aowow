@@ -13,7 +13,8 @@ if (!defined('AOWOW_REVISION'))
  *   CharStartOutfit.dbc          - the outfit the client equips; the actual starting gear
  *   `playercreateinfo_item`      - extra items the server hands out on top of the outfit
  *   `playercreateinfo_spell_custom` - the spells a new character knows
- * plus `playercreateinfo` for the starting location.
+ * plus `playercreateinfo` for the starting location and `playercreateinfo_skills` for the skill
+ * lines whose abilities are learned with them.
  *
  * The world tables are read live. The DBC is written into the aowow DB by the `source` setup step
  * and is used when `dbc_charstartoutfit` is there, so nothing needs re-importing - but a setup run
@@ -74,30 +75,51 @@ class StartOutfit
      * What a character is actually created knowing.
      *
      * TrinityCore grants these from SkillLineAbility.dbc rather than from any world DB table, which
-     * is why none of the playercreateinfo_* tables mention them. `acquireMethod` 2 marks a row as
-     * granted when the skill line is learned - i.e. at character creation.
+     * is why none of the playercreateinfo_* tables mention them. Player::LearnDefaultSkills gives the
+     * character the skill lines of `playercreateinfo_skills`, then LearnSkillRewardedSpells learns
+     * the abilities of each of those lines whose `acquireMethod` is 2 - granted when the skill line
+     * is learned - and whose race and class masks are 0 or match.
      *
-     * A row must name this class or this race positively. Treating a 0 mask as "any" on both at once
-     * matches every character alive, which is how every pet ability - both masks 0 - ends up in a
-     * warlock's spellbook. A 0 on one mask alone is still "any", so racials (no class mask) and
-     * class spells (no race mask) both survive, while the class specific variants of Arcane Torrent,
-     * Blood Fury and Command - which carry both - are held to both.
+     * The masks alone say nothing about the skill line: the paladin Arcane Torrent sits on the Blood
+     * Elf racial line with only a class mask, so it is the line that keeps it from a dwarf paladin.
      */
     private function learnedSpells(int $race, int $class) : array
     {
-        if (!self::hasTable('dbc_skilllineability', true))
+        if (!self::hasTable('dbc_skilllineability', true) || !self::hasTable('dbc_skillraceclassinfo', true) || !self::hasTable('playercreateinfo_skills'))
             return [];
 
         $classBit = 1 << ($class - 1);
         $raceBit  = 1 << ($race  - 1);
 
+        $skills = DB::World()->selectCol(
+           'SELECT DISTINCT `skill` FROM playercreateinfo_skills
+            WHERE  (`raceMask`  = 0 OR (`raceMask`  & %i))
+              AND  (`classMask` = 0 OR (`classMask` & %i))',
+            $raceBit, $classBit
+        ) ?: [];
+
+        if (!$skills)
+            return [];
+
+        // ObjectMgr::LoadPlayerInfo drops a skill line SkillRaceClassInfo.dbc has no row for this pair on
+        $skills = DB::Aowow()->selectCol(
+           'SELECT DISTINCT `skillLine` FROM dbc_skillraceclassinfo
+            WHERE  `skillLine` IN %in
+              AND  (`raceMask`  = 0 OR (`raceMask`  & %i))
+              AND  (`classMask` = 0 OR (`classMask` & %i))',
+            array_map('intVal', $skills), $raceBit, $classBit
+        ) ?: [];
+
+        if (!$skills)
+            return [];
+
         $ids = DB::Aowow()->selectCol(
            'SELECT `spellId` FROM dbc_skilllineability
             WHERE  `acquireMethod` = %i
-              AND  ((`reqClassMask` & %i) OR (`reqRaceMask` & %i))
+              AND  `skillLineId` IN %in
               AND  (`reqClassMask` = 0 OR (`reqClassMask` & %i))
               AND  (`reqRaceMask`  = 0 OR (`reqRaceMask`  & %i))',
-            self::ACQUIRE_ON_SKILL_LEARN, $classBit, $raceBit, $classBit, $raceBit
+            self::ACQUIRE_ON_SKILL_LEARN, array_map('intVal', $skills), $classBit, $raceBit
         ) ?: [];
 
         return $this->hideForPlayers(array_values(array_unique(array_filter(array_map('intVal', $ids)))));
