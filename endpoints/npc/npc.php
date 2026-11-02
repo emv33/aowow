@@ -196,7 +196,13 @@ class NpcBaseResponse extends TemplateResponse implements ICache
 
         // is Vehicle
         if ($this->subject->getField('vehicleId'))
+        {
             $infobox[] = Lang::npc('vehicle');
+
+            // aowow - custom: vehicle_template; Unit::_ExitVehicle() despawns a summoned vehicle this long after its owner exits (default 1ms)
+            if ($_ = DB::World()->selectCell('SELECT `despawnDelayMs` FROM vehicle_template WHERE `creatureId` = %i', $this->typeId))
+                $infobox[] = Lang::npcExtra('vehicleDespawn', [DateTime::formatTimeElapsedFloat($_)]);
+        }
 
         // is visible as ghost (redundant to extraFlags)
         if ($this->subject->getField('npcflag') & (NPC_FLAG_SPIRIT_HEALER | NPC_FLAG_SPIRIT_GUIDE))

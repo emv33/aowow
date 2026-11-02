@@ -933,7 +933,7 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
         if ($cooldown > 0)
             $out[] = Lang::gameObject('cooldown', [DateTime::formatTimeElapsed($cooldown * 1000)]);
         if ($autoClose > 0)
-            $out[] = Lang::gameObject('autoClose', [DateTime::formatTimeElapsed($autoClose)]);
+            $out[] = Lang::gameObject('autoClose', [DateTime::formatTimeElapsedFloat($autoClose)]);
 
         return $out;
     }

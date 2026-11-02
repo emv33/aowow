@@ -1650,6 +1650,7 @@ $lang = array(
         'clientFlags'   => "Client display flags",
         'addonOverride' => '%1$d spawn(s) override it',
         'movementOverride' => '%1$d spawn(s) move differently',
+        'vehicleDespawn'   => 'Despawns %1$s after its summoner leaves it',
         'unitData'         => "Unit data",
         'speeds'           => 'Speed: %1$s walking, %2$s running yd/s',
         'scale'            => 'Scale: %1$s',
