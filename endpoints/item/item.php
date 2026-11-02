@@ -291,6 +291,9 @@ class ItemBaseResponse extends TemplateResponse implements ICache
         if ($tab = $this->tabEquippedBy())                  // custom
             $this->lvTabs->addListviewTab($tab);
 
+        if ($tab = $this->tabEatenBy())                     // custom
+            $this->lvTabs->addListviewTab($tab);
+
         if ($tab = $this->tabSameModelAs())                 // todo (low): should also work for creatures summoned by item
             $this->lvTabs->addListviewTab($tab);
 
@@ -430,6 +433,10 @@ class ItemBaseResponse extends TemplateResponse implements ICache
         if ($tId = $this->subject->getField('totemCategory'))
             if ($tName = DB::Aowow()->selectRow('SELECT * FROM ::totemcategory WHERE `id` = %i', $tId))
                 $infobox[] = Lang::item('tool').'[url=?items&filter=cr=91;crs='.$tId.';crv=0]'.Util::localizedString($tName, 'name').'[/url]';
+
+        // aowow - custom: pet diet; ItemPetFood.dbc id, matched against the families' foodMask bit (id - 1)
+        if (($_ = $this->subject->getField('foodType')) && ($food = Lang::exist('pet', 'food', (string)$_)))
+            $infobox[] = Lang::item('petFood').$food;
 
         // extendedCost
         if (!empty($this->subject->getExtendedCost([], $_reqRating)[$this->typeId]))
@@ -1282,6 +1289,25 @@ class ItemBaseResponse extends TemplateResponse implements ICache
     }
 
     // aowow - custom start: `creature_equip_template` - the creatures that carry this item as a weapon or shield
+    // aowow - custom: the reverse of the pet page's diet tab
+    private function tabEatenBy() : ?Listview
+    {
+        if (!($foodType = $this->subject->getField('foodType')))
+            return null;
+
+        $pets = new PetList(array(['foodMask', 1 << ($foodType - 1), '&']));
+        if ($pets->error)
+            return null;
+
+        $this->extendGlobalData($pets->getJSGlobals(GLOBALINFO_RELATED));
+
+        return new Listview(array(
+            'data' => $pets->getListviewData(),
+            'name' => Lang::item('eatenBy'),
+            'id'   => 'eaten-by'
+        ), PetList::$brickFile);
+    }
+
     private function tabEquippedBy() : ?Listview
     {
         if (!DB::World()->selectCell('SHOW TABLES LIKE %s', 'creature_equip_template'))
