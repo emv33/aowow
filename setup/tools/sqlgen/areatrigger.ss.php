@@ -21,7 +21,11 @@ CLISetup::registerSetup('sql', new class extends SetupScript
     public function generate() : bool
     {
         DB::Aowow()->qry('TRUNCATE ::areatrigger');
-        DB::Aowow()->qry('INSERT INTO ::areatrigger SELECT `id`, 0, 0, `mapId`, `posX`, `posY`, `orientation`, NULL, NULL FROM dbc_areatrigger');
+        // aowow - custom: also keep z, radius and box dimensions (upstream: id, mapId, posX, posY, orientation only)
+        DB::Aowow()->qry(
+           'INSERT INTO ::areatrigger (`id`, `cuFlags`, `type`, `mapId`, `posX`, `posY`, `orientation`, `posZ`, `radius`, `boxLength`, `boxWidth`, `boxHeight`, `name`, `quest`)
+            SELECT `id`, 0, 0, `mapId`, `posX`, `posY`, `orientation`, `posZ`, `radius`, `boxLength`, `boxWidth`, `boxHeight`, NULL, NULL FROM dbc_areatrigger'
+        );
 
         /* notes:
          * while areatrigger DO have dimensions, displaying them on a map is almost always futile,

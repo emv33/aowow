@@ -125,15 +125,29 @@ class AreatriggerBaseResponse extends TemplateResponse implements ICache
                 $infobox[] = Lang::areatrigger('teleportsTo').Lang::main('colon').(WorldPosition::getMapNames([$dest['mapId']])[$dest['mapId']] ?? Lang::areatrigger('map', [$dest['mapId']]));
 
             $infobox[] = Lang::areatrigger('destination').Lang::main('colon').sprintf('%.1f, %.1f, %.1f', $dest['x'], $dest['y'], $dest['z']);
+        }
 
-            if ($dest['reqLevel'])
-                $infobox[] = Lang::main('_reqLevel').Lang::main('colon').$dest['reqLevel'];
+        // entering an instance map, however the trigger gets the player there, runs MapManager::CanPlayerEnter() -> Player::Satisfy()
+        // against access_requirement of the target map
+        $targetMaps = self::getSmartTeleportMaps($this->typeId);
+        if ($dest)
+            $targetMaps[] = $dest['mapId'];
 
-            if ($dest['reqItem'])
-            {
-                $this->extendGlobalIds(Type::ITEM, $dest['reqItem']);
-                $infobox[] = Lang::areatrigger('reqItem').Lang::main('colon').'[item='.$dest['reqItem'].']';
-            }
+        if ($_ = $this->getAccessRequirements(array_unique($targetMaps)))
+            $infobox[] = Lang::areatrigger('entryReqs').Lang::main('colon').'[ul][li]'.implode('[/li][li]', $_).'[/li][/ul]';
+
+        $infobox[] = Lang::areatrigger('position').Lang::main('colon').sprintf('%.1f, %.1f, %.1f', $this->subject->getField('posX'), $this->subject->getField('posY'), $this->subject->getField('posZ'));
+
+        // Player::IsInAreaTriggerRadius(): a radius makes it a sphere, otherwise it is a box of full length / width / height turned by `orientation`
+        if ($_ = $this->subject->getField('radius'))
+            $infobox[] = Lang::areatrigger('shape').Lang::main('colon').Lang::areatrigger('sphere', [Lang::nf($_, 1)]);
+        else if ($this->subject->getField('boxLength') || $this->subject->getField('boxWidth') || $this->subject->getField('boxHeight'))
+        {
+            $box = Lang::areatrigger('box', [Lang::nf($this->subject->getField('boxLength'), 1), Lang::nf($this->subject->getField('boxWidth'), 1), Lang::nf($this->subject->getField('boxHeight'), 1)]);
+            if ($yaw = round(rad2deg($this->subject->getField('orientation'))))
+                $box .= Lang::areatrigger('boxYaw', [$yaw]);
+
+            $infobox[] = Lang::areatrigger('shape').Lang::main('colon').$box;
         }
 
         $infobox[] = Lang::areatrigger('id').Lang::main('colon').$this->typeId;
@@ -204,24 +218,15 @@ class AreatriggerBaseResponse extends TemplateResponse implements ICache
         return (string)DB::World()->selectCell('SELECT `ScriptName` FROM areatrigger_scripts WHERE `entry` = %i', $id);
     }
 
-    /** the requirement columns moved out of areatrigger_teleport at some point; try both spellings */
     private static function getTeleportTarget(int $id) : ?array
     {
         if (!self::hasTable('areatrigger_teleport'))
             return null;
 
         $r = DB::World()->selectRow(
-           'SELECT `target_map` AS "mapId", `target_position_x` AS "x", `target_position_y` AS "y", `target_position_z` AS "z",
-                   `required_level` AS "reqLevel", `required_item` AS "reqItem"
+           'SELECT `target_map` AS "mapId", `target_position_x` AS "x", `target_position_y` AS "y", `target_position_z` AS "z"
             FROM   areatrigger_teleport WHERE `ID` = %i', $id
         );
-
-        if ($r === null)
-            $r = DB::World()->selectRow(
-               'SELECT `target_map` AS "mapId", `target_position_x` AS "x", `target_position_y` AS "y", `target_position_z` AS "z",
-                       0 AS "reqLevel", 0 AS "reqItem"
-                FROM   areatrigger_teleport WHERE `ID` = %i', $id
-            );
 
         if (!$r)
             return null;
@@ -242,10 +247,109 @@ class AreatriggerBaseResponse extends TemplateResponse implements ICache
             'areaId'   => $areaId,
             'x'        => $x,
             'y'        => $y,
-            'z'        => (float)$r['z'],
-            'reqLevel' => (int)$r['reqLevel'],
-            'reqItem'  => (int)$r['reqItem']
+            'z'        => (float)$r['z']
         );
+    }
+
+    /** maps a SmartAI script on this trigger teleports to */
+    private static function getSmartTeleportMaps(int $id) : array
+    {
+        return array_map('intval', DB::World()->selectCol(
+           'SELECT DISTINCT `action_param1` FROM smart_scripts WHERE `source_type` = %i AND `entryorguid` = %i AND `action_type` = %i',
+            SmartAI::SRC_TYPE_AREATRIGGER, $id, SmartAction::ACTION_TELEPORT
+        ));
+    }
+
+    /** access_requirement per target map and difficulty, as Player::Satisfy() and LFGMgr read it */
+    private function getAccessRequirements(array $mapIds) : array
+    {
+        if (!$mapIds || !self::hasTable('access_requirement'))
+            return [];
+
+        $rows = DB::World()->selectAssoc(
+           'SELECT `mapId`, `difficulty`, `level_min`, `level_max`, `item_level`, `item`, `item2`, `quest_done_A`, `quest_done_H`, `completed_achievement`, `quest_failed_text`
+            FROM   access_requirement
+            WHERE  `mapId` IN %in
+            ORDER BY `mapId`, `difficulty`', $mapIds
+        );
+        if (!$rows)
+            return [];
+
+        // difficulty names only mean something for maps that have more than one; g_zone_instancetypes as set by the zones setup step
+        $mapTypes = DB::Aowow()->selectCol('SELECT `mapIdBak` AS ARRAY_KEY, `type` FROM ::zones WHERE `mapIdBak` IN %in AND `parentArea` = 0', $mapIds);
+        $mapNames = count(array_unique(array_column($rows, 'mapId'))) > 1 ? WorldPosition::getMapNames($mapIds) : [];
+
+        $out = [];
+        foreach ($rows as $r)
+        {
+            $reqs = [];
+
+            if ($r['level_min'] && $r['level_max'])
+                $reqs[] = Lang::areatrigger('reqLevelRange', [$r['level_min'], $r['level_max']]);
+            else if ($r['level_min'])
+                $reqs[] = Lang::areatrigger('reqLevelMin', [$r['level_min']]);
+            else if ($r['level_max'])
+                $reqs[] = Lang::areatrigger('reqLevelMax', [$r['level_max']]);
+
+            // either of the two items will do
+            if ($items = array_values(array_unique(array_filter([$r['item'], $r['item2']]))))
+            {
+                foreach ($items as $i)
+                    $this->extendGlobalIds(Type::ITEM, $i);
+
+                $reqs[] = Lang::concat($items, Lang::CONCAT_OR, fn($i) => '[item='.$i.']');
+            }
+
+            if ($r['quest_done_A'] && $r['quest_done_A'] == $r['quest_done_H'])
+            {
+                $this->extendGlobalIds(Type::QUEST, $r['quest_done_A']);
+                $reqs[] = Lang::areatrigger('reqQuest', ['[quest='.$r['quest_done_A'].']']);
+            }
+            else
+            {
+                if ($r['quest_done_A'])
+                {
+                    $this->extendGlobalIds(Type::QUEST, $r['quest_done_A']);
+                    $reqs[] = '[span class=icon-alliance]'.Lang::areatrigger('reqQuest', ['[quest='.$r['quest_done_A'].']']).'[/span]';
+                }
+                if ($r['quest_done_H'])
+                {
+                    $this->extendGlobalIds(Type::QUEST, $r['quest_done_H']);
+                    $reqs[] = '[span class=icon-horde]'.Lang::areatrigger('reqQuest', ['[quest='.$r['quest_done_H'].']']).'[/span]';
+                }
+            }
+
+            // checked on the group leader, not the player entering
+            if ($r['completed_achievement'])
+            {
+                $this->extendGlobalIds(Type::ACHIEVEMENT, $r['completed_achievement']);
+                $reqs[] = Lang::areatrigger('reqAchievement', ['[achievement='.$r['completed_achievement'].']']);
+            }
+
+            // only the Dungeon Finder checks this one
+            if ($r['item_level'])
+                $reqs[] = Lang::areatrigger('reqItemLevel', [$r['item_level']]);
+
+            if ($r['quest_failed_text'])
+                $reqs[] = Lang::areatrigger('failText', [strtr($r['quest_failed_text'], ['[' => '(', ']' => ')'])]);
+
+            if (!$reqs)
+                continue;
+
+            $label = match ((int)($mapTypes[$r['mapId']] ?? -1))
+            {
+                MAP_TYPE_DUNGEON_HC                          => Lang::game('modes', 1, $r['difficulty']),
+                MAP_TYPE_MMODE_RAID, MAP_TYPE_MMODE_RAID_HC  => Lang::game('modes', 2, $r['difficulty']),
+                default                                      => ''
+            };
+
+            if (isset($mapNames[$r['mapId']]))
+                $label = $mapNames[$r['mapId']].($label ? ' ('.$label.')' : '');
+
+            $out[] = ($label ? $label.Lang::main('colon') : '').implode(', ', $reqs);
+        }
+
+        return $out;
     }
     // aowow - custom end
 }
