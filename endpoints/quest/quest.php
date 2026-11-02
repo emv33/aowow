@@ -277,6 +277,10 @@ class QuestBaseResponse extends TemplateResponse implements ICache
         }
 
         // id
+        // aowow - custom: the emotes the quest giver plays at each step of the dialogue
+        if ($_ = $this->getGiverEmotes())
+            $infobox[] = Lang::quest('emotes').Lang::main('colon').'[ul][li]'.implode('[/li][li]', $_).'[/li][/ul]';
+
         $infobox[] = Lang::quest('id') . $this->typeId;
 
         // profiler related (note that this is part of the cache. I don't think this is important enough to calc for every view)
@@ -1461,6 +1465,45 @@ class QuestBaseResponse extends TemplateResponse implements ICache
 
         return new Markup('[pad][h3][toggler id=quest-poi]'.Lang::quest('poiTitle').'[/toggler][/h3][div id=quest-poi clear=left][table class=grid]'.$rows.'[/table][/div]',
                           ['allow' => Markup::CLASS_ADMIN], 'quest-poi-generic');
+    }
+    // aowow - custom end
+
+    // aowow - custom start
+    /** Emotes.dbc ids from quest_details, quest_request_items and quest_offer_reward; those are the negative ids of ?emote= */
+    private function getGiverEmotes() : array
+    {
+        $stages = [];
+
+        if ($r = DB::World()->selectRow('SELECT `Emote1`, `Emote2`, `Emote3`, `Emote4`, `EmoteDelay1`, `EmoteDelay2`, `EmoteDelay3`, `EmoteDelay4` FROM quest_details WHERE `ID` = %i', $this->typeId))
+            $stages['offer'] = [[$r['Emote1'], $r['EmoteDelay1']], [$r['Emote2'], $r['EmoteDelay2']], [$r['Emote3'], $r['EmoteDelay3']], [$r['Emote4'], $r['EmoteDelay4']]];
+
+        if ($r = DB::World()->selectRow('SELECT `EmoteOnIncomplete`, `EmoteOnIncompleteDelay`, `EmoteOnComplete`, `EmoteOnCompleteDelay` FROM quest_request_items WHERE `ID` = %i', $this->typeId))
+        {
+            $stages['incomplete'] = [[$r['EmoteOnIncomplete'], $r['EmoteOnIncompleteDelay']]];
+            $stages['complete']   = [[$r['EmoteOnComplete'],   $r['EmoteOnCompleteDelay']]];
+        }
+
+        if ($r = DB::World()->selectRow('SELECT `Emote1`, `Emote2`, `Emote3`, `Emote4`, `EmoteDelay1`, `EmoteDelay2`, `EmoteDelay3`, `EmoteDelay4` FROM quest_offer_reward WHERE `ID` = %i', $this->typeId))
+            $stages['reward'] = [[$r['Emote1'], $r['EmoteDelay1']], [$r['Emote2'], $r['EmoteDelay2']], [$r['Emote3'], $r['EmoteDelay3']], [$r['Emote4'], $r['EmoteDelay4']]];
+
+        $out = [];
+        foreach ($stages as $stage => $emotes)
+        {
+            $buff = [];
+            foreach ($emotes as [$emote, $delay])
+            {
+                if (!$emote)
+                    continue;
+
+                $this->extendGlobalIds(Type::EMOTE, -$emote);
+                $buff[] = '[emote='.-$emote.']'.($delay ? Lang::main('parensFmt', ['', Lang::gossip('emoteDelay', [$delay])]) : '');
+            }
+
+            if ($buff)
+                $out[] = Lang::quest('emoteStages', $stage).Lang::main('colon').implode(', ', $buff);
+        }
+
+        return $out;
     }
     // aowow - custom end
 }

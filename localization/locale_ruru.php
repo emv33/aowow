@@ -2185,6 +2185,8 @@ $lang = array(
         'loremaster'    => "Хранитель мудрости: ",
         'suggestedPl'   => "Рекомендуемое количество игроков: %d",
         'keepsPvpFlag'  => "Включает доступность PvP",
+        'emotes'        => "Quest giver emotes",            // aowow - custom: quest_details, quest_request_items, quest_offer_reward
+        'emoteStages'   => ['offer' => "Offering", 'incomplete' => "Not yet complete", 'complete' => "Complete", 'reward' => "Rewarding"],
         'daily'         => "Ежедневно",
         'weekly'        => "Раз в неделю",
         'monthly'       => "Ежемесячно",

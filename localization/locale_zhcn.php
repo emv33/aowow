@@ -2185,6 +2185,8 @@ $lang = array(
         'loremaster'    => "博学者：",
         'suggestedPl'   => "建议玩家数：%d",
         'keepsPvpFlag'  => "保持你的PvP标记",
+        'emotes'        => "Quest giver emotes",            // aowow - custom: quest_details, quest_request_items, quest_offer_reward
+        'emoteStages'   => ['offer' => "Offering", 'incomplete' => "Not yet complete", 'complete' => "Complete", 'reward' => "Rewarding"],
         'daily'         => "每日",
         'weekly'        => "每周",
         'monthly'       => "每月",
