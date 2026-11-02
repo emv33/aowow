@@ -2495,6 +2495,7 @@ $lang = array(
         'currentArea'   => '&lt;current area&gt;',
         'durabilityItems' => [-2 => '&lt;tous les objets, équipés et dans les sacs&gt;', -1 => '&lt;tous les objets équipés&gt;'],
         'discovered'    => "Appris via une découverte",
+        'extraItems'    => '%1$s: %2$s%% chance for more, up to %3$d extra time(s)',  // aowow - custom: skill_extra_item_template
         'ppm'           => "(%.1f déclenchements par minute)",
         'procChance'    => "Chance : %.4g%%",
         'starter'       => "Sortilège initiaux",

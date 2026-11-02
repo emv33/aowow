@@ -3075,6 +3075,15 @@ class SpellBaseResponse extends TemplateResponse implements ICache
         else if ($this->subject->getRawSource(SRC_DISCOVERY))
             $infobox[] = Lang::spell('discovered');
 
+        // aowow - custom start: skill_extra_item_template, seen from the crafting spell; Spell::DoCreateItem() rolls the chance
+        // again for every extra batch, up to additionalMaxNum times
+        if ($extra = DB::World()->selectRow('SELECT `requiredSpecialization`, `additionalCreateChance`, `additionalMaxNum` FROM skill_extra_item_template WHERE `spellId` = %i', $this->typeId))
+        {
+            $this->extendGlobalIds(Type::SPELL, $extra['requiredSpecialization']);
+            $infobox[] = Lang::spell('extraItems', ['[spell='.$extra['requiredSpecialization'].']', Lang::nf($extra['additionalCreateChance'], 1), $extra['additionalMaxNum']]);
+        }
+        // aowow - custom end
+
         // training cost
         if ($cost = $this->subject->getField('trainingCost'))
             $infobox[] = Lang::spell('trainingCost').'[money='.$cost.']';

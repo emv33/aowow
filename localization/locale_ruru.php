@@ -2495,6 +2495,7 @@ $lang = array(
         'currentArea'   => '&lt;current area&gt;',
         'durabilityItems' => [-2 => '&lt;все предметы, надетые и в сумках&gt;', -1 => '&lt;все надетые предметы&gt;'],
         'discovered'    => "Изучается путём освоения местности",
+        'extraItems'    => '%1$s: %2$s%% chance for more, up to %3$d extra time(s)',  // aowow - custom: skill_extra_item_template
         'ppm'           => "(Срабатывает %.1f раз в минуту)",
         'procChance'    => "Шанс срабатывания: %.4g%%",
         'starter'       => "Начальное заклинание",
