@@ -318,7 +318,7 @@ $lang = array(
         'customProfile' => "（自定义概况）",
         'resync'        => "重新同步",
         'guildRoster'   => "公会成员名单 &lt;%s&gt;",
-        'arenaRoster'   => "竞技场战队名单 &lt;%s&gt",
+        'arenaRoster'   => "竞技场战队名单 &lt;%s&gt;",
         'atCaptain'     => "竞技场战队队长",
         'atSize'        => "团队规模：",
         'profiler'      => "角色概况",
@@ -571,6 +571,17 @@ $lang = array(
             ["石头守卫", "骑士"],                           ["血卫士", "骑士中尉"],                 ["军团士兵", "骑士队长"],
             ["百夫长", "护卫骑士"],                         ["勇士", "少校"],                       ["中将", "司令"],
             ["将军", "统帅"],                               ["督军", "元帅"],                       ["高阶督军", "大元帅"]
+        ),
+        'cityRank'      => array(                           // PVP_MEDAL\d
+            null,
+            "暴风城守卫者",
+            "奥格瑞玛的领主",
+            "铁炉堡领主",
+            "达纳苏斯高阶哨兵",
+            "幽暗城的死亡领主",
+            "雷霆崖酋长",
+            "诺莫瑞根复仇者",
+            "巫毒领袖森金"
         ),
         'orientation'   => ['North', 'Northeast', 'East', 'Southeast', 'South', 'Southwest', 'West', 'Northwest']
     ),
@@ -2251,6 +2262,7 @@ $lang = array(
     'skill' => array(
         'id'            => "技能ID：",
         'notFound'      => "这个技能不存在。",
+        'tiers'         => ["初级", "中级", "高级", "专家级", "大师级", "宗师级"],
         'cat'           => array(
             -6 => "伙伴",         -5 => "坐骑",             -4 => "种族特性",      5 => "属性",          6 => "武器技能",       7 => "职业技能",        8 => "护甲精通",
              9 => "辅助技能",   10 => "语言",          11 => "专业",             12 => "不显示"
@@ -2355,14 +2367,14 @@ $lang = array(
         '_cooldown'     => "冷却时间",
         '_distUnit'     => "码",
         '_regenPer5Sec' => array(                           // GlobalStrings.lua ITEM_MOD_POWER_REGEN<n>_SHORT, ITEM_MOD_HEALTH_REGEN_SHORT; keyed as 'powerTypes'
-             0 => "每5秒的法力值恢复 %s",
-             1 => "每5秒的怒气增长 %s",
-             2 => "每5秒的专注获得 %s",
-             3 => "每5秒的能量恢复 %s",
-             4 => "每5秒的快乐值获得 %s",
-             5 => "每5秒的符文恢复 %s",
-             6 => "每5秒的符文能量恢复 %s",
-            -2 => "每5秒的生命值恢复 %s",
+            POWER_MANA        => "每5秒的法力值恢复 %s",
+            POWER_RAGE        => "每5秒的怒气增长 %s",
+            POWER_FOCUS       => "每5秒的专注获得 %s",
+            POWER_ENERGY      => "每5秒的能量恢复 %s",
+            POWER_HAPPINESS   => "每5秒的快乐值获得 %s",
+            POWER_RUNE        => "每5秒的符文恢复 %s",
+            POWER_RUNIC_POWER => "每5秒的符文能量恢复 %s",
+            POWER_HEALTH      => "每5秒的生命值恢复 %s",
         ),
         '_forms'        => "形态",
         '_aura'         => "光环",
@@ -2378,15 +2390,13 @@ $lang = array(
         '_radius'       => "半径：",
         '_targets'      => "目标：",  // aowow - custom: implicit effect targets
         '_weapon'       => "武器：",  // aowow - custom: attack type of weapon damage effects
-        '_powerType'    => "能量类型",   // aowow - custom: prevent power regeneration
-        '_maxTargetLevel' => "目标最高等级",   // aowow - custom: charm / possess level cap
-        '_seat'         => "座位",   // aowow - custom: control vehicle
-        '_ppmUnit'      => "次触发/分钟",   // aowow - custom: flat procs per minute modifier
-        '_totemBarSlots' => "图腾栏位置",   // aowow - custom: cast button
-        '_minArcHeight' => "最低弧线高度",   // aowow - custom: jump effects
-        '_maxArcHeight' => "最高弧线高度",
-        'honorKills'    => "相当于目标等级下%d次荣誉击杀的荣誉",   // aowow - custom: give honor (Spell::EffectAddHonor)
-        '_skillTier'    => "技能等级",   // aowow - custom: learn skill (step)
+        '_maxTargetLevel' => "目标最高等级",   // charm / possess level cap
+        '_seat'         => "座位",   // control vehicle
+        '_ppmUnit'      => "次触发/分钟",   // flat procs per minute modifier
+        '_totemBarSlots' => "图腾栏位置",   // cast button
+        '_arcHeight'    => "弧线高度", // jump effects
+        '_honorKills'   => "%d荣誉击杀",
+        '_honorPoints'  => "%d荣誉 @ L%d",
         '_maxSkill'     => "最高%d",   // aowow - custom: max. skill of a learn skill step (SkillTiers.dbc)
         '_interval'     => "间隔：", //Interval
         '_customAttr'   => "Custom attributes", // aowow - custom: spell_custom_attr (TDB), separate from the DBC Flags row
@@ -2494,12 +2504,12 @@ $lang = array(
             "剩余%d天"
         ),
         'powerCost'     => array(
-            -2 => ["%d生命值",   "%d生命值，每秒增加%d"     ],
-             0 => ["%d法力值",   "%d点法力值，外加每秒%d点" ],
-             1 => ["%d怒气",     "%d怒气，外加每秒%d"       ],
-             2 => ["%d集中",     "%d集中，外加每秒%d"       ],
-             3 => ["%d能量",     "%d能量，外加每秒%d"       ],
-             6 => ["%d符文能量", "%d点符文能量，外加每秒%d点"],
+            POWER_HEALTH      => ["%d生命值",   "%d生命值，每秒增加%d"     ],
+            POWER_MANA        => ["%d法力值",   "%d点法力值，外加每秒%d点" ],
+            POWER_RAGE        => ["%d怒气",     "%d怒气，外加每秒%d"       ],
+            POWER_FOCUS       => ["%d集中",     "%d集中，外加每秒%d"       ],
+            POWER_ENERGY      => ["%d能量",     "%d能量，外加每秒%d"       ],
+            POWER_RUNIC_POWER => ["%d符文能量", "%d点符文能量，外加每秒%d点"],
         ),
         'powerDisplayCost' => ["%d %s", "%d %s，再加上每秒%d"],
         'powerCostRunes'=> ["%d鲜血", "%d邪恶", "%d冰霜"],
@@ -2604,14 +2614,14 @@ $lang = array(
         'summonSlot'    => ["宠物", "火焰图腾", "大地图腾", "水图腾", "空气图腾", "非战斗宠物", "任务"],
         'unkEffect'     => '未知效果 (%1$d)',
         'attackTypes'   => ["主手", "副手", "远程"], // aowow - custom: SpellInfo::GetAttackType()
-        // aowow - custom: AuraStateType, as checked by SPELL_AURA_MOD_DAMAGE_DONE_VERSUS_AURASTATE; labels are English in all locales
+        // AuraStateType, as checked by SPELL_AURA_MOD_DAMAGE_DONE_VERSUS_AURASTATE; labels are English in all locales
         'auraStates'    => array(
              1 => "Dodged, parried or blocked",     2 => "Health below 20%",               3 => "Berserking",                     4 => "Frozen",
              5 => "Judgement",                      7 => "Hunter parry",                  10 => "Victory Rush",                  12 => "Faerie Fire",
             13 => "Health below 35%",              14 => "Immolate (Conflagrate)",        15 => "Rejuvenation / Regrowth (Swiftmend)", 16 => "Deadly Poison",
             17 => "Enraged",                       18 => "Bleeding",                      23 => "Health above 75%"
         ),
-        'destructibleState' => ["完好", "受损", "被摧毁", "重建中"], // aowow - custom: GameObjectDestructibleState
+        'destructibleState' => ["完好", "受损", "被摧毁", "重建中"], // GameObjectDestructibleState
         // aowow - custom: who/what an effect affects (effectNImplicitTargetA/B); labels are English in all locales
         'implicitTargets' => array(
             1   => "Caster",
@@ -3122,19 +3132,25 @@ $lang = array(
         'block'         => "%d格挡",
         'charges'       => "%d次",
         'locked'        => "已锁",
+        'lockedByItem'  => "需要 %s",
+        'lockedBySpell' => "需要 %s",
+        'encrypted'     => "已加密",
         'ratingString'  => '<!--rtg%%%1$d-->%2$s&nbsp;@&nbsp;Lvl<!--lvl-->%3$d',
         'heroic'        => "英雄级别",
         'startQuest'    => "该物品将触发一个任务",
         'containerSlots'=> "%d格%s",
-        'fap'           => "在猎豹、熊、巨熊和枭兽形态下的攻击强度",
+     // 'fap'           => "在猎豹、熊、巨熊和枭兽形态下的攻击强度",
+        'feralItemAP'   => "在猎豹、熊、巨熊和枭兽形态下的攻击强度提高<!--fap-->%d点。",
         'durability'    => "耐久度 %d / %d",
         'realTime'      => "实时",
         'conjured'      => "魔法制造的物品",
         'sellPrice'     => "卖价",
         'itemLevel'     => "物品等级%d",
-        'randEnchant'   => "&lt;随机附魔&gt",
-        'readClick'     => "&lt;右键点击阅读&gt",
-        'openClick'     => "&lt;右键点击打开&gt",
+        'randEnchant'   => "&lt;随机附魔&gt;",
+        'readClick'     => "&lt;右键点击阅读&gt;",
+        'openClick'     => "&lt;右键点击打开&gt;",
+        'signClick'     => "&lt;右键点击以了解详情&gt;",
+        'socketClick'   => "&lt;Shift+右键点击打开镶嵌界面&gt;",
         'setBonus'      => "(%d) 套装：%s",
         'setName'       => "%s（%d/%d）",
         'partyLoot'     => "团队拾取",
@@ -3169,8 +3185,11 @@ $lang = array(
         'buyout'        => "一口价",
         'each'          => "每个",
         'tabOther'      => "其他",
+        'reqReputation' => "需要 %s - %s",
         'reqMinLevel'   => "需要等级 %d",
         'reqLevelRange' => "需要等级 %d到%d （%s）",
+        'reqSkillValue' => "需要%s（%d）",
+        'reqSkill'      => "需要%s",
         'unique'        => ["唯一",   "唯一（%d）", "唯一：%s（%d）"   ],
         'uniqueEquipped'=> ["装备唯一", null,     "装备唯一：%s （%d）"],
         'speed'         => "速度",
@@ -3180,6 +3199,9 @@ $lang = array(
         'purchasedIn'   => "[This item can be purchased in]",
         'fishingLoc'    => "钓鱼地点",
         'fishedIn'      => "此物品位于",
+        'resistAll'     => "%c%d 所有抗性",
+        'resistSingle'  => "%c%d %s抗性",
+        'itemSuffixTpl' => '%2$s%1$s',
         'duration'      => array(
             '',
             "持续时间：%d秒",
@@ -3206,7 +3228,7 @@ $lang = array(
             "多彩插槽",                 "红色插槽",             "黄色插槽",                 "蓝色插槽",                 -1 => "棱彩插槽"
         ),
         'gemColors'     => array(
-            "多彩",                   "红色",               "黄色",                   "蓝色"
+            null, "多彩", "红色", "黄色", "蓝色"
         ),
         'gemRequires'   => "需要 ",
         'gemConditions' => array(
@@ -3246,23 +3268,23 @@ $lang = array(
             "投掷",                   null, /*Ranged2*/   "箭袋",                   "圣物"
         ),
         'subClass'      => array(
-            ITEM_CLASS_CONSUMABLE => ["消耗品", "药水", "药剂", "合剂", "卷轴", "食物和饮料", "物品强化", "绷带", "其它"],
-            ITEM_CLASS_CONTAINER  => ["容器", "灵魂袋", "草药袋", "附魔材料袋", "工程学材料袋", "宝石袋", "矿石袋", "制皮材料包", "铭文包"],
-            ITEM_CLASS_WEAPON     => ["斧", "斧", "弓", "枪械", "锤", "锤", "长柄武器", "剑", "剑", "Obsolete", "法杖", "异种武器", "异种武器", "拳套", "其它", "匕首", "投掷武器", "矛", "弩", "魔杖", "鱼竿"],
-            ITEM_CLASS_GEM        => ["红色", "蓝色", "黄色", "紫色", "绿色", "橙色", "多彩", "简易", "棱彩"],
-            ITEM_CLASS_ARMOR      => ["其它", "布甲", "皮甲", "锁甲", "板甲", "小圆盾", "盾牌", "圣契", "神像", "图腾", "魔印"],
-            ITEM_CLASS_REAGENT    => ["材料"],
-            ITEM_CLASS_AMMUNITION => ["无(魔杖)", "矢", "箭", "子弹", "投掷武器"],
-            ITEM_CLASS_TRADEGOOD  => ["商品", "零件", "爆炸物", "装置", "珠宝加工", "布料", "皮革", "金属和矿石", "肉类", "草药", "元素", "其它", "附魔", "原料", "护甲强化", "武器强化"],
-            ITEM_CLASS_GENERIC    => ["Generic(OBSOLETE)"],
-            ITEM_CLASS_RECIPE     => ["书籍", "制皮", "裁缝", "工程学", "锻造", "烹饪", "炼金术", "急救", "附魔", "钓鱼", "珠宝加工", "铭文"],
-            ITEM_CLASS_MONEY      => ["Money(OBSOLETE)"],
-            ITEM_CLASS_QUIVER     => ["箭袋", "箭袋", "箭袋", "弹药袋"],
-            ITEM_CLASS_QUEST      => ["任务"],
-            ITEM_CLASS_KEY        => ["钥匙", "开锁工具"],
-            ITEM_CLASS_PERMANENT  => ["永久"],
-            ITEM_CLASS_MISC       => ["垃圾", "材料", "宠物", "节日", "其它", "坐骑"],
-            ITEM_CLASS_GLYPH      => [null, "战士", "圣骑士", "猎人", "潜行者", "牧师", "死亡骑士", "萨满祭司", "法师", "术士", null, "德鲁伊"]
+            ITEM_CLASS_CONSUMABLE => ["消耗品", ["消耗品", "药水", "药剂", "合剂", "卷轴", "食物和饮料", "物品强化", "绷带", "其它"]],
+            ITEM_CLASS_CONTAINER  => ["容器", ["容器", "灵魂袋", "草药袋", "附魔材料袋", "工程学材料袋", "宝石袋", "矿石袋", "制皮材料包", "铭文包"]],
+            ITEM_CLASS_WEAPON     => ["武器", ["斧", "斧", "弓", "枪械", "锤", "锤", "长柄武器", "剑", "剑", "Obsolete", "法杖", "异种武器", "异种武器", "拳套", "其它", "匕首", "投掷武器", "矛", "弩", "魔杖", "鱼竿"]],
+            ITEM_CLASS_GEM        => ["珠宝", ["红色", "蓝色", "黄色", "紫色", "绿色", "橙色", "多彩", "简易", "棱彩"]],
+            ITEM_CLASS_ARMOR      => ["护甲", ["其它", "布甲", "皮甲", "锁甲", "板甲", "小圆盾", "盾牌", "圣契", "神像", "图腾", "魔印"]],
+            ITEM_CLASS_REAGENT    => ["材料", ["材料"]],
+            ITEM_CLASS_AMMUNITION => ["弹药", ["无(魔杖)", "矢", "箭", "子弹", "投掷武器"]],
+            ITEM_CLASS_TRADEGOOD  => ["商品", ["商品", "零件", "爆炸物", "装置", "珠宝加工", "布料", "皮革", "金属和矿石", "肉类", "草药", "元素", "其它", "附魔", "原料", "护甲强化", "武器强化"]],
+            ITEM_CLASS_GENERIC    => ["Generic(OBSOLETE)", ["Generic(OBSOLETE)"]],
+            ITEM_CLASS_RECIPE     => ["配方", ["书籍", "制皮", "裁缝", "工程学", "锻造", "烹饪", "炼金术", "急救", "附魔", "钓鱼", "珠宝加工", "铭文"]],
+            ITEM_CLASS_MONEY      => ["Money(OBSOLETE)", ["Money(OBSOLETE)"]],
+            ITEM_CLASS_QUIVER     => ["箭袋", ["箭袋", "箭袋", "箭袋", "弹药袋"]],
+            ITEM_CLASS_QUEST      => ["任务", ["任务"]],
+            ITEM_CLASS_KEY        => ["钥匙", ["钥匙", "开锁工具"]],
+            ITEM_CLASS_PERMANENT  => ["永久", ["永久"]],
+            ITEM_CLASS_MISC       => ["其它", ["垃圾", "材料", "宠物", "节日", "其它", "坐骑"]],
+            ITEM_CLASS_GLYPH      => ["雕文", [null, "战士", "圣骑士", "猎人", "潜行者", "牧师", "死亡骑士", "萨满祭司", "法师", "术士", null, "德鲁伊"]]
         ),
         'cat'           => array(                           // ordered by content first, then alphabeticaly
              2 => array("武器", []),                          // filled with self::$spell['weaponSubClass'] on load

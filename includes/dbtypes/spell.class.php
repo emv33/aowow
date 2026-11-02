@@ -39,11 +39,11 @@ class SpellList extends DBTypeList
         SPELLMOD_DURATION,                  SPELLMOD_CASTING_TIME,                          SPELLMOD_COOLDOWN,                              SPELLMOD_ACTIVATION_TIME,
         SPELLMOD_GLOBAL_COOLDOWN
     );
-    public const array SPELLMOD_PCT_POINTS      = array( // aowow - custom: a flat modifier of these adds percentage points (crit / hit / proc / dispel resist chance, sp coefficient)
+    public const array SPELLMOD_PCT_POINTS      = array( // a flat modifier of these adds percentage points (crit / hit / proc / dispel resist chance, sp coefficient)
         SPELLMOD_CRITICAL_CHANCE,           SPELLMOD_RESIST_MISS_CHANCE,                    SPELLMOD_CHANCE_OF_SUCCESS,                     SPELLMOD_RESIST_DISPEL_CHANCE,
         SPELLMOD_BONUS_MULTIPLIER
     );
-    public const array SPELLMOD_YARDS           = array( // aowow - custom: a flat modifier of these is a distance
+    public const array SPELLMOD_YARDS           = array( // a flat modifier of these is a distance
         SPELLMOD_RANGE,                     SPELLMOD_RADIUS
     );
     public const array EFFECTS_SCALING_HEAL     = array( // as per Unit::SpellHealingBonusDone() calls in TC
@@ -81,6 +81,11 @@ class SpellList extends DBTypeList
     );
     public const array EFFECTS_ENCHANTMENT      = array(
         SPELL_EFFECT_ENCHANT_ITEM,          SPELL_EFFECT_ENCHANT_ITEM_TEMPORARY,            SPELL_EFFECT_ENCHANT_HELD_ITEM,                 SPELL_EFFECT_ENCHANT_ITEM_PRISMATIC
+    );
+
+    public const array EFFECTS_APPLY_AURA       = array(
+        SPELL_EFFECT_APPLY_AURA,            SPELL_EFFECT_PERSISTENT_AREA_AURA,              SPELL_EFFECT_APPLY_AREA_AURA_PARTY,             SPELL_EFFECT_APPLY_AREA_AURA_RAID,
+        SPELL_EFFECT_APPLY_AREA_AURA_PET,   SPELL_EFFECT_APPLY_AREA_AURA_FRIEND,            SPELL_EFFECT_APPLY_AREA_AURA_ENEMY,             SPELL_EFFECT_APPLY_AREA_AURA_OWNER
     );
 
     public const array AURAS_SCALING_HEAL       = array( // as per Unit::SpellHealingBonusDone() calls in TC (SPELL_AURA_SCHOOL_ABSORB + SPELL_AURA_MANA_SHIELD priest/mage cases are scripted)
@@ -730,8 +735,6 @@ class SpellList extends DBTypeList
         $level    = $this->charLevel;
         $maxBase  = 0;
         $rppl     = $this->getField('effect'.$effIdx.'RealPointsPerLevel');
-        $base     = $this->getField('effect'.$effIdx.'BasePoints');
-        $add      = $this->getField('effect'.$effIdx.'DieSides');
         $maxLvl   = $this->getField('maxLevel');
         $baseLvl  = $this->getField('baseLevel');
         $spellLvl = $this->getField('spellLevel');
@@ -739,8 +742,10 @@ class SpellList extends DBTypeList
         $modMin   =
         $modMax   = null;
 
-        $min = $nTicks * ($add ? $base + 1 : $base);
-        $max = $nTicks * ($add + $base);
+        [$min, $max] = $this->getEffectAmount($effIdx);
+
+        $min *= $nTicks;
+        $max *= $nTicks;
 
         if ($op !== null && $oparg !== null)
         {
@@ -773,6 +778,19 @@ class SpellList extends DBTypeList
 
         return [$min + $maxBase, $max + $maxBase, $modMin, $modMax];
     }
+
+
+    public function getEffectAmount(int $effIdx) : ?array
+    {
+        $base = $this->getField('effect'.$effIdx.'BasePoints');
+        $add  = $this->getField('effect'.$effIdx.'DieSides');
+
+        return array(
+            $add ? $base + 1 : $base,
+            $add + $base
+        );
+    }
+
 
     public function canCreateItem() : array
     {
