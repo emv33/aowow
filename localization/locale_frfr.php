@@ -1363,6 +1363,7 @@ $lang = array(
         'pools'            => 'Spawn pools (%1$d)',
         'questCondition'   => 'condition #[b]%1$d[/b] needs %2$s',
         'modelEquip'       => "Dresses as",
+        'arenaSeason'      => "Arena season",
         'modelEquipLine'   => 'model #[b]%1$d[/b] with equipment #[b]%2$d[/b]',
         'eventMail'        => "Sends mail",
         'mailFrom'        => "from",

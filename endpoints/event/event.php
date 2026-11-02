@@ -515,6 +515,11 @@ class EventBaseResponse extends TemplateResponse implements ICache
             }
         }
 
+        // GameEventMgr::StartArenaSeason() starts this event when the server's ArenaSeason.ID config names one of these seasons
+        if (self::hasTable('game_event_arena_seasons'))
+            if ($seasons = DB::World()->selectCol('SELECT `season` FROM game_event_arena_seasons WHERE `eventEntry` = %i ORDER BY `season`', $this->typeId))
+                $rows[] = [Lang::eventExtra('arenaSeason'), implode(', ', $seasons)];
+
         if (self::hasTable('game_event_model_equip'))
         {
             $eqRows = DB::World()->selectAssoc('SELECT * FROM game_event_model_equip WHERE `eventEntry` = %i', $this->typeId) ?: [];
