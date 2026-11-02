@@ -434,6 +434,13 @@ class ItemBaseResponse extends TemplateResponse implements ICache
             if ($tName = DB::Aowow()->selectRow('SELECT * FROM ::totemcategory WHERE `id` = %i', $tId))
                 $infobox[] = Lang::item('tool').'[url=?items&filter=cr=91;crs='.$tId.';crv=0]'.Util::localizedString($tName, 'name').'[/url]';
 
+        // aowow - custom: the enchantment a gem applies when socketed (GemProperties.dbc), which has its own page
+        if ($_ = $this->subject->getField('gemEnchantmentId'))
+        {
+            $this->extendGlobalIds(Type::ENCHANTMENT, $_);
+            $infobox[] = Util::ucFirst(Lang::game('enchantment')).Lang::main('colon').'[enchantment='.$_.']';
+        }
+
         // aowow - custom: pet diet; ItemPetFood.dbc id, matched against the families' foodMask bit (id - 1)
         if (($_ = $this->subject->getField('foodType')) && ($food = Lang::exist('pet', 'food', (string)$_)))
             $infobox[] = Lang::item('petFood').$food;
