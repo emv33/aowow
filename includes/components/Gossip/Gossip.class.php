@@ -780,14 +780,34 @@ class Gossip
      * aowow - custom: `quest_greeting` was read nowhere
      *
      * the line an npc or object opens with when it holds more than one quest, which is neither a
-     * gossip menu nor quest text and so appeared on no page at all
+     * gossip menu nor quest text and so appeared on no page at all; for a trainer also the line
+     * atop its trainer window
      *
      * @param  int $type   Type::NPC or Type::OBJECT
      * @param  int $entry  creature or gameobject entry
      */
     public static function buildGreetingFor(int $type, int $entry) : ?Markup
     {
-        if ($entry <= 0 || !DB::World()->selectCell('SHOW TABLES LIKE %s', 'quest_greeting'))
+        if ($entry <= 0)
+            return null;
+
+        $sections = '';
+
+        if ($body = self::questGreeting($type, $entry))
+            $sections .= '[pad][h3][toggler id=quest-greeting]'.Lang::gossip('questGreeting').'[/toggler][/h3][div id=quest-greeting clear=left]'.$body.'[/div]';
+
+        if ($type == Type::NPC && ($body = self::trainerGreeting($entry)))
+            $sections .= '[pad][h3][toggler id=trainer-greeting]'.Lang::gossip('trainerGreeting').'[/toggler][/h3][div id=trainer-greeting clear=left]'.$body.'[/div]';
+
+        if (!$sections)
+            return null;
+
+        return new Markup('[style]'.strtr(self::BASE_CSS, "\n", ' ').'[/style]'.$sections, ['allow' => Markup::CLASS_ADMIN], 'gossip-generic');
+    }
+
+    private static function questGreeting(int $type, int $entry) : ?string
+    {
+        if (!DB::World()->selectCell('SHOW TABLES LIKE %s', 'quest_greeting'))
             return null;
 
         // 0 is a creature, 1 a gameobject - the same numbering `quest_greeting` has always used
@@ -811,6 +831,13 @@ class Gossip
 
         $r    = array_change_key_case($r, CASE_LOWER);
         $text = trim((string)($r['greeting'] ?? $r['greeting_text'] ?? ''));
+
+        // `quest_greeting_locale` was read nowhere either
+        $loc = Lang::getLocale();
+        if ($loc != Locale::EN && DB::World()->selectCell('SHOW TABLES LIKE %s', 'quest_greeting_locale'))
+            if ($_ = trim((string)DB::World()->selectCell('SELECT `Greeting` FROM quest_greeting_locale WHERE `ID` = %i AND `Type` = %i AND `locale` = %s', $entry, $qgType, $loc->json())))
+                $text = $_;
+
         if ($text === '')
             return null;
 
@@ -819,12 +846,33 @@ class Gossip
         if ($emote = (int)($r['greetemotetype'] ?? $r['emote'] ?? 0))
             $body .= '[br][i][small class=q0]'.Lang::gossip('emote', [$emote]).'[/small][/i]';
 
-        return new Markup(
-            '[style]'.strtr(self::BASE_CSS, "\n", ' ').'[/style]' .
-            '[pad][h3][toggler id=quest-greeting]'.Lang::gossip('questGreeting').'[/toggler][/h3]' .
-            '[div id=quest-greeting clear=left]'.$body.'[/div]',
-            ['allow' => Markup::CLASS_ADMIN], 'gossip-generic'
+        return $body;
+    }
+
+    /** `trainer`.`Greeting` and `trainer_locale`, the line atop the trainer window; neither was read anywhere */
+    private static function trainerGreeting(int $npcId) : ?string
+    {
+        if (!DB::World()->selectCell('SHOW TABLES LIKE %s', 'creature_default_trainer'))
+            return null;
+
+        $r = DB::World()->selectRow(
+           'SELECT t.`Id`, t.`Greeting` FROM creature_default_trainer cdt JOIN trainer t ON t.`Id` = cdt.`TrainerId` WHERE cdt.`CreatureId` = %i',
+            $npcId
         );
+        if (!$r)
+            return null;
+
+        $text = trim((string)$r['Greeting']);
+
+        $loc = Lang::getLocale();
+        if ($loc != Locale::EN && DB::World()->selectCell('SHOW TABLES LIKE %s', 'trainer_locale'))
+            if ($_ = trim((string)DB::World()->selectCell('SELECT `Greeting_lang` FROM trainer_locale WHERE `Id` = %i AND `locale` = %s', $r['Id'], $loc->json())))
+                $text = $_;
+
+        if ($text === '')
+            return null;
+
+        return '[span class=gossip-text]'.UIText::format($text, Lang::FMT_MARKUP).'[/span]';
     }
 
     public function getMarkup(bool $collapsed = false) : ?Markup

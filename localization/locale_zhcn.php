@@ -1777,6 +1777,7 @@ $lang = array(
         'emptyOption'       => "（无文本）",
         'friendlyFaction'   => 'While this menu is open the creature uses faction %1$s.',
         'questGreeting'     => "Quest greeting",
+        'trainerGreeting'   => "Trainer greeting",
         'missingText'       => "缺失的 npc_text #%d",
         'overriddenBy'      => "Never shown: #%d, which follows it without conditions, always takes precedence.",
         'opensMenu'         => "打开[url=?gossip=%d]对话菜单 #%d[/url]",
