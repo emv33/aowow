@@ -4448,7 +4448,7 @@ var LANG = {
         npcnoshadow:        "No shadow blob",
         npcnosheathe:       "Does not sheathe its weapon",
         visibilityrange:    "Visibility range",
-        npcclass:           "Класс",
+        npcclass:           "NPC Class",
 
         sepcommunity:        "Сообщество",
         hascomments:         "Есть комментарии",

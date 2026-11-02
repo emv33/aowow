@@ -248,10 +248,6 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         if ($_ = $this->subject->getField('textureString'))
             $infobox[] = Lang::npcExtra('skin').Lang::main('colon').'[url=?npcs&filter=cr=35;crs=0;crv='.urlencode($_).']'.$_.'[/url]';
 
-        // unit_class, Warrior being the default; links to the npc search, as ?class= is about player classes
-        if (($_ = $this->subject->getField('unitClass')) && $_ != ChrClass::WARRIOR->value)
-            $infobox[] = Lang::npcExtra('npcClass').Lang::main('colon').'[url=?npcs&filter=cr=107;crs='.$_.';crv=0]'.Lang::game('cl', $_).'[/url]';
-
         // `pet_levelstats` and `pet_name_generation` are keyed by creature entry, not by the pet
         // family `?pet=` is built on, so this is the only page they can hang off
         $this->levelCurve = self::buildPetTable($this->typeId);
@@ -371,6 +367,10 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         // purely cosmetic type flags, listed like the others
         if ($buff = $flagLines($_typeFlags, Lang::npcExtra('typeFlagClientLabels')))
             $infobox[] = Lang::npcExtra('clientFlags').Lang::main('colon').'[ul][li]'.implode('[/li][li]', $buff).'[/li][/ul]';
+
+        // aowow - custom: unit_class; links to the npc search, as ?class= is about player classes
+        if ($_ = $this->subject->getField('unitClass'))
+            $infobox[] = Lang::npcExtra('npcClass').Lang::main('colon').'[url=?npcs&filter=cr=107;crs='.$_.';crv=0]'.Lang::game('cl', $_).'[/url]';
 
         // Mode dummy references
         if ($this->altNPCs)

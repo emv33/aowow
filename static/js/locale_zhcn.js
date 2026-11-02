@@ -4490,7 +4490,7 @@ var LANG = {
         npcnoshadow:        "No shadow blob",
         npcnosheathe:       "Does not sheathe its weapon",
         visibilityrange:    "Visibility range",
-        npcclass:           "职业",
+        npcclass:           "NPC Class",
 
         sepcommunity:        "社区",
         hascomments:         "有评论",
