@@ -1739,6 +1739,7 @@ $lang = array(
         'friendlyFaction'   => 'While this menu is open the creature uses faction %1$s.',
         'questGreeting'     => "Quest greeting",
         'missingText'       => "Missing npc_text #%d",
+        'overriddenBy'      => "Never shown: #%d, which follows it without conditions, always takes precedence.",
         'opensMenu'         => "Opens [url=?gossip=%d]gossip menu #%d[/url]",
         'handledBySmart'    => "Handled by the SmartAI of %s",
         'marksPoi'          => "Marks the map at %s",

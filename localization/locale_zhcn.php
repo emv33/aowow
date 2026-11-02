@@ -1739,6 +1739,7 @@ $lang = array(
         'friendlyFaction'   => 'While this menu is open the creature uses faction %1$s.',
         'questGreeting'     => "Quest greeting",
         'missingText'       => "缺失的 npc_text #%d",
+        'overriddenBy'      => "Never shown: #%d, which follows it without conditions, always takes precedence.",
         'opensMenu'         => "打开[url=?gossip=%d]对话菜单 #%d[/url]",
         'handledBySmart'    => "由 %s 的 SmartAI 处理",
         'marksPoi'          => "在 %s 标记地图",

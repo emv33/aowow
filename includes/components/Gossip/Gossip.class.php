@@ -446,17 +446,37 @@ class Gossip
         $hasCnd  = false;
         $hasProb = false;
         $rows    = [];
+        $cndTags = [];
 
         foreach ($this->texts as $textId => $text)
         {
             $cnd = new Conditions();
             $cnd->getBySource(Conditions::SRC_GOSSIP_MENU, group: $this->menuId, entry: $textId)->prepare();
-            $cndTag = $cnd->toMarkupTag();
-            if ($cndTag)
+            $cndTags[$textId] = $cnd->toMarkupTag();
+            if ($cndTags[$textId])
             {
                 $hasCnd = true;
                 Util::mergeJsGlobals($this->jsGlobals, $cnd->getJSGlobals());
             }
+        }
+
+        // aowow - custom start: Player::GetGossipTextId() walks the menu's texts in load order (TextID
+        // ascending) and keeps the last one whose conditions pass, so a later text without
+        // conditions always wins over everything before it; texts without npc_text are dropped at load
+        $overriddenBy = [];
+        $lastFree     = 0;
+        foreach (array_reverse(array_keys($this->texts)) as $textId)
+        {
+            if ($lastFree)
+                $overriddenBy[$textId] = $lastFree;
+            else if (!$cndTags[$textId] && !$this->texts[$textId]['missing'])
+                $lastFree = $textId;
+        }
+        // aowow - custom end
+
+        foreach ($this->texts as $textId => $text)
+        {
+            $cndTag = $cndTags[$textId];
 
             if ($text['missing'])
             {
@@ -464,9 +484,11 @@ class Gossip
                 continue;
             }
 
+            $overridden = isset($overriddenBy[$textId]) ? '[i][small class=q10]'.Lang::gossip('overriddenBy', [$overriddenBy[$textId]]).'[/small][/i]' : '';   // aowow - custom
+
             if (!$text['slots'])
             {
-                $rows[] = ['#[b]'.$textId.'[/b]', '[i][small class=q0]'.Lang::gossip('emptyText').'[/small][/i]', '', $cndTag];
+                $rows[] = ['#[b]'.$textId.'[/b]', '[i][small class=q0]'.Lang::gossip('emptyText').'[/small][/i]'.($overridden ? '[br]'.$overridden : ''), '', $cndTag];
                 continue;
             }
 
@@ -503,6 +525,9 @@ class Gossip
 
                 if ($slot['bct'])
                     $body[] = '[i][small class=q0][url=?text='.$textLinkId.']'.Lang::gossip('fromBroadcastText', [$slot['bct']]).'[/url][/small][/i]';
+
+                if ($first && $overridden)                  // aowow - custom
+                    $body[] = $overridden;
 
                 $rows[] = array(
                     $first ? '[url=?text='.$textLinkId.']#[b]'.$textId.'[/b][/url]' : '',
