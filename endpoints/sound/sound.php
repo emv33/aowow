@@ -173,9 +173,12 @@ class SoundBaseResponse extends TemplateResponse implements ICache
         }
 
         // tab: Zones
-        if ($zoneIds = DB::Aowow()->selectAssoc('SELECT `id`, `worldStateId`, `worldStateValue` FROM ::zones_sounds WHERE `ambienceDay` = %i OR `ambienceNight` = %i OR `musicDay` = %i OR `musicNight` = %i OR `intro` = %i', $this->typeId, $this->typeId, $this->typeId, $this->typeId, $this->typeId))
+        $zoneIds = DB::Aowow()->selectAssoc('SELECT `id`, `worldStateId`, `worldStateValue` FROM ::zones_sounds WHERE `ambienceDay` = %i OR `ambienceNight` = %i OR `musicDay` = %i OR `musicNight` = %i OR `intro` = %i', $this->typeId, $this->typeId, $this->typeId, $this->typeId, $this->typeId) ?: [];
+
+        // aowow - custom: also zones the sound is spawned in as an emitter (mirrors the zone page's sound tab), incl. those without a drawable map
+        if ($areaIds = array_unique(array_merge(array_column($zoneIds, 'id'), $this->subject->getSpawns(SPAWNINFO_ZONES))))
         {
-            $zones = new ZoneList(array(['id', array_column($zoneIds, 'id')]));
+            $zones = new ZoneList(array(['id', $areaIds]));
             if (!$zones->error)
             {
                 $this->extendGlobalData($zones->getJSGlobals(GLOBALINFO_SELF));
