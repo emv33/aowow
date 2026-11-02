@@ -137,26 +137,7 @@ class ItemBaseResponse extends TemplateResponse implements ICache
                 'quality' => $this->subject->getField('quality')
             );
 
-            // merge identical stats and names for normal users (e.g. spellPower of a specific school became general spellPower with 3.0)
-            // see: https://web.archive.org/web/20101118041612/wowhead.com/item=11946
-            // stats should also be merged if only the keys are the same, resulting in "+(8 - 9) Spirit" etc.
-            // but since we are linking to enchantments, which WH does not, we wont do the merge
-
-            if (!User::isInGroup(U_GROUP_EMPLOYEE))
-            {
-                for ($i = 1; $i < count($this->subItems['data']); $i++)
-                {
-                    $prev = &$this->subItems['data'][$i - 1];
-                    $cur  = &$this->subItems['data'][$i];
-                    if ($prev['jsonequip'] == $cur['jsonequip'] && $prev['name'] == $cur['name'])
-                    {
-                        $prev['chance'] += $cur['chance'];
-                        array_splice($this->subItems['data'], $i, 1);
-                        array_splice($this->subItems['randIds'], $i, 1);
-                        $i = 1;
-                    }
-                }
-            }
+            // aowow - custom: every random enchantment is listed on its own, identical stats and names are not merged (upstream: merged for non-employees)
         }
 
         // factionchange-equivalent
