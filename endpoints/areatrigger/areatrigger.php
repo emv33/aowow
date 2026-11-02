@@ -82,6 +82,15 @@ class AreatriggerBaseResponse extends TemplateResponse implements ICache
                 $this->map[3][$areaId] = ZoneList::getName($areaId);
         }
 
+        // aowow - custom start: spawns without a drawable point (e.g. an instance with no extracted floor map) - name the zone/instance anyway
+        foreach ($this->subject->getSpawns(SPAWNINFO_ZONES) as $areaId)
+            if (!isset($spawns[$areaId]) && ($name = ZoneList::getName($areaId)))
+                $this->foundInZones[$areaId] = $name;
+
+        if ($this->foundInZones)
+            $this->foundInZones = [Lang::areatrigger('foundIn')] + $this->foundInZones;
+        // aowow - custom end
+
         // Smart AI
         if ($_type == AT_TYPE_SMART)
         {

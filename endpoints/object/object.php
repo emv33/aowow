@@ -324,6 +324,15 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
                 $this->map[3][$areaId] = ZoneList::getName($areaId);
         }
 
+        // aowow - custom start: spawns without a drawable point (e.g. an instance with no extracted floor map) - name the zone/instance anyway
+        foreach ($this->subject->getSpawns(SPAWNINFO_ZONES) as $areaId)
+            if (!isset($spawns[$areaId]) && ($name = ZoneList::getName($areaId)))
+                $this->foundInZones[$areaId] = $name;
+
+        if ($this->foundInZones)
+            $this->foundInZones = [Lang::gameObject('foundIn')] + $this->foundInZones;
+        // aowow - custom end
+
 
         // todo (low): consider pooled spawns
 

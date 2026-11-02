@@ -712,7 +712,7 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
         }
 
         // tab: npcs
-        if ($cSpawns && !$creatureSpawns->error)
+        if (!$creatureSpawns->error)                       // aowow - custom: also spawns without a drawable point (upstream: $cSpawns && ..)
         {
             $tabData = ['data' => $creatureSpawns->getListviewData()];
 
@@ -728,7 +728,7 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
         }
 
         // tab: objects
-        if ($oSpawns && !$objectSpawns->error)
+        if (!$objectSpawns->error)                         // aowow - custom: also spawns without a drawable point (upstream: $oSpawns && ..)
         {
             $tabData = ['data' => $objectSpawns->getListviewData()];
 
@@ -802,8 +802,8 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
             FROM   ::quests_startend qse JOIN ::source src ON src.`type` = qse.`type` AND src.`typeId` = qse.`typeId`
             WHERE  src.`src2` IS NOT NULL AND qse.`type` = %i AND (`moreZoneId` = %i OR (`moreType` = %i AND `moreTypeId` IN %in) OR (`moreType` = %i AND `moreTypeId` IN %in))',
             Type::ITEM,   $this->typeId,
-            Type::NPC,    array_unique(array_column($cSpawns, 'typeId')) ?: [0],
-            Type::OBJECT, array_unique(array_column($oSpawns, 'typeId')) ?: [0]
+            Type::NPC,    $creatureSpawns->getFoundIDs() ?: [0],   // aowow - custom: also spawns without a drawable point (upstream: $cSpawns)
+            Type::OBJECT, $objectSpawns->getFoundIDs()   ?: [0]    // aowow - custom: also spawns without a drawable point (upstream: $oSpawns)
         );
 
         if ($questStartItem)

@@ -409,10 +409,15 @@ class NpcBaseResponse extends TemplateResponse implements ICache
             foreach ($spawns as $areaId => $_)
                 $this->map[3][$areaId] = ZoneList::getName($areaId);
         }
-        // no drawable point (e.g. an instance with no extracted floor map) - name the zone/instance anyway
-        else if ($zoneIds = $this->subject->getSpawns(SPAWNINFO_ZONES))
-            foreach ($zoneIds as $areaId)
-                $this->foundInZones[$areaId] = ZoneList::getName($areaId);
+
+        // aowow - custom start: spawns without a drawable point (e.g. an instance with no extracted floor map) - name the zone/instance anyway
+        foreach ($this->subject->getSpawns(SPAWNINFO_ZONES) as $areaId)
+            if (!isset($spawns[$areaId]) && ($name = ZoneList::getName($areaId)))
+                $this->foundInZones[$areaId] = $name;
+
+        if ($this->foundInZones)
+            $this->foundInZones = [Lang::npc('foundIn')] + $this->foundInZones;
+        // aowow - custom end
 
         // smart AI
         $sai = null;

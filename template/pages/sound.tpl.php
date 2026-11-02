@@ -29,7 +29,11 @@
 <?php
     $this->brick('markup', ['markup' => $this->article]);
 
-    $this->brickIf($this->map, 'mapper');
+    if ($this->map):
+        $this->brick('mapper');
+    else:
+        $this->brick('foundInZones');                       // aowow - custom
+    endif;
 ?>
 
                 <ol id="soundfilelist"></ol>
