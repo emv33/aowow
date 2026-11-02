@@ -2108,6 +2108,7 @@ $lang = array(
         'reqLevels'     => "Требуемые уровни: [tooltip=instancereqlevel_tip]%d[/tooltip], [tooltip=lfgreqlevel_tip]%d[/tooltip]",
         'zonePartOf'    => "Эта игровая локация является частью локации [zone=%d].",
         'autoRez'       => "Автоматическое воскрешение",
+        'exploreXP'     => 'Exploration: %1$s XP (level %2$d)',  // aowow - custom: AreaTable.dbc ExplorationLevel + exploration_basexp
         'city'          => "Город",
         'territory'     => "Территория: ",
         'instanceType'  => "Тип подземелья: ",

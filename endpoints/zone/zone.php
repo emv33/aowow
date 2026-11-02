@@ -121,6 +121,12 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
             $infobox[] = $buff;
         }
 
+        // aowow - custom: Player::CheckAreaExploreAndOutdoor() - the base xp at the area's exploration level, as a player within
+        // 5 levels of it gets at rate 1 (more levels above it cut 5% per level, below it the player's level + 5 is used)
+        if ($expLvl = $this->subject->getField('explorationLevel'))
+            if ($xp = DB::World()->selectCell('SELECT `basexp` FROM exploration_basexp WHERE `level` = %i', $expLvl))
+                $infobox[] = Lang::zone('exploreXP', [Lang::nf($xp), $expLvl]);
+
         // Territory
         $faction = $this->subject->getField('faction');
         $wrap    = match ($faction)

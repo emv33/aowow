@@ -2108,6 +2108,7 @@ $lang = array(
         'reqLevels'     => "要求等级： [tooltip=instancereqlevel_tip]%d[/tooltip], [tooltip=lfgreqlevel_tip]%d[/tooltip]",
         'zonePartOf'    => "这个区域是[zone=%s]的一部分。",
         'autoRez'       => "自动复活",
+        'exploreXP'     => 'Exploration: %1$s XP (level %2$d)',  // aowow - custom: AreaTable.dbc ExplorationLevel + exploration_basexp
         'city'          => "城市",
         'territory'     => "领地：",
         'instanceType'  => "副本类型：",
