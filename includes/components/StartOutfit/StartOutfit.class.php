@@ -25,9 +25,25 @@ class StartOutfit
     public const int BY_CLASS = 1;                          // list every race of one class
     public const int BY_RACE  = 2;                          // list every class of one race
 
-    // SkillLineAbility.dbc acquireMethod: 2 is "granted when the skill line is learned", which for a
-    // class or race skill line means at character creation
+    // SkillLineAbility.dbc acquireMethod: 1 is "granted once the skill reaches the row's minimum value",
+    // 2 is "granted when the skill line is learned"
+    private const int ACQUIRE_ON_SKILL_VALUE = 1;
     private const int ACQUIRE_ON_SKILL_LEARN = 2;
+
+    // worldserver.conf.dist defaults for StartPlayerLevel / StartDeathKnightPlayerLevel
+    private const int START_LEVEL            = 1;
+    private const int START_LEVEL_DK         = 55;
+
+    // SkillRaceClassInfo.dbc flags: SKILL_FLAG_ALWAYS_MAX_VALUE
+    private const int SKILL_FLAG_ALWAYS_MAX  = 0x10;
+
+    // SkillLine.dbc categoryId: SKILL_CATEGORY_ARMOR / SKILL_CATEGORY_LANGUAGES
+    private const int SKILL_CATEGORY_ARMOR   = 8;
+    private const int SKILL_CATEGORY_LANG    = 10;
+
+    private const int SKILL_UNARMED          = 162;
+    private const int SKILL_FIST_WEAPONS     = 473;
+    private const int SKILL_RUNEFORGING      = 776;
 
     // SkillLine.dbc categoryId 7 is the class skill lines - the spellbook's spec tabs. Weapon, armor,
     // language and racial lines sit in other categories and belong under General, as they do in game.
@@ -72,57 +88,127 @@ class StartOutfit
     }
 
     /**
+     * The skill lines a character is created with and the value each starts at, as [skillLineId => value]
+     *
+     * Player::LearnDefaultSkills walks the `playercreateinfo_skills` rows of the pair - the first row
+     * of a skill line wins - and LearnDefaultSkill drops a line SkillRaceClassInfo.dbc has no row for
+     * this pair on, using the first row that matches. The value follows GetSkillRangeType: a line with
+     * a skill tier starts at 1 of that tier's rank (and not at all at rank 0), armor and Runeforging
+     * at 1, languages at 300, the rest at 1 of the level's maximum. A death knight starts above 1, as
+     * does a line flagged to always be at its maximum.
+     */
+    private function startingSkills(int $race, int $class) : array
+    {
+        if (!self::hasTable('dbc_skillraceclassinfo', true) || !self::hasTable('playercreateinfo_skills'))
+            return [];
+
+        $classBit = 1 << ($class - 1);
+        $raceBit  = 1 << ($race  - 1);
+
+        $ranks = [];
+        foreach (DB::World()->selectAssoc(
+           'SELECT `skill`, `rank` FROM playercreateinfo_skills
+            WHERE  (`raceMask`  = 0 OR (`raceMask`  & %i))
+              AND  (`classMask` = 0 OR (`classMask` & %i))',
+            $raceBit, $classBit
+        ) ?: [] as $r)
+            $ranks[(int)$r['skill']] ??= (int)$r['rank'];
+
+        if (!$ranks)
+            return [];
+
+        $rcInfo = [];
+        foreach (DB::Aowow()->selectAssoc(
+           'SELECT `skillLine`, `flags`, `skillTierId` FROM dbc_skillraceclassinfo
+            WHERE  `skillLine` IN %in
+              AND  (`raceMask`  = 0 OR (`raceMask`  & %i))
+              AND  (`classMask` = 0 OR (`classMask` & %i))
+            ORDER BY `id` ASC',
+            array_keys($ranks), $raceBit, $classBit
+        ) ?: [] as $r)
+            $rcInfo[(int)$r['skillLine']] ??= $r;
+
+        if (!$rcInfo)
+            return [];
+
+        $categories = DB::Aowow()->selectCol('SELECT `id` AS ARRAY_KEY, `categoryId` FROM ::skillline WHERE `id` IN %in', array_keys($rcInfo)) ?: [];
+
+        $tiers = [];
+        if ($tierIds = array_filter(array_map(fn($r) => (int)$r['skillTierId'], $rcInfo)))
+            $tiers = DB::Aowow()->selectAssoc('SELECT * FROM ::skilltiers WHERE `id` IN %in', array_values(array_unique($tierIds))) ?: [];
+        $tiers = array_column($tiers, null, 'id');
+
+        $isDK     = $class == ChrClass::DEATHKNIGHT->value;
+        $level    = $isDK ? self::START_LEVEL_DK : self::START_LEVEL;
+        $levelMax = $level * 5;
+
+        $value = function (int $skill) use ($rcInfo, $ranks, $categories, $tiers, $isDK, $level, $levelMax) : int
+        {
+            $rc    = $rcInfo[$skill];
+            $start = fn(int $cap) => (int)$rc['flags'] & self::SKILL_FLAG_ALWAYS_MAX ? $cap : ($isDK ? min(max(1, ($level - 1) * 5), $cap) : 1);
+
+            if (!isset($categories[$skill]))                // SKILL_RANGE_NONE
+                return 0;
+
+            if ($tier = $tiers[(int)$rc['skillTierId']] ?? null)
+                return $ranks[$skill] ? $start((int)$tier['value'.$ranks[$skill]]) : 0;
+
+            if ($skill == self::SKILL_RUNEFORGING || $categories[$skill] == self::SKILL_CATEGORY_ARMOR)
+                return 1;
+
+            if ($categories[$skill] == self::SKILL_CATEGORY_LANG)
+                return 300;
+
+            return $start($levelMax);
+        };
+
+        $out = [];
+        foreach (array_keys($rcInfo) as $skill)
+            if ($v = $value($skill))
+                $out[$skill] = $v;
+
+        // fist weapons start at the unarmed value, which only differs from 1 where unarmed is maxed
+        if (isset($out[self::SKILL_FIST_WEAPONS]) && !$isDK && !((int)$rcInfo[self::SKILL_FIST_WEAPONS]['flags'] & self::SKILL_FLAG_ALWAYS_MAX))
+            $out[self::SKILL_FIST_WEAPONS] = max(1, $out[self::SKILL_UNARMED] ?? 0);
+
+        return $out;
+    }
+
+    /**
      * What a character is actually created knowing.
      *
      * TrinityCore grants these from SkillLineAbility.dbc rather than from any world DB table, which
-     * is why none of the playercreateinfo_* tables mention them. Player::LearnDefaultSkills gives the
-     * character the skill lines of `playercreateinfo_skills`, then LearnSkillRewardedSpells learns
-     * the abilities of each of those lines whose `acquireMethod` is 2 - granted when the skill line
-     * is learned - and whose race and class masks are 0 or match.
+     * is why none of the playercreateinfo_* tables mention them. Player::LearnSkillRewardedSpells
+     * learns the abilities of each starting skill line whose race and class masks are 0 or match:
+     * those with `acquireMethod` 2 outright, those with 1 once the skill's value reaches the row's
+     * minimum.
      *
      * The masks alone say nothing about the skill line: the paladin Arcane Torrent sits on the Blood
      * Elf racial line with only a class mask, so it is the line that keeps it from a dwarf paladin.
      */
     private function learnedSpells(int $race, int $class) : array
     {
-        if (!self::hasTable('dbc_skilllineability', true) || !self::hasTable('dbc_skillraceclassinfo', true) || !self::hasTable('playercreateinfo_skills'))
+        if (!self::hasTable('dbc_skilllineability', true))
             return [];
 
-        $classBit = 1 << ($class - 1);
-        $raceBit  = 1 << ($race  - 1);
-
-        $skills = DB::World()->selectCol(
-           'SELECT DISTINCT `skill` FROM playercreateinfo_skills
-            WHERE  (`raceMask`  = 0 OR (`raceMask`  & %i))
-              AND  (`classMask` = 0 OR (`classMask` & %i))',
-            $raceBit, $classBit
-        ) ?: [];
-
-        if (!$skills)
+        if (!$skills = $this->startingSkills($race, $class))
             return [];
 
-        // ObjectMgr::LoadPlayerInfo drops a skill line SkillRaceClassInfo.dbc has no row for this pair on
-        $skills = DB::Aowow()->selectCol(
-           'SELECT DISTINCT `skillLine` FROM dbc_skillraceclassinfo
-            WHERE  `skillLine` IN %in
-              AND  (`raceMask`  = 0 OR (`raceMask`  & %i))
-              AND  (`classMask` = 0 OR (`classMask` & %i))',
-            array_map('intVal', $skills), $raceBit, $classBit
-        ) ?: [];
-
-        if (!$skills)
-            return [];
-
-        $ids = DB::Aowow()->selectCol(
-           'SELECT `spellId` FROM dbc_skilllineability
-            WHERE  `acquireMethod` = %i
+        $rows = DB::Aowow()->selectAssoc(
+           'SELECT `spellId`, `skillLineId`, `acquireMethod`, `reqSkillLevel` FROM dbc_skilllineability
+            WHERE  `acquireMethod` IN %in
               AND  `skillLineId` IN %in
               AND  (`reqClassMask` = 0 OR (`reqClassMask` & %i))
               AND  (`reqRaceMask`  = 0 OR (`reqRaceMask`  & %i))',
-            self::ACQUIRE_ON_SKILL_LEARN, array_map('intVal', $skills), $classBit, $raceBit
+            [self::ACQUIRE_ON_SKILL_VALUE, self::ACQUIRE_ON_SKILL_LEARN], array_keys($skills), 1 << ($class - 1), 1 << ($race - 1)
         ) ?: [];
 
-        return $this->hideForPlayers(array_values(array_unique(array_filter(array_map('intVal', $ids)))));
+        $ids = [];
+        foreach ($rows as $r)
+            if ((int)$r['acquireMethod'] == self::ACQUIRE_ON_SKILL_LEARN || $skills[(int)$r['skillLineId']] >= (int)$r['reqSkillLevel'])
+                $ids[] = (int)$r['spellId'];
+
+        return $this->hideForPlayers(array_values(array_unique(array_filter($ids))));
     }
 
     /** the race/class pairs that actually exist, from the server's own create info */
