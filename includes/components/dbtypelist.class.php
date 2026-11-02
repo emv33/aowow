@@ -641,6 +641,9 @@ trait spawnHelper
             if ($guids = array_column(array_filter($spawns, fn($x) => $x['guid'] > 0 || $x['type'] != Type::NPC), 'guid'))
                 $worldPos = WorldPosition::getForGUID(self::$type, ...$guids);
 
+        // aowow - custom: what a single spawn row changes over its template
+        $spawnExtra = $skipAdmin ? [] : self::getSpawnExtras(array_column(array_filter($spawns, fn($x) => $x['guid'] > 0), 'guid'));
+
         foreach ($spawns as $s)
         {
             $isAccessory = $s['guid'] < 0 && $s['type'] == Type::NPC;
@@ -713,6 +716,12 @@ trait spawnHelper
                 if ($s['StringId'])
                     $info[6] = 'StringId'.Lang::main('colon').$s['StringId'];
 
+                // aowow - custom start
+                if ($_ = $spawnExtra[$s['guid']] ?? null)
+                    foreach ($this->spawnExtraLines($_, $s['typeId']) as $i => $line)
+                        $info[10 + $i] = $line;
+                // aowow - custom end
+
                 if ($s['type'] == Type::AREATRIGGER)
                 {
                     // teleporter endpoint
@@ -771,6 +780,79 @@ trait spawnHelper
         uasort($data, [$this, 'sortBySpawnCount']);
         $this->spawnResult[SPAWNINFO_FULL] = $data;
     }
+
+    // aowow - custom start
+    /** per spawn values of `creature` / `gameobject` (+ gameobject_addon, gameobject_overrides) that differ from the template */
+    private static function getSpawnExtras(array $guids) : array
+    {
+        if (!$guids)
+            return [];
+
+        if (self::$type == Type::NPC)
+            return DB::World()->selectAssoc(
+               'SELECT    c.`guid` AS ARRAY_KEY, c.`modelid`, c.`equipment_id`, cet.`ID` IS NOT NULL AS "hasEquip", c.`wander_distance`, c.`MovementType`, c.`npcflag`, c.`unit_flags`, c.`dynamicflags`
+                FROM      creature c
+                LEFT JOIN creature_equip_template cet ON cet.`CreatureID` = c.`id` AND cet.`ID` = 1
+                WHERE     c.`guid` IN %in AND (c.`modelid` <> 0 OR c.`equipment_id` <> 1 OR (c.`MovementType` = 1 AND c.`wander_distance` > 0) OR c.`npcflag` <> 0 OR c.`unit_flags` <> 0 OR c.`dynamicflags` <> 0)',
+                $guids
+            ) ?: [];
+
+        if (self::$type == Type::OBJECT)
+            return DB::World()->selectAssoc(
+               'SELECT    g.`guid` AS ARRAY_KEY, g.`state`, ga.`invisibilityType`, ga.`invisibilityValue`, go.`faction`, go.`flags`
+                FROM      gameobject g
+                LEFT JOIN gameobject_addon     ga ON ga.`guid`    = g.`guid`
+                LEFT JOIN gameobject_overrides go ON go.`spawnId` = g.`guid`
+                WHERE     g.`guid` IN %in AND (g.`state` = 0 OR ga.`invisibilityValue` > 0 OR go.`spawnId` IS NOT NULL)',
+                $guids
+            ) ?: [];
+
+        return [];
+    }
+
+    private function spawnExtraLines(array $x, int $typeId) : array
+    {
+        $lines = [];
+
+        if (self::$type == Type::NPC)
+        {
+            // MovementType 1 = RANDOM_MOTION_TYPE; the distance is ignored for any other
+            if ($x['MovementType'] == 1 && $x['wander_distance'] > 0)
+                $lines[] = Lang::npc('spawnWander', [Lang::nf($x['wander_distance'], 1)]);
+            if ($x['modelid'])
+                $lines[] = Lang::npc('spawnModel', [$x['modelid']]);
+            // Creature::Create(): 0 = no equipment, -1 = random set, else creature_equip_template.ID; 1 is the default
+            // and 0 only takes something away if the creature has a default set to begin with
+            if ($x['equipment_id'] == 0 && $x['hasEquip'])
+                $lines[] = Lang::npc('spawnEquipNone');
+            else if ($x['equipment_id'] < 0)
+                $lines[] = Lang::npc('spawnEquipRnd');
+            else if ($x['equipment_id'] != 1)
+                $lines[] = Lang::npc('spawnEquip', [$x['equipment_id']]);
+            // ObjectMgr::ChooseCreatureFlags(): non-zero replaces the template value
+            if ($x['npcflag'])
+                $lines[] = Lang::npc('spawnNpcFlags', [Util::asHex($x['npcflag'])]);
+            if ($x['unit_flags'])
+                $lines[] = Lang::npc('spawnUnitFlags', [Util::asHex($x['unit_flags'])]);
+            if ($x['dynamicflags'])
+                $lines[] = Lang::npc('spawnDynFlags', [Util::asHex($x['dynamicflags'])]);
+        }
+        else if (self::$type == Type::OBJECT)
+        {
+            // GO_STATE_ACTIVE - only reads as "open" for doors and buttons
+            if ($x['state'] == 0 && $this->getEntry($typeId) && in_array($this->getField('type'), [OBJECT_DOOR, OBJECT_BUTTON]))
+                $lines[] = Lang::npc('spawnOpen');
+            if ($x['invisibilityValue'])
+                $lines[] = Lang::npc('spawnInvis', [Lang::exist('npc', 'invisTypes', (string)$x['invisibilityType']) ?? $x['invisibilityType'], $x['invisibilityValue']]);
+            if ($x['faction'])
+                $lines[] = Lang::npc('spawnFaction', [$x['faction']]);
+            if ($x['flags'])
+                $lines[] = Lang::npc('spawnGoFlags', [Util::asHex($x['flags'])]);
+        }
+
+        return $lines;
+    }
+    // aowow - custom end
 
     private function sortBySpawnCount(array $a, array $b) : int
     {
