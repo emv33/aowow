@@ -1586,6 +1586,7 @@ $lang = array(
         'mount'         => "Mount",
         'mountOf'       => "Mount of",
         'skin'          => "Skin",
+        'npcClass'      => "NPC Class",
         'mountDisplayId' => 'Display ID #%1$d',
         'noMount'       => "No mount",
         'noEmote'       => "No emote",
