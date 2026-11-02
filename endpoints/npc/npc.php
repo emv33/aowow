@@ -227,6 +227,10 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         if ($_ = self::getMovement($this->typeId))
             $infobox[] = Lang::npcExtra('movement').Lang::main('colon').implode(', ', $_);
 
+        // the creature_template columns the setup step folds into the stats below or doesn't import at all
+        if ($_ = $this->getUnitData())
+            $infobox[] = Lang::npcExtra('unitData').Lang::main('colon').'[ul][li]'.implode('[/li][li]', $_).'[/li][/ul]';
+
         // `creature_template_addon` holds the mount a creature rides and the emote it stands in,
         // beyond the auras the spell tab already reads from the same row
         if ($_ = self::getAddon($this, $this->typeId))
@@ -1596,6 +1600,56 @@ class NpcBaseResponse extends TemplateResponse implements ICache
      * only what departs from the default is named, as saying "runs, swims, does not fly, is not
      * rooted" of every creature in the game says nothing about any of them
      */
+    private function getUnitData() : array
+    {
+        $r = DB::World()->selectRow(
+           'SELECT    ct.`speed_walk`, ct.`speed_run`, ct.`scale`, ct.`HoverHeight`, ct.`HealthModifier`, ct.`ManaModifier`, ct.`ArmorModifier`,
+                      ct.`DamageModifier`, ct.`ExperienceModifier`, ct.`RegenHealth`, ct.`RacialLeader`, cmi.`BoundingRadius`, cmi.`CombatReach`
+            FROM      creature_template ct
+            LEFT JOIN creature_model_info cmi ON cmi.`DisplayID` = ct.`modelid1`
+            WHERE     ct.`entry` = %i', $this->typeId
+        );
+        if (!$r)
+            return [];
+
+        $out = [];
+
+        // Creature::InitEntry(): the template values are rates on baseMoveSpeed (walk 2.5, run 7.0)
+        $out[] = Lang::npcExtra('speeds', [Lang::nf(2.5 * $r['speed_walk'], 2), Lang::nf(7.0 * $r['speed_run'], 2)]);
+
+        if ($r['scale'] > 0 && $r['scale'] != 1)
+            $out[] = Lang::npcExtra('scale', [Lang::nf($r['scale'], 2)]);
+
+        if ($r['HoverHeight'] != 1)
+            $out[] = Lang::npcExtra('hoverHeight', [Lang::nf($r['HoverHeight'], 2)]);
+
+        // already part of the health / mana / armor / damage ranges below, but not readable from them
+        foreach (['health' => 'HealthModifier', 'mana' => 'ManaModifier', 'armor' => 'ArmorModifier', 'damage' => 'DamageModifier'] as $k => $col)
+            if ($r[$col] != 1)
+                $out[] = Lang::npcExtra('modifier', [Lang::npcExtra('modifiers', $k), Lang::nf($r[$col], 2)]);
+
+        // Trinity::XP::Gain(): kill xp is multiplied by it
+        if ($r['ExperienceModifier'] == 0)
+            $out[] = Lang::npcExtra('noXP');
+        else if ($r['ExperienceModifier'] != 1)
+            $out[] = Lang::npcExtra('modifier', [Lang::npcExtra('modifiers', 'experience'), Lang::nf($r['ExperienceModifier'], 2)]);
+
+        if (!$r['RegenHealth'])
+            $out[] = Lang::npcExtra('noRegen');
+
+        if ($r['RacialLeader'])
+            $out[] = Lang::npcExtra('racialLeader');
+
+        // Creature::SetObjectScale() scales both by the creature's scale (a scale of 0 takes the model's, approximated as 1 here)
+        if ($r['CombatReach'] || $r['BoundingRadius'])
+        {
+            $scale = $r['scale'] > 0 ? $r['scale'] : 1;
+            $out[] = Lang::npcExtra('combatReach', [Lang::nf($r['CombatReach'] * $scale, 2), Lang::nf($r['BoundingRadius'] * $scale, 2)]);
+        }
+
+        return $out;
+    }
+
     private static function getMovement(int $npcId) : array
     {
         if (!self::hasTable('creature_template_movement'))
