@@ -312,8 +312,10 @@ class CreatureListFilter extends Filter
         42 => parent::ENUM_FACTION,                         // increasesrepwith
         43 => parent::ENUM_FACTION,                         // decreasesrepwith
         38 => parent::ENUM_EVENT,                           // relatedevent
-        // aowow - custom: VisibilityDistanceType of `creature_template_addon`
-       106 => [0, 1, 2, 3, 4, 5]                               // visibilityrange
+        // aowow - custom start: VisibilityDistanceType of `creature_template_addon`, unit_class
+       106 => [0, 1, 2, 3, 4, 5],                              // visibilityrange
+       107 => [ChrClass::WARRIOR->value, ChrClass::PALADIN->value, ChrClass::ROGUE->value, ChrClass::MAGE->value] // npcclass: CLASSMASK_ALL_CREATURES
+        // aowow - custom end
     );
 
     protected static array $genericFilter = array(
@@ -418,12 +420,13 @@ class CreatureListFilter extends Filter
         102 => [parent::CR_FLAG,    'typeFlags',         NPC_TYPEFLAG_DO_NOT_PLAY_UNIT_EVENT_SOUNDS    ], // npcnoeventsounds
         103 => [parent::CR_FLAG,    'typeFlags',         NPC_TYPEFLAG_HAS_NO_SHADOW_BLOB               ], // npcnoshadow
         104 => [parent::CR_FLAG,    'typeFlags',         NPC_TYPEFLAG_DO_NOT_SHEATHE                   ], // npcnosheathe
-        106 => [parent::CR_CALLBACK, 'cbVisibilityRange', null,                              null      ]  // visibilityrange [enum]
+        106 => [parent::CR_CALLBACK, 'cbVisibilityRange', null,                              null      ], // visibilityrange [enum]
+        107 => [parent::CR_ENUM,    'unitClass',         false,                              true      ]  // npcclass [enum]
         // aowow - custom end
     );
 
     protected static array $inputFields = array(
-        'cr'    => [parent::V_LIST,     [[1, 3],[5, 13], 15, 16, [18, 29], [31, 104], 106],                        true ], // criteria ids
+        'cr'    => [parent::V_LIST,     [[1, 3],[5, 13], 15, 16, [18, 29], [31, 104], 106, 107],                   true ], // criteria ids
         'crs'   => [parent::V_LIST,     [parent::ENUM_NONE, parent::ENUM_ANY, [0, 9999]],                         true ], // criteria operators
         'crv'   => [parent::V_REGEX,    parent::PATTERN_CRV,                                                      true ], // criteria values - only printable chars, no delimiter
         'na'    => [parent::V_NAME,     false,                                                                    false], // name / subname - only printable chars, no delimiter

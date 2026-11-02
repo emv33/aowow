@@ -168,6 +168,14 @@ class NpcBaseResponse extends TemplateResponse implements ICache
             $infobox[] = Lang::npc('classification', [$str]);
         }
 
+        // aowow - custom start: unit_class, Warrior being the default
+        if (($_ = $this->subject->getField('unitClass')) && $_ != ChrClass::WARRIOR->value)
+        {
+            $this->extendGlobalIds(Type::CHR_CLASS, $_);
+            $infobox[] = Util::ucFirst(Lang::game('class')).Lang::main('colon').'[class='.$_.']';
+        }
+        // aowow - custom end
+
         // Reaction
         $color = fn (int $r) : string => match($r)
         {
