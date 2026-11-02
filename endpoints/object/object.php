@@ -185,6 +185,16 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
             foreach ($_ as $line)
                 $infobox[] = $line;
 
+        // aowow - custom: gameobject_questitem, the quest items the client is told this object can hold; the npc page reads
+        // creature_questitem the same way
+        if ($_ = array_values(array_unique(array_filter(array_map('intVal', DB::World()->selectCol('SELECT `ItemId` FROM gameobject_questitem WHERE `GameObjectEntry` = %i ORDER BY `Idx` ASC', $this->typeId) ?: [])))))
+        {
+            foreach ($_ as $itemId)
+                $this->extendGlobalIds(Type::ITEM, $itemId);
+
+            $infobox[] = Lang::npcExtra('questItems').Lang::main('colon').Lang::concat(array_map(fn($x) => '[item='.$x.']', $_), Lang::CONCAT_NONE);
+        }
+
         // trap for X (note: moved to lv-tabs)
 
         // SpellFocus
