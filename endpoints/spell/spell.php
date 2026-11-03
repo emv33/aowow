@@ -389,6 +389,9 @@ class SpellBaseResponse extends TemplateResponse implements ICache
         if ($tab = $this->tabLinkedWith())                  // custom
             $this->lvTabs->addListviewTab($tab);
 
+        if ($tab = $this->tabAuraConditionFor())            // custom: reverse of casterAuraSpell(Not)/targetAuraSpell(Not)
+            $this->lvTabs->addListviewTab($tab);
+
         if ($tab = $this->tabTriggeredBy())                 //
             $this->lvTabs->addListviewTab($tab);
 
@@ -719,13 +722,6 @@ class SpellBaseResponse extends TemplateResponse implements ICache
         if (!($so = DB::Aowow()->selectCell('SELECT `id` FROM ::spelloverride WHERE `spellId1` = %i OR `spellId2` = %i OR `spellId3` = %i OR `spellId4` = %i OR `spellId5` = %i', $this->typeId, $this->typeId, $this->typeId, $this->typeId, $this->typeId)))
             return null;
 
-        $conditions = array(
-            DB::OR,
-            [DB::AND, ['effect1AuraId', SPELL_AURA_OVERRIDE_SPELLS], ['effect1MiscValue', $so]],
-            [DB::AND, ['effect2AuraId', SPELL_AURA_OVERRIDE_SPELLS], ['effect2MiscValue', $so]],
-            [DB::AND, ['effect3AuraId', SPELL_AURA_OVERRIDE_SPELLS], ['effect3MiscValue', $so]]
-        );
-
         if (($ubSpells = new SpellList($conditions))->error)
             return null;
 
@@ -793,6 +789,16 @@ class SpellBaseResponse extends TemplateResponse implements ICache
 
         if ($auras = DB::World()->selectCol('SELECT `entry` FROM creature_template_addon WHERE `auras` REGEXP %s', '\\b'.$this->typeId.'\\b'))
             $conditions[] = ['id', $auras];
+
+        // per-spawn creature_addon auras - the npc page's abilities tab already lists these
+        if (self::hasTable('creature_addon') && $spawnAuras = DB::World()->selectCol(
+               'SELECT DISTINCT c.`id`
+                FROM   creature_addon ca
+                JOIN   creature c ON c.`guid` = ca.`guid`
+                WHERE  ca.`auras` REGEXP %s',
+                '\\b'.$this->typeId.'\\b'
+            ))
+            $conditions[] = ['id', $spawnAuras];
 
         if ($spellClick = DB::World()->selectCol('SELECT `npc_entry` FROM npc_spellclick_spells WHERE `spell_id` = %i', $this->typeId))
             $conditions[] = ['id', $spellClick];
@@ -1107,6 +1113,29 @@ class SpellBaseResponse extends TemplateResponse implements ICache
             'name'        => Lang::spell('linkedWith'),
             'hiddenCols'  => ['skill', 'name'],
             'visibleCols' => ['linkedTrigger', 'linkedEffect']
+        ), SpellList::$brickFile);
+    }
+
+    // aowow - custom: reverse lookup for the Spell Details "Required:"/"Disallowed:" aura-state rows
+    private function tabAuraConditionFor() : ?Listview
+    {
+        $conditions = array(
+            DB::OR,
+            ['casterAuraSpell', $this->typeId],
+            ['casterAuraSpellNot', $this->typeId],
+            ['targetAuraSpell', $this->typeId],
+            ['targetAuraSpellNot', $this->typeId]
+        );
+
+        if (($condFor = new SpellList($conditions))->error)
+            return null;
+
+        $this->extendGlobalData($condFor->getJSGlobals(GLOBALINFO_SELF | GLOBALINFO_RELATED));
+
+        return new Listview(array(
+            'data' => $condFor->getListviewData(),
+            'id'   => 'aura-condition-for',
+            'name' => Lang::spell('conditionFor')
         ), SpellList::$brickFile);
     }
 
