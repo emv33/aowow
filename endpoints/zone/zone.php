@@ -742,6 +742,18 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
             $this->lvTabs->addListviewTab(new Listview($tabData, GameObjectList::$brickFile));
         }
 
+        // the areatriggers whose teleport target (stored as a spawn with negative guid) lies in this zone
+        if ($inbound = DB::Aowow()->selectCol('SELECT DISTINCT `typeId` FROM ::spawns WHERE `type` = %i AND `guid` < 0 AND `areaId` = %i', Type::AREATRIGGER, $this->typeId))
+        {
+            $atInbound = new AreaTriggerList(array(['id', $inbound]));
+            if (!$atInbound->error)
+                $this->lvTabs->addListviewTab(new Listview(array(
+                    'data' => $atInbound->getListviewData(),
+                    'name' => Lang::areatrigger('teleportsHere'),
+                    'id'   => 'teleports-here'
+                ), AreaTriggerList::$brickFile, AreaTriggerList::$brickFile));
+        }
+
         $quests = new QuestList(array(['questSortId', $this->typeId]));
         if (!$quests->error)
         {
