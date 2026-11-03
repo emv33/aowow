@@ -221,10 +221,55 @@ class XRef
             $this->type == Type::NPC ? SUMMONER_TYPE_CREATURE : SUMMONER_TYPE_GAMEOBJECT, array_map('intVal', $guids)
         ) ?: [];
 
+        // `instance_spawn_groups` - InstanceScript::UpdateSpawnGroups() turns a group on or off by boss state; the boss is the
+        // script's own index, which nothing in the DB maps to a creature
+        $rules = [];
+        if ($rows && self::hasTable('instance_spawn_groups'))
+        {
+            $isg = DB::World()->selectAssoc(
+               'SELECT `spawnGroupId`, `instanceMapId`, `bossStateId`, `bossStates`, `flags` FROM instance_spawn_groups WHERE `spawnGroupId` IN %in ORDER BY `bossStateId`',
+                array_map('intVal', array_column($rows, 'groupId'))
+            ) ?: [];
+
+            $zones = $isg ? DB::Aowow()->selectCol('SELECT `mapIdBak` AS ARRAY_KEY, `id` FROM ::zones WHERE `mapIdBak` IN %in AND `parentArea` = 0', array_unique(array_column($isg, 'instanceMapId'))) : [];
+
+            foreach ($isg as $r)
+            {
+                // FLAG_ACTIVATE_SPAWN / FLAG_BLOCK_SPAWN; neither set does nothing
+                if (!($action = Lang::exist('xRef', 'instActions', (string)($r['flags'] & 0x3))))
+                    continue;
+
+                $states = [];
+                foreach (Lang::xRef('bossStates') as $i => $str)
+                    if ($r['bossStates'] & (1 << $i))
+                        $states[] = $str;
+
+                if ($zoneId = $zones[$r['instanceMapId']] ?? 0)
+                {
+                    $this->jsGlobals[Type::ZONE][$zoneId] = $zoneId;
+                    $where = '[zone='.$zoneId.']';
+                }
+                else
+                    $where = WorldPosition::getMapNames([$r['instanceMapId']])[$r['instanceMapId']] ?? '#'.$r['instanceMapId'];
+
+                $rule = Lang::xRef('instSpawn', [$action, $r['bossStateId'], $where, Lang::concat($states, Lang::CONCAT_OR)]);
+                if ($_ = Lang::exist('xRef', 'factionOnly', (string)($r['flags'] & 0xC)))
+                    $rule .= Lang::main('parensFmt', ['', $_]);
+
+                $rules[$r['spawnGroupId']][] = $rule;
+            }
+        }
+
         $out = [];
         foreach ($rows as $r)
+        {
             // no escaping: the name is substituted into markup, and Markup::cleanText() json_encodes the whole body
-            $out[] = $r['GroupName'] ?: Lang::xRef('unnamedGroup', [(int)$r['groupId']]);
+            $name = $r['GroupName'] ?: Lang::xRef('unnamedGroup', [(int)$r['groupId']]);
+            if ($_ = $rules[$r['groupId']] ?? [])
+                $name .= Lang::main('parensFmt', ['', implode('; ', $_)]);
+
+            $out[] = $name;
+        }
 
         $this->add(Lang::xRef('spawnGroup'), $out);
     }
