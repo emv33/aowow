@@ -263,6 +263,15 @@ class TaxiPath
         return $data;
     }
 
+    /** a listview tab of the given paths; the taxipath template is not in global.js and is inlined */
+    public static function getListview(array $pathIds, string $name, string $id, ?array &$jsGlobals = []) : ?Listview
+    {
+        if (!$data = self::getListviewData($pathIds, $jsGlobals))
+            return null;
+
+        return new Listview(['data' => $data, 'name' => $name, 'id' => $id], 'taxipath', 'taxipath');
+    }
+
     /** the flights a given creature offers or receives, so a flight master links to its routes */
     public static function getPathIdsForNPC(int $npcId) : array
     {

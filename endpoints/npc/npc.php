@@ -531,19 +531,11 @@ class NpcBaseResponse extends TemplateResponse implements ICache
 
         // aowow - custom start: flight paths
         // ::taxinodes points a node at the creature standing on it, so a flight master can name its routes
-        if ($tpIds = TaxiPath::getPathIdsForNPC($this->typeId))
+        $tpJSG = [];
+        if (($tpIds = TaxiPath::getPathIdsForNPC($this->typeId)) && ($tab = TaxiPath::getListview($tpIds, Lang::game('taxipaths'), 'taxipaths', $tpJSG)))
         {
-            $tpJSG = [];
-            $tpData = TaxiPath::getListviewData($tpIds, $tpJSG);
-            if ($tpData)
-            {
-                $this->extendGlobalData($tpJSG);
-                $this->lvTabs->addListviewTab(new Listview(array(
-                    'data' => $tpData,
-                    'name' => Lang::game('taxipaths'),
-                    'id'   => 'taxipaths'
-                ), 'taxipath', 'taxipath'));
-            }
+            $this->extendGlobalData($tpJSG);
+            $this->lvTabs->addListviewTab($tab);
         }
         // aowow - custom end
 
@@ -714,6 +706,11 @@ class NpcBaseResponse extends TemplateResponse implements ICache
             [DB::AND, ['effect3Id', [SPELL_EFFECT_SUMMON, SPELL_EFFECT_SUMMON_PET, SPELL_EFFECT_SUMMON_DEMON]], ['effect3MiscValue', $this->typeId]]
         );
 
+        // aowow - custom: also the spells, objects and creatures whose legacy scripts summon it
+        $lsOwners = LegacyScript::getCommandOwners(LegacyScript::CMD_TEMP_SUMMON_CREATURE, $this->typeId);
+        if (!empty($lsOwners[Type::SPELL]))
+            $conditions[] = ['id', $lsOwners[Type::SPELL]];
+
         $sbSpell = new SpellList($conditions);
         if (!$sbSpell->error)
         {
@@ -728,6 +725,9 @@ class NpcBaseResponse extends TemplateResponse implements ICache
 
         // tab: summoned by [NPC]
         $sb = SmartAI::getOwnerOfNPCSummon($this->typeId);
+        foreach ([Type::NPC, Type::OBJECT] as $t)           // aowow - custom: legacy script summons
+            if (!empty($lsOwners[$t]))
+                $sb[$t] = array_values(array_unique(array_merge($sb[$t] ?? [], $lsOwners[$t])));
         if (!empty($sb[Type::NPC]))
         {
             $sbNPC = new CreatureList(array(['id', $sb[Type::NPC]]));
@@ -759,6 +759,14 @@ class NpcBaseResponse extends TemplateResponse implements ICache
                     'id'   => 'summoned-by-object'
                 ), GameObjectList::$brickFile));
             }
+        }
+
+        // aowow - custom: tab: summoned by [flight path] - a node of the path fires the event as the player passes it
+        $tpJSG = [];
+        if (!empty($lsOwners[LegacyScript::OWNER_TAXIPATH]) && ($tab = TaxiPath::getListview($lsOwners[LegacyScript::OWNER_TAXIPATH], '$LANG.tab_summonedby', 'summoned-by-taxipath', $tpJSG)))
+        {
+            $this->extendGlobalData($tpJSG);
+            $this->lvTabs->addListviewTab($tab);
         }
 
         // tab: teaches
