@@ -8,7 +8,11 @@
 if ([$mapper, $mapperData, $som, $foundIn] = $this->map):
     if ($foundIn):
         echo '            <div>'.$foundIn[0].' <span id="mapper-zone-generic">';
-        echo Lang::concat($mapperData, callback: function ($areaData, $areaId) use ($foundIn) {
+        // aowow - custom: zones whose spawns have no drawable point follow as plain links (upstream: $mapperData only)
+        echo Lang::concat($mapperData + array_slice($this->foundInZones, 1, preserve_keys: true), callback: function ($areaData, $areaId) use ($foundIn) {
+            if (!is_array($areaData))
+                return '<a href="?zone='.$areaId.'">'.$areaData.'</a>';
+
             $qty = '';
             if ($_ = array_sum(array_column($areaData, 'count')))
                 $qty = '&nbsp;('.$_.')';

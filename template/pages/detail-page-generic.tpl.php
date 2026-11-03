@@ -39,6 +39,8 @@
 
     $this->brick('mapper');
 
+    $this->brickIf(!$this->map, 'foundInZones');           // aowow - custom
+
     // no floated content precedes this here, unlike on item/object's own templates - the
     // brick's usual clearing div would just be dead space
     $this->brick('book', ['noClear' => true]);

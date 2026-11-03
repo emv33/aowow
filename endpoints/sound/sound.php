@@ -81,6 +81,15 @@ class SoundBaseResponse extends TemplateResponse implements ICache
                 $this->map[3][$areaId] = ZoneList::getName($areaId);
         }
 
+        // aowow - custom start: spawns without a drawable point (e.g. an instance with no extracted floor map) - name the zone/instance anyway
+        foreach ($this->subject->getSpawns(SPAWNINFO_ZONES) as $areaId)
+            if (!isset($spawns[$areaId]) && ($name = ZoneList::getName($areaId)))
+                $this->foundInZones[$areaId] = $name;
+
+        if ($this->foundInZones)
+            $this->foundInZones = [Lang::sound('foundIn')] + $this->foundInZones;
+        // aowow - custom end
+
         // get full path in-game for sound (workaround for missing PlaySoundKit())
         $fullpath = DB::Aowow()->selectCell('SELECT IF(sf.`path` <> "", CONCAT(sf.`path`, "\\", sf.`file`), sf.`file`) FROM ::sounds_files sf JOIN ::sounds s ON s.`soundFile1` = sf.`id` WHERE s.`id` = %i', $this->typeId);
 
@@ -173,9 +182,12 @@ class SoundBaseResponse extends TemplateResponse implements ICache
         }
 
         // tab: Zones
-        if ($zoneIds = DB::Aowow()->selectAssoc('SELECT `id`, `worldStateId`, `worldStateValue` FROM ::zones_sounds WHERE `ambienceDay` = %i OR `ambienceNight` = %i OR `musicDay` = %i OR `musicNight` = %i OR `intro` = %i', $this->typeId, $this->typeId, $this->typeId, $this->typeId, $this->typeId))
+        $zoneIds = DB::Aowow()->selectAssoc('SELECT `id`, `worldStateId`, `worldStateValue` FROM ::zones_sounds WHERE `ambienceDay` = %i OR `ambienceNight` = %i OR `musicDay` = %i OR `musicNight` = %i OR `intro` = %i', $this->typeId, $this->typeId, $this->typeId, $this->typeId, $this->typeId) ?: [];
+
+        // aowow - custom: also zones the sound is spawned in as an emitter (mirrors the zone page's sound tab), incl. those without a drawable map
+        if ($areaIds = array_unique(array_merge(array_column($zoneIds, 'id'), $this->subject->getSpawns(SPAWNINFO_ZONES))))
         {
-            $zones = new ZoneList(array(['id', array_column($zoneIds, 'id')]));
+            $zones = new ZoneList(array(['id', $areaIds]));
             if (!$zones->error)
             {
                 $this->extendGlobalData($zones->getJSGlobals(GLOBALINFO_SELF));

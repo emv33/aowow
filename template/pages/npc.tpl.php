@@ -44,6 +44,8 @@ if ($this->placeholder):
 <?php
 elseif ($this->map):
     $this->brick('mapper');
+elseif ($this->foundInZones):
+    $this->brick('foundInZones');
 else:
     echo '                '.Lang::npc('unkPosition').''.PHP_EOL;
 endif;

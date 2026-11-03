@@ -409,6 +409,15 @@ class NpcBaseResponse extends TemplateResponse implements ICache
                 $this->map[3][$areaId] = ZoneList::getName($areaId);
         }
 
+        // aowow - custom start: spawns without a drawable point (e.g. an instance with no extracted floor map) - name the zone/instance anyway
+        foreach ($this->subject->getSpawns(SPAWNINFO_ZONES) as $areaId)
+            if (!isset($spawns[$areaId]) && ($name = ZoneList::getName($areaId)))
+                $this->foundInZones[$areaId] = $name;
+
+        if ($this->foundInZones)
+            $this->foundInZones = [Lang::npc('foundIn')] + $this->foundInZones;
+        // aowow - custom end
+
         // smart AI
         $sai = null;
         if ($this->subject->getField('ScriptOrAI') == 'SmartAI')
@@ -1083,7 +1092,8 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         }
 
         // tab: same model as
-        if ($this->subject->getTameable() && ($model = $this->subject->getField('modelId')))
+        // aowow - custom: shown for every npc (upstream: only if $this->subject->getTameable())
+        if ($model = $this->subject->getField('modelId'))
         {
             $sameModel = new CreatureList(array(['modelId', $model], ['id', $this->typeId, '!']));
             if (!$sameModel->error)

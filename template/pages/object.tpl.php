@@ -36,6 +36,8 @@ endif;
 
 if ($this->map):
     $this->brick('mapper');
+elseif ($this->foundInZones):                               // aowow - custom
+    $this->brick('foundInZones');
 else:
     echo Lang::gameObject('unkPosition');
 endif;

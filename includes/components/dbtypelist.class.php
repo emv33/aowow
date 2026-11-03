@@ -782,9 +782,14 @@ trait spawnHelper
 
     private function createZoneSpawns() : void              // [zoneId1, zoneId2, ..]             for locations-column in listview
     {
+        // note: no posX/posY filter here - unlike the other spawnHelper queries, this one only
+        // needs a known areaId, not a drawable point (see spawns.ss.php's transformPoint() fallback,
+        // which writes posX = posY = 0 when a map has no WorldMapArea/DungeonMap floor data to project
+        // into, e.g. most instances). Keeping those rows means instance-only npcs/objects still get a
+        // zone/instance name in the listview Location column and meta description, even with no map to draw.
         $res = DB::Aowow()->selectCol(
            'SELECT `typeId` AS ARRAY_KEY, GROUP_CONCAT(`areaId` ORDER BY `n` DESC)
-            FROM (SELECT `typeId`, `areaId`, COUNT(1) AS "n" FROM ::spawns WHERE `type` = %i AND `typeId` IN %in AND `posX` > 0 AND `posY` > 0 GROUP BY `typeId`, `areaId`) x
+            FROM (SELECT `typeId`, `areaId`, COUNT(1) AS "n" FROM ::spawns WHERE `type` = %i AND `typeId` IN %in GROUP BY `typeId`, `areaId`) x
             GROUP BY `typeId`',
             self::$type, $this->getfoundIDs()
         ) ?: [];
