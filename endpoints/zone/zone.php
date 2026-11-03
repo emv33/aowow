@@ -121,6 +121,12 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
             $infobox[] = $buff;
         }
 
+        // aowow - custom: Player::CheckAreaExploreAndOutdoor() - the base xp at the area's exploration level, as a player within
+        // 5 levels of it gets at rate 1 (more levels above it cut 5% per level, below it the player's level + 5 is used)
+        if ($expLvl = $this->subject->getField('explorationLevel'))
+            if ($xp = DB::World()->selectCell('SELECT `basexp` FROM exploration_basexp WHERE `level` = %i', $expLvl))
+                $infobox[] = Lang::zone('exploreXP', [Lang::nf($xp), $expLvl]);
+
         // Territory
         $faction = $this->subject->getField('faction');
         $wrap    = match ($faction)
@@ -160,7 +166,10 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
         if ($_ = DB::Aowow()->selectCol('SELECT `id` FROM ::races WHERE `startAreaId` = %i', $this->typeId))
         {
             $this->extendGlobalIds(Type::CHR_RACE, ...$_);
-            $infobox[] = Lang::concat($_, Lang::CONCAT_NONE, fn($x) => '[race='.$x.']').' '.Lang::race('startZone');
+            // aowow - custom start: "Starting zone: Dwarf, Gnome" (upstream: "Dwarf, Gnome starting zone")
+            // $infobox[] = Lang::concat($_, Lang::CONCAT_NONE, fn($x) => '[race='.$x.']').' '.Lang::race('startZone');
+            $infobox[] = Lang::race('startZone').Lang::main('colon').Lang::concat($_, Lang::CONCAT_NONE, fn($x) => '[race='.$x.']');
+            // aowow - custom end
         }
 
         parent::generate(); // calls applyGlobals .. probably too early here, but addMoveLocationMenu requires PageTemplate to be initialized
@@ -742,6 +751,21 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
             $this->lvTabs->addListviewTab(new Listview($tabData, GameObjectList::$brickFile));
         }
 
+        // aowow - custom start: the areatriggers that lie in this zone, next to the objects
+        if (!$atSpawns->error)
+        {
+            $tabData = array(
+                'data' => $atSpawns->getListviewData(),
+                'name' => Lang::game('areatriggers'),
+                'id'   => 'areatriggers'
+            );
+
+            if (!is_null(AreaTriggerListFilter::getCriteriaIndex(3, $this->typeId)))
+                $tabData['note'] = sprintf(Util::$filterResultString, '?areatriggers&filter=cr=3;crs='.$this->typeId.';crv=0');
+
+            $this->lvTabs->addListviewTab(new Listview($tabData, AreaTriggerList::$brickFile, AreaTriggerList::$brickFile));
+        }
+
         // the areatriggers whose teleport target (stored as a spawn with negative guid) lies in this zone
         if ($inbound = DB::Aowow()->selectCol('SELECT DISTINCT `typeId` FROM ::spawns WHERE `type` = %i AND `guid` < 0 AND `areaId` = %i', Type::AREATRIGGER, $this->typeId))
         {
@@ -753,6 +777,7 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
                     'id'   => 'teleports-here'
                 ), AreaTriggerList::$brickFile, AreaTriggerList::$brickFile));
         }
+        // aowow - custom end
 
         $quests = new QuestList(array(['questSortId', $this->typeId]));
         if (!$quests->error)

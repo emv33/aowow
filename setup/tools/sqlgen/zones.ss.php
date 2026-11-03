@@ -54,7 +54,8 @@ CLISetup::registerSetup("sql", new class extends SetupScript
                       IF(wma.`id` IS NULL OR m.`areaType` = 0 OR a.`mapId` IN (269, 560) OR a.`areaTable`, a.`name_loc3`, m.`name_loc3`),
                       IF(wma.`id` IS NULL OR m.`areaType` = 0 OR a.`mapId` IN (269, 560) OR a.`areaTable`, a.`name_loc4`, m.`name_loc4`),
                       IF(wma.`id` IS NULL OR m.`areaType` = 0 OR a.`mapId` IN (269, 560) OR a.`areaTable`, a.`name_loc6`, m.`name_loc6`),
-                      IF(wma.`id` IS NULL OR m.`areaType` = 0 OR a.`mapId` IN (269, 560) OR a.`areaTable`, a.`name_loc8`, m.`name_loc8`)
+                      IF(wma.`id` IS NULL OR m.`areaType` = 0 OR a.`mapId` IN (269, 560) OR a.`areaTable`, a.`name_loc8`, m.`name_loc8`),
+                      a.`explorationLevel`                  -- aowow - custom: exploration xp on the zone page
             FROM      dbc_areatable a
             JOIN      dbc_map m ON m.id = IF(a.id = 2159, 249, a.mapId) -- Zone: Onyxias Lair is linked to the wrong map
             LEFT JOIN (SELECT `mapId`, BIT_OR(1 << `difficulty`) AS "modeMask", MIN(`nPlayer`) AS "minPl", MAX(`nPlayer`) AS "maxPl" FROM dbc_mapdifficulty GROUP BY `mapId`) md ON md.`mapId` = m.`id`

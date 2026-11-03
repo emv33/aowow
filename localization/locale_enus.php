@@ -2095,6 +2095,7 @@ $lang = array(
         'reqLevels'     => "Required levels: [tooltip=instancereqlevel_tip]%d[/tooltip], [tooltip=lfgreqlevel_tip]%d[/tooltip]",
         'zonePartOf'    => "This zone is part of [zone=%s].",
         'autoRez'       => "Automatic resurrection",
+        'exploreXP'     => 'Exploration: %1$s XP (level %2$d)',  // aowow - custom: AreaTable.dbc ExplorationLevel + exploration_basexp
         'city'          => "City",
         'territory'     => "Territory: ",
         'instanceType'  => "Instance type: ",

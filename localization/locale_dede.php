@@ -2094,6 +2094,7 @@ $lang = array(
         'reqLevels'     => "Mindeststufe: [tooltip=instancereqlevel_tip]%d[/tooltip], [tooltip=lfgreqlevel_tip]%d[/tooltip]",
         'zonePartOf'    => "Diese Zone ist Teil von [zone=%d].",
         'autoRez'       => "Automatische Wiederbelebung",
+        'exploreXP'     => 'Exploration: %1$s XP (level %2$d)',  // aowow - custom: AreaTable.dbc ExplorationLevel + exploration_basexp
         'city'          => "Stadt",
         'territory'     => "Territorium: ",
         'instanceType'  => "Instanzart: ",
