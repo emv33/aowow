@@ -17,7 +17,7 @@ CLISetup::registerSetup("sql", new class extends SetupScript
         'skillline' => [[], CLISetup::ARGV_PARAM, 'Compiles data for type: Skill from dbc.']
     );
 
-    protected array $dbcSourceFiles = ['skillline', 'spell', 'skilllineability'];
+    protected array $dbcSourceFiles = ['skillline', 'spell', 'skilllineability', 'skillraceclassinfo']; // aowow - custom: + skillraceclassinfo (upstream: skillline, spell, skilllineability)
     protected array $setupAfter     = [['icons'], []];
 
     public function generate() : bool
@@ -25,9 +25,17 @@ CLISetup::registerSetup("sql", new class extends SetupScript
         DB::Aowow()->qry('TRUNCATE ::skillline');
         DB::Aowow()->qry(
            'INSERT INTO ::skillline
-            SELECT      id, categoryId, 0, categoryId, name_loc0, name_loc2, name_loc3, name_loc4, name_loc6, name_loc8, description_loc0, description_loc2, description_loc3, description_loc4, description_loc6, description_loc8, 0, iconId, 0, 0, ""
+            SELECT      id, categoryId, 0, categoryId, name_loc0, name_loc2, name_loc3, name_loc4, name_loc6, name_loc8, description_loc0, description_loc2, description_loc3, description_loc4, description_loc6, description_loc8, 0, iconId, 0, 0, "", 0
             FROM        dbc_skillline'
         );
+
+        // aowow - custom start: the SkillTiers.dbc row of the skill, if all its race / class entries share one (Spell::EffectLearnSkill reads it per race / class)
+        DB::Aowow()->qry(
+           'UPDATE ::skillline sl
+            JOIN   (SELECT `skillLine`, MIN(`skillTierId`) AS "skillTierId" FROM dbc_skillraceclassinfo WHERE `skillTierId` > 0 GROUP BY `skillLine` HAVING COUNT(DISTINCT `skillTierId`) = 1) srci ON srci.`skillLine` = sl.`id`
+            SET    sl.`skillTierId` = srci.`skillTierId`'
+        );
+        // aowow - custom end
 
         // categorization
         DB::Aowow()->qry('UPDATE ::skillline SET typeCat = -5 WHERE id = 777 OR (categoryId = 9 AND id NOT IN (356, 129, 185, 142, 155))');

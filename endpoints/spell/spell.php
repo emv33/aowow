@@ -2471,6 +2471,22 @@ class SpellBaseResponse extends TemplateResponse implements ICache
             if ($this->subject->getField('effect'.$i.'RadiusMax') > 0)
                 $_footer['radius'] ??= Lang::spell('_radius').$this->subject->getField('effect'.$i.'RadiusMax').' '.Lang::spell('_distUnit');
 
+            // aowow - custom: who is affected by this effect. A/B are often "where" + "who" (e.g. caster position + enemies in area),
+            // so positional targets are only shown if no unit / object target is present.
+            $targets = [];
+            foreach (['A', 'B'] as $slot)
+                if ($_ = $this->subject->getField('effect'.$i.'ImplicitTarget'.$slot))
+                    if ($lbl = Lang::spell('implicitTargets', $_))
+                        $targets[$lbl] = $_;
+            if (count($targets) > 1)
+                unset($targets['Location']);
+            if ($targets)
+                $_footer['targets'] ??= Lang::spell('_targets').implode(', ', array_keys($targets));
+
+            // aowow - custom: which weapon a weapon damage effect strikes with
+            if (in_array($effId, [SPELL_EFFECT_WEAPON_DAMAGE_NOSCHOOL, SPELL_EFFECT_WEAPON_PERCENT_DAMAGE, SPELL_EFFECT_WEAPON_DAMAGE, SPELL_EFFECT_NORMALIZED_WEAPON_DMG]))
+                $_footer['weapon'] ??= Lang::spell('_weapon').Lang::spell('attackTypes', $this->getAttackType());
+
             if ($this->subject->getField('effect'.$i.'Periode') > 0)
                 $_footer['interval'] ??= Lang::spell('_interval').DateTime::formatTimeElapsedFloat($this->subject->getField('effect'.$i.'Periode'));
 
@@ -2614,6 +2630,26 @@ class SpellBaseResponse extends TemplateResponse implements ICache
         $sc = implode(':', Util::mask2bits($schools));
 
         $this->school = $this->fmtStaffTip('<a href="?spells&filter=sc='.$sc.'">'.$text.'</a>', Util::asHex($schools));
+    }
+
+    // aowow - custom: mirrors SpellInfo::GetAttackType() (0: main hand, 1: off hand, 2: ranged)
+    private function getAttackType() : int
+    {
+        $rangedMask = (1 << ITEM_SUBCLASS_BOW) | (1 << ITEM_SUBCLASS_GUN) | (1 << ITEM_SUBCLASS_CROSSBOW) | (1 << ITEM_SUBCLASS_THROWN);
+
+        switch ($this->subject->getField('damageClass'))
+        {
+            case SPELL_DAMAGE_CLASS_MELEE:
+                return $this->subject->getField('attributes3') & SPELL_ATTR3_REQ_OFFHAND ? 1 : 0;
+            case SPELL_DAMAGE_CLASS_RANGED:
+                // SpellInfo::IsRangedWeaponSpell(); spellFamilyFlags2 & 0x10000000 excludes 53352 (Explosive Shot)
+                $isRanged = ($this->subject->getField('spellFamilyId') == SPELLFAMILY_HUNTER && !($this->subject->getField('spellFamilyFlags2') & 0x10000000))
+                    || ($this->subject->getField('equippedItemSubClassMask') & $rangedMask)
+                    || ($this->subject->getField('attributes0') & SPELL_ATTR0_REQ_AMMO);
+                return $isRanged ? 2 : 0;
+            default:
+                return $this->subject->getField('attributes2') & SPELL_ATTR2_AUTOREPEAT_FLAG ? 2 : 0;
+        }
     }
 
     private function getIconNo() : int
