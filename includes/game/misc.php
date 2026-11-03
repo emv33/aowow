@@ -151,6 +151,54 @@ class Game
         };
     }
 
+    // spell.dbc -> areaGroupId -> areagroup.dbc (up to 6 areas per row, rows chain via nextGroup); returns zone ids known to aowow_zones
+    public static function getAreaGroupZones(int ...$groupIds) : array
+    {
+        $areas = [];
+        $seen  = [];
+        $queue = array_filter($groupIds, fn($id) => $id > 0);
+
+        while ($queue)
+        {
+            $id = array_shift($queue);
+            if (isset($seen[$id]))
+                continue;
+
+            $seen[$id] = true;
+
+            if (!($row = DB::Aowow()->selectRow('SELECT * FROM ::areagroup WHERE `id` = %i', $id)))
+                continue;
+
+            for ($i = 1; $i < 7; $i++)
+                if ($row['areaId'.$i] > 0)
+                    $areas[] = $row['areaId'.$i];
+
+            if ($row['nextGroup'] > 0)
+                $queue[] = $row['nextGroup'];
+        }
+
+        if (!$areas)
+            return [];
+
+        return DB::Aowow()->selectCol('SELECT `id` FROM ::zones WHERE `id` IN %in ORDER BY `id` ASC', array_unique($areas));
+    }
+
+    // reverse of getAreaGroupZones(): areagroup.dbc ids whose (nextGroup-chained) area list includes $zoneId
+    public static function getAreaGroupsFor(int $zoneId) : array
+    {
+        $groups = DB::Aowow()->selectCol('SELECT `id` FROM ::areagroup WHERE %i IN (`areaId1`, `areaId2`, `areaId3`, `areaId4`, `areaId5`, `areaId6`)', $zoneId);
+        $queue  = $groups;
+
+        // a group continued by nextGroup also covers the continuation's areas
+        while ($queue && ($prev = DB::Aowow()->selectCol('SELECT `id` FROM ::areagroup WHERE `nextGroup` IN %in AND `id` NOT IN %in', $queue, $groups)))
+        {
+            $groups = array_merge($groups, $prev);
+            $queue  = $prev;
+        }
+
+        return $groups;
+    }
+
     public static function getTaughtSpells(mixed &$spell) : array
     {
         $extraIds = [-1];                                    // init with -1 to prevent empty-array errors
