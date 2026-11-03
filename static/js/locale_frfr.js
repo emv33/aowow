@@ -4145,6 +4145,42 @@ var LANG = {
             [29, "Consolidate in raid buff frame (client only)"], [30, "Unknown attribute 29@Attr7"],
             [31, "Unknown attribute 30@Attr7"], [32, "Client indicator (client only)"]
         ],
+        spell_flags9: [
+            [1, "Unused target flag 0@Targets"], [2, "Unit"],
+            [3, "Unit (raid)"], [4, "Unit (party)"],
+            [5, "Item"], [6, "Source location"],
+            [7, "Destination location"], [8, "Enemy unit"],
+            [9, "Friendly unit"], [10, "Enemy corpse"],
+            [11, "Dead unit"], [12, "Gameobject"],
+            [13, "Trade item"], [14, "Name string (text input)"],
+            [15, "Gameobject item"], [16, "Friendly corpse"],
+            [17, "Companion (minipet)"], [18, "Glyph slot"],
+            [19, "Destination from target"], [20, "Unused target flag 19@Targets"],
+            [21, "Vehicle passenger"], [22, "Unused target flag 21@Targets"],
+            [23, "Unused target flag 22@Targets"], [24, "Unused target flag 23@Targets"],
+            [25, "Unused target flag 24@Targets"], [26, "Unused target flag 25@Targets"],
+            [27, "Unused target flag 26@Targets"], [28, "Unused target flag 27@Targets"],
+            [29, "Unused target flag 28@Targets"], [30, "Unused target flag 29@Targets"],
+            [31, "Unused target flag 30@Targets"], [32, "Unused target flag 31@Targets"]
+        ],
+        spell_flags10: [
+            [1, "Forme de félin"], [2, "Arbre de vie"],
+            [3, "Forme de voyage"], [4, "Forme aquatique"],
+            [5, "Forme d'ours"], [6, "Ambiant"],
+            [7, "Goule"], [8, "Forme d'ours redoutable"],
+            [9, "Goule de Steve"], [10, "Squelette de Tharon'ja"],
+            [11, "Sombrelune - épreuve de force"], [12, "Joueur BLB"],
+            [13, "Danse de l'ombre"], [14, "Créature - Ours"],
+            [15, "Créature - Félin"], [16, "Loup fantôme"],
+            [17, "Posture de combat"], [18, "Posture défensive"],
+            [19, "Posture berserker"], [20, "Test"],
+            [21, "Zombie"], [22, "Métamorphe"],
+            [23, "Unknown form 23@StanceNot"], [24, "Unknown form 24@StanceNot"],
+            [25, "Mort-vivant"], [26, "Frénésie"],
+            [27, "Forme de vol rapide"], [28, "Forme d'Ombre"],
+            [29, "Forme de vol"], [30, "Camouflage"],
+            [31, "Forme de sélénien"], [32, "Esprit de rédemption"]
+        ],
         spell_flagsCu: [
             [1, 'Triggered by weapon enchant proc'], [2, 'Target cone from behind caster'],
             [3, 'Narrow line-shaped target cone'], [4, 'Damage is split among targets'],
@@ -4515,6 +4551,34 @@ var LANG = {
         onGlobalCooldown:           "Sur le temps de recharge global",
         onlyaffectsingletarget:     "Cette aura n'affecte qu'une seule cible",
 
+        sepcustomattr:                       "Custom attributes", // aowow - custom
+        customattrenchantproc:               "Triggered by weapon enchant proc", // aowow - custom
+        customattrconeback:                  "Cone faces away from caster", // aowow - custom
+        customattrconeline:                  "Narrow line-shaped cone", // aowow - custom
+        customattrsharedamage:               "Damage is split among targets", // aowow - custom
+        customattrnoinitialthreat:           "Generates no initial threat", // aowow - custom
+        customattrauracc:                    "Crowd-control aura", // aowow - custom
+        customattrdontbreakstealth:          "Does not break stealth", // aowow - custom
+        customattrcancrit:                   "Can critically strike", // aowow - custom
+        customattrdirectdamage:              "Deals direct damage", // aowow - custom
+        customattrcharge:                    "Charges to target", // aowow - custom
+        customattrpickpocket:                "Pickpocket spell", // aowow - custom
+        customattrrollingperiodic:           "Rolling periodic (re-rolls tick on refresh)", // aowow - custom
+        customattrnegativeeff0:              "Effect 1 is negative", // aowow - custom
+        customattrnegativeeff1:              "Effect 2 is negative", // aowow - custom
+        customattrnegativeeff2:              "Effect 3 is negative", // aowow - custom
+        customattrignorearmor:               "Ignores armor", // aowow - custom
+        customattrreqtargetfacingcaster:     "Requires target facing caster", // aowow - custom
+        customattrreqcasterbehindtarget:     "Requires caster behind target", // aowow - custom
+        customattrallowinflighttarget:       "Allows targeting while target is in flight", // aowow - custom
+        customattrneedsammodata:             "Needs ranged ammo data", // aowow - custom
+        customattrbinaryspell:               "Binary spell (hit-or-miss, no partial resist)", // aowow - custom
+        customattrschoolmasknormalwithmagic: "Physical treated as magic for resistance", // aowow - custom
+        customattrdeprecatedliquidaura:      "Deprecated liquid aura (unused)", // aowow - custom
+        customattristalent:                  "Is a talent", // aowow - custom
+        customattrauracannotbesaved:         "Aura cannot be saved across logout", // aowow - custom
+        customattrcantargetanyprivateobject: "Can target any private object", // aowow - custom
+
         sepcommunity:               "Communauté",
         hascomments:                "A des commentaires",
         hasscreenshots:             "A des captures d'écrans",
@@ -4529,8 +4593,8 @@ var LANG = {
         flags6:                     "AttributesExE",        // Flags (6)
         flags7:                     "AttributesExF",        // Flags (7)
         flags8:                     "AttributesExG",        // Flags (8)
-        flags9:                     "AttributesCustom",     // Flags (9)
-        flags10:                    "Flags (10)",           // not used
+        flags9:                     "Spell targets",        // Flags (9) // aowow - custom: upstream labels this "AttributesCustom" (custom attrs have their own criteria here)
+        flags10:                    "Excluded stances",     // Flags (10) // aowow - custom: upstream: "Flags (10)", not used
         flags11:                    "FamilyFlags (1)",      // Flags (11)
         flags12:                    "FamilyFlags (2)",      // Flags (12)
         flags13:                    "FamilyFlags (3)"       // Flags (13)

@@ -1490,8 +1490,7 @@ $lang = array(
             2 => "strongest effect only",
             3 => "exclusive",
             4 => "exclusive, highest rank"
-        ),
-        'customAttr'    => "Custom attributes"
+        )
     ),
     'dataIntegrity' => array(
         'title'         => "Data integrity",
@@ -2337,6 +2336,7 @@ $lang = array(
         '_honorKills'   => "%d Muertes con honor",          // HONORABLE_KILLS
         '_honorPoints'  => "%d Honor @ L%d",                // HONOR
         '_interval'     => "Intérvalo: ",
+        '_customAttr'   => "Custom attributes", // aowow - custom: spell_custom_attr (TDB), separate from the DBC Flags row
         '_inSlot'       => "en la casilla: ",
         '_collapseAll'  => "Contraer todo",
         '_expandAll'    => "Expandier todo",
@@ -2508,7 +2508,7 @@ $lang = array(
             "Inscripción",                          "Abrir desde vehículo"
         ),
         'stealthType'   => ["GENERAL", "TRAMPA"],
-        'invisibilityType' => ["General", "UNK-1", "UNK-2", "Trampa", "UNK-4", "UNK-5", "Ebrio", "UNK-7", "UNK-8", "UNK-9", "UNK-10", "UNK-11"],
+        'invisibilityType' => [0 => "General", 3 => "Trampa", 6 => "Ebrio"],
         'summonControl' => ["Sin control", "Guardián", "Mascota", "Embelesado", "Vehículo poseído", "Vehículo sin control"],
         'summonSlot'    => ["Mascota", "Tótem de Fuego", "Tótem de Tierra", "Tótem de Agua", "Tótem de Aire", "Mascota mansa", "Misión"],
         'unkEffect'     => 'Efecto desconocido (%1$d)',
@@ -2889,6 +2889,7 @@ $lang = array(
             SPELL_ATTR7_CAN_PROC_FROM_SUPPRESSED_TARGET_PROCS         => "Puede hacer proc de procs suprimidos del objetivo",
             SPELL_ATTR7_CLIENT_INDICATOR                              => "Siempre emitir registro"
         ),
+        // aowow - custom: TrinityCore's spell_custom_attr.attributes (SpellCustomAttributes); see includes/defines.php
         'attributesCu' => array(
             SPELL_ATTR0_CU_ENCHANT_PROC                   => 'Triggered by weapon enchant proc',
             SPELL_ATTR0_CU_CONE_BACK                      => 'Target cone from behind caster',
@@ -2912,10 +2913,10 @@ $lang = array(
             SPELL_ATTR0_CU_NEEDS_AMMO_DATA                => 'Requires a ranged weapon',
             SPELL_ATTR0_CU_BINARY_SPELL                   => 'Binary spell (hit-or-miss, no partial resist)',
             SPELL_ATTR0_CU_SCHOOLMASK_NORMAL_WITH_MAGIC   => 'Armor and magic resistance reduce damage',
-         // SPELL_ATTR0_CU_DEPRECATED_LIQUID_AURA         => 'Liquid Aura',
-         // SPELL_ATTR0_CU_IS_TALENT                      => 'Is a talent',
+            SPELL_ATTR0_CU_DEPRECATED_LIQUID_AURA         => 'Deprecated liquid aura (unused)',
+            SPELL_ATTR0_CU_IS_TALENT                      => 'Is a talent',
             SPELL_ATTR0_CU_AURA_CANNOT_BE_SAVED           => 'Aura cannot be saved across logout',
-         // SPELL_ATTR0_CU_CAN_TARGET_ANY_PRIVATE_OBJECT  => 'Can target any private object'
+            SPELL_ATTR0_CU_CAN_TARGET_ANY_PRIVATE_OBJECT  => 'Can target any private object'
         )
     ),
     'item' => array(

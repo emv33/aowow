@@ -2017,7 +2017,10 @@ define('SPELL_ATTR7_REFLECTION_ONLY_DEFENDS',                       0x20000000);
 define('SPELL_ATTR7_CAN_PROC_FROM_SUPPRESSED_TARGET_PROCS',         0x40000000); // [WoWDev Wiki]
 define('SPELL_ATTR7_CLIENT_INDICATOR',                              0x80000000); // Client indicator (client only)
 
-define('SPELL_ATTR0_CU_ENCHANT_PROC',                   0x00000001); // Triggered by an on-hit weapon enchant
+// aowow - custom: TrinityCore's runtime-only SpellCustomAttributes, stored per-spell in the world
+// DB's spell_custom_attr.attributes column (not part of Spell.dbc) - unrelated to this file's own
+// SPELL_CU_* (aowow's site-internal cache flags, see below)
+define('SPELL_ATTR0_CU_ENCHANT_PROC',                  0x00000001); // Triggered by an on-hit weapon enchant
 define('SPELL_ATTR0_CU_CONE_BACK',                      0x00000002); // Cone targeting faces away from the caster
 define('SPELL_ATTR0_CU_CONE_LINE',                      0x00000004); // Cone is a narrow line instead of a wide arc
 define('SPELL_ATTR0_CU_SHARE_DAMAGE',                   0x00000008); // Damage/healing is divided evenly among all targets
@@ -2040,9 +2043,10 @@ define('SPELL_ATTR0_CU_NEEDS_AMMO_DATA',                0x00080000); // Requires
 define('SPELL_ATTR0_CU_BINARY_SPELL',                   0x00100000); // Binary spell - fully hits or fully resists, no partial resist
 define('SPELL_ATTR0_CU_SCHOOLMASK_NORMAL_WITH_MAGIC',   0x00200000); // Physical school is also treated as magic for resistance calculation
 define('SPELL_ATTR0_CU_DEPRECATED_LIQUID_AURA',         0x00400000); // Unused; bit retained so it is never reassigned (DO NOT REUSE)
-define('SPELL_ATTR0_CU_IS_TALENT',                      0x00800000); // Is a talent (reserved for master branch)
+define('SPELL_ATTR0_CU_IS_TALENT',                      0x00800000); // Is a talent (reserved, used on newer core branches)
 define('SPELL_ATTR0_CU_AURA_CANNOT_BE_SAVED',           0x01000000); // Aura is not saved to the database across logout
-define('SPELL_ATTR0_CU_CAN_TARGET_ANY_PRIVATE_OBJECT',  0x02000000); // May target any private (phased-only-visible) object (reserved for master branch)
+define('SPELL_ATTR0_CU_CAN_TARGET_ANY_PRIVATE_OBJECT',  0x02000000); // May target any private (phased-only-visible) object (reserved, used on newer core branches)
+
 
 // (some) Skill ids
 define('SKILL_FIRST_AID',      129);

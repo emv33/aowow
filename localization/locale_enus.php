@@ -1490,8 +1490,7 @@ $lang = array(
             2 => "strongest effect only",
             3 => "exclusive",
             4 => "exclusive, highest rank"
-        ),
-        'customAttr'    => "Custom attributes"
+        )
     ),
     'dataIntegrity' => array(
         'title'         => "Data integrity",
@@ -2337,6 +2336,7 @@ $lang = array(
         '_honorKills'   => "%d Honorable Kills",            // HONORABLE_KILLS
         '_honorPoints'  => "%d Honor @ L%d",                // HONOR
         '_interval'     => "Interval: ",
+        '_customAttr'   => "Custom attributes", // aowow - custom: spell_custom_attr (TDB), separate from the DBC Flags row
         '_inSlot'       => "in slot: ",
         '_collapseAll'  => "Collapse All",
         '_expandAll'    => "Expand All",
@@ -2508,7 +2508,7 @@ $lang = array(
             "Inscription",                          "Open From Vehicle"
         ),
         'stealthType'   => ["General", "Trap"],
-        'invisibilityType' => ["General", "UNK-1", "UNK-2", "Trap", "UNK-4", "UNK-5", "Drunk", "UNK-7", "UNK-8", "UNK-9", "UNK-10", "UNK-11"],
+        'invisibilityType' => [0 => "General", 3 => "Trap", 6 => "Drunk"],
         'summonControl' => ["Uncontrolled", "Guardian", "Pet", "Possessed", "Possessed Vehicle", "Uncontrolled Vehicle"],
         'summonSlot'    => ["Pet", "Fire Totem", "Earth Totem", "Water Totem", "Air Totem", "Non-combat Pet", "Quest"],
         'unkEffect'     => 'Unknown Effect (%1$d)',
@@ -2889,6 +2889,7 @@ $lang = array(
             SPELL_ATTR7_CAN_PROC_FROM_SUPPRESSED_TARGET_PROCS         => 'Can Proc From Suppressed Target Procs', // 974
             SPELL_ATTR7_CLIENT_INDICATOR                              => 'Always Cast Log' // 70769 only
         ),
+        // aowow - custom: TrinityCore's spell_custom_attr.attributes (SpellCustomAttributes); see includes/defines.php
         'attributesCu' => array(
             SPELL_ATTR0_CU_ENCHANT_PROC                   => 'Triggered by weapon enchant proc',
             SPELL_ATTR0_CU_CONE_BACK                      => 'Target cone from behind caster',
@@ -2912,10 +2913,10 @@ $lang = array(
             SPELL_ATTR0_CU_NEEDS_AMMO_DATA                => 'Requires a ranged weapon', // substitues SPELL_ATTR0_REQ_AMMO
             SPELL_ATTR0_CU_BINARY_SPELL                   => 'Binary spell (hit-or-miss, no partial resist)',
             SPELL_ATTR0_CU_SCHOOLMASK_NORMAL_WITH_MAGIC   => 'Armor and magic resistance reduce damage',
-         // SPELL_ATTR0_CU_DEPRECATED_LIQUID_AURA         => 'Liquid Aura',
-         // SPELL_ATTR0_CU_IS_TALENT                      => 'Is a talent',
+            SPELL_ATTR0_CU_DEPRECATED_LIQUID_AURA         => 'Deprecated liquid aura (unused)',
+            SPELL_ATTR0_CU_IS_TALENT                      => 'Is a talent',
             SPELL_ATTR0_CU_AURA_CANNOT_BE_SAVED           => 'Aura cannot be saved across logout',
-         // SPELL_ATTR0_CU_CAN_TARGET_ANY_PRIVATE_OBJECT  => 'Can target any private object'
+            SPELL_ATTR0_CU_CAN_TARGET_ANY_PRIVATE_OBJECT  => 'Can target any private object'
         )
     ),
     'item' => array(

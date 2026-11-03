@@ -330,7 +330,7 @@ var fi_filters = {
         { id: 40,   name: 'damagetype',             type: 'damagetype'                     },
         { id: 201,  name: 'duration_stc',           type: 'num'                            }, // aowow - custom
         { id: 109,  name: 'effecttype',             type: 'effecttype'                     },
-        { id: 29,   name: 'appliesaura',            type: 'effectauranames'                },
+        { id: 29,   name: 'appliesaura',            type: 'effectauranames-misc'           },
         { id: 15,   name: 'icon',                   type: 'str'                            },
         { id: 10,   name: 'firstrank',              type: 'yn'                             },
         { id: 20,   name: 'hasreagents',            type: 'yn'                             },
@@ -418,6 +418,34 @@ var fi_filters = {
         { id: 89,   name: 'usablefeared',               type: 'yn' },
         { id: 65,   name: 'usesallpower',               type: 'yn' },
 
+        { id: 9999, name: 'sepcustomattr' },                            // aowow - custom
+        { id: 130,  name: 'customattrenchantproc',                  type: 'yn' }, // aowow - custom
+        { id: 131,  name: 'customattrconeback',                     type: 'yn' }, // aowow - custom
+        { id: 132,  name: 'customattrconeline',                     type: 'yn' }, // aowow - custom
+        { id: 133,  name: 'customattrsharedamage',                  type: 'yn' }, // aowow - custom
+        { id: 134,  name: 'customattrnoinitialthreat',              type: 'yn' }, // aowow - custom
+        { id: 135,  name: 'customattrauracc',                       type: 'yn' }, // aowow - custom
+        { id: 136,  name: 'customattrdontbreakstealth',             type: 'yn' }, // aowow - custom
+        { id: 137,  name: 'customattrcancrit',                      type: 'yn' }, // aowow - custom
+        { id: 138,  name: 'customattrdirectdamage',                 type: 'yn' }, // aowow - custom
+        { id: 139,  name: 'customattrcharge',                       type: 'yn' }, // aowow - custom
+        { id: 140,  name: 'customattrpickpocket',                   type: 'yn' }, // aowow - custom
+        { id: 141,  name: 'customattrrollingperiodic',              type: 'yn' }, // aowow - custom
+        { id: 142,  name: 'customattrnegativeeff0',                 type: 'yn' }, // aowow - custom
+        { id: 143,  name: 'customattrnegativeeff1',                 type: 'yn' }, // aowow - custom
+        { id: 144,  name: 'customattrnegativeeff2',                 type: 'yn' }, // aowow - custom
+        { id: 145,  name: 'customattrignorearmor',                  type: 'yn' }, // aowow - custom
+        { id: 146,  name: 'customattrreqtargetfacingcaster',        type: 'yn' }, // aowow - custom
+        { id: 147,  name: 'customattrreqcasterbehindtarget',        type: 'yn' }, // aowow - custom
+        { id: 148,  name: 'customattrallowinflighttarget',          type: 'yn' }, // aowow - custom
+        { id: 149,  name: 'customattrneedsammodata',                type: 'yn' }, // aowow - custom
+        { id: 150,  name: 'customattrbinaryspell',                  type: 'yn' }, // aowow - custom
+        { id: 151,  name: 'customattrschoolmasknormalwithmagic',    type: 'yn' }, // aowow - custom
+        { id: 152,  name: 'customattrdeprecatedliquidaura',         type: 'yn' }, // aowow - custom
+        { id: 153,  name: 'customattristalent',                     type: 'yn' }, // aowow - custom
+        { id: 154,  name: 'customattrauracannotbesaved',            type: 'yn' }, // aowow - custom
+        { id: 155,  name: 'customattrcantargetanyprivateobject',    type: 'yn' }, // aowow - custom
+
         { id: 9999, name: 'sepcommunity'               },
         { id: 11,   name: 'hascomments',    type: 'yn' },
         { id: 8,    name: 'hasscreenshots', type: 'yn' },
@@ -432,8 +460,8 @@ var fi_filters = {
         { id: 101,  name: 'flags6',       type: 'spell_flags6',  staffonly: true },
         { id: 102,  name: 'flags7',       type: 'spell_flags7',  staffonly: true },
         { id: 103,  name: 'flags8',       type: 'spell_flags8',  staffonly: true },
-        { id: 104,  name: 'flags9',       type: 'spell_flagsCu', staffonly: true },
-     // { id: 105,  name: 'flags10',      type: 'flags',         staffonly: true },
+        { id: 104,  name: 'flags9',       type: 'spell_flags9',  staffonly: true },
+        { id: 105,  name: 'flags10',      type: 'spell_flags10', staffonly: true },
         { id: 106,  name: 'flags11',      type: 'flags',         staffonly: true },
         { id: 107,  name: 'flags12',      type: 'flags',         staffonly: true },
         { id: 108,  name: 'flags13',      type: 'flags',         staffonly: true }
@@ -1000,6 +1028,7 @@ function fi_criterionChange(_this, crs, crv) {
                     _.name = 'crs[]';
 
                     var group = _;
+                    var crsSel = _;
 
                     if (criteriaParams.indexOf('any') != -1) {
                         var o2 = $WH.ce('option');
@@ -1078,6 +1107,37 @@ function fi_criterionChange(_this, crs, crv) {
                 _.setAttribute('autocomplete', 'off');
 
                 d.appendChild(_);
+
+                // aowow - custom: optional misc value for stealth / invisibility auras, blank = any (sent as -1)
+                if (criteriaParams.indexOf('misc') != -1 && _this.name == 'cr[]') {
+                    var hid = _;
+                    var mv = $WH.ce('input');
+                    var miscAuras = [16, 17, 18, 19];
+
+                    mv.type = 'text';
+                    mv.maxLength = 8;
+                    mv.style.textAlign = 'center';
+                    mv.style.width = '5.0em';
+                    mv.title = 'Misc value (blank = any)';
+                    mv.setAttribute('autocomplete', 'off');
+                    if (crv != null && parseInt(crv) >= 0 && miscAuras.indexOf(parseInt(crs)) != -1) {
+                        mv.value = parseInt(crv).toString();
+                    }
+
+                    var syncMisc = function () {
+                        var show = miscAuras.indexOf(parseInt(crsSel.value)) != -1;
+                        var val  = mv.value.replace(/\s+/g, '');
+
+                        mv.style.display = show ? '' : 'none';
+                        hid.value = (show && val !== '' && !isNaN(parseInt(val))) ? parseInt(val).toString() : (show ? '-1' : '0');
+                    };
+
+                    crsSel.onchange = mv.onchange = mv.onkeyup = syncMisc;
+                    d.appendChild($WH.ct(' '));
+                    d.appendChild(mv);
+                    syncMisc();
+                }
+
                 if (_this.name == 'wt[]') {
                     fi_sortWeight(_);
                 }

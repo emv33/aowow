@@ -165,15 +165,6 @@ class SpellOverride
         $this->add(Lang::spellOverride('group'), implode('[br]', $out));
     }
 
-    private function customAttr() : void
-    {
-        if (!self::hasTable('spell_custom_attr'))
-            return;
-
-        if ($_ = (int)DB::World()->selectCell('SELECT `attributes` FROM spell_custom_attr WHERE `entry` = %i', $this->spellId))
-            $this->add(Lang::spellOverride('customAttr'), '0x'.strtoupper(str_pad(dechex($_), 8, '0', STR_PAD_LEFT)));
-    }
-
     public function getMarkup() : ?Markup
     {
         $this->targetPosition();
@@ -181,7 +172,6 @@ class SpellOverride
         $this->required();
         $this->petAuras();
         $this->groups();
-        $this->customAttr();
 
         if (!$this->rows)
             return null;

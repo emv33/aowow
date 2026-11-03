@@ -2435,6 +2435,36 @@ class SpellListFilter extends Filter
         )
     );
 
+    // aowow - custom: TrinityCore SpellCustomAttributes (spell_custom_attr.attributes; see includes/defines.php) => cr
+    public static array $customAttrFilter = array(
+        SPELL_ATTR0_CU_ENCHANT_PROC                  => 130,
+        SPELL_ATTR0_CU_CONE_BACK                     => 131,
+        SPELL_ATTR0_CU_CONE_LINE                     => 132,
+        SPELL_ATTR0_CU_SHARE_DAMAGE                  => 133,
+        SPELL_ATTR0_CU_NO_INITIAL_THREAT             => 134,
+        SPELL_ATTR0_CU_AURA_CC                       => 135,
+        SPELL_ATTR0_CU_DONT_BREAK_STEALTH             => 136,
+        SPELL_ATTR0_CU_CAN_CRIT                       => 137,
+        SPELL_ATTR0_CU_DIRECT_DAMAGE                  => 138,
+        SPELL_ATTR0_CU_CHARGE                         => 139,
+        SPELL_ATTR0_CU_PICKPOCKET                     => 140,
+        SPELL_ATTR0_CU_ROLLING_PERIODIC               => 141,
+        SPELL_ATTR0_CU_NEGATIVE_EFF0                  => 142,
+        SPELL_ATTR0_CU_NEGATIVE_EFF1                  => 143,
+        SPELL_ATTR0_CU_NEGATIVE_EFF2                  => 144,
+        SPELL_ATTR0_CU_IGNORE_ARMOR                   => 145,
+        SPELL_ATTR0_CU_REQ_TARGET_FACING_CASTER       => 146,
+        SPELL_ATTR0_CU_REQ_CASTER_BEHIND_TARGET       => 147,
+        SPELL_ATTR0_CU_ALLOW_INFLIGHT_TARGET          => 148,
+        SPELL_ATTR0_CU_NEEDS_AMMO_DATA                => 149,
+        SPELL_ATTR0_CU_BINARY_SPELL                   => 150,
+        SPELL_ATTR0_CU_SCHOOLMASK_NORMAL_WITH_MAGIC   => 151,
+        SPELL_ATTR0_CU_DEPRECATED_LIQUID_AURA         => 152,
+        SPELL_ATTR0_CU_IS_TALENT                      => 153,
+        SPELL_ATTR0_CU_AURA_CANNOT_BE_SAVED           => 154,
+        SPELL_ATTR0_CU_CAN_TARGET_ANY_PRIVATE_OBJECT  => 155
+    );
+
     protected string $type  = 'spells';
     protected static array $enums = array(
         9 => array(                                         // sources index
@@ -2580,8 +2610,8 @@ class SpellListFilter extends Filter
         101 => [parent::CR_STAFFFLAG, 'attributes5'                                                                               ], // flags6 [flags]
         102 => [parent::CR_STAFFFLAG, 'attributes6'                                                                               ], // flags7 [flags]
         103 => [parent::CR_STAFFFLAG, 'attributes7'                                                                               ], // flags8 [flags]
-        104 => [parent::CR_CALLBACK , 'cbCustomAttr'                                                                              ], // flags9 [flags]
-     // 105 => [parent::CR_NYI_PH,    null                                                                                        ], // flags10 [flags]
+        104 => [parent::CR_STAFFFLAG, 'targets'                                                                                   ], // flags9 [flags]
+        105 => [parent::CR_STAFFFLAG, 'stanceMaskNot'                                                                             ], // flags10 [flags]
         106 => [parent::CR_STAFFFLAG, 'spellFamilyFlags1'                                                                         ], // flags11 [flags]
         107 => [parent::CR_STAFFFLAG, 'spellFamilyFlags2'                                                                         ], // flags12 [flags]
         108 => [parent::CR_STAFFFLAG, 'spellFamilyFlags3'                                                                         ], // flags13 [flags]
@@ -2595,6 +2625,35 @@ class SpellListFilter extends Filter
         120 => [parent::CR_CALLBACK,  'cbModifiesSpell'                                                                           ], // modifiesSpell_filter [str]
      // 121 => [parent::CR_NYI_PH,    null                                                                                        ], // inMyFavorites_stc [yn]
         129 => [parent::CR_CALLBACK,  'cbGivePower'                                                                               ], // givesResourceType_stc [resourcetype]
+        // aowow - custom start: TrinityCore SpellCustomAttributes (spell_custom_attr.attributes); not baked into ::spell, so
+        // each is resolved live against DB::World() rather than through a column on this table (see cbCustomAttr())
+        130 => [parent::CR_CALLBACK,  'cbCustomAttr',       SPELL_ATTR0_CU_ENCHANT_PROC                                           ], // customattrenchantproc [yn]
+        131 => [parent::CR_CALLBACK,  'cbCustomAttr',       SPELL_ATTR0_CU_CONE_BACK                                              ], // customattrconeback [yn]
+        132 => [parent::CR_CALLBACK,  'cbCustomAttr',       SPELL_ATTR0_CU_CONE_LINE                                              ], // customattrconeline [yn]
+        133 => [parent::CR_CALLBACK,  'cbCustomAttr',       SPELL_ATTR0_CU_SHARE_DAMAGE                                           ], // customattrsharedamage [yn]
+        134 => [parent::CR_CALLBACK,  'cbCustomAttr',       SPELL_ATTR0_CU_NO_INITIAL_THREAT                                      ], // customattrnoinitialthreat [yn]
+        135 => [parent::CR_CALLBACK,  'cbCustomAttr',       SPELL_ATTR0_CU_AURA_CC                                                ], // customattrauracc [yn]
+        136 => [parent::CR_CALLBACK,  'cbCustomAttr',       SPELL_ATTR0_CU_DONT_BREAK_STEALTH                                     ], // customattrdontbreakstealth [yn]
+        137 => [parent::CR_CALLBACK,  'cbCustomAttr',       SPELL_ATTR0_CU_CAN_CRIT                                               ], // customattrcancrit [yn]
+        138 => [parent::CR_CALLBACK,  'cbCustomAttr',       SPELL_ATTR0_CU_DIRECT_DAMAGE                                          ], // customattrdirectdamage [yn]
+        139 => [parent::CR_CALLBACK,  'cbCustomAttr',       SPELL_ATTR0_CU_CHARGE                                                 ], // customattrcharge [yn]
+        140 => [parent::CR_CALLBACK,  'cbCustomAttr',       SPELL_ATTR0_CU_PICKPOCKET                                             ], // customattrpickpocket [yn]
+        141 => [parent::CR_CALLBACK,  'cbCustomAttr',       SPELL_ATTR0_CU_ROLLING_PERIODIC                                       ], // customattrrollingperiodic [yn]
+        142 => [parent::CR_CALLBACK,  'cbCustomAttr',       SPELL_ATTR0_CU_NEGATIVE_EFF0                                          ], // customattrnegativeeff0 [yn]
+        143 => [parent::CR_CALLBACK,  'cbCustomAttr',       SPELL_ATTR0_CU_NEGATIVE_EFF1                                          ], // customattrnegativeeff1 [yn]
+        144 => [parent::CR_CALLBACK,  'cbCustomAttr',       SPELL_ATTR0_CU_NEGATIVE_EFF2                                          ], // customattrnegativeeff2 [yn]
+        145 => [parent::CR_CALLBACK,  'cbCustomAttr',       SPELL_ATTR0_CU_IGNORE_ARMOR                                           ], // customattrignorearmor [yn]
+        146 => [parent::CR_CALLBACK,  'cbCustomAttr',       SPELL_ATTR0_CU_REQ_TARGET_FACING_CASTER                               ], // customattrreqtargetfacingcaster [yn]
+        147 => [parent::CR_CALLBACK,  'cbCustomAttr',       SPELL_ATTR0_CU_REQ_CASTER_BEHIND_TARGET                               ], // customattrreqcasterbehindtarget [yn]
+        148 => [parent::CR_CALLBACK,  'cbCustomAttr',       SPELL_ATTR0_CU_ALLOW_INFLIGHT_TARGET                                  ], // customattrallowinflighttarget [yn]
+        149 => [parent::CR_CALLBACK,  'cbCustomAttr',       SPELL_ATTR0_CU_NEEDS_AMMO_DATA                                        ], // customattrneedsammodata [yn]
+        150 => [parent::CR_CALLBACK,  'cbCustomAttr',       SPELL_ATTR0_CU_BINARY_SPELL                                           ], // customattrbinaryspell [yn]
+        151 => [parent::CR_CALLBACK,  'cbCustomAttr',       SPELL_ATTR0_CU_SCHOOLMASK_NORMAL_WITH_MAGIC                           ], // customattrschoolmasknormalwithmagic [yn]
+        152 => [parent::CR_CALLBACK,  'cbCustomAttr',       SPELL_ATTR0_CU_DEPRECATED_LIQUID_AURA                                 ], // customattrdeprecatedliquidaura [yn]
+        153 => [parent::CR_CALLBACK,  'cbCustomAttr',       SPELL_ATTR0_CU_IS_TALENT                                              ], // customattristalent [yn]
+        154 => [parent::CR_CALLBACK,  'cbCustomAttr',       SPELL_ATTR0_CU_AURA_CANNOT_BE_SAVED                                   ], // customattrauracannotbesaved [yn]
+        155 => [parent::CR_CALLBACK,  'cbCustomAttr',       SPELL_ATTR0_CU_CAN_TARGET_ANY_PRIVATE_OBJECT                          ], // customattrcantargetanyprivateobject [yn]
+        // aowow - custom end
         200 => [parent::CR_CALLBACK,  'cbSecToMsec',        'recoveryTime'                                                        ], // cooldown [num] (custom)
         201 => [parent::CR_CALLBACK,  'cbSecToMsec',        'duration'                                                            ]  // duration [num] (custom)
     );
@@ -2763,6 +2822,14 @@ class SpellListFilter extends Filter
     {
         if (!$this->checkInput(parent::V_RANGE, [1, self::MAX_SPELL_AURA], $crs))
             return null;
+
+        // aowow - custom: for stealth / invisibility auras crv is the misc value (the channel hider and detector share); negative = any
+        if (in_array($crs, [SPELL_AURA_MOD_STEALTH, SPELL_AURA_MOD_STEALTH_DETECT, SPELL_AURA_MOD_INVISIBILITY, SPELL_AURA_MOD_INVISIBILITY_DETECT]) && Util::checkNumeric($crv, NUM_CAST_INT) && $crv >= 0)
+            return [DB::OR,
+                [DB::AND, ['effect1AuraId', $crs], ['effect1MiscValue', $crv]],
+                [DB::AND, ['effect2AuraId', $crs], ['effect2MiscValue', $crv]],
+                [DB::AND, ['effect3AuraId', $crs], ['effect3MiscValue', $crv]]
+            ];
 
         return [DB::OR, ['effect1AuraId', $crs], ['effect2AuraId', $crs], ['effect3AuraId', $crs]];
     }
@@ -2941,16 +3008,31 @@ class SpellListFilter extends Filter
         );
     }
 
-    protected function cbCustomAttr(int $cr, int $crs, string $crv) : ?array
+    // aowow - custom start
+    private static function hasTable(string $tbl) : bool
     {
-        if (!User::canSee(U_GROUP_EMPLOYEE) || $crs < 1 || $crs > 32)
+        static $known = [];
+
+        return $known[$tbl] ??= (bool)DB::World()->selectCell('SHOW TABLES LIKE %s', $tbl);
+    }
+
+    /* spell_custom_attr is not part of ::spell, so this is resolved live against DB::World() rather
+     * than as a column lookup; not every world DB ships that table, hence the hasTable() guard */
+    protected function cbCustomAttr(int $cr, int $crs, string $crv, int $bit) : ?array
+    {
+        if (!$this->int2Bool($crs))
             return null;
 
-        if (!($ids = DB::World()->selectCol('SELECT `entry` FROM spell_custom_attr WHERE `attributes` & %i', (1 << ($crs - 1)))))
-            return [0];
+        $ids = self::hasTable('spell_custom_attr')
+             ? (DB::World()->selectCol('SELECT `entry` FROM spell_custom_attr WHERE `attributes` & %i', $bit) ?: [])
+             : [];
 
-        return ['s.id', $ids];
+        if (!$ids)
+            return $crs ? [0] : null;        // crs=no && nothing is flagged -> matches everything, no condition needed
+
+        return $crs ? ['s.id', $ids] : ['s.id', $ids, '!'];
     }
+    // aowow - custom end
 }
 
 ?>

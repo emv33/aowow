@@ -24,6 +24,7 @@ class SpellBaseResponse extends TemplateResponse implements ICache
     public  array  $tools      = [];
     public  array  $effects    = [];
     public  array  $attributes = [];
+    public  array  $customAttributes = [];  // aowow - custom: see createCustomAttributesList()
     public  string $powerCost  = '';
     public  string $castTime   = '';
     public  string $level      = '';
@@ -243,6 +244,7 @@ class SpellBaseResponse extends TemplateResponse implements ICache
         $this->createRequiredItems();       // Required Items
         $this->createEffects();             // Spell Effect Block
         $this->createAttributesList();      // Spell Attributes listing and SpellFilter links
+        $this->createCustomAttributesList(); // aowow - custom: TDB spell_custom_attr, separate from the DBC Flags row
         $this->createSpellSchool();         // Schools cell and filter link
 
         $this->powerCost = $this->subject->createPowerCostForCurrent();
@@ -2312,7 +2314,7 @@ class SpellBaseResponse extends TemplateResponse implements ICache
                         => $this->effectMVLanguage(...),
                     SPELL_AURA_MOD_INVISIBILITY,                            SPELL_AURA_MOD_INVISIBILITY_DETECT
                         => $this->effectMVInvisType(...),
-                    SPELL_AURA_MOD_STEALTH_DETECT
+                    SPELL_AURA_MOD_STEALTH,                                 SPELL_AURA_MOD_STEALTH_DETECT   // aowow - custom: also MOD_STEALTH
                         => $this->effectMVStealthType(...),
                     SPELL_AURA_MOD_DEBUFF_RESISTANCE,                       SPELL_AURA_MOD_AURA_DURATION_BY_DISPEL,                 SPELL_AURA_MOD_AURA_DURATION_BY_DISPEL_NOT_STACK,       SPELL_AURA_DISPEL_IMMUNITY
                         => $this->effectMVDispelType(...),
@@ -2570,28 +2572,38 @@ class SpellBaseResponse extends TemplateResponse implements ICache
             }
         }
 
-        if ($customAttr = DB::World()->selectCell('SELECT `attributes` FROM spell_custom_attr WHERE `entry` = %i', $this->typeId))
-        {
-            if ($list)
-                $list[] = null;                             // add <hr> between lists
-
-            for ($j = 1; $j <= (1 << 31); $j <<= 1)
-            {
-                if (!($customAttr & $j))
-                    continue;
-
-                $listItem = Lang::spell('attributesCu', $j);
-                if (!$listItem && User::canSee(U_GROUP_STAFF))
-                    $listItem = '<span class="q0">Unknown CustomAttribute: '.Util::asHex($j).'</span>';
-                else if (!$listItem)
-                    continue;
-
-                $list[] = $this->fmtStaffTip($listItem, 'AttributesCu: '.Util::asHex($j));
-            }
-        }
-
         $this->attributes = $list;
     }
+
+    // aowow - custom start: TrinityCore's spell_custom_attr.attributes (SpellCustomAttributes) - a world DB (TDB)
+    // table, not part of Spell.dbc, so this is its own row rather than mixed into the DBC-sourced Flags row above
+    private function createCustomAttributesList() : void
+    {
+        if (!self::hasTable('spell_custom_attr'))
+            return;
+
+        $list       = [];
+        $customAttr = (int)DB::World()->selectCell('SELECT `attributes` FROM spell_custom_attr WHERE `entry` = %i', $this->typeId);
+        for ($j = 1; $j <= (1 << 31); $j <<= 1)
+        {
+            if (!($customAttr & $j))
+                continue;
+
+            $listItem = Lang::spell('attributesCu', $j);
+            if (!$listItem && User::canSee(U_GROUP_STAFF))
+                $listItem = '<span class="q0">Unknown CustomAttribute: '.Util::asHex($j).'</span>';
+            else if (!$listItem)
+                continue;
+
+            if ($crId = (SpellListFilter::$customAttrFilter[$j] ?? 0))
+                $listItem = sprintf('<a href="?spells&filter=cr=%2$d;crs=%3$d;crv=0">%1$s</a>', $listItem, abs($crId), $crId > 0 ? 1 : 2);
+
+            $list[] = $this->fmtStaffTip($listItem, 'CustomAttr: '.Util::asHex($j));
+        }
+
+        $this->customAttributes = $list;
+    }
+    // aowow - custom end
 
     private function createSpellSchool() : void
     {
@@ -2895,18 +2907,22 @@ class SpellBaseResponse extends TemplateResponse implements ICache
 
     private function effectMVStealthType(int $effIdOrAura, int $effMin, int $effMax, int $effMV, int $effMVB) : array
     {
-        if ($_ = Lang::spell('stealthType', $effMV))
-            $nameMV = $this->fmtStaffTip($_, 'MiscValue: '.$effMV);
+        // aowow - custom: the misc value is a free stealth "channel" that hider and detector have to share;
+        //                  unnamed values show as plain numbers and link to the spells using the same channel
+        $_ = Lang::exist('spell', 'stealthType', $effMV) ?? $effMV;
+        $nameMV = '<a href="?spells&filter=cr=29;crs='.(-$effIdOrAura).';crv='.$effMV.'">'.$this->fmtStaffTip((string)$_, 'MiscValue: '.$effMV).'</a>';
 
-        return [$nameMV ?? null, null, null, null];
+        return [$nameMV, null, null, null];
     }
 
     private function effectMVInvisType(int $effIdOrAura, int $effMin, int $effMax, int $effMV, int $effMVB) : array
     {
-        if ($_ = Lang::spell('invisibilityType', $effMV))
-            $nameMV = $this->fmtStaffTip($_, 'MiscValue: '.$effMV);
+        // aowow - custom: the misc value is a free invisibility "channel" that hider and detector have to share;
+        //                  unnamed values show as plain numbers and link to the spells using the same channel
+        $_ = Lang::exist('spell', 'invisibilityType', $effMV) ?? $effMV;
+        $nameMV = '<a href="?spells&filter=cr=29;crs='.(-$effIdOrAura).';crv='.$effMV.'">'.$this->fmtStaffTip((string)$_, 'MiscValue: '.$effMV).'</a>';
 
-        return [$nameMV ?? null, null, null, null];
+        return [$nameMV, null, null, null];
     }
 
     private function effectMVAuraState(int $effIdOrAura, int $effMin, int $effMax, int $effMV, int $effMVB) : array
@@ -2981,8 +2997,31 @@ class SpellBaseResponse extends TemplateResponse implements ICache
         // the value is the step into SkillTiers.dbc (Spell::EffectLearnSkill), but its always a multiple of 75, soo .. eh.?
         // temp || perm flat amount
         if ($effIdOrAura != -SPELL_AURA_MOD_SKILL && $effIdOrAura != - SPELL_AURA_MOD_SKILL_TALENT)
+        {
+            // aowow - custom start: name the tier by the rank of the spell of that skill this spell also teaches (e.g. "Grand Master"),
+            //                       and the max. skill that step sets, where the skill has a single tier row
+            $tierInfo = [];
+            for ($j = 1; $j <= 3; $j++)
+            {
+                if ($this->subject->getField('effect'.$j.'Id') != SPELL_EFFECT_LEARN_SPELL || !($learned = $this->subject->getField('effect'.$j.'TriggerSpell')))
+                    continue;
+
+                $ls = new SpellList(array(['id', $learned]));
+                if (!$ls->error && in_array($effMV, (array)$ls->getField('skillLines')) && ($r = $ls->getField('rank', true)))
+                {
+                    $tierInfo[] = $r;
+                    break;
+                }
+            }
+            if ($effMax >= 1 && $effMax <= 16 && ($maxSkill = DB::Aowow()->selectCell('SELECT st.%n FROM ::skillline sl JOIN ::skilltiers st ON st.`id` = sl.`skillTierId` WHERE sl.`id` = %i', 'value'.$effMax, $effMV)))
+                $tierInfo[] = sprintf(Lang::spell('_maxSkill'), $maxSkill);
+            if ($tierInfo)
+                return [$nameMV, null, null, [null, $effMax, null, implode(Lang::main('comma'), $tierInfo)]];
+            // aowow - custom end
+
             if ($tier = Lang::exist('skill', 'tiers', $effMax - 1))
                 $max = $this->fmtStaffTip(Lang::main('parensFmt', [$tier, $effMax * 75]), $effMax);
+        }
 
         return [$nameMV, null, null, [null, $max ?? $effMax, null, null]];
     }

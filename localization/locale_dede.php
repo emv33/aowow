@@ -1489,8 +1489,7 @@ $lang = array(
             2 => "strongest effect only",
             3 => "exclusive",
             4 => "exclusive, highest rank"
-        ),
-        'customAttr'    => "Custom attributes"
+        )
     ),
     'dataIntegrity' => array(
         'title'         => "Data integrity",
@@ -2336,6 +2335,7 @@ $lang = array(
         '_honorKills'   => "%d Ehrenhafte Siege",           // HONORABLE_KILLS
         '_honorPoints'  => "%d Ehre @ L%d",                 // HONOR
         '_interval'     => "Interval: ",
+        '_customAttr'   => "Custom attributes", // aowow - custom: spell_custom_attr (TDB), separate from the DBC Flags row
         '_inSlot'       => "im Platz: ",
         '_collapseAll'  => "Alle einklappen",
         '_expandAll'    => "Alle ausklappen",
@@ -2507,7 +2507,7 @@ $lang = array(
             "Inschriftenkunde",                     "Vom Fahrzeug öffnen"
         ),
         'stealthType'   => ["Allgemein", "Falle"],
-        'invisibilityType' => ["Allgemein", "UNK-1", "UNK-2", "Falle", "UNK-4", "UNK-5", "Trunkenheit", "UNK-7", "UNK-8", "UNK-9", "UNK-10", "UNK-11"],
+        'invisibilityType' => [0 => "Allgemein", 3 => "Falle", 6 => "Trunkenheit"],
         'summonControl' => ["Ungesteuert", "Wächter", "Begleiter", "Bezaubert", "Gesteuertes Fahrzeug", "Ungesteuertes Fahrzeug"],
         'summonSlot'    => ["Begleiter", "Feuertotem", "Erdtotem", "Wassertotem", "Lufttotem", "Haustier", "Quest"],
         'unkEffect'     => 'Unknown Effect (%1$d)',
@@ -2888,6 +2888,7 @@ $lang = array(
             SPELL_ATTR7_CAN_PROC_FROM_SUPPRESSED_TARGET_PROCS         => 'Kann von unterdrückten Ziel-Procs proccen',
             SPELL_ATTR7_CLIENT_INDICATOR                              => 'Zauber immer loggen',
         ),
+        // aowow - custom: TrinityCore's spell_custom_attr.attributes (SpellCustomAttributes); see includes/defines.php
         'attributesCu' => array(
             SPELL_ATTR0_CU_ENCHANT_PROC                   => 'Von Waffenverzauberung ausgelöst',
             SPELL_ATTR0_CU_CONE_BACK                      => 'Zielt in Kegel hinter dem Zaubernden',
@@ -2911,10 +2912,10 @@ $lang = array(
             SPELL_ATTR0_CU_NEEDS_AMMO_DATA                => 'Benötigt eine Fernkampfwaffe',
             SPELL_ATTR0_CU_BINARY_SPELL                   => 'Binärer Zauber (kann nicht teilweise Widerstehen)',
             SPELL_ATTR0_CU_SCHOOLMASK_NORMAL_WITH_MAGIC   => 'Magiewiderstand und Rüstung reduzieren Schaden',
-         // SPELL_ATTR0_CU_DEPRECATED_LIQUID_AURA         => 'Liquid Aura',
-         // SPELL_ATTR0_CU_IS_TALENT                      => 'Is a talent',
+            SPELL_ATTR0_CU_DEPRECATED_LIQUID_AURA         => 'Deprecated liquid aura (unused)',
+            SPELL_ATTR0_CU_IS_TALENT                      => 'Is a talent',
             SPELL_ATTR0_CU_AURA_CANNOT_BE_SAVED           => 'Aura schwindet beim Ausloggen',
-         // SPELL_ATTR0_CU_CAN_TARGET_ANY_PRIVATE_OBJECT  => 'Can target any private object'
+            SPELL_ATTR0_CU_CAN_TARGET_ANY_PRIVATE_OBJECT  => 'Can target any private object'
         )
     ),
     'item' => array(
