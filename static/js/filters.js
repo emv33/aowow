@@ -218,6 +218,7 @@ var fi_filters = {
         { id: 34,  name: 'usemodel',            type: 'str-small' },
         { id: 35,  name: 'useskin',             type: 'str' },
         { id: 106, name: 'visibilityrange',     type: 'visibilityrange-any' },
+        { id: 107, name: 'npcclass',            type: 'npcclass' },
         { id: 37,  name: 'id',                  type: 'num', before: 'name' },
 
         { id: 14,  name: 'seploot' },
