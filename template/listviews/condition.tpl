@@ -1,6 +1,33 @@
 Listview.templates.condition = {
-    sort: [1],
+    sort: [2],
     searchable: 1,
+    // a link to an entity the way its own listings show it: item / spell / ... icon in front,
+    // quests with the marker the game shows for them (yellow, or blue if repeatable)
+    appendLink: function(td, lookupName, id, entry, href, name) {
+        var a = $WH.ce('a');
+        a.href = href;
+        $WH.ae(a, $WH.ct(name));
+
+        if (lookupName == 'g_quests') {
+            a.className += ' icontiny tinyspecial';
+            a.style.backgroundImage = 'url(' + Icon.url(entry && (entry.daily || entry.weekly) ? 'quest_start_daily' : 'quest_start', null, true) + ')';
+        }
+        else {
+            // classes and races have no icon in their data, the client knows them by file name
+            var icon = entry && entry.icon;
+            if (lookupName == 'g_classes')
+                icon = 'class_' + g_file_classes[id];
+            else if (lookupName == 'g_races')
+                icon = 'race_' + g_file_races[id] + '_' + g_file_genders[0];
+
+            if (icon) {
+                $WH.ae(td, Icon.create(icon, 0, null, href, null, null, null, null, true));
+                $WH.ae(td, $WH.ct(' '));
+            }
+        }
+
+        $WH.ae(td, a);
+    },
 
     columns: [
         {
@@ -43,13 +70,8 @@ Listview.templates.condition = {
 
                     var name = (entry && entry[nameCol]) || inlineName;
 
-                    if (name) {
-                        var a = $WH.ce('a');
-                        a.className = 'q1';
-                        a.href = '?' + urlPart + '=' + id;
-                        $WH.ae(a, $WH.ct(name));
-                        $WH.ae(td, a);
-                    }
+                    if (name)
+                        Listview.templates.condition.appendLink(td, lookupName, id, entry, '?' + urlPart + '=' + id, name);
                     else
                         $WH.ae(td, $WH.ct('#' + id));
 
@@ -65,7 +87,23 @@ Listview.templates.condition = {
                 }
             },
             getVisibleText: function(cnd) {
-                return cnd.group + ' ' + cnd.entry + ' ' + cnd.srcid;
+                // inline search matches against this, so it has to carry the names the cell displays
+                var nameCol = 'name_' + Locale.getName(),
+                    parts   = [];
+
+                var resolve = function(lookupName, id, inlineName) {
+                    var lookup = lookupName ? window[lookupName] : null,
+                        entry  = lookup && id ? lookup[id] : null,
+                        name   = (entry && entry[nameCol]) || inlineName;
+
+                    if (name)
+                        parts.push(name);
+                };
+
+                resolve(cnd.grouplookup, cnd.group, cnd.groupname);
+                resolve(cnd.entrylookup, cnd.entry, cnd.entryname);
+
+                return parts.join(' ') + ' ' + cnd.group + ' ' + cnd.entry + ' ' + cnd.srcid;
             },
             sortFunc: function(a, b, col) {
                 return (a.group - b.group) || (a.entry - b.entry);
@@ -74,9 +112,73 @@ Listview.templates.condition = {
         {
             id: 'nconditions',
             name: LANG.ficondition.count,
-            type: 'num',
-            width: '10%',
-            value: 'nconditions'
+            type: 'text',
+            width: '28%',
+            align: 'left',
+            compute: function(cnd, td) {
+                var nameCol = 'name_' + Locale.getName();
+
+                // the entities the conditions refer to; a source that names none shows how many it has
+                if (!cnd.targets || !cnd.targets.length) {
+                    $WH.ae(td, $WH.ct(cnd.ncondtext));
+                    return;
+                }
+
+                var targets = g_condition_sources[cnd.srctype] ? g_condition_sources[cnd.srctype][0] : [];
+
+                for (var i = 0; i < cnd.targets.length; i++) {
+                    var t = cnd.targets[i];
+
+                    if (i)
+                        $WH.ae(td, $WH.ct(LANG.comma));
+
+                    if (t.t) {                                  // plain text (player level, target health)
+                        $WH.ae(td, $WH.ct(t.t));
+                        continue;
+                    }
+
+                    if (t.c) {                                  // a condition, worded like the detail page does
+                        var span = $WH.ce('span');
+                        Markup.printHtml(ConditionList.parseEntry(t.c, targets, t.g), span);
+                        $WH.ae(td, span);
+                        continue;
+                    }
+
+                    var lookup = window[t.l],
+                        entry  = lookup && lookup[t.i];
+
+                    Listview.templates.condition.appendLink(td, t.l, t.i, entry, '?' + t.u + '=' + t.i, (entry && entry[nameCol]) || ('#' + t.i));
+
+                    // the rank a skill is needed at, or the standings of a faction
+                    var note = t.l == 'g_factions' ? ConditionList.standings(t.n) : t.n;
+                    if (note)
+                        $WH.ae(td, $WH.ct(' (' + note + ')'));
+                }
+
+                if (cnd.moretargets)
+                    $WH.ae(td, $WH.ct(' ' + cnd.moretargets));
+            },
+            getVisibleText: function(cnd) {
+                var nameCol = 'name_' + Locale.getName(),
+                    parts   = [];
+
+                (cnd.targets || []).forEach(function(t) {
+                    var lookup = t.l ? window[t.l] : null,
+                        entry  = lookup && lookup[t.i];
+
+                    if (t.t)
+                        parts.push(t.t);
+                    else if (t.c)
+                        parts.push(Markup.removeTags(ConditionList.parseEntry(t.c, [], t.g)));
+                    else if (entry && entry[nameCol])
+                        parts.push(entry[nameCol]);
+                });
+
+                return parts.join(' ');
+            },
+            sortFunc: function(a, b, col) {
+                return a.nconditions - b.nconditions;
+            }
         },
         {
             id: 'cndtypes',

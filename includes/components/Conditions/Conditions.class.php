@@ -25,6 +25,7 @@ class Conditions
     public const int OP_LT   = 2;                           // <
     public const int OP_GT_E = 3;                           // >=
     public const int OP_LT_E = 4;                           // <=
+    public const int OP_NE   = 5;                           // != - only ever the negation of OP_E
                                                             // Group,      Entry,     Id
     public const int SRC_NONE                        = 0;   // null,       null,      null - use when adding external conditions
     public const int SRC_CREATURE_LOOT_TEMPLATE      = 1;   // tplEntry,   itemId,    null
@@ -263,7 +264,7 @@ class Conditions
      * @param  array $opts  srcType: int[], cndType: int, value1: int, entry: int, limit: int (0 = uncapped)
      * @return array        list of [srcType, group, entry, srcId, nConditions, cndTypes[]]
      */
-    public static function browse(array $opts = []) : array
+    public static function browse(array $opts = [], ?array &$jsGlobals = null) : array
     {
         $where = [];
 
@@ -294,30 +295,120 @@ class Conditions
 
         // listings in this fork are uncapped by default - see Listview::DEFAULT_SIZE
         $limit = intVal($opts['limit'] ?? 0);
-        $limit = $limit > 0 && $limit < PHP_INT_MAX ? ' LIMIT '.$limit : '';
+        $limit = $limit > 0 && $limit < PHP_INT_MAX ? $limit : 0;
 
         $rows = DB::World()->selectAssoc(
            'SELECT   c.`SourceTypeOrReferenceId` AS "srcType", c.`SourceGroup` AS "group", c.`SourceEntry` AS "entry", c.`SourceId` AS "srcId",
-                     COUNT(1) AS "nConditions", GROUP_CONCAT(DISTINCT ABS(c.`ConditionTypeOrReference`)) AS "cndTypes"
+                     c.`ElseGroup`, c.`ConditionTypeOrReference`, c.`ConditionTarget`, c.`ConditionValue1`, c.`ConditionValue2`, c.`ConditionValue3`, c.`ConditionStringValue1`, c.`NegativeCondition`
             FROM     conditions c
             WHERE    %and
-            GROUP BY c.`SourceTypeOrReferenceId`, c.`SourceGroup`, c.`SourceEntry`, c.`SourceId`
-            ORDER BY c.`SourceTypeOrReferenceId`, c.`SourceGroup`, c.`SourceEntry`, c.`SourceId` ASC'.$limit,
+            ORDER BY c.`SourceTypeOrReferenceId`, c.`SourceGroup`, c.`SourceEntry`, c.`SourceId` ASC',
             $where
         ) ?: [];
 
-        $out = [];
+        $sources = [];
         foreach ($rows as $r)
+            $sources[implode(':', [$r['srcType'], $r['group'], $r['entry'], $r['srcId']])][] = $r;
+
+        $prep = new self();                                 // prepares the conditions that are shown as text, collecting what they refer to
+
+        $out = [];
+        foreach ($sources as $conditions)
+        {
+            $first = $conditions[0];
+            $names = self::listingTargets($conditions, $prep);
+
             $out[] = array(
-                'srcType'     => (int)$r['srcType'],
-                'group'       => (int)$r['group'],
-                'entry'       => (int)$r['entry'],
-                'srcId'       => (int)$r['srcId'],
-                'nConditions' => (int)$r['nConditions'],
-                'cndTypes'    => array_map('intVal', explode(',', (string)$r['cndTypes']))
+                'srcType'     => (int)$first['srcType'],
+                'group'       => (int)$first['group'],
+                'entry'       => (int)$first['entry'],
+                'srcId'       => (int)$first['srcId'],
+                'nConditions' => count($conditions),
+                'cndTypes'    => array_values(array_unique(array_map(fn($c) => abs((int)$c['ConditionTypeOrReference']), $conditions))),
+                'nTargets'    => count($names),
+                'targets'     => array_slice($names, 0, 3)
             );
 
+            if ($limit && count($out) >= $limit)
+                break;
+        }
+
+        $jsGlobals = $prep->getJSGlobals();
+
         return $out;
+    }
+
+    /**
+     * what the ?conditions listing names for one source instead of just counting its conditions
+     * every condition has to name something - an entity to link, a value to print or, failing that, its
+     * text as the detail page words it. How they combine (and / or) is for the detail page to show,
+     * the list here is plain and deduplicated
+     *
+     * @param  array[] $conditions  rows of one source
+     * @return array                [Type::, id, note] for an entity, [kind, value, comparator] for plain text, ['cnd', condition, target] for a condition shown as text
+     */
+    private static function listingTargets(array $conditions, self $prep) : array
+    {
+        $out = [];
+        foreach ($conditions as $c)
+        {
+            if (!($names = self::conditionTargets($c, $prep)))
+                return [];
+
+            foreach ($names as $n)
+                $out[json_encode($n)] = $n;
+        }
+
+        return array_values($out);
+    }
+
+    /** the entities / values a single condition names; none, if it names nothing the listing can show */
+    private static function conditionTargets(array $c, self $prep) : array
+    {
+        $type = (int)$c['ConditionTypeOrReference'];        // negative: reference to a condition template
+        $val1 = (int)$c['ConditionValue1'];
+        $val2 = (int)$c['ConditionValue2'];
+
+        // a negated comparison reads as the opposite comparison
+        $cmp = $c['NegativeCondition'] ? [self::OP_E => self::OP_NE, self::OP_GT => self::OP_LT_E, self::OP_LT => self::OP_GT_E, self::OP_GT_E => self::OP_LT, self::OP_LT_E => self::OP_GT][$val2] ?? -1 : $val2;
+
+        switch ($type)
+        {
+            case self::LEVEL:
+                return [['level', $val1, $cmp]];
+            case self::HP_PCT:
+                return [['health%', $val1, $cmp]];
+            case self::HP_VAL:
+                return [['health', $val1, $cmp]];
+            case self::OBJECT_ENTRY_GUID:                   // the object type is in Value1, its entry in Value2
+                if ($val2 > 0 && $val1 == self::TYPEID_UNIT)
+                    return [[Type::NPC, $val2, 0]];
+                if ($val2 > 0 && $val1 == self::TYPEID_GAMEOBJECT)
+                    return [[Type::OBJECT, $val2, 0]];
+                break;                                      // a player, a corpse or any of its kind: text
+            case self::CHR_CLASS:                           // masks name every class / race they contain
+                if ($_ = Util::mask2bits($val1 & ChrClass::MASK_ALL, 1))
+                    return array_map(fn($id) => [Type::CHR_CLASS, $id, 0], $_);
+                break;
+            case self::CHR_RACE:
+                if ($_ = Util::mask2bits($val1 & ChrRace::MASK_ALL, 1))
+                    return array_map(fn($id) => [Type::CHR_RACE, $id, 0], $_);
+                break;
+        }
+
+        if ($type <= 0 || !isset(self::$conditions[$type]))
+            return [];
+
+        // an entity of a type with a page of its own: a link
+        $valType = self::$conditions[$type][self::IDX_CND_VAL1];
+        $negatedStanding = $type == self::REPUTATION_RANK && $c['NegativeCondition'];    // "is not honored" is better told in words
+        if (is_int($valType) && $valType > 0 && $val1 > 0 && !$negatedStanding && Type::getJSGlobalString($valType))
+            return [[$valType, $val1, in_array($type, [self::SKILL, self::REPUTATION_RANK], true) ? $val2 : 0]];   // a skill comes with the rank it needs, a faction with the standings (mask)
+
+        // anything else is worded the way the detail page words it
+        $cnd = $prep->prepareCondition($c['NegativeCondition'] ? -$type : $type, $val1, $val2, (int)$c['ConditionValue3'], (string)$c['ConditionStringValue1']);
+
+        return $cnd ? [['cnd', $cnd, (int)$c['ConditionTarget']]] : [];
     }
 
     public function getBySource(int|array $type, null|int|array $group = null, null|int|array $entry = null, null|int|array $id = null) : self

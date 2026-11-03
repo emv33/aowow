@@ -36,6 +36,37 @@ class ConditionsBaseResponse extends TemplateResponse implements ICache
     );
 
 
+    private const int SRC_OTHER = PHP_INT_MIN;
+
+    // the listview id doubles as the tab's #anchor; named after the label rather than the source id
+    private const array TAB_IDS = array(
+        Conditions::SRC_CREATURE_LOOT_TEMPLATE      => 'creature-loot',
+        Conditions::SRC_DISENCHANT_LOOT_TEMPLATE    => 'disenchant-loot',
+        Conditions::SRC_FISHING_LOOT_TEMPLATE       => 'fishing-loot',
+        Conditions::SRC_GAMEOBJECT_LOOT_TEMPLATE    => 'object-loot',
+        Conditions::SRC_ITEM_LOOT_TEMPLATE          => 'item-loot',
+        Conditions::SRC_MAIL_LOOT_TEMPLATE          => 'mail-loot',
+        Conditions::SRC_MILLING_LOOT_TEMPLATE       => 'milling-loot',
+        Conditions::SRC_PICKPOCKETING_LOOT_TEMPLATE => 'pickpocket-loot',
+        Conditions::SRC_PROSPECTING_LOOT_TEMPLATE   => 'prospecting-loot',
+        Conditions::SRC_REFERENCE_LOOT_TEMPLATE     => 'reference-loot',
+        Conditions::SRC_SKINNING_LOOT_TEMPLATE      => 'skinning-loot',
+        Conditions::SRC_SPELL_LOOT_TEMPLATE         => 'spell-loot',
+        Conditions::SRC_SPELL_IMPLICIT_TARGET       => 'spell-implicit-target',
+        Conditions::SRC_GOSSIP_MENU                 => 'gossip-menu',
+        Conditions::SRC_GOSSIP_MENU_OPTION          => 'gossip-menu-option',
+        Conditions::SRC_CREATURE_TEMPLATE_VEHICLE   => 'vehicle',
+        Conditions::SRC_SPELL                       => 'spell',
+        Conditions::SRC_SPELL_CLICK_EVENT           => 'spell-click-event',
+        Conditions::SRC_QUEST_AVAILABLE             => 'quest-available',
+        Conditions::SRC_QUEST_SHOW_MARK             => 'quest-marker',
+        Conditions::SRC_VEHICLE_SPELL               => 'vehicle-spell',
+        Conditions::SRC_SMART_EVENT                 => 'smartai-event',
+        Conditions::SRC_NPC_VENDOR                  => 'vendor',
+        Conditions::SRC_SPELL_PROC                  => 'spell-proc',
+        Conditions::SRC_AREATRIGGER_CLIENT          => 'areatrigger'
+    );
+
     public array $srcTypeList = [];                         // for the form in the template
     public array $cndTypeList = [];
     public array $formValues  = [];
@@ -91,18 +122,30 @@ class ConditionsBaseResponse extends TemplateResponse implements ICache
 
         $this->pageTemplate['filter'] = array_filter($this->formValues) ? 1 : 0;
 
-        $rows = Conditions::browse(array(
-            'srcType' => $this->formValues['src'] ? [$this->formValues['src']] : [],
-            'cndType' => $this->formValues['cnd'],
-            'value1'  => $this->formValues['val'],
-            'entry'   => $this->formValues['ent'],
-            'limit'   => Listview::DEFAULT_SIZE
-        ));
-
-        $tabData = ['data' => $this->buildListviewData($rows)];
+        // one tab per known source type; types without a hit get no tab, but the page keeps one
+        // (empty) so the listview's own "no results" state still shows. Anything the browser has
+        // no label for (references with a negative id, ...) is collected in a trailing "Other" tab
+        $bySrc = [];
+        foreach ($rows as $r)
+            $bySrc[isset(self::TAB_IDS[$r['srcType']]) ? $r['srcType'] : self::SRC_OTHER][] = $r;
 
         $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"]);
-        $this->lvTabs->addListviewTab(new Listview($tabData, 'condition', 'condition'));
+        $first = true;
+        foreach (self::TAB_IDS + [self::SRC_OTHER => 'other'] as $src => $anchor)
+        {
+            if (!$bySrc && $src != array_key_first(self::TAB_IDS))
+                continue;
+            if ($bySrc && empty($bySrc[$src]))
+                continue;
+
+            $this->lvTabs->addListviewTab(new Listview(array(
+                'id'         => $anchor,
+                'name'       => $src == self::SRC_OTHER ? Lang::item('tabOther') : $this->srcTypeList[$src],
+                'data'       => $this->buildListviewData($bySrc[$src] ?? []),
+                'hiddenCols' => $src == self::SRC_OTHER ? [] : ['srctype']   // the tab says it already, unless it mixes types
+            ), 'condition', $first ? 'condition' : ''));    // the template only needs defining once
+            $first = false;
+        }
 
         parent::generate();
     }
@@ -247,6 +290,27 @@ class ConditionsBaseResponse extends TemplateResponse implements ICache
                 $row['groupname'] = (string)Lang::gossip('menu', [$r['group']]);
                 $row['groupurl']  = Type::getFileString(Type::GOSSIP);
             }
+
+            // what the conditions themselves name; if some name nothing, just their count
+            foreach ($r['targets'] as [$tType, $tId, $tNote])
+                if ($tType == 'cnd')                        // worded like the detail page does, $tId is the prepared condition
+                    $row['targets'][] = ['c' => $tId, 'g' => $tNote];
+                else if (is_string($tType))                 // plain text, there is nothing to link to
+                {
+                    $op    = [Conditions::OP_E => '', Conditions::OP_GT => '>', Conditions::OP_LT => '<', Conditions::OP_GT_E => "\u{2265}", Conditions::OP_LT_E => "\u{2264}", Conditions::OP_NE => "\u{2260}"][$tNote] ?? '';
+                    $label = $tType == 'level' ? Lang::game('level') : Lang::spell('powerTypes', -2);
+                    $row['targets'][] = ['t' => trim($label.' '.$op.' '.$tId.($tType == 'health%' ? '%' : ''))];
+                }
+                else
+                {
+                    $row['targets'][] = ['l' => Type::getJSGlobalString($tType), 'u' => Type::getFileString($tType), 'i' => $tId, 'n' => $tNote];
+                    $jsg[$tType][$tId] = $tId;
+                }
+
+            if (!$r['targets'])
+                $row['ncondtext'] = Lang::condition($r['nConditions'] == 1 ? 'oneCondition' : 'nConditions', [$r['nConditions']]);
+            else if ($r['nTargets'] > count($r['targets']))
+                $row['moretargets'] = Lang::condition('andMore', [$r['nTargets'] - count($r['targets'])]);
 
             $data[] = $row;
         }

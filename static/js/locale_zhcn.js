@@ -2596,7 +2596,7 @@ var g_conditions = {
     30: 'The target is$N: not; within $2yd of [object=$1]',
     31: 'The entity is$N: not; $C$2: a; $1$C$3 (GUID $3):;',
     32: 'The entity is$N: not; a $1',
-    33: '$1 $2',
+    33: 'The $1 $2',
     34: 'The unit is$N: not; $2 to $1',
     35: 'The distance between unit and $1 is$N: not; $3 $2yd',
     36: 'The unit is$N: not; alive',
@@ -5524,6 +5524,8 @@ var LANG = {
     tab_condition_for: '[Condition for]',
     cnd_either:        '[Either]',
     cnd_or:            '[Or]',
+    cnd_or_higher:     '[$1 or higher]',
+    cnd_or_lower:      '[$1 or lower]',
 
     // Guide
     myguides:          '我的指南',
