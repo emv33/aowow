@@ -284,6 +284,28 @@ Cfg::load();
 
 if (!CLI)
 {
+    // aowow - custom: expose the deployed commit as a response header, so a deploy can be verified with `curl -I`
+    if ($rev = (function() : string
+    {
+        $git = __DIR__.'/../.git';
+        $ref = trim(@file_get_contents($git.'/HEAD') ?: '');
+        if (str_starts_with($ref, 'ref: '))                 // branch checked out: resolve loose ref, then packed-refs
+        {
+            $ref = substr($ref, 5);
+            if ($sha = trim(@file_get_contents($git.'/'.$ref) ?: ''))
+                return $sha;
+
+            foreach (explode("\n", @file_get_contents($git.'/packed-refs') ?: '') as $l)
+                if (str_ends_with($l, ' '.$ref))
+                    return substr($l, 0, 40);
+
+            return '';
+        }
+
+        return $ref;                                        // detached HEAD: already a sha
+    })())
+        header('X-Aowow-Rev: '.substr($rev, 0, 8));
+
     // not displaying the brb gnomes as static_host is missing, but eh...
     if (!DB::isConnected(DB_AOWOW) || !DB::isConnected(DB_WORLD) || !Cfg::get('HOST_URL') || !Cfg::get('STATIC_URL'))
         (new TemplateResponse())->generateMaintenance();
