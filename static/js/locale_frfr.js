@@ -4940,6 +4940,13 @@ var LANG = {
     waypointpath_sourcedefault: "Default",
     waypointpath_sourcesmartai: "SmartAI",
     waypointpath_npc: "NPC",
+    fisummongroup: {
+        summoner:   "Summoner",
+        group:      "Group",
+        members:    "Members",
+        summonType: "Summon type",
+        summonTime: "Summon time"
+    },
     // end aowow custom
 
     pr_notice:     'Première fois? Ne soyez pas gêné! Visitez notre <a href="?help=profiler" target="_blank">page d\'aide</a>! &nbsp; <small class="q0"><a href="javascript:;">close</a></small>',

@@ -72,6 +72,7 @@ class Lang
     private static array $poi;
     private static array $factionchange;
     private static array $spellfocus;
+    private static array $summongroup;
     private static array $rawRow;
     private static array $dataIntegrity;
 
