@@ -70,6 +70,8 @@ class AchievementsBaseResponse extends TemplateResponse implements ICache
         $this->h1 = Util::ucFirst(Lang::game('achievements'));
 
         $conditions = [Listview::DEFAULT_SIZE];
+        if (!User::canSee(U_GROUP_EMPLOYEE))
+            $conditions[] = [['cuFlags', CUSTOM_EXCLUDE_FOR_LISTVIEW, '&'], 0];
 
         // include child categories if current category is empty
         if ($this->category)

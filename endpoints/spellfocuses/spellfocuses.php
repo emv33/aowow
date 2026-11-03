@@ -21,6 +21,7 @@ class SpellfocusesBaseResponse extends TemplateResponse implements ICache
 
     protected  int    $type              = -5;    // no Type:: entry - no DBTypeList backs this ad hoc table read; shared sentinel with SpellfocusBaseResponse
     protected  int    $cacheType         = CACHE_TYPE_LIST_PAGE;
+    protected  int    $requiredViewGroup = U_GROUP_STAFF;
 
     protected  string $template          = 'spellfocuses';
     protected  string $pageName          = 'spellfocuses';

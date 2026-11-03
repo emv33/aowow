@@ -1128,7 +1128,7 @@ class ItemList extends DBTypeList
                 else
                 {
                     ([$text, , $scaling] = $itemSpells->parseText('description', $_reqLvl > 1 ? $_reqLvl : MAX_LEVEL));
-                    if (!$text && !in_array($sId, LEARN_SPELLS))     // aowow - custom: ungated (upstream: employees only)
+                    if (!$text && !in_array($sId, LEARN_SPELLS) && User::canSee(U_GROUP_EMPLOYEE))
                         $text = '<span style="opacity:.75">&lt;'.$itemSpells->getField('name', true, true).'&gt;</span>';
 
                     if ($itemSpells->getField('effect1Id') == SPELL_EFFECT_LEARN_SPELL)
@@ -1657,7 +1657,12 @@ class ItemList extends DBTypeList
 
         // unknown rating
         if (!$statId)
-            return Lang::item('statType', count(Lang::item('statType')) - 1, [$itemMod, $qty]);
+        {
+            if (User::canSee(U_GROUP_EMPLOYEE))
+                return Lang::item('statType', count(Lang::item('statType')) - 1, [$itemMod, $qty]);
+            else
+                return '';
+        }
 
         // level independent Bonus
         if (Stat::isLevelIndependent($statId))

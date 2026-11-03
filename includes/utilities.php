@@ -90,7 +90,7 @@ abstract class Util
         $severity = LOG_LEVEL_INFO;
         foreach (self::$notes as $k => [$note, $uGroup, $level])
         {
-            if ($uGroup && !User::isInGroup($uGroup))
+            if ($uGroup && !User::canSee($uGroup))
                 continue;
 
             if ($level < $severity)
@@ -219,7 +219,7 @@ abstract class Util
     public static function localizedString(array $data, string $field, bool $silent = false) : string
     {
         // only display placeholder markers for staff
-        if (!User::isInGroup(U_GROUP_EMPLOYEE | U_GROUP_TESTER | U_GROUP_LOCALIZER))
+        if (!User::canSee(U_GROUP_EMPLOYEE | U_GROUP_TESTER | U_GROUP_LOCALIZER))
             $silent = true;
 
         // default case: selected locale available

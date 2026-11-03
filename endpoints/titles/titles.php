@@ -45,6 +45,9 @@ class TitlesBaseResponse extends TemplateResponse implements ICache
 
         $conditions = [Listview::DEFAULT_SIZE];
 
+        if (!User::canSee(U_GROUP_EMPLOYEE))             // hide unused titles
+            $conditions[] = [['cuFlags', CUSTOM_EXCLUDE_FOR_LISTVIEW, '&'], 0];
+
         if ($this->category)
             $conditions[] = ['category', $this->category[0]];
 

@@ -57,6 +57,9 @@ class CurrenciesBaseResponse extends TemplateResponse implements ICache
 
         $conditions = [];
 
+        if (!User::canSee(U_GROUP_EMPLOYEE))
+            $conditions[] = [['cuFlags', CUSTOM_EXCLUDE_FOR_LISTVIEW, '&'], 0];
+
         if ($this->category)
             $conditions[] = ['category', $this->category[0]];
 

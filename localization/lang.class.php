@@ -290,7 +290,7 @@ class Lang
         if ($cuFlags & CUSTOM_UNAVAILABLE)
             $tmp[] = self::main('unavailable');
 
-        if ($cuFlags & CUSTOM_EXCLUDE_FOR_LISTVIEW && User::isInGroup(U_GROUP_STAFF))
+        if ($cuFlags & CUSTOM_EXCLUDE_FOR_LISTVIEW && User::canSee(U_GROUP_STAFF))
             $tmp[] = '[tooltip name=excludedHint]This entry is excluded from lists and is not searchable.[/tooltip][span tooltip=excludedHint class="tip q10"]Hidden[/span]';
 
         return $tmp;
@@ -425,7 +425,9 @@ class Lang
                     break;
             }
 
-            // aowow - custom: list every lock alternative (upstream: returns after the first one for non-staff)
+            // return first result for regular users
+            if (!User::canSee(U_GROUP_STAFF) && $locks)
+                return $locks;
         }
 
         return $locks;

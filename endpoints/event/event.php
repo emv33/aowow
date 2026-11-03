@@ -93,7 +93,8 @@ class EventBaseResponse extends TemplateResponse implements ICache
         // id
         $infobox[] = Lang::event('id') . $this->typeId;
 
-        if ($_holidayId)
+        // display holiday id to staff
+        if ($_holidayId && User::canSee(U_GROUP_STAFF))
             $infobox[] = 'Holiday ID'.Lang::main('colon').$_holidayId;
 
         // icon
@@ -442,6 +443,10 @@ class EventBaseResponse extends TemplateResponse implements ICache
      */
     private function buildEventProgress() : void
     {
+        // staff gated like the other world DB blocks - the world state ids are core internals
+        if (!User::canSee(U_GROUP_STAFF))
+            return;
+
         $rows = [];
 
         if (self::hasTable('game_event_condition'))

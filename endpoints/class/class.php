@@ -165,7 +165,7 @@ class ClassBaseResponse extends TemplateResponse implements ICache
         //     '$LANG.tab_talents',
         $conditions = array(
             ['s.typeCat', [-13, -11, -2, 7]],
-            [['s.cuFlags', SPELL_CU_TRIGGERED, '&'], 0],
+            [['s.cuFlags', (SPELL_CU_TRIGGERED | (Cfg::get('PUBLIC_ACCESS') ? 0 : CUSTOM_EXCLUDE_FOR_LISTVIEW)), '&'], 0],
             [
                 DB::OR,
                 // Glyphs, Proficiencies
@@ -238,7 +238,8 @@ class ClassBaseResponse extends TemplateResponse implements ICache
         // tab: items (grouped)
         $conditions = array(
             ['requiredClass', $cl->toMask(), '&'],
-            ['itemset', 0]
+            ['itemset', 0],
+            [['cuFlags', Cfg::get('PUBLIC_ACCESS') ? 0 : CUSTOM_EXCLUDE_FOR_LISTVIEW, '&'], 0]
         );
 
         $items = new ItemList($conditions);
@@ -280,7 +281,8 @@ class ClassBaseResponse extends TemplateResponse implements ICache
         // tab: quests
         $conditions = array(
             ['reqClassMask', $cl->toMask(), '&'],
-            [['reqClassMask', ChrClass::MASK_ALL, '&'], ChrClass::MASK_ALL, '!']
+            [['reqClassMask', ChrClass::MASK_ALL, '&'], ChrClass::MASK_ALL, '!'],
+            [['cuFlags', Cfg::get('PUBLIC_ACCESS') ? 0 : CUSTOM_EXCLUDE_FOR_LISTVIEW, '&'], 0]
         );
 
         $quests = new QuestList($conditions);

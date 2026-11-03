@@ -413,6 +413,14 @@ class User
         return $group == U_GROUP_NONE || (self::$groups & $group) != U_GROUP_NONE;
     }
 
+    // aowow - custom start: data gates; PUBLIC_ACCESS shows every visitor what upstream keeps to $group
+    // gates on actions (editing, moderation, admin pages) keep using isInGroup()
+    public static function canSee(int $group) : bool
+    {
+        return Cfg::get('PUBLIC_ACCESS') || self::isInGroup($group);
+    }
+    // aowow - custom end
+
     public static function canComment() : bool
     {
         if (!self::isLoggedIn() || self::isBanned(ACC_BAN_COMMENT))
@@ -548,6 +556,9 @@ class User
             'permissions' => self::$perms,
             'cookies'     => []
         );
+
+        if (Cfg::get('PUBLIC_ACCESS'))                      // aowow - custom
+            $gUser['publicAccess'] = 1;
 
         if (!self::isLoggedIn() || self::isBanned())
             return $gUser;

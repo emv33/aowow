@@ -20,7 +20,8 @@ function Listview(opt)
     else
         return;
 
-    this.debug = true;   // aowow - custom: id column always shown, no debug gate (upstream: if (g_user.debug))
+    if (g_user.debug || g_user.publicAccess)                // aowow - custom: publicAccess
+        this.debug = true;
 
     if (this.template && Listview.templates[this.template])
         this.template = Listview.templates[this.template];

@@ -2943,8 +2943,7 @@ class SpellListFilter extends Filter
 
     protected function cbCustomAttr(int $cr, int $crs, string $crv) : ?array
     {
-        // if (!User::isInGroup(U_GROUP_EMPLOYEE) || $crs < 1 || $crs > 32)
-        if ($crs < 1 || $crs > 32)                          // aowow - custom: no staff gate (upstream: U_GROUP_EMPLOYEE check)
+        if (!User::canSee(U_GROUP_EMPLOYEE) || $crs < 1 || $crs > 32)
             return null;
 
         if (!($ids = DB::World()->selectCol('SELECT `entry` FROM spell_custom_attr WHERE `attributes` & %i', (1 << ($crs - 1)))))

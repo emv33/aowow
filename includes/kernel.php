@@ -247,7 +247,7 @@ register_shutdown_function(function() : void
 
         if (CLI)
             fwrite(STDERR, "\nFatal Error - ".$e['message'].' @ '.$e['file']. ':'.$e['line']."\n\n");
-        else if (User::isInGroup(U_GROUP_EMPLOYEE))
+        else if (User::canSee(U_GROUP_EMPLOYEE))
             echo "\nFatal Error - ".$e['message'].' @ '.$e['file']. ':'.$e['line']."\n\n";
     }
 });

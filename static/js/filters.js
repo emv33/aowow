@@ -939,6 +939,9 @@ function fi_Lookup(value, type) {
         c = {};
 
         for (var i = 0, len = fi_filters[type].length; i < len; ++i) {
+            if(!(g_user.roles & U_GROUP_EMPLOYEE) && !g_user.publicAccess && fi_filters[type][i].staffonly)    // aowow - custom: publicAccess
+                continue;
+
             var f = fi_filters[type][i];
 
             c[f.id]   = f;
@@ -1754,6 +1757,10 @@ function fi_initCriterion(_this, sname, type) {
     var langref = LANG['fi' + type];
 
     for (var i = 0, len = fi_filters[type].length; i < len; ++i) {
+        if (!(g_user.roles & U_GROUP_EMPLOYEE) && !g_user.publicAccess && fi_filters[type][i].staffonly) {    // aowow - custom: publicAccess
+            continue;
+        }
+
         var p = fi_filters[type][i];
 
         if (!p.type) {

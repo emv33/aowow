@@ -107,7 +107,7 @@ class LootByContainer extends Loot
                 'groupChance'   => 0
             );
 
-            $where = [['(`cuFlags` & %i) = 0', CUSTOM_UNAVAILABLE], [DB::OR, []]];
+            $where = [['(`cuFlags` & %i) = 0', Cfg::get('PUBLIC_ACCESS') ? CUSTOM_UNAVAILABLE : CUSTOM_EXCLUDE_FOR_LISTVIEW | CUSTOM_UNAVAILABLE], [DB::OR, []]];
             for ($i = 1; $i < 5; $i++)
                 $where[1][1][] = ["`reqSourceItemId$i` = %i", $entry['Item']];
             for ($i = 1; $i < 7; $i++)
@@ -274,13 +274,37 @@ class LootByContainer extends Loot
                         if ($base['count'] < 100 && $items->getEntry($loot['content'])['moreMask'] & SRC_FLAG_COMMON)
                             $extra['commondrop'] = 1;
 
-                        // separate loot rows per difficulty mode
-                        $this->results[] = array_merge($itemRow, $base, $extra);
+                        // staff or unmergable - separate loot rows
+                        if (User::canSee(U_GROUP_EMPLOYEE) || is_null($k = array_find_key($this->results, fn($x) => $x['id'] == $loot['content'] && ($x['condition'] ?? '') == $loot['condition'])))
+                            $this->results[] = array_merge($itemRow, $base, $extra);
+                        // merge w/o difficulty modes
+                        else
+                        {
+                            $row = &$this->results[$k];
+                            if (!is_int(strpos($row['group'], $loot['group'])))
+                                $row['group'] .= ', '.$loot['group'];
+
+                            // move excessive % to extra loot
+                            if ($row['count'] + $base['count'] == 20000)
+                            {
+                                $row['stack'][0]++;
+                                $row['stack'][1]++;
+                                $row['count'] = 10000;
+                            }
+                            else if (($row['count'] += ($base['count'] + ($row['fraction'] ?? 0))) > 10000)
+                            {
+                                $row['stack'][1] += intval($row['count'] / 10000);
+                                $row['fraction']  = $row['count'] % 10000;
+                                $row['count']     = 10000;
+                            }
+
+                            unset($row);
+                        }
                     }
                     else
                         trigger_error('Item #'.$loot['content'].' referenced by loot does not exist!', E_USER_WARNING);
                 }
-                else // create dummy for ref-drop
+                else if (User::canSee(U_GROUP_EMPLOYEE)) // create dummy for ref-drop
                 {
                     $data = array(
                         'id'         => $loot['reference'],
@@ -296,6 +320,7 @@ class LootByContainer extends Loot
             }
         }
 
+        if (User::canSee(U_GROUP_EMPLOYEE))
         {
             $fields = [['mode', 'Dyn. Mode'], ['reference', 'Reference']];
             $base   = [];

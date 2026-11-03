@@ -732,7 +732,7 @@ var Menu = new function()
     {
         var opt = self.getItemOpt(menuItem);
 
-        if(opt.requiredAccess && !User.hasPermissions(opt.requiredAccess))
+        if(opt.requiredAccess && !g_user.publicAccess && !User.hasPermissions(opt.requiredAccess))  // aowow - custom: publicAccess
             return false;
 
         return true;

@@ -142,7 +142,7 @@ class ItemBaseResponse extends TemplateResponse implements ICache
             // stats should also be merged if only the keys are the same, resulting in "+(8 - 9) Spirit" etc.
             // but since we are linking to enchantments, which WH does not, we wont do the merge
 
-            if (!User::isInGroup(U_GROUP_EMPLOYEE))
+            if (!User::canSee(U_GROUP_EMPLOYEE))
             {
                 for ($i = 1; $i < count($this->subItems['data']); $i++)
                 {

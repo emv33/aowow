@@ -550,7 +550,7 @@ class PageTemplate
         $this->prepareScripts();
 
         // db profiling
-        if (Cfg::get('DEBUG') >= LOG_LEVEL_INFO)
+        if (Cfg::get('DEBUG') >= LOG_LEVEL_INFO && User::canSee(U_GROUP_DEV | U_GROUP_ADMIN))
             $this->dbProfiles = \Aowow\DB::getProfiles();
     }
 

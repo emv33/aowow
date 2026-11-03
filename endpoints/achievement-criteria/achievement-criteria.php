@@ -18,6 +18,7 @@ class AchievementcriteriaBaseResponse extends TemplateResponse implements ICache
     use TrListPage, TrCache;
 
     protected  int    $cacheType  = CACHE_TYPE_LIST_PAGE;
+    protected  int    $requiredViewGroup = U_GROUP_STAFF;
     protected  string $template   = 'achievement-criteria';
     protected  string $pageName   = 'achievement-criteria';
     protected ?int    $activeTab  = parent::TAB_DATABASE;

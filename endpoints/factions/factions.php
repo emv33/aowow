@@ -70,6 +70,9 @@ class FactionsBaseResponse extends TemplateResponse implements ICache
 
         $conditions = [/* Listview::DEFAULT_SIZE */];       // don't limit - there are 300+ Misc factions and no way to filter them
 
+        if (!User::canSee(U_GROUP_EMPLOYEE))             // unlisted factions
+            $conditions[] = [['cuFlags', CUSTOM_EXCLUDE_FOR_LISTVIEW, '&'], 0];
+
         if (isset($this->category[1]))
             $conditions[] = ['parentFactionId', $this->category[1]];
         else if (isset($this->category[0]))

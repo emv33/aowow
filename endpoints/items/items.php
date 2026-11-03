@@ -115,6 +115,8 @@ class ItemsBaseResponse extends TemplateResponse implements ICache
         $this->h1 = Util::ucFirst(Lang::game('items'));
 
         $conditions = [Listview::DEFAULT_SIZE];
+        if (!User::canSee(U_GROUP_EMPLOYEE))
+            $conditions[] = [['cuFlags', CUSTOM_EXCLUDE_FOR_LISTVIEW, '&'], 0];
 
         if ($_ = $this->filter->getConditions())
             $conditions[] = $_;

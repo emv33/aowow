@@ -320,9 +320,11 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
         // we cannot fetch spawns via lists. lists are grouped by entry
         $oSpawns = DB::Aowow()->selectAssoc('SELECT * FROM ::spawns WHERE `areaId` = %i AND `type` = %i AND `posX` > 0 AND `posY` > 0', $this->typeId, Type::OBJECT);
         $cSpawns = DB::Aowow()->selectAssoc('SELECT * FROM ::spawns WHERE `areaId` = %i AND `type` = %i AND `posX` > 0 AND `posY` > 0', $this->typeId, Type::NPC);
-        $aSpawns = DB::Aowow()->selectAssoc('SELECT * FROM ::spawns WHERE `areaId` = %i AND `type` = %i AND `posX` > 0 AND `posY` > 0', $this->typeId, Type::AREATRIGGER);
+        $aSpawns = User::canSee(U_GROUP_STAFF) ? DB::Aowow()->selectAssoc('SELECT * FROM ::spawns WHERE `areaId` = %i AND `type` = %i AND `posX` > 0 AND `posY` > 0', $this->typeId, Type::AREATRIGGER) : [];
 
         $conditions = [['s.areaId', $this->typeId]];
+        if (!User::canSee(U_GROUP_STAFF))
+            $conditions[] = [['cuFlags', CUSTOM_EXCLUDE_FOR_LISTVIEW, '&'], 0];
 
         $objectSpawns   = new GameObjectList($conditions, ['calcTotal' => true]);
         $creatureSpawns = new CreatureList($conditions, ['calcTotal' => true]);
@@ -1168,7 +1170,7 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
             }
         }
 
-        if ($script = trim((string)($r['script'] ?? '')))
+        if (($script = trim((string)($r['script'] ?? ''))) && User::canSee(U_GROUP_STAFF))
             $out[] = Lang::zone('instanceScript').Lang::main('colon').$script;
 
         return $out;

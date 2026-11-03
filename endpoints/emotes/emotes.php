@@ -42,6 +42,8 @@ class EmotesBaseResponse extends TemplateResponse implements ICache
         /****************/
 
         $cnd = [];                                          // don't limit, for we have no filter or category
+        if (!User::canSee(U_GROUP_STAFF))
+            $cnd[] = [['cuFlags', CUSTOM_EXCLUDE_FOR_LISTVIEW, '&'], 0];
 
         $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"]);
 

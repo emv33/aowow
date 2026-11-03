@@ -22,7 +22,7 @@ class TeleportsBaseResponse extends TemplateResponse implements ICache
 
     protected  int    $type              = -7;    // no Type:: entry - no DBTypeList backs this ad hoc table read; shared sentinel with TeleportBaseResponse
     protected  int    $cacheType         = CACHE_TYPE_LIST_PAGE;
-    protected  int    $requiredUserGroup = U_GROUP_NONE;
+    protected  int    $requiredViewGroup = U_GROUP_STAFF;
 
     protected  string $template          = 'teleports';
     protected  string $pageName          = 'teleports';

@@ -285,6 +285,9 @@ trait TrCache
         $fileKey .= str_pad(dechex(Lang::getLocale()->value & 0xFF), 2, 0, STR_PAD_LEFT);
         // staff mask: 4
         $fileKey .= str_pad(dechex($staffMask & 0xFFFFFFFF), 4, 0, STR_PAD_LEFT);
+        // aowow - custom: PUBLIC_ACCESS changes what every page shows
+        if (Cfg::get('PUBLIC_ACCESS'))
+            $fileKey .= 'p';
         // optional: miscInfo
         if ($miscInfo)
             $fileKey .= '-'.$miscInfo;
@@ -476,6 +479,7 @@ abstract class BaseResponse
     protected array $_cookie = [];
 
     protected int   $requiredUserGroup = U_GROUP_NONE;      // by default accessible to everone
+    protected int   $requiredViewGroup = U_GROUP_NONE;      // aowow - custom: like $requiredUserGroup, but lifted by PUBLIC_ACCESS (data pages, not actions)
     protected bool  $requiresLogin     = false;             // normal users and guests are both U_GROUP_NONE, soooo.....
     protected mixed $result            = null;
 
@@ -484,6 +488,9 @@ abstract class BaseResponse
         $this->initRequestData();
 
         if (!User::isInGroup($this->requiredUserGroup))
+            $this->onUserGroupMismatch();
+
+        if (!User::canSee($this->requiredViewGroup))       // aowow - custom
             $this->onUserGroupMismatch();
 
         if ($this->requiresLogin && !User::isLoggedIn())

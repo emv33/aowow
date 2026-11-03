@@ -90,6 +90,10 @@ class Search
         $this->tokenizeQuery();
 
         $this->cndBase[] = $this->maxResults;
+
+        // Exclude internal wow stuff
+        if (!User::canSee(U_GROUP_EMPLOYEE))
+            $this->cndBase[] = [['cuFlags', CUSTOM_EXCLUDE_FOR_LISTVIEW, '&'], 0];
     }
 
     private function tokenizeQuery() : void
@@ -1013,6 +1017,10 @@ class Search
             return null;
 
         $cnd = $this->cndBase;
+
+        // Exclude internal wow stuff [override for staff, as done for cuFlags in __construct()]
+        if (!User::canSee(U_GROUP_EMPLOYEE))
+            $cnd[] = [['cuFlags', CUSTOM_UNAVAILABLE | CUSTOM_DISABLED, '&'], 0];
 
         $cnd[] = $lookup;
 

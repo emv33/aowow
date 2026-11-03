@@ -32,6 +32,9 @@ trait TrDetailPage
     // ends up inside the page cache like every other markup block
     protected function applyXRef() : void
     {
+        if (!User::canSee(U_GROUP_STAFF))
+            return;
+
         $xr = new XRef($this->type, $this->typeId);
         $this->xRef = $xr->getMarkup();                     // fills the globals; must run first
         $this->extendGlobalData($xr->getJSGlobals());
@@ -255,9 +258,14 @@ class TemplateResponse extends BaseResponse
 
     public static function pageStatsHook(Template\PageTemplate &$pt, array &$stats) : void
     {
-        $stats['time']  = DateTime::formatTimeElapsed((microtime(true) - self::$time) * 1000);
-        $stats['sql']   = ['count' => parent::$sql['count'], 'time' => DateTime::formatTimeElapsed(parent::$sql['time'] * 1000)];
-        $stats['cache'] = !empty(static::$cacheStats) ? [static::$cacheStats[0], (new DateTime())->formatDate(static::$cacheStats[1])] : null;
+        if (User::canSee(U_GROUP_EMPLOYEE))
+        {
+            $stats['time']  = DateTime::formatTimeElapsed((microtime(true) - self::$time) * 1000);
+            $stats['sql']   = ['count' => parent::$sql['count'], 'time' => DateTime::formatTimeElapsed(parent::$sql['time'] * 1000)];
+            $stats['cache'] = !empty(static::$cacheStats) ? [static::$cacheStats[0], (new DateTime())->formatDate(static::$cacheStats[1])] : null;
+        }
+        else
+            $stats = [];
     }
 
     protected function getCategoryFromUrl(string $pageParam) : void
@@ -275,7 +283,7 @@ class TemplateResponse extends BaseResponse
     // functionally this should be in PageTemplate but inaccessible there
     protected function fmtStaffTip(?string $text, string $tip) : string
     {
-        if (!$text)
+        if (!$text || !User::canSee(U_GROUP_EMPLOYEE))
             return $text ?? '';
         else
             return sprintf(Util::$dfnString, $tip, $text);

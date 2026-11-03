@@ -57,6 +57,9 @@ class EventsBaseResponse extends TemplateResponse implements ICache
 
         $condition = [Listview::DEFAULT_SIZE];
 
+        if (!User::canSee(U_GROUP_EMPLOYEE))
+            $condition[] = [['cuFlags', CUSTOM_EXCLUDE_FOR_LISTVIEW, '&'], 0];
+
         if ($this->category)
             $condition[] = match ($this->category[0])
             {

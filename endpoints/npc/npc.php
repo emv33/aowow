@@ -275,84 +275,87 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         if (Lang::getLocale() != Locale::EN)
             $infobox[] = Util::ucFirst(Lang::lang(Locale::EN->value) . Lang::main('colon')) . '[copy button=false]'.$this->subject->getField('name_loc0').'[/copy][/li]';
 
-        $spawnData = DB::Aowow()->selectAssoc('SELECT `guid` AS "0", `ScriptName` AS "1", `StringId` AS "2" FROM ::spawns WHERE `type` = %i AND `typeId` = %i AND `ScriptName` IS NOT NULL ORDER BY `guid` ASC', Type::NPC, $this->typeId);
+        if (User::canSee(U_GROUP_EMPLOYEE))
+        {
+            $spawnData = DB::Aowow()->selectAssoc('SELECT `guid` AS "0", `ScriptName` AS "1", `StringId` AS "2" FROM ::spawns WHERE `type` = %i AND `typeId` = %i AND `ScriptName` IS NOT NULL ORDER BY `guid` ASC', Type::NPC, $this->typeId);
 
-        // AI
-        $scripts = null;
-        if ($_ = $this->subject->getField('ScriptOrAI'))
-            $scripts = match($_)
+            // AI
+            $scripts = null;
+            if ($_ = $this->subject->getField('ScriptOrAI'))
+                $scripts = match($_)
+                {
+                    'NullAI',    'AggressorAI',
+                    'ReactorAI', 'GuardAI',
+                    'PetAI',     'TotemAI',
+                    'SmartAI' => 'AI'.Lang::main('colon').$_,
+                    default   => 'Script'.Lang::main('colon').$_
+                };
+
+
+            if ($moreAI = array_filter(array_column($spawnData, 1, 0)))
             {
-                'NullAI',    'AggressorAI',
-                'ReactorAI', 'GuardAI',
-                'PetAI',     'TotemAI',
-                'SmartAI' => 'AI'.Lang::main('colon').$_,
-                default   => 'Script'.Lang::main('colon').$_
-            };
+                $scripts ??= 'Script'.Lang::main('colon').'…';
+                $scripts   = '[toggler=hidden id=scriptName]'.$scripts.'[/toggler][div=hidden id=scriptName][ul]';
+                foreach ($moreAI as $guid => $script)
+                    $scripts .= sprintf('[li]GUID: %d - %s[/li]', $guid, $script);
 
+                $scripts .= '[/ul][/div]';
+            }
 
-        if ($moreAI = array_filter(array_column($spawnData, 1, 0)))
-        {
-            $scripts ??= 'Script'.Lang::main('colon').'…';
-            $scripts   = '[toggler=hidden id=scriptName]'.$scripts.'[/toggler][div=hidden id=scriptName][ul]';
-            foreach ($moreAI as $guid => $script)
-                $scripts .= sprintf('[li]GUID: %d - %s[/li]', $guid, $script);
+            if ($scripts)
+                $infobox[] = $scripts;
 
-            $scripts .= '[/ul][/div]';
-        }
+            // StringId
+            $stringIDs = null;
+            if ($_ = $this->subject->getField('StringId'))
+                $stringIDs = 'StringID'.Lang::main('colon').$_;
 
-        if ($scripts)
-            $infobox[] = $scripts;
+            if ($moreStrings = array_filter(array_column($spawnData, 2, 0)))
+            {
+                $stringIDs ??= 'StringID'.Lang::main('colon').'…';
+                $stringIDs   = '[toggler=hidden id=stringId]'.$stringIDs.'[/toggler][div=hidden id=stringId][ul]';
+                foreach ($moreStrings as $guid => $stringId)
+                    $stringIDs .= sprintf('[li]GUID: %d - %s[/li]', $guid, $stringId);
 
-        // StringId
-        $stringIDs = null;
-        if ($_ = $this->subject->getField('StringId'))
-            $stringIDs = 'StringID'.Lang::main('colon').$_;
+                $stringIDs .= '[/ul][/div]';
+            }
 
-        if ($moreStrings = array_filter(array_column($spawnData, 2, 0)))
-        {
-            $stringIDs ??= 'StringID'.Lang::main('colon').'…';
-            $stringIDs   = '[toggler=hidden id=stringId]'.$stringIDs.'[/toggler][div=hidden id=stringId][ul]';
-            foreach ($moreStrings as $guid => $stringId)
-                $stringIDs .= sprintf('[li]GUID: %d - %s[/li]', $guid, $stringId);
+            if ($stringIDs)
+                $infobox[] = $stringIDs;
 
-            $stringIDs .= '[/ul][/div]';
-        }
+            // Mechanic immune
+            if ($immuneMask = $this->subject->getField('mechanicImmuneMask'))
+            {
+                $mechanics = array_intersect_key(Lang::game('me'), Util::mask2bits($immuneMask, 1));
 
-        if ($stringIDs)
-            $infobox[] = $stringIDs;
+                array_walk($mechanics, fn(&$v, $k) => $v = '[url=?spells&filter=me='.$k.']'.$v.'[/url]');
 
-        // Mechanic immune
-        if ($immuneMask = $this->subject->getField('mechanicImmuneMask'))
-        {
-            $mechanics = array_intersect_key(Lang::game('me'), Util::mask2bits($immuneMask, 1));
+                $mechanics = array_map(fn($x) => implode(', ', $x), array_chunk($mechanics, 3));
 
-            array_walk($mechanics, fn(&$v, $k) => $v = '[url=?spells&filter=me='.$k.']'.$v.'[/url]');
+                $infobox[] = Lang::npc('mechanicimmune', ['[br]'.implode(',[br]', $mechanics)]);
+            }
 
-            $mechanics = array_map(fn($x) => implode(', ', $x), array_chunk($mechanics, 3));
+            // extra flags
+            if ($flagsExtra = $this->subject->getField('flagsExtra'))
+            {
+                $buff = [];
+                foreach (Lang::npc('extraFlags') as $idx => $str)
+                    if ($flagsExtra & $idx)
+                        $buff[] = $str;
 
-            $infobox[] = Lang::npc('mechanicimmune', ['[br]'.implode(',[br]', $mechanics)]);
-        }
+                if ($buff)
+                    $infobox[] = Lang::npc('_extraFlags').'[ul][li]'.implode('[/li][li]', $buff).'[/li][/ul]';
+            }
 
-        // extra flags
-        if ($flagsExtra = $this->subject->getField('flagsExtra'))
-        {
-            $buff = [];
-            foreach (Lang::npc('extraFlags') as $idx => $str)
-                if ($flagsExtra & $idx)
-                    $buff[] = $str;
-
-            if ($buff)
-                $infobox[] = Lang::npc('_extraFlags').'[ul][li]'.implode('[/li][li]', $buff).'[/li][/ul]';
-        }
-
-        // Mode dummy references
-        if ($this->altNPCs)
-        {
-            $this->extendGlobalData($this->altNPCs->getJSGlobals());
-            $buff = Lang::npc('versions').'[ul]';
-            foreach ($this->altNPCs->iterate() as $id => $__)
-                $buff .= '[li][npc='.$id.'][/li]';
-            $infobox[] = $buff.'[/ul]';
+            // Mode dummy references
+            if ($this->altNPCs)
+            {
+                $this->extendGlobalData($this->altNPCs->getJSGlobals());
+                $buff = Lang::npc('versions').'[ul]';
+                foreach ($this->altNPCs->iterate() as $id => $__)
+                    $buff .= '[li][npc='.$id.'][/li]';
+                $infobox[] = $buff.'[/ul]';
+            }
         }
 
         if ($stats = $this->getCreatureStats($mapType, $_altIds))
@@ -457,24 +460,31 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         }
 
         // aowow - custom start: gossip menus
-        $gossipJSG = [];
-        $this->gossip = Gossip::buildMarkupFor(Gossip::getMenusForNPC($this->typeId), 'gossip-npc-'.$this->typeId, $gossipJSG);
-        $this->extendGlobalData($gossipJSG);
+        // staff only, as the menu ids and option types this links to are world DB internals (the ?gossip= page is staff gated too)
+        if (User::canSee(U_GROUP_STAFF))
+        {
+            $gossipJSG = [];
+            $this->gossip = Gossip::buildMarkupFor(Gossip::getMenusForNPC($this->typeId), 'gossip-npc-'.$this->typeId, $gossipJSG);
+            $this->extendGlobalData($gossipJSG);
+        }
         // aowow - custom end
 
         // aowow - custom start: legacy script engine
         // `waypoint_scripts` rows are reached through the `action` column of the path this creature walks
-        $lsSources = [[LegacyScript::SRC_ESCORT_PATH, $this->typeId]];
-        foreach (LegacyScript::getWaypointScriptIdsForNPC($this->typeId) as $scriptId)
-            $lsSources[] = [LegacyScript::SRC_WAYPOINT, $scriptId];
+        if (User::canSee(U_GROUP_STAFF))
+        {
+            $lsSources = [[LegacyScript::SRC_ESCORT_PATH, $this->typeId]];
+            foreach (LegacyScript::getWaypointScriptIdsForNPC($this->typeId) as $scriptId)
+                $lsSources[] = [LegacyScript::SRC_WAYPOINT, $scriptId];
 
-        $lsJSG = [];
-        $this->legacyScript = LegacyScript::buildMarkupFor($lsSources, 'lscript-npc-'.$this->typeId, $lsJSG);
-        $this->extendGlobalData($lsJSG);
+            $lsJSG = [];
+            $this->legacyScript = LegacyScript::buildMarkupFor($lsSources, 'lscript-npc-'.$this->typeId, $lsJSG);
+            $this->extendGlobalData($lsJSG);
 
-        // the escort table above is just commands - link to the full route on a map
-        if ($this->legacyScript && LegacyScript::exists(LegacyScript::SRC_ESCORT_PATH, $this->typeId))
-            $this->legacyScript->append('[pad][url=?waypointpath='.WaypointPathList::encodeId(WaypointPathList::KIND_ESCORT, $this->typeId).']'.Lang::waypointpath('viewFullRoute').'[/url][/pad]');
+            // the escort table above is just commands - link to the full route on a map
+            if ($this->legacyScript && LegacyScript::exists(LegacyScript::SRC_ESCORT_PATH, $this->typeId))
+                $this->legacyScript->append('[pad][url=?waypointpath='.WaypointPathList::encodeId(WaypointPathList::KIND_ESCORT, $this->typeId).']'.Lang::waypointpath('viewFullRoute').'[/url][/pad]');
+        }
         // aowow - custom end
 
         // consider pooled spawns
@@ -1062,8 +1072,9 @@ class NpcBaseResponse extends TemplateResponse implements ICache
             {
                 $data = $passengers->getListviewData();
 
-                foreach ($data as $id => &$d)
-                    $d['seat'] = $_[$id];
+                if (User::canSee(U_GROUP_STAFF))
+                    foreach ($data as $id => &$d)
+                        $d['seat'] = $_[$id];
 
                 $this->extendGlobalData($passengers->getJSGlobals(GLOBALINFO_SELF));
 
@@ -1073,7 +1084,8 @@ class NpcBaseResponse extends TemplateResponse implements ICache
                     'id'   => 'accessory'
                 );
 
-                $tabData['extraCols'] = ["\$Listview.funcBox.createSimpleCol('seat', '".Lang::npc('seat')."', '10%', 'seat')"];
+                if (User::canSee(U_GROUP_STAFF))
+                    $tabData['extraCols'] = ["\$Listview.funcBox.createSimpleCol('seat', '".Lang::npc('seat')."', '10%', 'seat')"];
 
                 $this->addDataLoader('zones');
                 $this->lvTabs->addListviewTab(new Listview($tabData, CreatureList::$brickFile));
@@ -1178,14 +1190,18 @@ class NpcBaseResponse extends TemplateResponse implements ICache
             );
 
             $cuRate = DB::World()->selectCell('SELECT `creature_rate` FROM reputation_reward_rate WHERE `creature_rate` <> 1 AND `faction` = %i', $row['faction']);
-            if ($cuRate)
+            if ($cuRate && User::canSee(U_GROUP_EMPLOYEE))
                 $set[1][1] = $set[1][0] . sprintf(Util::$dfnString, Lang::faction('customRewRate'), ($set[1][0] > 0 ? '+' : '').($set[1][0] * ($cuRate - 1)));
+            else if ($cuRate)
+                $set[1][1] = $set[1][0] * $cuRate;
 
             if ($row['spillover'])
             {
                 $spill = [[$set[1][0] / 2, 0], $row['maxRank']];
-                if ($cuRate)
+                if ($cuRate && User::canSee(U_GROUP_EMPLOYEE))
                     $spill[0][1] = $spill[0][0] . sprintf(Util::$dfnString, Lang::faction('customRewRate'), ($set[1][0] > 0 ? '+' : '').($spill[0][0] * ($cuRate - 1) * 0.5));
+                else if ($cuRate)
+                    $spill[0][1] = $set[1][1] / 2;
 
                 $spillover[$factions->getField('cat')] = $spill;
                 $set[5] = $factions->getField('cat');       // set spillover

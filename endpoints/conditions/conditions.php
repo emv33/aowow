@@ -19,7 +19,7 @@ class ConditionsBaseResponse extends TemplateResponse implements ICache
     use TrListPage, TrCache;
 
     protected  int    $cacheType         = CACHE_TYPE_LIST_PAGE;
-    protected  int    $requiredUserGroup = U_GROUP_NONE;
+    protected  int    $requiredViewGroup = U_GROUP_STAFF;
 
     protected  string $template          = 'conditions';
     protected  string $pageName          = 'conditions';

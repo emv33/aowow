@@ -186,9 +186,19 @@ class StartOutfit
         return $this->hideForPlayers($ids);
     }
 
+    /**
+     * a starting spell may be a hidden one - the passives a class is seeded with are not in the
+     * spellbook. Drop those for players, the way CUSTOM_EXCLUDE_FOR_LISTVIEW is overridden for
+     * staff everywhere else, rather than leaking them onto a public page
+     */
     private function hideForPlayers(array $ids) : array
     {
-        return $ids;
+        if (!$ids || User::canSee(U_GROUP_STAFF))
+            return $ids;
+
+        return array_map('intVal', DB::Aowow()->selectCol(
+           'SELECT `id` FROM ::spell WHERE `id` IN %in AND (`cuFlags` & %i) = 0', $ids, CUSTOM_EXCLUDE_FOR_LISTVIEW
+        ) ?: []);
     }
 
     /**
@@ -360,7 +370,8 @@ class StartOutfit
 
     public function getMarkup() : ?Markup
     {
-        $body = '';
+        $body    = '';
+        $isStaff = User::canSee(U_GROUP_STAFF);
 
         foreach ($this->pairs() as $p)
         {
@@ -375,8 +386,8 @@ class StartOutfit
             $cast    = array_values(array_diff($this->castSpells($p['race'], $p['class']), $learned));
 
             // `playercreateinfo_spell_custom` is not the starting set - in stock TDB it is a full
-            // max rank spellbook per class - shown labelled apart from the rest, in its own row
-            $custom = array_values(array_diff($this->customSpells($p['race'], $p['class']), $learned, $cast));
+            // max rank spellbook per class - so it is staff only and labelled apart from the rest
+            $custom = $isStaff ? array_values(array_diff($this->customSpells($p['race'], $p['class']), $learned, $cast)) : [];
 
             if (!$outfit && !$extra && !$learned && !$cast && !$custom)
                 continue;
