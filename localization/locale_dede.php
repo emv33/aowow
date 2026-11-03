@@ -2045,6 +2045,7 @@ $lang = array(
         'bgBracket'     => "Level bracket",
         'graveyard'     => "Graveyard",
         'graveyardUnnamed' => 'Graveyard #%1$d',
+        'graveyardUnused' => 'not used',
         'weather'       => "Weather",
         'weatherTypes'  => array(
             'rain'  => "rain",

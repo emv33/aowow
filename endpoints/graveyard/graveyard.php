@@ -46,21 +46,21 @@ class GraveyardBaseResponse extends TemplateResponse implements ICache
             $this->generateNotFound(Lang::graveyard('title'), Lang::graveyard('notFound'));
 
         $zones   = [];
-        $ally    = false;
-        $horde   = false;
+        $sides   = [];                                      // zoneId => 1 Alliance, 2 Horde, 3 both - none: open to everyone
         $comment = '';
 
         foreach (DB::World()->selectAssoc('SELECT * FROM '.$zoneTbl.' WHERE `id` = %i', $this->typeId) ?: [] as $r)
         {
             $lc = array_change_key_case($r, CASE_LOWER);
-            $zones[(int)($lc['ghostzone'] ?? $lc['ghost_zone'] ?? 0)] = true;
+            $zone = (int)($lc['ghostzone'] ?? $lc['ghost_zone'] ?? 0);
+            $zones[$zone] = true;
 
             // the link table stores the faction template id: 469 Alliance, 67 Horde, 0 any
             $faction = (int)($lc['faction'] ?? 0);
             if ($faction == 469)
-                $ally = true;
+                $sides[$zone] = ($sides[$zone] ?? 0) | 1;
             else if ($faction == 67)
-                $horde = true;
+                $sides[$zone] = ($sides[$zone] ?? 0) | 2;
 
             if (($_ = trim((string)($lc['comment'] ?? ''))) !== '')
                 $comment = $_;
@@ -93,6 +93,15 @@ class GraveyardBaseResponse extends TemplateResponse implements ICache
             }
         }
 
+        // the client's WorldSafeLocs.dbc has the position of every graveyard, under the id the link table uses
+        if (!$posX && !$posY && DB::Aowow()->selectCell('SHOW TABLES LIKE %s', 'dbc_worldsafelocs'))
+            if ($loc = DB::Aowow()->selectRow('SELECT `mapId`, `posX`, `posY` FROM dbc_worldsafelocs WHERE `id` = %i', $this->typeId))
+            {
+                $mapId = (int)$loc['mapId'];
+                $posX  = (float)$loc['posX'];
+                $posY  = (float)$loc['posY'];
+            }
+
         if ($name === '')
             $name = $comment;
 
@@ -114,7 +123,7 @@ class GraveyardBaseResponse extends TemplateResponse implements ICache
         else
         {
             $zoneNames = array_values(array_filter(array_map(fn($z) => (string)(ZoneList::getName($z) ?? ''), $zones)));
-            $this->h1  = $zoneNames ? Lang::graveyard('unnamed', [implode(', ', $zoneNames)]) : ('Graveyard #'.$this->typeId);
+            $this->h1  = $zoneNames ? Lang::graveyard('unnamed', [implode(', ', $zoneNames)]) : Lang::zone('graveyardUnnamed', [$this->typeId]);
         }
 
         array_unshift($this->title, $this->h1, Util::ucFirst(Lang::graveyard('title')));
@@ -129,43 +138,100 @@ class GraveyardBaseResponse extends TemplateResponse implements ICache
         $infobox = [Lang::graveyard('id').Lang::main('colon').$this->typeId];
 
         if ($zones)
-        {
             $this->extendGlobalIds(Type::ZONE, ...$zones);
-            $infobox[] = Lang::graveyard('resurrects').Lang::main('colon').implode(', ', array_map(fn($z) => '[zone='.$z.']', $zones));
-        }
 
-        if ($ally && $horde)
-            $factionLbl = Lang::graveyard('both');
-        else if ($ally)
-            $factionLbl = Lang::graveyard('alliance');
-        else if ($horde)
-            $factionLbl = Lang::graveyard('horde');
-        else
-            $factionLbl = Lang::graveyard('neutral');
-
-        $infobox[] = Lang::graveyard('faction').Lang::main('colon').$factionLbl;
-
-        // a point only when the position table actually named one; the link-table-only case has
-        // no coordinates at all, same gap the listing lives with
-        if ($mapId && ($posX || $posY) && ($pt = WorldPosition::toZonePos($mapId, $posX, $posY)))
+        // the position, on the map of the zone it lies in; a point in no zone is still somewhere on a continent,
+        // and an instance has neither
+        if ($mapId !== null && ($posX || $posY))
         {
-            $p      = $pt[0];
-            $areaId = (int)$p['areaId'];
+            $mapData = [];
+            $names   = [];
 
-            $this->extendGlobalIds(Type::ZONE, $areaId);
+            if ($pt = WorldPosition::toZonePos($mapId, $posX, $posY))
+            {
+                $p      = $pt[0];
+                $areaId = (int)$p['areaId'];
 
-            $this->addDataLoader('zones');
-            $this->map = array(
-                ['parent' => 'mapper-generic'],
-                [$areaId => [(int)$p['floor'] => ['coords' => [[$p['posX'], $p['posY'], []]], 'count' => 1]]],
-                null,
-                null
-            );
+                $this->extendGlobalIds(Type::ZONE, $areaId);
+                $mapData[$areaId][(int)$p['floor']] = ['coords' => [[$p['posX'], $p['posY'], []]], 'count' => 1];
+                $names[$areaId] = ZoneList::getName($areaId);
+            }
+
+            // only for a point in no zone, the zone's own map shows it larger
+            if (!$mapData && ($cp = WorldPosition::toContinentPos($mapId, $posX, $posY)))
+            {
+                $mapData[$cp[0]][0] = ['coords' => [[$cp[1], $cp[2], []]], 'count' => 1];
+                $names[$cp[0]]      = array(-3 => Lang::maps('EasternKingdoms'), -6 => Lang::maps('Kalimdor'), -2 => Lang::maps('Outland'), -5 => Lang::maps('Northrend'))[$cp[0]];
+            }
+
+            if ($mapData)
+            {
+                $this->addDataLoader('zones');
+                $this->map = array(
+                    ['parent' => 'mapper-generic'],
+                    $mapData,
+                    null,
+                    [Lang::graveyard('foundIn')]            // triggers the auto-click in mapper.tpl.php that sets the
+                );                                          // mapper's zone - without it the map defaults to zone 0 (black)
+                $this->map[3] += $names;
+            }
         }
-        else if ($mapId)
-            $infobox[] = Lang::graveyard('map').Lang::main('colon').$mapId;
+
+        if ($mapId !== null)
+            $infobox[] = Lang::graveyard('map').Lang::main('colon').(WorldPosition::getMapNames([$mapId])[$mapId] ?? $mapId);
 
         $this->infobox = new InfoboxMarkup($infobox, ['allow' => Markup::CLASS_STAFF, 'dbpage' => true], 'infobox-contents0');
+
+
+        /**************/
+        /* Extra Tabs */
+        /**************/
+
+        $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"], 'tabsRelated', true);
+
+        // the zones whose dead it resurrects, with the side each link is restricted to
+        if ($zones && !($zl = new ZoneList([['id', $zones]]))->error)
+        {
+            $this->extendGlobalData($zl->getJSGlobals());
+            $this->addDataLoader('zones');
+
+            // aowow - custom start: links the core never sends a ghost through, and the graveyard it picks instead
+            $checkUse = $zoneTbl == 'graveyard_zone' && DB::Aowow()->selectCell('SHOW TABLES LIKE %s', 'dbc_worldsafelocs') && DB::Aowow()->selectCell('SHOW TABLES LIKE %s', 'dbc_map');
+            $winNames = [];
+            // aowow - custom end
+
+            $data = $zl->getListviewData();
+            foreach ($data as &$row)
+            {
+                $row['side'] = $sides[$row['id']] ?? 0;
+
+                // aowow - custom start
+                if (!$checkUse)
+                    continue;
+
+                $unused = [];                               // winner => side bits
+                foreach (Graveyard::supersededBy($this->typeId, $row['id']) as $side => $winner)
+                    $unused[$winner] = ($unused[$winner] ?? 0) | $side;
+
+                foreach ($unused as $winner => $bits)
+                {
+                    if ($winner && !isset($winNames[$winner]))
+                        $winNames[$winner] = trim((string)DB::World()->selectCell('SELECT `Comment` FROM graveyard_zone WHERE `ID` = %i AND `Comment` <> "" LIMIT 1', $winner)) ?: Lang::zone('graveyardUnnamed', [$winner]);
+
+                    $row['unused'][] = [$bits, $winner, $winner ? $winNames[$winner] : ''];
+                }
+                // aowow - custom end
+            }
+            unset($row);
+
+            $this->lvTabs->addListviewTab(new Listview(array(
+                'data'      => $data,
+                'name'      => Lang::graveyard('resurrects'),
+                'id'        => 'resurrects',
+                'extraCols' => ['$Listview.extraCols.graveyardSide'],
+                'onBeforeCreate' => '$Listview.funcBox.beforeGraveyardZones'   // aowow - custom: notes on unused links
+            ), ZoneList::$brickFile, 'graveyardSideCol'));
+        }
 
         parent::generate();
     }

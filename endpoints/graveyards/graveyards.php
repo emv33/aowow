@@ -69,14 +69,21 @@ class GraveyardsBaseResponse extends TemplateResponse implements ICache
             if (!$id)
                 continue;
 
-            $links[$id]['zones'][(int)($lc['ghostzone'] ?? $lc['ghost_zone'] ?? 0)] = true;
+            $zone = (int)($lc['ghostzone'] ?? $lc['ghost_zone'] ?? 0);
+            $links[$id]['zones'][$zone] = true;
 
             // the link table stores the faction template id: 469 Alliance, 67 Horde, 0 any
             $faction = (int)($lc['faction'] ?? 0);
             if ($faction == 469)
+            {
                 $links[$id]['ally'] = true;
+                $links[$id]['sides'][$zone] = ($links[$id]['sides'][$zone] ?? 0) | 1;
+            }
             else if ($faction == 67)
+            {
                 $links[$id]['horde'] = true;
+                $links[$id]['sides'][$zone] = ($links[$id]['sides'][$zone] ?? 0) | 2;
+            }
 
             $comment = trim((string)($lc['comment'] ?? ''));
             if ($comment !== '')
@@ -137,13 +144,17 @@ class GraveyardsBaseResponse extends TemplateResponse implements ICache
 
             $rows[] = array(
                 'id'      => $id,
-                'name'    => $name !== '' && $name[0] == '$' ? ' '.$name : $name,
+                'name'    => $name === '' ? Lang::zone('graveyardUnnamed', [$id]) : ($name[0] == '$' ? ' '.$name : $name),
                 'map'     => $map,
                 'mapLink' => isset($zones[0]) ? '?maps='.$zones[0] : '',
                 'zones'   => $zones,
                 'location' => $zones,
                 'faction' => $faction
             );
+
+            // the side(s) a zone's link is restricted to; a zone left out is open to both, the label above only sums them up
+            if (!empty($link['sides']))
+                $rows[array_key_last($rows)]['sides'] = $link['sides'];
         }
 
         $mapNameByMap = WorldPosition::getMapNames(array_values($mapIds));

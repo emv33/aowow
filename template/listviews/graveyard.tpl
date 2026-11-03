@@ -59,41 +59,34 @@ Listview.templates.graveyard = {
             name: LANG.location,
             type: 'text',
             compute: function(t, td) {
-                if (!t.zones || !t.zones.length) {
-                    $WH.ae(td, $WH.ct('-'));
-                    return;
-                }
+                if (t.location == null)
+                    return -1;
 
-                for (var i = 0; i < t.zones.length; i++) {
-                    if (i)
-                        $WH.ae(td, $WH.ct(', '));
+                // as Listview.funcBox.location() does, each zone followed by the side(s) its link is restricted to
+                for (var i = 0, len = t.location.length; i < len; ++i) {
+                    if (i > 0)
+                        $WH.ae(td, $WH.ct(LANG.comma));
 
-                    var z     = t.zones[i],
-                        entry = g_gatheredzones ? g_gatheredzones[z] : null,
-                        name  = null,
-                        expansion = 0;
+                    var zoneId = t.location[i],
+                        a      = $WH.ce('a');
 
-                    if (entry) {
-                        var nameCol = 'name_' + Locale.getName();
-                        name = entry[nameCol] || entry.name || ('#' + z);
-                        expansion = entry.expansion || 0;
-                    }
-                    else
-                        name = (g_zones && g_zones[z]) ? g_zones[z] : ('#' + z);
-
-                    var a = $WH.ce('a');
                     a.className = 'q1';
-                    a.href = '?zone=' + z;
-                    $WH.ae(a, $WH.ct(name));
+                    a.href = '?zone=' + zoneId;
+                    $WH.ae(a, $WH.ct(g_zones[zoneId]));
+                    $WH.ae(td, a);
 
-                    if (expansion) {
+                    var sides = t.sides ? t.sides[zoneId] : 0;
+                    [[1, 'icon-alliance'], [2, 'icon-horde']].forEach(function(s) {
+                        if (!(sides & s[0]))
+                            return;
+
+                        // a margin rather than a space, the gap is the same in front of either emblem and wherever the cell wraps
                         var sp = $WH.ce('span');
-                        sp.className = g_GetExpansionClassName(expansion);
-                        $WH.ae(sp, a);
+                        sp.className = s[1];
+                        sp.style.marginLeft = '5px';
+                        g_addTooltip(sp, g_sides[s[0]]);
                         $WH.ae(td, sp);
-                    }
-                    else
-                        $WH.ae(td, a);
+                    });
                 }
             },
             getVisibleText: function(t) {
@@ -110,8 +103,23 @@ Listview.templates.graveyard = {
             align: 'left',
             width: '12%',
             compute: function(t, td) {
-                var label = t.faction == 1 ? LANG.figraveyard.alliance : (t.faction == 2 ? LANG.figraveyard.horde : (t.faction == 3 ? LANG.figraveyard.both : LANG.figraveyard.neutral));
-                $WH.ae(td, $WH.ct(label));
+                // the side's emblem in front of its name, as the other listings show it; both sides get both
+                var sides = [[1, 'icon-alliance', LANG.figraveyard.alliance], [2, 'icon-horde', LANG.figraveyard.horde]],
+                    first = true;
+
+                sides.forEach(function(s) {
+                    if (!(t.faction & s[0]))
+                        return;
+
+                    if (!first)
+                        $WH.ae(td, $WH.ct(LANG.comma));
+
+                    $WH.ae(td, $WH.ce('span', { className: s[1] }, $WH.ct(s[2])));
+                    first = false;
+                });
+
+                if (first)
+                    $WH.ae(td, $WH.ct(LANG.figraveyard.neutral));
             },
             getVisibleText: function(t) {
                 return t.faction == 1 ? LANG.figraveyard.alliance : (t.faction == 2 ? LANG.figraveyard.horde : (t.faction == 3 ? LANG.figraveyard.both : LANG.figraveyard.neutral));
