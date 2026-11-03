@@ -180,6 +180,21 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
             $infobox[] = Lang::gameObject('trap').Lang::main('colon').'[object='.$_.']';
         }
 
+        // aowow - custom: the type dependent data<n> fields and the template addon's gold and flags
+        if ($_ = $this->getTemplateDetails())
+            foreach ($_ as $line)
+                $infobox[] = $line;
+
+        // aowow - custom: gameobject_questitem, the quest items the client is told this object can hold; the npc page reads
+        // creature_questitem the same way
+        if ($_ = array_values(array_unique(array_filter(array_map('intVal', DB::World()->selectCol('SELECT `ItemId` FROM gameobject_questitem WHERE `GameObjectEntry` = %i ORDER BY `Idx` ASC', $this->typeId) ?: [])))))
+        {
+            foreach ($_ as $itemId)
+                $this->extendGlobalIds(Type::ITEM, $itemId);
+
+            $infobox[] = Lang::npcExtra('questItems').Lang::main('colon').Lang::concat(array_map(fn($x) => '[item='.$x.']', $_), Lang::CONCAT_NONE);
+        }
+
         // trap for X (note: moved to lv-tabs)
 
         // SpellFocus
@@ -858,6 +873,80 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
 
         $this->buildLdJson();
     }
+
+    // aowow - custom start
+    /** read as GameObjectTemplate's union and its helpers (IsDespawnAtAction(), GetAutoCloseTime(), GetCooldown()) do */
+    private function getTemplateDetails() : array
+    {
+        $r = DB::World()->selectRow(
+           'SELECT    go.`type`, go.`data0`, go.`data2`, go.`data3`, go.`data4`, go.`data5`, go.`data6`, go.`data9`, go.`data11`,
+                      IFNULL(goa.`flags`, 0) AS "flags", IFNULL(goa.`mingold`, 0) AS "mingold", IFNULL(goa.`maxgold`, 0) AS "maxgold"
+            FROM      gameobject_template go
+            LEFT JOIN gameobject_template_addon goa ON goa.`entry` = go.`entry`
+            WHERE     go.`entry` = %i', $this->typeId
+        );
+        if (!$r)
+            return [];
+
+        $out = [];
+
+        $flags = [];
+        foreach (Lang::gameObject('goFlags') as $bit => $str)
+            if ($r['flags'] & $bit)
+                $flags[] = $str;
+        if ($r['flags'] & 0x20)                             // GO_FLAG_NODESPAWN
+            $flags[] = Lang::gameObject('noDespawn');
+        if ($flags)
+            $out[] = Lang::gameObject('flags').Lang::main('colon').implode(', ', $flags);
+
+        if ($_ = intVal(($r['mingold'] + $r['maxgold']) / 2))
+            $out[] = Lang::npc('worth', ['[tooltip=tooltip_avgmoneydropped][money='.$_.'][/tooltip]']);
+
+        // auto close times are in ms, cooldowns in s
+        $autoClose = $cooldown = 0;
+        switch ($r['type'])
+        {
+            case GO_TYPE_DOOR:
+            case GO_TYPE_BUTTON:
+                if ($r['data0'])
+                    $out[] = Lang::gameObject('startsOpen');
+                $autoClose = $r['data2'];
+                break;
+            case GO_TYPE_CHEST:
+                if ($r['data3'])
+                    $out[] = Lang::gameObject('despawnOnUse');
+                break;
+            case GO_TYPE_TRAP:
+                if ($_ = Lang::exist('gameObject', 'trapTypes', (string)$r['data4']))
+                    $out[] = $_;
+                // GameObject::Update(): no diameter is a 3 yd battleground trap if its cooldown is 3, else never triggers by proximity
+                if ($r['data2'])
+                    $out[] = Lang::gameObject('trapRadius', [Lang::nf($r['data2'] / 2, 1)]);
+                else if ($r['data5'] == 3)
+                    $out[] = Lang::gameObject('trapRadius', [Lang::nf(3)]);
+                // ...and falls back to 4s without one
+                $cooldown  = $r['data5'] ?: 4;
+                $autoClose = $r['data6'];
+                if ($r['data9'])
+                    $out[] = Lang::gameObject('stealthed');
+                if ($r['data11'])
+                    $out[] = Lang::gameObject('invisible');
+                break;
+            case GO_TYPE_GOOBER:
+                if ($r['data5'])
+                    $out[] = Lang::gameObject('despawnOnUse');
+                $autoClose = $r['data3'];
+                $cooldown  = $r['data6'];
+                break;
+        }
+
+        if ($cooldown > 0)
+            $out[] = Lang::gameObject('cooldown', [DateTime::formatTimeElapsed($cooldown * 1000)]);
+        if ($autoClose > 0)
+
+        return $out;
+    }
+    // aowow - custom end
 }
 
 ?>
