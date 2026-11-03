@@ -272,6 +272,13 @@ var ConditionList = new function() {
                 // resolve targeting
                 let src  = desc.replace(/\$T([^:]*):([^;]*);/, (_, t1, t2) => (target ? t2 : t1).replace('%', targets[target]));
 
+                // aowow - custom: a loot template nothing refers to has no owner to name, it is passed on as its negated id
+                if (srcGroup < 0)
+                {
+                    src      = g_condition_unowned_loot;
+                    srcGroup = -srcGroup;
+                }
+
                 // CND_SRC_SMART_EVENT - srcEntry is smart_scripts.entryorguid, srcId is its source_type;
                 // link the owning creature/gameobject/areatrigger where that identifies one
                 if (g == 22)

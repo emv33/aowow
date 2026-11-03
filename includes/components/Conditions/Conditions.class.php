@@ -488,6 +488,14 @@ class Conditions
                     $lookups[] = [DB::AND, [['c2.`ConditionTypeOrReference` = %i', $cId], ['c2.`ConditionValue1` = %i', $typeId]]];
             }
 
+        // OBJECT_ENTRY_GUID carries the entry in val2 (val1 is the TypeID), so the generic val1 lookup above can't see it
+        if ($type === Type::NPC || $type === Type::OBJECT)
+            $lookups[] = [DB::AND, [
+                ['c2.`ConditionTypeOrReference` = %i', self::OBJECT_ENTRY_GUID],
+                ['c2.`ConditionValue1` = %i', $type === Type::NPC ? self::TYPEID_UNIT : self::TYPEID_GAMEOBJECT],
+                ['c2.`ConditionValue2` = %i', $typeId]
+            ]];
+
         if (!$lookups)
             return $this;
 
@@ -809,10 +817,16 @@ class Conditions
         // only one entry in array expected
         if ($fn = self::$source[$sType][self::IDX_SRC_FN])
             if (!$this->$fn($sType, $sGroup, $sEntry, $sId, $cTarget))
-                return [null, null, null, null, null];
+            {
+                // aowow - custom: a loot template nothing refers to is kept, marked by its negated id (upstream: dropped)
+                if (!in_array($sType, self::GROUP_NEEDS_LOOKUP) || $sGroup <= 0)
+                    return [null, null, null, null, null];
+
+                $sGroup = -$sGroup;
+            }
 
         [$grp, $entry, $id, $_] = self::$source[$sType];
-        if (is_int($grp))
+        if (is_int($grp) && $sGroup > 0)
             $this->jsGlobals[$grp][$sGroup] = $sGroup;
         if (is_int($entry))
             $this->jsGlobals[$entry][$sEntry] = $sEntry;
