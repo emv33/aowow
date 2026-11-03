@@ -1302,13 +1302,6 @@ $lang = array(
     ),
     'smartaiBrowser' => array(
         'srcType'       => "Source type",
-        'eventType'     => "Event",
-        'actionType'    => "Action",
-        'refId'         => "References id",
-        'entry'         => "Entry or guid",
-        'anySource'     => "Any source type",
-        'anyEvent'      => "Any event",
-        'anyAction'     => "Any action",
         'titleNpc'      => "SmartAI scripts: %s",
         'srcTypes'      => array(
             SmartAI::SRC_TYPE_CREATURE    => "Creature",
@@ -1452,7 +1445,6 @@ $lang = array(
         'notFound'      => "This text doesn't exist.",
         'term'          => "text contains",
         'source'        => "source",
-        'anySource'     => "Any source",
         'tooShort'      => "Enter at least three characters.",
         'owner'         => "Owner",
         'titleOwner'    => '%1$s #%2$d (%3$s)',
@@ -1987,11 +1979,7 @@ $lang = array(
         )
     ),
     'achievementCriteriaBrowser' => array(
-        'id'            => "ID",
-        'achievement'   => "Achievement",
-        'type'          => "Type",
-        'flags'         => "Flags",
-        'anyType'       => "Any type"
+        'type'          => "Type"
     ),
     'chrClass' => array(
         'id'            => "Klassen-ID: ",

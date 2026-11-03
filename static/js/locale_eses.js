@@ -4772,6 +4772,17 @@ var LANG = {
         id:         "ID",
         foundin:    "Encontrado en..."
     },
+    fiachievementcriteria: {
+        sepgeneral:      "General",
+        sepflags:        "Flags",
+        id:              "ID",
+        achievementid:   "Achievement ID",
+        achievementname: "Achievement name",
+        assetid:         "Asset ID",
+        progressbar:     "Shows a progress bar",
+        hidden:          "Hidden",
+        moneycounter:    "Displays money"
+    },
     figossip: {
         sepgeneral: "General",
         id:         "ID",
@@ -4889,6 +4900,11 @@ var LANG = {
         5: "Page text"
     },
     fismartai: {
+        sepgeneral: "General",
+        entry:      "Entry or guid",
+        refid:      "References id",
+        eventtype:  "Event",
+        actiontype: "Action",
         srctype:    "Source type",
         entity:     "Scripted entity",
         count:      "Rows",

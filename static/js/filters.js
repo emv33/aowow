@@ -710,10 +710,32 @@ var fi_filters = {
         { id: 5, name: 'viasmartai',type: 'yn'   }
     ],
 
+    achievementcriteria: [
+        { id: 1, name: 'sepgeneral'                         },
+        { id: 2, name: 'id',              type: 'num'       },
+        { id: 3, name: 'achievementid',   type: 'num'       },
+        { id: 4, name: 'achievementname', type: 'str'       },
+        { id: 5, name: 'assetid',         type: 'num'       },
+        { id: 9999, name: 'sepflags'                        },
+        { id: 6, name: 'progressbar',     type: 'yn'        },
+        { id: 7, name: 'hidden',          type: 'yn'        },
+        { id: 8, name: 'moneycounter',    type: 'yn'        }
+    ],
+
     gossip: [
         { id: 1, name: 'sepgeneral'             },
         { id: 2, name: 'id',       type: 'num'  },
         { id: 3, name: 'textid',   type: 'num'  }
+    ],
+
+    smartai: [
+        { id: 1, name: 'sepgeneral'                          },
+        { id: 2, name: 'entry',      type: 'num'             },
+        { id: 3, name: 'refid',      type: 'num'             },
+        { id: 4, name: 'eventtype',  type: 'smartevent'      },
+        { id: 5, name: 'actiontype', type: 'smartaction'     }
+    ],
+
     condition: [
         { id: 1, name: 'sepgeneral'                       },
         { id: 2, name: 'sourcegroup',      type: 'num'    },

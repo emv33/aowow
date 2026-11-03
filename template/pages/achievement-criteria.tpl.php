@@ -6,7 +6,7 @@
     /** @var PageTemplate $this */
 
     $this->brick('header');
-    $f = $this->formValues;                                 // shorthand
+    $f = $this->filter->values;                             // shorthand
 ?>
 
     <div class="main" id="main">
@@ -16,12 +16,11 @@
 <?php
     $this->brick('announcement');
 
-    $this->brick('pageTemplate', ['fiMenuItem' => [118]]);
+    $this->brick('pageTemplate', ['fiQuery' => $this->fiMenuExtension, 'fiMenuItem' => [118]]);
 ?>
 
-            <div id="fi" style="display: <?=($this->pageTemplate['filter'] ? 'block' : 'none'); ?>;">
-                <form action="?achievement-criteria" method="get" name="fi">
-                    <input type="hidden" name="achievement-criteria" value="" />
+            <div id="fi" style="display: <?=($this->filter->query ? 'block' : 'none'); ?>;">
+                <form action="?filter=achievement-criteria" method="post" name="fi" onsubmit="return fi_submit(this)" onreset="return fi_reset(this)">
                     <div class="text">
 
 <?php
@@ -32,39 +31,44 @@
 
                         <h1><?=$this->h1; ?></h1>
                     </div>
+                    <div class="rightpanel">
+                        <div style="float: left"><?=Lang::achievementCriteriaBrowser('type'); ?></div>
+                        <small><a href="javascript:;" onclick="document.forms['fi'].elements['ty[]'].selectedIndex = -1; return false" onmousedown="return false"><?=Lang::main('clear'); ?></a></small>
+                        <div class="clear"></div>
+                        <select name="ty[]" size="10" multiple="multiple" class="rightselect" style="width: 14em">
+<?=$this->makeOptionsList($this->typeList, $f['ty'] ?? [], 28); ?>
+                        </select>
+                    </div>
                     <table>
                         <tr>
-                            <td><?=$this->ucFirst(Lang::achievementCriteriaBrowser('id')).Lang::main('colon'); ?></td>
-                            <td><input type="text" name="id" size="10" value="<?=($f['id'] ?: ''); ?>" /></td>
-                            <td><?=$this->ucFirst(Lang::achievementCriteriaBrowser('achievement')).Lang::main('colon'); ?></td>
-                            <td><input type="text" name="ac" size="20" value="<?=$this->escHTML($f['ac']); ?>" /></td>
-                        </tr>
-                        <tr>
-                            <td><?=$this->ucFirst(Lang::achievementCriteriaBrowser('type')).Lang::main('colon'); ?></td>
-                            <td>
-                                <select name="ty">
-                                    <option value=""<?=($f['ty'] === null ? ' selected="selected"' : ''); ?>><?=Lang::achievementCriteriaBrowser('anyType'); ?></option>
-<?php foreach ($this->typeList as $id => $name): ?>
-                                    <option value="<?=$id; ?>"<?=($f['ty'] === $id ? ' selected="selected"' : ''); ?>><?=$this->escHTML($name); ?></option>
-<?php endforeach; ?>
-                                </select>
-                            </td>
-                            <td><?=$this->ucFirst(Lang::achievementCriteriaBrowser('flags')).Lang::main('colon'); ?></td>
-                            <td><input type="text" name="fl" size="10" value="<?=($f['fl'] ?: ''); ?>" /></td>
-                        </tr>
-                        <tr>
                             <td><?=$this->ucFirst(Lang::main('name')).Lang::main('colon'); ?></td>
-                            <td colspan="3"><input type="text" name="na" size="30" value="<?=$this->escHTML($f['na']); ?>" /></td>
+                            <td colspan="2">
+                                <table><tr>
+                                    <td>&nbsp;<input type="text" name="na" size="30" <?=($f['na'] ? 'value="'.$this->escHTML($f['na']).'" ' : ''); ?>/></td>
+                                </tr></table>
+                            </td>
                         </tr>
                     </table>
 
+                    <div id="fi_criteria" class="padded criteria"><div></div></div><div><a href="javascript:;" id="fi_addcriteria" onclick="fi_addCriterion(this); return false"><?=Lang::main('addFilter'); ?></a></div>
+
+                    <div class="padded2 clear">
+                        <div style="float: right"><?=Lang::main('refineSearch'); ?></div>
+                        <?=Lang::main('match'); ?><input type="radio" name="ma" value="" id="ma-0" <?=(!$f['ma'] ? 'checked="checked" ' : ''); ?>/><label for="ma-0"><?=Lang::main('allFilter'); ?></label><input type="radio" name="ma" value="1" id="ma-1" <?=($f['ma'] ? 'checked="checked" ' : ''); ?> /><label for="ma-1"><?=Lang::main('oneFilter'); ?></label>
+                    </div>
+
+                    <div class="clear"></div>
+
                     <div class="padded">
                         <input type="submit" value="<?=Lang::main('applyFilter'); ?>" />
+                        <input type="reset" value="<?=Lang::main('resetForm'); ?>" />
                     </div>
 
                 </form>
             </div>
             <div class="pad clear"></div>
+
+<?=$this->renderFilter(12); ?>
 
 <?php $this->brick('lvTabs'); ?>
 
