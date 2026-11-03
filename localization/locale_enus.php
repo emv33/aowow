@@ -2483,6 +2483,7 @@ $lang = array(
         'currentArea'   => '&lt;current area&gt;',
         'durabilityItems' => [-2 => '&lt;all items, equipped and in bags&gt;', -1 => '&lt;all equipped items&gt;'],
         'discovered'    => "Learned via discovery",
+        'extraItems'    => '%1$s: %2$s%% chance for more, up to %3$d extra time(s)',  // aowow - custom: skill_extra_item_template
         'ppm'           => "(%.1f procs per minute)",
         'procChance'    => "Proc chance: %.4g%%",
         'starter'       => "Starter spell",

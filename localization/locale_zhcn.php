@@ -2483,6 +2483,7 @@ $lang = array(
         'currentArea'   => '&lt;当前区域&gt;',
         'durabilityItems' => [-2 => '&lt;所有物品，已装备及背包中&gt;', -1 => '&lt;所有已装备物品&gt;'],
         'discovered'    => "通过发现学习",
+        'extraItems'    => '%1$s: %2$s%% chance for more, up to %3$d extra time(s)',  // aowow - custom: skill_extra_item_template
         'ppm'           => "%.1f每分钟触发几率",
         'procChance'    => "触发几率：%.4g%%",
         'starter'       => "初始法术",
