@@ -94,6 +94,7 @@ class SummongroupBaseResponse extends TemplateResponse implements ICache
         {
             SUMMONER_TYPE_CREATURE   => (string)(CreatureList::getName($sId) ?? ('#'.$sId)),
             SUMMONER_TYPE_GAMEOBJECT => (string)(GameObjectList::getName($sId) ?? ('#'.$sId)),
+            default                  => (WorldPosition::getMapNames([$sId])[$sId] ?? '#'.$sId)
         };
 
         $this->h1 = Lang::summongroup('titleOf', [$summonerLabel, $gId]);

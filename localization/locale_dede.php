@@ -1382,13 +1382,17 @@ $lang = array(
         'title'         => 'Template row (%1$s)'
     ),
     'teleport' => array(
-        'title'         => "Named locations",
-        'notFound'      => "This location doesn't exist.",
+        'title'         => "Teleports",
+        'notFound'      => "This teleport doesn't exist.",
         'unnamed'       => "Teleport to %s",
         'id'            => "ID",
         'zone'          => "Zone",
         'map'           => 'Map [b]%1$d[/b]',
-        'position'      => "Position"
+        'mapName'       => "Map",
+        'position'      => "Position",
+        'height'        => "Height",
+        'orientation'   => "Orientation",
+        'foundIn'       => "This teleport can be found in"
     ),
     'trainer' => array(
         'title'         => "Trainers",
@@ -1401,11 +1405,7 @@ $lang = array(
         'id'            => "ID",
         'map'           => "Map",
         'resurrects'    => "Resurrects players from",
-        'faction'       => "Faction",
-        'alliance'      => "Alliance",
-        'horde'         => "Horde",
-        'both'          => "Both factions",
-        'neutral'       => "Neutral"
+        'foundIn'       => "This graveyard can be found in"
     ),
     'weather' => array(
         'title'         => "Weather"
@@ -1423,8 +1423,8 @@ $lang = array(
         'id'            => "ID",
         'zone'          => "Zone",
         'position'      => "Position",
-        'icon'          => "Icon",
-        'presentedBy'   => "Presented by"
+        'presentedBy'   => "Presented by",
+        'foundIn'       => "This point of interest can be found in"
     ),
     'factionchange' => array(
         'title'         => "Faction change"

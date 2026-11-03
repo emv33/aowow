@@ -80,8 +80,8 @@ class PoisBaseResponse extends TemplateResponse implements ICache
         $data = [];
         foreach ($pois as $poi)
         {
-            $mapId = $maps[$poi['id']] ?? 0;
-            if ($mapId && ($pt = WorldPosition::toZonePos($mapId, $poi['x'], $poi['y'])))
+            $mapId = $maps[$poi['id']] ?? null;             // map 0 is Eastern Kingdoms, so "unknown" is null
+            if ($mapId !== null && ($pt = WorldPosition::toZonePos($mapId, $poi['x'], $poi['y'])))
             {
                 $poi['zone']    = (int)$pt[0]['areaId'];
                 $poi['maplink'] = '?maps='.$poi['zone'].':'.self::pinStr($pt[0]['posX']).self::pinStr($pt[0]['posY']);

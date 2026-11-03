@@ -111,6 +111,7 @@ class SummongroupsBaseResponse extends TemplateResponse implements ICache
                 $jsg[Type::OBJECT][$g['summonerId']] = $g['summonerId'];
             }
             else                                             // SUMMONER_TYPE_MAP - no entity to link to
+                $row['mapName'] = (WorldPosition::getMapNames([$g['summonerId']])[$g['summonerId']] ?? '#'.($g['summonerId']));
 
             $data[] = $row;
         }

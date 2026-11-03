@@ -75,7 +75,7 @@ class GraveyardBaseResponse extends TemplateResponse implements ICache
 
         // optional position table on cores that still ship it; its name, map and exact position win where present
         $name  = '';
-        $mapId = 0;
+        $mapId = null;                                      // map 0 is Eastern Kingdoms, so "unknown" is null
         $posX  = 0.0;
         $posY  = 0.0;
 
@@ -86,7 +86,8 @@ class GraveyardBaseResponse extends TemplateResponse implements ICache
             {
                 $lc    = array_change_key_case($pos, CASE_LOWER);
                 $name  = trim((string)($lc['comment'] ?? $lc['name'] ?? ''));
-                $mapId = (int)($lc['map'] ?? $lc['mapid'] ?? $lc['map_id'] ?? 0);
+                $mapId = $lc['map'] ?? $lc['mapid'] ?? $lc['map_id'] ?? null;
+                $mapId = $mapId === null ? null : (int)$mapId;
                 $posX  = (float)($lc['position_x'] ?? $lc['x'] ?? 0);
                 $posY  = (float)($lc['position_y'] ?? $lc['y'] ?? 0);
             }
@@ -95,10 +96,10 @@ class GraveyardBaseResponse extends TemplateResponse implements ICache
         if ($name === '')
             $name = $comment;
 
-        if (!$mapId && $zones)
+        if ($mapId === null && $zones)
         {
             $mapByZone = DB::Aowow()->selectCell('SELECT `mapId` FROM ::zones WHERE `id` = %i', $zones[0]);
-            $mapId     = (int)$mapByZone;
+            $mapId     = $mapByZone === null || $mapByZone === false ? null : (int)$mapByZone;
         }
 
 
