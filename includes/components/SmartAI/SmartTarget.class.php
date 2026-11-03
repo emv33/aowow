@@ -121,7 +121,7 @@ class SmartTarget
         $target = '';
 
         $targetTT = Lang::smartAI('targetTT', array_merge([$this->type], $this->param, $this->worldPos));
-        $tParams  = $this->targets[$this->type];
+        $tParams  = self::$targets[$this->type];
 
         for ($i = 0; $i < 4; $i++)
         {
