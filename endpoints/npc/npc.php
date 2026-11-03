@@ -334,28 +334,62 @@ class NpcBaseResponse extends TemplateResponse implements ICache
 
                 $infobox[] = Lang::npc('mechanicimmune', ['[br]'.implode(',[br]', $mechanics)]);
             }
+        }
 
-            // extra flags
-            if ($flagsExtra = $this->subject->getField('flagsExtra'))
-            {
-                $buff = [];
-                foreach (Lang::npc('extraFlags') as $idx => $str)
-                    if ($flagsExtra & $idx)
-                        $buff[] = $str;
+        // npc flags
+        if ($npcFlag = $this->subject->getField('npcflag'))
+        {
+            $buff = [];
+            foreach (Lang::npc('npcFlags') as $idx => $str)
+                if ($npcFlag & $idx)
+                    $buff[] = $str;
 
-                if ($buff)
-                    $infobox[] = Lang::npc('_extraFlags').'[ul][li]'.implode('[/li][li]', $buff).'[/li][/ul]';
-            }
+            if ($buff)
+                $infobox[] = Lang::npc('_npcFlags').'[ul][li]'.implode('[/li][li]', $buff).'[/li][/ul]';
+        }
 
-            // Mode dummy references
-            if ($this->altNPCs)
-            {
-                $this->extendGlobalData($this->altNPCs->getJSGlobals());
-                $buff = Lang::npc('versions').'[ul]';
-                foreach ($this->altNPCs->iterate() as $id => $__)
-                    $buff .= '[li][npc='.$id.'][/li]';
-                $infobox[] = $buff.'[/ul]';
-            }
+        // extra flags, plus the bits of unit_flags, unit_flags2 and type_flags that TDB sets by hand
+        // (bits the core sets at runtime or never reads are skipped)
+        $flagLines = function(int $flags, array $labels) : array
+        {
+            $buff = [];
+            foreach ($labels as $mask => $str)
+                if ($flags & $mask)
+                    $buff[] = $str;
+
+            return $buff;
+        };
+
+        $buff = [];
+        if (User::canSee(U_GROUP_EMPLOYEE) && ($flagsExtra = $this->subject->getField('flagsExtra')))
+            $buff = $flagLines($flagsExtra, Lang::npc('extraFlags'));
+
+        $buff = array_merge(
+            $buff,
+            $flagLines($this->subject->getField('unitFlags'),  Lang::npcExtra('unitFlagLabels')),
+            $flagLines($this->subject->getField('unitFlags2'), Lang::npcExtra('unitFlag2Labels')),
+            $flagLines($_typeFlags,                            Lang::npcExtra('typeFlagLabels'))
+        );
+
+        if ($buff)
+            $infobox[] = Lang::npc('_extraFlags').'[ul][li]'.implode('[/li][li]', $buff).'[/li][/ul]';
+
+        // purely cosmetic type flags, listed like the others
+        if ($buff = $flagLines($_typeFlags, Lang::npcExtra('typeFlagClientLabels')))
+            $infobox[] = Lang::npcExtra('clientFlags').Lang::main('colon').'[ul][li]'.implode('[/li][li]', $buff).'[/li][/ul]';
+
+        // aowow - custom: unit_class; links to the npc search, as ?class= is about player classes
+        if ($_ = $this->subject->getField('unitClass'))
+            $infobox[] = Lang::npcExtra('npcClass').Lang::main('colon').'[url=?npcs&filter=cr=107;crs='.$_.';crv=0]'.Lang::game('cl', $_).'[/url]';
+
+        // Mode dummy references
+        if ($this->altNPCs && User::canSee(U_GROUP_EMPLOYEE))
+        {
+            $this->extendGlobalData($this->altNPCs->getJSGlobals());
+            $buff = Lang::npc('versions').'[ul]';
+            foreach ($this->altNPCs->iterate() as $id => $__)
+                $buff .= '[li][npc='.$id.'][/li]';
+            $infobox[] = $buff.'[/ul]';
         }
 
         if ($stats = $this->getCreatureStats($mapType, $_altIds))

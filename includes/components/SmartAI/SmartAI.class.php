@@ -130,7 +130,7 @@ trait SmartHelper
         }
 
         $field = $flags2 ? 'flags2' : 'flags';
-        $max   = $flags2 ? UNIT_FLAG2_ALLOW_CHEAT_SPELLS : UNIT_FLAG_UNK_31;
+        $max   = $flags2 ? UNIT_FLAG2_ALLOW_CHEAT_SPELLS : UNIT_FLAG_IMMUNE;
         $uf    = [];
 
         for ($i = 1; $i <= $max; $i <<= 1)
