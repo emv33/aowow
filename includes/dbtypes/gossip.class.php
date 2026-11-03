@@ -24,7 +24,8 @@ class GossipList extends DBTypeList
 
     protected array  $dbNames  = ['World'];
 
-    private ?array $sources = null;                         // menuId => [type => ids]; filled on demand
+    private ?array $sources     = null;                     // menuId => [type => ids]; filled on demand
+    private  array $parentMenus = [];                       // menuId => [menuIds] - only for menus no entity opens, directly or through a chain
 
     // note: `id` is a select alias for the listview only - conditions must target `gm.MenuID`, as MySQL
     // does not resolve select aliases in WHERE
@@ -108,9 +109,86 @@ class GossipList extends DBTypeList
         return $result;
     }
 
+    /**
+     * a menu reached only through another menu's option has no entity of its own: it is opened by
+     * whichever entity opens the menus further up the chain (ActionMenuID), and when no menu up
+     * the chain is opened by an entity at all, by the menus that link to it
+     *
+     * @param  array $menuIds  menus without a direct source
+     * @param  array $parents  out: menuId => [menus that open it], for the menus left without any entity
+     * @return array           [menuId => [Type::NPC => [ids], Type::OBJECT => [ids]]] - from further up the chain
+     */
+    private static function getInheritedSources(array $menuIds, array &$parents) : array
+    {
+        $reach     = [];                                    // origin menu => [ancestor menu => ancestor menu]
+        $direct    = [];                                    // origin menu => [menus linking to it]
+        $frontier  = [];                                    // node => [origin menus that got here]
+        foreach ($menuIds as $id)
+            $frontier[$id][$id] = $id;
+
+        for ($hop = 0; $frontier && $hop < 12; $hop++)      // same depth limit the poi lookup walks
+        {
+            $rows = DB::World()->selectAssoc(
+               'SELECT DISTINCT `MenuID` AS "parent", `ActionMenuID` AS "child" FROM gossip_menu_option WHERE `ActionMenuID` IN %in AND `MenuID` <> `ActionMenuID`',
+                array_keys($frontier)
+            ) ?: [];
+
+            $next = [];
+            foreach ($rows as $r)
+            {
+                $parent = (int)$r['parent'];
+                $child  = (int)$r['child'];
+
+                foreach ($frontier[$child] as $origin)
+                {
+                    if ($child == $origin)
+                        $direct[$origin][$parent] = $parent;
+
+                    if (isset($reach[$origin][$parent]) || $parent == $origin)
+                        continue;
+
+                    $reach[$origin][$parent] = $parent;
+                    $next[$parent][$origin]  = $origin;
+                }
+            }
+
+            $frontier = $next;
+        }
+
+        $ancestors = [];
+        foreach ($reach as $set)
+            $ancestors += $set;
+
+        $bySource = self::getSourcesFor(array_values($ancestors));
+
+        $result = [];
+        foreach ($menuIds as $id)
+        {
+            foreach ($reach[$id] ?? [] as $anc)
+                foreach ($bySource[$anc] ?? [] as $type => $ids)
+                    foreach ($ids as $eId)
+                        $result[$id][$type][$eId] = $eId;
+
+            if (empty($result[$id]) && !empty($direct[$id]))
+                $parents[$id] = array_values($direct[$id]);
+        }
+
+        return $result;
+    }
+
     private function sources() : array
     {
-        return $this->sources ??= self::getSourcesFor(array_keys($this->templates));
+        if ($this->sources !== null)
+            return $this->sources;
+
+        $ids           = array_keys($this->templates);
+        $this->sources = self::getSourcesFor($ids);
+
+        if ($open = array_filter($ids, fn($id) => empty($this->sources[$id][Type::NPC]) && empty($this->sources[$id][Type::OBJECT])))
+            foreach (self::getInheritedSources(array_values($open), $this->parentMenus) as $id => $bySource)
+                $this->sources[$id] = $bySource;
+
+        return $this->sources;
     }
 
     public function getListviewData() : array
@@ -135,6 +213,9 @@ class GossipList extends DBTypeList
 
             if ($_ = ($sources[$id][Type::OBJECT] ?? []))
                 $data[$id]['objects'] = array_values($_);
+
+            if ($_ = ($this->parentMenus[$id] ?? []))
+                $data[$id]['menus'] = array_map(fn($m) => ['id' => $m, 'name' => Lang::gossip('menu', [$m])], $_);
         }
 
         return $data;
