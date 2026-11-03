@@ -261,8 +261,11 @@ class Conditions
      * one row per distinct condition source, for the ?conditions browser
      * the detail view of a single source stays with getBySource(); this only enumerates them
      *
-     * @param  array $opts  srcType: int[], cndType: int, value1: int, entry: int, limit: int (0 = uncapped)
-     * @return array        list of [srcType, group, entry, srcId, nConditions, cndTypes[]]
+     * @param  array $opts  srcType: int[], criteria: [kind, op, value][], matchAny: bool, limit: int (0 = uncapped)
+     * @param  ?array $jsGlobals  receives the global data the conditions' texts refer to
+     * @return array        list of [srcType, group, entry, srcId, nConditions, cndTypes[], nTargets, targets[[Type::, id], ..]]
+     *                      targets are the entities the conditions' Value1 names, the first few only - nTargets is the full count;
+     *                      only set for sources where every condition names something, see listingTargets()
      */
     public static function browse(array $opts = [], ?array &$jsGlobals = null) : array
     {
@@ -271,24 +274,53 @@ class Conditions
         if ($_ = array_filter(array_map('intVal', (array)($opts['srcType'] ?? []))))
             $where[] = ['c.`SourceTypeOrReferenceId` IN %in', $_];
 
-        if ($_ = intVal($opts['entry'] ?? 0))
-            $where[] = ['(c.`SourceEntry` = %i OR c.`SourceGroup` = %i)', $_, $_];
+        // criteria: [kind => ConditionsFilter::CR_*, op => comparison, value => int], all of them or any
+        $criteria = [];
+        $cndTypes  = [];                                    // conditions of a source, as EXISTS
+        $cndValues = [];
+        foreach ($opts['criteria'] ?? [] as $cr)
+        {
+            $op  = $cr['op'];
+            if (!in_array($op, ['>', '>=', '=', '<=', '<', '!='], true))
+                continue;
+
+            $val = intVal($cr['value']);
+
+            switch ($cr['kind'])
+            {
+                case ConditionsFilter::CR_SOURCE_GROUP:
+                    $criteria[] = ['c.`SourceGroup` '.$op.' %i', $val];
+                    break;
+                case ConditionsFilter::CR_SOURCE_ENTRY:
+                    $criteria[] = ['c.`SourceEntry` '.$op.' %i', $val];
+                    break;
+                case ConditionsFilter::CR_SOURCE_GROUP_ENTRY:
+                    $criteria[] = ['(c.`SourceEntry` '.$op.' %i OR c.`SourceGroup` '.$op.' %i)', $val, $val];
+                    break;
+                case ConditionsFilter::CR_CONDITION_TYPE:
+                    $cndTypes[] = ['ABS(c2.`ConditionTypeOrReference`) '.$op.' %i', $val];
+                    break;
+                case ConditionsFilter::CR_CONDITION_VALUE:
+                    $cndValues[] = ['c2.`ConditionValue1` '.$op.' %i', $val];
+                    break;
+            }
+        }
 
         // "which sources use this condition" - as EXISTS, so the row count stays the count of the whole source
-        $cndType = intVal($opts['cndType'] ?? 0);
-        $value1  = intVal($opts['value1']  ?? 0);
-        if ($cndType || $value1)
-        {
-            $sub = [];
-            if ($cndType)
-                $sub[] = ['ABS(c2.`ConditionTypeOrReference`) = %i', $cndType];
-            if ($value1)
-                $sub[] = ['c2.`ConditionValue1` = %i', $value1];
+        $exists = fn(array $sub) => ['EXISTS (SELECT 1 FROM conditions c2
+                                              WHERE c2.`SourceTypeOrReferenceId` = c.`SourceTypeOrReferenceId` AND c2.`SourceGroup` = c.`SourceGroup`
+                                                AND c2.`SourceEntry` = c.`SourceEntry` AND c2.`SourceId` = c.`SourceId` AND %and)', $sub];
 
-            $where[] = ['EXISTS (SELECT 1 FROM conditions c2
-                                 WHERE c2.`SourceTypeOrReferenceId` = c.`SourceTypeOrReferenceId` AND c2.`SourceGroup` = c.`SourceGroup`
-                                   AND c2.`SourceEntry` = c.`SourceEntry` AND c2.`SourceId` = c.`SourceId` AND %and)', $sub];
-        }
+        // a type and a value that are both asked for describe the same condition ("item in inventory" and "item 12345")
+        // when everything has to match; the others are conditions of their own
+        $sameCnd = !empty($opts['matchAny']) ? [] : array_filter([array_shift($cndTypes), array_shift($cndValues)]);
+        if ($sameCnd)
+            $criteria[] = $exists($sameCnd);
+        foreach (array_merge($cndTypes, $cndValues) as $sub)
+            $criteria[] = $exists([$sub]);
+
+        if ($criteria)
+            $where[] = [!empty($opts['matchAny']) ? '(%or)' : '(%and)', $criteria];
 
         if (!$where)
             $where[] = ['1 = 1'];
