@@ -53,6 +53,7 @@ Listview.templates.summongroup = {
             id: 'members',
             name: LANG.fisummongroup.members,
             type: 'text',
+            align: 'left',
             compute: function(t, td) {
                 var nameCol = 'name_' + Locale.getName();
 
@@ -82,6 +83,7 @@ Listview.templates.summongroup = {
             id: 'summonType',
             name: LANG.fisummongroup.summonType,
             type: 'text',
+            align: 'left',
             width: '18%',
             value: 'summonTypeLabel',
             sortFunc: function(a, b, col) {
@@ -92,6 +94,7 @@ Listview.templates.summongroup = {
             id: 'summonTime',
             name: LANG.fisummongroup.summonTime,
             type: 'text',
+            align: 'left',
             width: '12%',
             compute: function(t, td) {
                 if (t.summonTime)

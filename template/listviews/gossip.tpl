@@ -42,6 +42,7 @@ Listview.templates.gossip = {
             id: 'textids',
             name: LANG.figossip.textid,
             type: 'text',
+            align: 'left',
             width: '15%',
             compute: function(gossip, td) {
                 if (!gossip.textids || !gossip.textids.length)
@@ -81,6 +82,7 @@ Listview.templates.gossip = {
             id: 'openedby',
             name: LANG.gossip_openedby,
             type: 'text',
+            align: 'left',
             compute: function(gossip, td) {
                 var nameCol = 'name_' + Locale.getName();
                 var first   = true;

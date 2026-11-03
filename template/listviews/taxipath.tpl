@@ -24,6 +24,7 @@ Listview.templates.taxipath = {
             align: 'left',
             compute: function(tp, td) {
                 var a = $WH.ce('a');
+                a.style.fontFamily = 'Verdana, sans-serif';
                 a.href = this.getItemLink(tp);
                 $WH.ae(a, $WH.ct(tp.from + ' → ' + tp.to));
                 $WH.ae(td, a);
@@ -33,37 +34,24 @@ Listview.templates.taxipath = {
             }
         },
         {
-            id: 'zones',
-            name: LANG.fitaxipath.zones,
+            id: 'location',
+            name: LANG.location,
             type: 'text',
             compute: function(tp, td) {
-                var part = function(areaId, name) {
-                    if (areaId && g_zones[areaId]) {
-                        var a = $WH.ce('a');
-                        a.className = 'q1';
-                        a.href = '?zone=' + areaId;
-                        $WH.ae(a, $WH.ct(g_zones[areaId]));
-                        $WH.ae(td, a);
-                    }
-                    else
-                        $WH.ae(td, $WH.ct(name || '?'));
-                };
-
-                part(tp.fromarea, tp.from);
-                $WH.ae(td, $WH.ct(' → '));
-                part(tp.toarea, tp.to);
+                return Listview.funcBox.location(tp, td);
             },
             getVisibleText: function(tp) {
-                return (g_zones[tp.fromarea] || '') + ' ' + (g_zones[tp.toarea] || '');
+                return Listview.funcBox.arrayText(tp.location, g_zones);
             },
             sortFunc: function(a, b, col) {
-                return $WH.strcmp(this.getVisibleText(a), this.getVisibleText(b));
+                return Listview.funcBox.assocArrCmp(a.location, b.location, g_zones);
             }
         },
         {
             id: 'flightmaster',
             name: LANG.fitaxipath.flightmaster,
             type: 'text',
+            align: 'left',
             width: '20%',
             compute: function(tp, td) {
                 if (!tp.flightmaster || !tp.flightmaster.length)
@@ -104,7 +92,8 @@ Listview.templates.taxipath = {
             id: 'triggers',
             name: LANG.fitaxipath.triggers,
             type: 'text',
-            width: '18%',
+            align: 'left',
+            width: '25%',
             compute: function(tp, td) {
                 var nameCol = 'name_' + Locale.getName();
 

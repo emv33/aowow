@@ -1010,7 +1010,7 @@ var mn_database = [
     [109, 'Game text', '?texts', null, {requiredAccess: 1726}],    // aowow - custom
     [118, 'Achievement Criteria', '?achievement-criteria', null, {requiredAccess: 1726}],          // aowow - custom
     [110, 'Flight paths', '?taxipaths', null, {requiredAccess: 1726}],    // aowow - custom
-    [111, 'Named locations', '?teleports', null, {requiredAccess: 1726}],    // aowow - custom
+    [111, 'Teleports', '?teleports', null, {requiredAccess: 1726}],    // aowow - custom
     [112, 'Trainers', '?trainers', null, {requiredAccess: 1726}],    // aowow - custom
     [113, 'Graveyards', '?graveyards', null, {requiredAccess: 1726}],    // aowow - custom
     [114, 'Weather', '?weather', null, {requiredAccess: 1726}],    // aowow - custom
@@ -1018,7 +1018,9 @@ var mn_database = [
     [116, 'Points of interest', '?pois', null, {requiredAccess: 1726}],    // aowow - custom
     [117, 'Faction change', '?factionchange', null, {requiredAccess: 1726}],    // aowow - custom
     [119, 'Spell Focuses', '?spellfocuses', null, {requiredAccess: 1726}],    // aowow - custom
-    [120, 'Waypoint Paths', '?waypointpaths', null, {requiredAccess: 1726}]    // aowow - custom
+    [120, 'Waypoint Paths', '?waypointpaths', null, {requiredAccess: 1726}],    // aowow - custom
+    [121, 'Summon Groups', '?summongroups', null, {requiredAccess: 1726}],    // aowow - custom
+    [122, 'Spawn Pools', '?spawnpools', null, {requiredAccess: 1726}]    // aowow - custom
 ];
 
 var mn_guides = [
@@ -4903,7 +4905,6 @@ var LANG = {
         storm:      "Storm"
     },
     fioutdoorpvp: {
-        typeId:     "Type",
         scriptName: "Script",
         comment:    "Comment"
     },

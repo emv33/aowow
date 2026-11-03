@@ -1,5 +1,5 @@
 Listview.templates.waypointpath = {
-    sort: [4],                                              // 1-based index into columns[] below - 'zone'
+    sort: [4],                                              // 1-based index into columns[] below - 'location'
     searchable: 1,
     filtrable: 1,
 
@@ -11,6 +11,7 @@ Listview.templates.waypointpath = {
             name: LANG.waypointpath_npc,
             type: 'text',
             width: '25%',
+            align: 'left',
             compute: function(wp, td) {
                 var nameCol = 'name_' + Locale.getName(),
                     e       = wp.npc && g_npcs[wp.npc];
@@ -19,7 +20,7 @@ Listview.templates.waypointpath = {
                     return -1;
 
                 var a = $WH.ce('a');
-                a.className = 'q1';
+                a.style.fontFamily = 'Verdana, sans-serif';
                 a.href = '?npc=' + wp.npc;
                 $WH.ae(a, $WH.ct(e[nameCol]));
                 $WH.ae(td, a);
@@ -75,25 +76,17 @@ Listview.templates.waypointpath = {
             }
         },
         {
-            id: 'zone',
-            name: LANG.fiwaypointpath.foundin,
+            id: 'location',
+            name: LANG.location,
             type: 'text',
-            width: '25%',
             compute: function(wp, td) {
-                if (!wp.areaId || !g_zones[wp.areaId])
-                    return -1;
-
-                var a = $WH.ce('a');
-                a.className = 'q1';
-                a.href = '?zone=' + wp.areaId;
-                $WH.ae(a, $WH.ct(g_zones[wp.areaId]));
-                $WH.ae(td, a);
+                return Listview.funcBox.location(wp, td);
             },
             getVisibleText: function(wp) {
-                return wp.areaId && g_zones[wp.areaId] ? g_zones[wp.areaId] : '';
+                return Listview.funcBox.arrayText(wp.location, g_zones);
             },
             sortFunc: function(a, b, col) {
-                return $WH.strcmp(this.getVisibleText(a), this.getVisibleText(b));
+                return Listview.funcBox.assocArrCmp(a.location, b.location, g_zones);
             }
         },
         {
@@ -108,6 +101,7 @@ Listview.templates.waypointpath = {
             name: LANG.fiwaypointpath.viasmartai,
             type: 'text',
             width: '12%',
+            align: 'left',
             compute: function(wp, td) {
                 $WH.ae(td, $WH.ct(wp.viaSmartAI ? LANG.waypointpath_sourcesmartai : LANG.waypointpath_sourcedefault));
             },

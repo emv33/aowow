@@ -1,10 +1,13 @@
 Listview.templates.condition = {
     sort: [2],
     searchable: 1,
+
     // a link to an entity the way its own listings show it: item / spell / ... icon in front,
     // quests with the marker the game shows for them (yellow, or blue if repeatable)
     appendLink: function(td, lookupName, id, entry, href, name) {
         var a = $WH.ce('a');
+        if (lookupName == 'g_items' && entry && entry.quality != null)
+            a.className = 'q' + entry.quality;
         a.href = href;
         $WH.ae(a, $WH.ct(name));
 
@@ -184,6 +187,7 @@ Listview.templates.condition = {
             id: 'cndtypes',
             name: LANG.ficondition.types,
             type: 'text',
+            align: 'left',
             width: '32%',
             compute: function(cnd, td) {
                 if (!cnd.cndtypes || !cnd.cndtypes.length)

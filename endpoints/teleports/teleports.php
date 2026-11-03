@@ -86,9 +86,9 @@ class TeleportsBaseResponse extends TemplateResponse implements ICache
             if ($pt = WorldPosition::toZonePos((int)$r['map'], (float)$r['position_x'], (float)$r['position_y']))
             {
                 $row['zone']    = (int)$pt[0]['areaId'];
+                $row['location'] = [$row['zone']];
                 $row['posx']    = $pt[0]['posX'];
                 $row['posy']    = $pt[0]['posY'];
-                $row['maplink'] = '?maps='.$row['zone'].':'.self::pinStr($row['posx']).self::pinStr($row['posy']);
 
                 $jsg[Type::ZONE][$row['zone']] = $row['zone'];
             }
@@ -106,12 +106,6 @@ class TeleportsBaseResponse extends TemplateResponse implements ICache
         $this->extendGlobalData($jsg);
 
         return $data;
-    }
-
-    /** the three-digit pin block the Mapper link format uses per coordinate */
-    private static function pinStr(float $coord) : string
-    {
-        return sprintf('%03d', (int)round($coord * 10));
     }
 }
 

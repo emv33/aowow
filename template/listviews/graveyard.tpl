@@ -16,7 +16,12 @@ Listview.templates.graveyard = {
             width: '28%',
             align: 'left',
             compute: function(t, td) {
-                $WH.ae(td, $WH.ct(t.name || ('#' + t.id)));
+                var a = $WH.ce('a');
+                a.style.fontFamily = 'Verdana, sans-serif';
+                a.href = this.getItemLink(t);
+
+                $WH.ae(a, $WH.ct(t.name || ('#' + t.id)));
+                $WH.ae(td, a);
             },
             getVisibleText: function(t) {
                 return t.name || ('#' + t.id);
@@ -35,7 +40,6 @@ Listview.templates.graveyard = {
                 var label = t.mapName || ('#' + t.map);
                 if (t.mapLink) {
                     var a = $WH.ce('a');
-                    a.className = 'q1';
                     a.href = t.mapLink;
                     $WH.ae(a, $WH.ct(label));
                     $WH.ae(td, a);
@@ -51,10 +55,9 @@ Listview.templates.graveyard = {
             }
         },
         {
-            id: 'zones',
-            name: LANG.figraveyard.zones,
+            id: 'location',
+            name: LANG.location,
             type: 'text',
-            align: 'left',
             compute: function(t, td) {
                 if (!t.zones || !t.zones.length) {
                     $WH.ae(td, $WH.ct('-'));
@@ -94,29 +97,17 @@ Listview.templates.graveyard = {
                 }
             },
             getVisibleText: function(t) {
-                var out = [];
-                for (var i = 0; i < (t.zones || []).length; i++) {
-                    var z     = t.zones[i],
-                        entry = g_gatheredzones ? g_gatheredzones[z] : null;
-
-                    if (entry) {
-                        var nameCol = 'name_' + Locale.getName();
-                        out.push(entry[nameCol] || entry.name || ('#' + z));
-                    }
-                    else
-                        out.push((g_zones && g_zones[z]) ? g_zones[z] : ('#' + z));
-                }
-
-                return out.join(', ');
+                return Listview.funcBox.arrayText(t.location, g_zones);
             },
             sortFunc: function(a, b, col) {
-                return $WH.strcmp(this.getVisibleText(a), this.getVisibleText(b));
+                return Listview.funcBox.assocArrCmp(a.location, b.location, g_zones);
             }
         },
         {
             id: 'faction',
             name: LANG.figraveyard.faction,
             type: 'text',
+            align: 'left',
             width: '12%',
             compute: function(t, td) {
                 var label = t.faction == 1 ? LANG.figraveyard.alliance : (t.faction == 2 ? LANG.figraveyard.horde : (t.faction == 3 ? LANG.figraveyard.both : LANG.figraveyard.neutral));

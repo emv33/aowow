@@ -134,6 +134,10 @@ class WaypointPathList extends DBTypeList
                 'viaSmartAI' => (int)$this->curTpl['viaSmartAI']
             );
 
+            // the zone the way the other listings carry it, Listview.funcBox.location() renders it
+            if ($data[$this->id]['areaId'])
+                $data[$this->id]['location'] = [$data[$this->id]['areaId']];
+
             // kind 1 escort paths are keyed by the creature entry itself
             $npcId = $kind == self::KIND_ESCORT ? $sourceId : ($npcOwner[self::KIND_MOVEMENT][$sourceId]['npc'] ?? 0);
             if ($npcId)

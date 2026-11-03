@@ -186,7 +186,10 @@ class EncounterList extends DBTypeList
             );
 
             if ($_ = ($areas[$this->curTpl['mapId']] ?? $fallback[$id] ?? 0))
-                $data[$id]['area'] = $_;
+            {
+                $data[$id]['area']     = $_;
+                $data[$id]['location'] = [$_];
+            }
 
             if ($this->curTpl['creditEntry'])
             {

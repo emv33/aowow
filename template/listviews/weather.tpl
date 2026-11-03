@@ -4,24 +4,17 @@ Listview.templates.weather = {
 
     columns: [
         {
-            id: 'zone',
-            name: LANG.fiweather.zone,
+            id: 'location',
+            name: LANG.location,
             type: 'text',
-            align: 'left',
             compute: function(t, td) {
-                var name = (g_zones && g_zones[t.zone]) ? g_zones[t.zone] : ('#' + t.zone),
-                    a    = $WH.ce('a');
-
-                a.className = 'q1';
-                a.href = '?zone=' + t.zone;
-                $WH.ae(a, $WH.ct(name));
-                $WH.ae(td, a);
+                return Listview.funcBox.location(t, td);
             },
             getVisibleText: function(t) {
-                return (g_zones && g_zones[t.zone]) ? g_zones[t.zone] : ('#' + t.zone);
+                return Listview.funcBox.arrayText(t.location, g_zones);
             },
             sortFunc: function(a, b, col) {
-                return $WH.strcmp(this.getVisibleText(a), this.getVisibleText(b));
+                return Listview.funcBox.assocArrCmp(a.location, b.location, g_zones);
             }
         },
         {
@@ -31,7 +24,10 @@ Listview.templates.weather = {
             width: '14%',
             value: 'rain',
             compute: function(t, td) {
-                $WH.ae(td, $WH.ct(t.rain ? (t.rain + '%') : '-'));
+                if (!t.rain)
+                    return -1;
+
+                $WH.ae(td, $WH.ct(t.rain + '%'));
             },
             getVisibleText: function(t) {
                 return t.rain;
@@ -44,7 +40,10 @@ Listview.templates.weather = {
             width: '14%',
             value: 'snow',
             compute: function(t, td) {
-                $WH.ae(td, $WH.ct(t.snow ? (t.snow + '%') : '-'));
+                if (!t.snow)
+                    return -1;
+
+                $WH.ae(td, $WH.ct(t.snow + '%'));
             },
             getVisibleText: function(t) {
                 return t.snow;
@@ -57,7 +56,10 @@ Listview.templates.weather = {
             width: '14%',
             value: 'storm',
             compute: function(t, td) {
-                $WH.ae(td, $WH.ct(t.storm ? (t.storm + '%') : '-'));
+                if (!t.storm)
+                    return -1;
+
+                $WH.ae(td, $WH.ct(t.storm + '%'));
             },
             getVisibleText: function(t) {
                 return t.storm;

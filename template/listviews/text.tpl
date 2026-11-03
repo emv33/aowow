@@ -38,12 +38,6 @@ Listview.templates.text = {
                     $WH.ae(td, $WH.ct(text));
                     return;
                 }
-
-                var a = $WH.ce('a');
-                a.className = 'q1';
-                a.href = '?' + t.ownerurl + '=' + t.ownerid;
-                $WH.ae(a, $WH.ct(text));
-                $WH.ae(td, a);
             },
             getVisibleText: function(t) {
                 var lookup = t.ownerlookup ? window[t.ownerlookup] : null,

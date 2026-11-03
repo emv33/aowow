@@ -15,7 +15,12 @@ Listview.templates.poi = {
             type: 'text',
             align: 'left',
             compute: function(t, td) {
-                $WH.ae(td, $WH.ct(t.name || ('#' + t.id)));
+                var a = $WH.ce('a');
+                a.style.fontFamily = 'Verdana, sans-serif';
+                a.href = this.getItemLink(t);
+
+                $WH.ae(a, $WH.ct(t.name || ('#' + t.id)));
+                $WH.ae(td, a);
             },
             getVisibleText: function(t) {
                 return t.name || ('#' + t.id);
@@ -25,67 +30,36 @@ Listview.templates.poi = {
             }
         },
         {
-            id: 'zone',
-            name: LANG.fipoi.zone,
+            id: 'location',
+            name: LANG.location,
             type: 'text',
-            width: '20%',
-            align: 'left',
             compute: function(t, td) {
-                if (!t.zone) {
-                    $WH.ae(td, $WH.ct('-'));
-                    return;
-                }
-
-                var a = $WH.ce('a');
-                a.className = 'q1';
-                a.href = t.maplink || ('?maps=' + t.zone);
-                $WH.ae(a, $WH.ct((g_zones && g_zones[t.zone]) ? g_zones[t.zone] : ('#' + t.zone)));
-                $WH.ae(td, a);
+                return Listview.funcBox.location(t, td);
             },
             getVisibleText: function(t) {
-                return (g_zones && g_zones[t.zone]) ? g_zones[t.zone] : (t.zone ? ('#' + t.zone) : '');
+                return Listview.funcBox.arrayText(t.location, g_zones);
             },
             sortFunc: function(a, b, col) {
-                return $WH.strcmp(this.getVisibleText(a), this.getVisibleText(b));
+                return Listview.funcBox.assocArrCmp(a.location, b.location, g_zones);
             }
         },
         {
             id: 'pos',
             name: LANG.fipoi.position,
             type: 'text',
+            align: 'left',
             width: '16%',
             compute: function(t, td) {
-                $WH.ae(td, $WH.ct((t.x || t.y) ? (t.x + ', ' + t.y) : '-'));
+                if (!t.x && !t.y)
+                    return -1;
+
+                $WH.ae(td, $WH.ct(t.x + ', ' + t.y));
             },
             getVisibleText: function(t) {
                 return t.x + ', ' + t.y;
             },
             sortFunc: function(a, b, col) {
-                return (a.x - b.x) || (a.y - b.y);
-            }
-        },
-        {
-            id: 'icon',
-            name: LANG.fipoi.icon,
-            type: 'num',
-            width: '12%',
-            value: 'icon',
-            compute: function(t, td) {
-                if (!t.icon) {
-                    $WH.ae(td, $WH.ct('-'));
-                    return;
-                }
-
-                // the client resolves this id to a texture through hardcoded UI logic, not
-                // through any DBC/DB table this site has access to - a generic pin glyph marks
-                // it as an icon reference rather than claiming to render the actual graphic
-                var sp = $WH.ce('span');
-                sp.className = 'mapper-pin mapper-pin-1';
-                $WH.ae(sp, $WH.ct(String(t.icon)));
-                $WH.ae(td, sp);
-            },
-            getVisibleText: function(t) {
-                return t.icon;
+                return (a.x + a.y) - (b.x + b.y);
             }
         }
     ],

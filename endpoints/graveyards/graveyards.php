@@ -141,6 +141,7 @@ class GraveyardsBaseResponse extends TemplateResponse implements ICache
                 'map'     => $map,
                 'mapLink' => isset($zones[0]) ? '?maps='.$zones[0] : '',
                 'zones'   => $zones,
+                'location' => $zones,
                 'faction' => $faction
             );
         }

@@ -55,9 +55,9 @@ class PoisBaseResponse extends TemplateResponse implements ICache
             return [];
 
         // 3.3.5 spells the columns differently from newer cores; both are tried, as in Gossip
-        $rows = DB::World()->selectAssoc('SELECT `ID`, `PositionX` AS "x", `PositionY` AS "y", `Icon` AS "icon", `Name` AS "name" FROM points_of_interest ORDER BY `ID` ASC');
+        $rows = DB::World()->selectAssoc('SELECT `ID`, `PositionX` AS "x", `PositionY` AS "y", `Name` AS "name" FROM points_of_interest ORDER BY `ID` ASC');
         if (!$rows)
-            $rows = DB::World()->selectAssoc('SELECT `entry` AS "ID", `x`, `y`, `icon`, `icon_name` AS "name" FROM points_of_interest ORDER BY `entry` ASC');
+            $rows = DB::World()->selectAssoc('SELECT `entry` AS "ID", `x`, `y`, `icon_name` AS "name" FROM points_of_interest ORDER BY `entry` ASC');
 
         $pois = [];
         foreach ($rows ?: [] as $r)
@@ -67,8 +67,7 @@ class PoisBaseResponse extends TemplateResponse implements ICache
                 'id'   => (int)$r['ID'],
                 'name' => $name !== '' && $name[0] == '$' ? ' '.$name : $name,
                 'x'    => (float)$r['x'],
-                'y'    => (float)$r['y'],
-                'icon' => (int)$r['icon']
+                'y'    => (float)$r['y']
             );
         }
 
@@ -84,7 +83,7 @@ class PoisBaseResponse extends TemplateResponse implements ICache
             if ($mapId !== null && ($pt = WorldPosition::toZonePos($mapId, $poi['x'], $poi['y'])))
             {
                 $poi['zone']    = (int)$pt[0]['areaId'];
-                $poi['maplink'] = '?maps='.$poi['zone'].':'.self::pinStr($pt[0]['posX']).self::pinStr($pt[0]['posY']);
+                $poi['location'] = [$poi['zone']];
 
                 $jsg[Type::ZONE][$poi['zone']] = $poi['zone'];
             }
@@ -296,12 +295,6 @@ class PoisBaseResponse extends TemplateResponse implements ICache
         }
 
         return $seen;
-    }
-
-    /** the three-digit pin block the Mapper link format uses per coordinate */
-    private static function pinStr(float $coord) : string
-    {
-        return sprintf('%03d', (int)round($coord * 10));
     }
 
     protected function generateMetadata(bool $useArticle = true) : void

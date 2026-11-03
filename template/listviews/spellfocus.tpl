@@ -15,7 +15,12 @@ Listview.templates.spellfocus = {
             type: 'text',
             align: 'left',
             compute: function(t, td) {
-                $WH.ae(td, $WH.ct(t.name || ('#' + t.id)));
+                var a = $WH.ce('a');
+                a.style.fontFamily = 'Verdana, sans-serif';
+                a.href = this.getItemLink(t);
+
+                $WH.ae(a, $WH.ct(t.name || ('#' + t.id)));
+                $WH.ae(td, a);
             },
             getVisibleText: function(t) {
                 return t.name || ('#' + t.id);
@@ -32,12 +37,10 @@ Listview.templates.spellfocus = {
             align: 'left',
             compute: function(t, td) {
                 if (!t.objlink) {
-                    $WH.ae(td, $WH.ct('-'));
-                    return;
+                    return -1;
                 }
 
                 var a = $WH.ce('a');
-                a.className = 'q1';
                 a.href = t.objlink;
                 $WH.ae(a, $WH.ct(t.objcount == 1 ? t.objname : (t.objcount + ' ' + LANG.types[2][3])));
                 $WH.ae(td, a);

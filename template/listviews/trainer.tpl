@@ -14,7 +14,7 @@ Listview.templates.trainer = {
                     entry   = g_npcs[t.npc],
                     a       = $WH.ce('a');
 
-                a.className = 'q1';
+                a.style.fontFamily = 'Verdana, sans-serif';
                 a.href = '?npc=' + t.npc;
                 $WH.ae(a, $WH.ct((entry && entry[nameCol]) ? entry[nameCol] : ('#' + t.npc)));
                 $WH.ae(td, a);
@@ -36,15 +36,19 @@ Listview.templates.trainer = {
             width: '30%',
             align: 'left',
             compute: function(t, td) {
-                var icon = g_spells.createIcon(t.spell, 0);
-                icon.style.cssFloat = icon.style.styleFloat = 'left';
-                $WH.ae(td, icon);
-
                 var nameCol = 'name_' + Locale.getName(),
                     entry   = g_spells[t.spell],
                     a       = $WH.ce('a');
 
+                // inline icon followed by the link, as the conditions listing does - a floated
+                // icon left the text at the top edge
+                if (entry && entry.icon) {
+                    $WH.ae(td, Icon.create(entry.icon, 0, null, '?spell=' + t.spell, null, null, null, null, true));
+                    $WH.ae(td, $WH.ct(' '));
+                }
+
                 a.className = 'q';
+                a.style.fontFamily = 'Verdana, sans-serif';
                 a.href = '?spell=' + t.spell;
                 $WH.ae(a, $WH.ct((entry && entry[nameCol]) ? entry[nameCol] : ('#' + t.spell)));
                 $WH.ae(td, a);
@@ -66,10 +70,10 @@ Listview.templates.trainer = {
             width: '12%',
             value: 'cost',
             compute: function(t, td) {
-                if (t.cost)
-                    Listview.funcBox.appendMoney(td, t.cost);
-                else
-                    $WH.ae(td, $WH.ct('-'));
+                if (!t.cost)
+                    return -1;
+
+                Listview.funcBox.appendMoney(td, t.cost);
             },
             getVisibleText: function(t) {
                 return t.cost;
@@ -83,17 +87,18 @@ Listview.templates.trainer = {
             align: 'left',
             compute: function(t, td) {
                 if (!t.reqSkill) {
-                    $WH.ae(td, $WH.ct('-'));
-                    return;
+                    return -1;
                 }
-
-                var icon = g_skills.createIcon(t.reqSkill, 0);
-                icon.style.cssFloat = icon.style.styleFloat = 'left';
-                $WH.ae(td, icon);
 
                 var nameCol = 'name_' + Locale.getName(),
                     entry   = g_skills[t.reqSkill],
                     a       = $WH.ce('a');
+
+                // inline icon followed by the link, as the spell column and the conditions listing do
+                if (entry && entry.icon) {
+                    $WH.ae(td, Icon.create(entry.icon, 0, null, '?skill=' + t.reqSkill, null, null, null, null, true));
+                    $WH.ae(td, $WH.ct(' '));
+                }
 
                 a.className = 'q';
                 a.href = '?skill=' + t.reqSkill;
@@ -117,7 +122,10 @@ Listview.templates.trainer = {
             width: '7%',
             value: 'reqSkillRank',
             compute: function(t, td) {
-                $WH.ae(td, $WH.ct(t.reqSkillRank || '-'));
+                if (!t.reqSkillRank)
+                    return -1;
+
+                $WH.ae(td, $WH.ct(t.reqSkillRank));
             },
             getVisibleText: function(t) {
                 return t.reqSkillRank;
@@ -130,7 +138,10 @@ Listview.templates.trainer = {
             width: '7%',
             value: 'reqLevel',
             compute: function(t, td) {
-                $WH.ae(td, $WH.ct(t.reqLevel || '-'));
+                if (!t.reqLevel)
+                    return -1;
+
+                $WH.ae(td, $WH.ct(t.reqLevel));
             },
             getVisibleText: function(t) {
                 return t.reqLevel;

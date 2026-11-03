@@ -4,23 +4,21 @@ Listview.templates.outdoorpvp = {
 
     columns: [
         {
-            id: 'typeId',
-            name: LANG.fioutdoorpvp.typeId,
-            type: 'num',
-            width: '12%',
-            value: 'typeId'
-        },
-        {
             id: 'scriptName',
             name: LANG.fioutdoorpvp.scriptName,
             type: 'text',
             width: '30%',
             align: 'left',
             compute: function(t, td) {
-                $WH.ae(td, $WH.ct(t.scriptName || '-'));
+                var a = $WH.ce('a');
+                a.style.fontFamily = 'Verdana, sans-serif';
+                a.href = this.getItemLink(t);
+
+                $WH.ae(a, $WH.ct(t.scriptName || ('#' + t.typeId)));
+                $WH.ae(td, a);
             },
             getVisibleText: function(t) {
-                return t.scriptName;
+                return t.scriptName || ('#' + t.typeId);
             },
             sortFunc: function(a, b, col) {
                 return $WH.strcmp(this.getVisibleText(a), this.getVisibleText(b));
@@ -32,7 +30,10 @@ Listview.templates.outdoorpvp = {
             type: 'text',
             align: 'left',
             compute: function(t, td) {
-                $WH.ae(td, $WH.ct(t.comment || '-'));
+                if (!t.comment)
+                    return -1;
+
+                $WH.ae(td, $WH.ct(t.comment));
             },
             getVisibleText: function(t) {
                 return t.comment;

@@ -25,6 +25,7 @@ Listview.templates.encounter = {
             value: 'name',
             compute: function(enc, td, tr) {
                 var a = $WH.ce('a');
+                a.style.fontFamily = 'Verdana, sans-serif';
                 a.href = this.getItemLink(enc);
 
                 $WH.ae(a, $WH.ct(enc.name));
@@ -42,31 +43,24 @@ Listview.templates.encounter = {
             }
         },
         {
-            id: 'instance',
-            name: LANG.fiencounter.instance,
+            id: 'location',
+            name: LANG.location,
             type: 'text',
-            width: '25%',
             compute: function(enc, td) {
-                if (!enc.area || !g_zones[enc.area])
-                    return -1;
-
-                var a = $WH.ce('a');
-                a.className = 'q1';
-                a.href = '?zone=' + enc.area;
-                $WH.ae(a, $WH.ct(g_zones[enc.area]));
-                $WH.ae(td, a);
+                return Listview.funcBox.location(enc, td);
             },
             getVisibleText: function(enc) {
-                return (enc.area && g_zones[enc.area]) ? g_zones[enc.area] : '';
+                return Listview.funcBox.arrayText(enc.location, g_zones);
             },
             sortFunc: function(a, b, col) {
-                return $WH.strcmp(this.getVisibleText(a), this.getVisibleText(b));
+                return Listview.funcBox.assocArrCmp(a.location, b.location, g_zones);
             }
         },
         {
             id: 'credit',
             name: LANG.fiencounter.credit,
             type: 'text',
+            align: 'left',
             width: '25%',
             compute: function(enc, td) {
                 if (!enc.creditentry)
@@ -79,8 +73,7 @@ Listview.templates.encounter = {
 
                 if (entry && entry[nameCol]) {
                     var a = $WH.ce('a');
-                    a.className = isSpell ? 'q' : 'q1';
-                    a.href = (isSpell ? '?spell=' : '?npc=') + enc.creditentry;
+                                        a.href = (isSpell ? '?spell=' : '?npc=') + enc.creditentry;
                     $WH.ae(a, $WH.ct(entry[nameCol]));
                     $WH.ae(td, a);
                 }
