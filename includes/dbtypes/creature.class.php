@@ -574,6 +574,26 @@ class CreatureListFilter extends Filter
         return $facTpls ? ['faction', $facTpls] : [0];
     }
 
+    // aowow - custom start: `VisibilityDistanceType` lives in `creature_template_addon`, not in the generated creature table
+    protected function cbVisibilityRange(int $cr, int $crs, string $crv) : ?array
+    {
+        if ($crs == parent::ENUM_ANY)
+            $ids = DB::World()->selectCol('SELECT `entry` FROM creature_template_addon WHERE `VisibilityDistanceType` > 0');
+        else if ($crs == 0)                                 // map default: no addon row at all counts too
+        {
+            $ids = DB::World()->selectCol('SELECT `entry` FROM creature_template_addon WHERE `VisibilityDistanceType` > 0');
+
+            return $ids ? ['id', $ids, '!'] : ['id', 0, '>'];
+        }
+        else if (in_array($crs, self::$enums[$cr]))
+            $ids = DB::World()->selectCol('SELECT `entry` FROM creature_template_addon WHERE `VisibilityDistanceType` = %i', $crs);
+        else
+            return null;
+
+        return $ids ? ['id', $ids] : [0];
+    }
+    // aowow - custom end
+
     protected function cbHasLocation(int $cr, int $crs, string $crv) : ?array
     {
         if (!$this->int2Bool($crs))

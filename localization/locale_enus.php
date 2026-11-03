@@ -1586,6 +1586,9 @@ $lang = array(
         'noMount'       => "No mount",
         'noEmote'       => "No emote",
         'emote'         => "Emote",
+        'standState'    => "Stand state",
+        'visibility'    => "Visibility range",
+        'visibilityTypes' => [1 => "Tiny (%d yd)", 2 => "Small (%d yd)", 3 => "Large (%d yd)", 4 => "Gigantic (%d yd)", 5 => "Maximum (%d yd)"],
         'unitFlagLabels' => array(
             UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_IMMUNE_TO_PC => "Cannot be attacked",
             UNIT_FLAG_IMMUNE_TO_NPC                           => "Immune to creatures",
@@ -1817,6 +1820,7 @@ $lang = array(
         'srcSmartai'    => "SmartAI",
         'srcSpawnaura'  => "Spawn aura",
         'srcSpellclick' => "Spellclick",
+        'guidColumn'    => "GUIDs",
         'accessory'     => "Accessories",
         'accessoryFor'  => "This NPC is an accessory for vehicle",
         'quotes'        => "Quotes&nbsp;(%d)",

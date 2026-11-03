@@ -579,11 +579,13 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         // aowow - custom end
 
         // tab: abilities / tab_controlledabilities (dep: VehicleId)
-        $tplSpells  = [];
-        $genSpells  = [];
-        $auraSpells = [];
-        $spellClick = [];
-        $conditions = [DB::OR];
+        $tplSpells      = [];
+        $genSpells      = [];
+        $auraSpells     = [];
+        $tplAuraSpells  = [];
+        $spawnAuraGuids = [];       // spellId => [guid, ...] - only set for auras not already covered template-wide
+        $spellClick     = [];
+        $conditions     = [DB::OR];
 
         for ($i = 1; $i < 9; $i++)
             if ($_ = $this->subject->getField('spell'.$i))
@@ -598,14 +600,15 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         if ($auras = DB::World()->selectCell('SELECT `auras` FROM creature_template_addon WHERE `entry` = %i', $this->typeId))
         {
             $auras = preg_replace('/[^\d ]/', ' ', $auras);  // remove erroneous chars from string
-            $auraSpells = array_filter(explode(' ', $auras));
-            $genSpells  = array_merge($genSpells, $auraSpells);
+            $tplAuraSpells = array_filter(explode(' ', $auras));
+            $auraSpells    = $tplAuraSpells;
+            $genSpells     = array_merge($genSpells, $tplAuraSpells);
         }
 
         // a per-spawn `creature_addon` row can carry its own auras instead of (or in addition
         // to) the template's - these were read nowhere, so a spawn-only aura never showed up
-        if (self::hasTable('creature_addon') && $spawnAuras = DB::World()->selectCol(
-               'SELECT DISTINCT ca.`auras`
+        if (self::hasTable('creature_addon') && $spawnAuraRows = DB::World()->selectAssoc(
+               'SELECT ca.`guid` AS ARRAY_KEY, ca.`auras`
                 FROM   creature_addon ca
                 JOIN   creature c ON c.`guid` = ca.`guid`
                 WHERE  c.`id` = %i AND ca.`auras` IS NOT NULL AND ca.`auras` <> \'\'',
@@ -613,8 +616,17 @@ class NpcBaseResponse extends TemplateResponse implements ICache
             ))
         {
             $spawnAuraSpells = [];
-            foreach ($spawnAuras as $sa)
-                $spawnAuraSpells = array_merge($spawnAuraSpells, array_filter(explode(' ', preg_replace('/[^\d ]/', ' ', $sa))));
+            foreach ($spawnAuraRows as $guid => $row)
+            {
+                foreach (array_filter(explode(' ', preg_replace('/[^\d ]/', ' ', $row['auras']))) as $sId)
+                {
+                    $spawnAuraSpells[] = $sId;
+
+                    // already covered for every spawn via the template - no single guid to blame
+                    if (!in_array($sId, $tplAuraSpells))
+                        $spawnAuraGuids[$sId][] = $guid;
+                }
+            }
 
             $auraSpells = array_unique(array_merge($auraSpells, $spawnAuraSpells));
             $genSpells  = array_merge($genSpells, $spawnAuraSpells);
@@ -661,8 +673,9 @@ class NpcBaseResponse extends TemplateResponse implements ICache
             if (!$abilities->error)
             {
                 $this->extendGlobalData($abilities->getJSGlobals(GLOBALINFO_SELF | GLOBALINFO_RELATED));
-                $controled = $abilities->getListviewData();
-                $normal    = [];
+                $controled  = $abilities->getListviewData();
+                $normal     = [];
+                $hasGuidCol = false;
 
                 foreach ($controled as $id => $values)
                 {
@@ -683,6 +696,12 @@ class NpcBaseResponse extends TemplateResponse implements ICache
 
                         $values['source'] = implode(', ', $src);
 
+                        if (!empty($spawnAuraGuids[$id]))
+                        {
+                            $values['guids'] = implode(', ', $spawnAuraGuids[$id]);
+                            $hasGuidCol      = true;
+                        }
+
                         $normal[$id] = $values;
                         if (!in_array($id, $tplSpells))
                             unset($controled[$id]);
@@ -695,12 +714,18 @@ class NpcBaseResponse extends TemplateResponse implements ICache
                     $this->extendGlobalData($cnd->getJSGlobals());
 
                 if ($normal)
+                {
+                    $abilityCols = ["\$Listview.funcBox.createSimpleCol('source', '".Lang::npc('srcColumn')."', '15%', 'source')"];
+                    if ($hasGuidCol)
+                        $abilityCols[] = "\$Listview.funcBox.createSimpleCol('guids', '".Lang::npc('guidColumn')."', '15%', 'guids')";
+
                     $this->lvTabs->addListviewTab(new Listview(array(
                         'data'      => $normal,
                         'name'      => '$LANG.tab_abilities',
                         'id'        => 'abilities',
-                        'extraCols' => ["\$Listview.funcBox.createSimpleCol('source', '".Lang::npc('srcColumn')."', '15%', 'source')"]
+                        'extraCols' => $abilityCols
                     ), SpellList::$brickFile));
+                }
 
                 if ($controled)
                     $this->lvTabs->addListviewTab(new Listview(array(
@@ -1680,6 +1705,10 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         $lc     = array_change_key_case($row, CASE_LOWER);
         $mount  = (int)($lc['mount'] ?? 0);
         $emote  = (int)($lc['emote'] ?? 0);
+        // newer revisions split `bytes1` into `StandState` / `AnimTier` / ...; older ones pack
+        // UnitStandStateType into the low byte of `bytes1`
+        $stand  = (int)($lc['standstate'] ?? ((int)($lc['bytes1'] ?? 0) & 0xFF));
+        $sCol   = isset($lc['standstate']) ? 'ca.`StandState`' : '(ca.`bytes1` & 255)';
         $out    = [];
 
         if ($mount)
@@ -1691,6 +1720,19 @@ class NpcBaseResponse extends TemplateResponse implements ICache
             $out[] = Lang::npcExtra('emote').Lang::main('colon').'[emote='.$emote.']';
         }
 
+        if ($stand)
+            $out[] = Lang::npcExtra('standState').Lang::main('colon').(Lang::unit('bytes1', 0, $stand) ?? Lang::unit('bytes1', 'valueUNK', [$stand, 0]));
+
+        // `VisibilityDistanceType` (0 = the map default, which is not worth a line); the core maps the
+        // other values to fixed ranges (ObjectDefines.h): tiny 25, small 50, large 200, gigantic 400,
+        // infinite = one grid (533.33)
+        if (($vis = (int)($lc['visibilitydistancetype'] ?? 0)) > 0)
+        {
+            $yards = [1 => 25, 2 => 50, 3 => 200, 4 => 400, 5 => 533];
+            if (isset($yards[$vis]))
+                $out[] = Lang::npcExtra('visibility').Lang::main('colon').sprintf(Lang::npcExtra('visibilityTypes')[$vis], $yards[$vis]);
+        }
+
         if (!$out)
             return [];
 
@@ -1698,12 +1740,12 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         if (self::hasTable('creature_addon'))
         {
             $rows = DB::World()->selectAssoc(
-               'SELECT   c.`guid` AS ARRAY_KEY, ca.`mount`, ca.`emote`
+               'SELECT   c.`guid` AS ARRAY_KEY, ca.`mount`, ca.`emote`, '.$sCol.' AS "stand"
                 FROM     creature_addon ca
                 JOIN     creature c ON c.`guid` = ca.`guid`
-                WHERE    c.`id` = %i AND (ca.`mount` <> %i OR ca.`emote` <> %i)
+                WHERE    c.`id` = %i AND (ca.`mount` <> %i OR ca.`emote` <> %i OR '.$sCol.' <> %i)
                 ORDER BY c.`guid` ASC',
-                $npcId, $mount, $emote
+                $npcId, $mount, $emote, $stand
             ) ?: [];
 
             if ($rows)
@@ -1722,6 +1764,9 @@ class NpcBaseResponse extends TemplateResponse implements ICache
                             $resp->extendGlobalIds(Type::EMOTE, $e);
                         $bits[] = Lang::npcExtra('emote').Lang::main('colon').($e ? '[emote='.$e.']' : Lang::npcExtra('noEmote'));
                     }
+
+                    if (($st = (int)$r['stand']) !== $stand)
+                        $bits[] = Lang::npcExtra('standState').Lang::main('colon').(Lang::unit('bytes1', 0, $st) ?? Lang::unit('bytes1', 'valueUNK', [$st, 0]));
 
                     $items .= sprintf('[li]GUID: %d - %s[/li]', $guid, implode(', ', $bits));
                 }

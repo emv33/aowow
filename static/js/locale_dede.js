@@ -3659,6 +3659,7 @@ var LANG = {
     fidropdowns: {
         yn:             [   [1, "Ja"],                              [2, "Nein"]                             ],
         num:            [   [1, ">"],                               [2, ">="],                              [3, "="],                               [4, "<="],                              [5, "<"],                              [6, "!="]],
+        visibilityrange: [  [0, "Default (100 yd)"], [1, "Tiny (25 yd)"], [2, "Small (50 yd)"], [3, "Large (200 yd)"], [4, "Gigantic (400 yd)"], [5, "Maximum (533 yd)"]  ],
         side:           [   [1, "Ja"],                              [2, "Allianz"],                         [3, "Horde"],                           [4, "Beide"],                           [5, "Nein"]                                     ],
         faction:        [
                             [null, "Classic"],
@@ -4442,6 +4443,7 @@ var LANG = {
         npcnoeventsounds:   "No unit event sounds",
         npcnoshadow:        "No shadow blob",
         npcnosheathe:       "Does not sheathe its weapon",
+        visibilityrange:    "Visibility range",
 
         sepcommunity:        "Community",
         hascomments:         "Verfügt über Kommentare",
