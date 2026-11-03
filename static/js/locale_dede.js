@@ -4652,6 +4652,206 @@ var LANG = {
         customattristalent:                  "Is a talent", // aowow - custom
         customattrauracannotbesaved:         "Aura cannot be saved across logout", // aowow - custom
         customattrcantargetanyprivateobject: "Can target any private object", // aowow - custom
+        sepattributes0:                      "Attributes0", // aowow - custom
+        attr0_0:                             "Proc-Fehlschlag verbraucht Aufladung", // aowow - custom
+        attr0_3:                             "Verfehlen durch Immunität nicht loggen", // aowow - custom
+        attr0_4:                             "Ist Fähigkeit", // aowow - custom
+        attr0_5:                             "Handwerksrezept", // aowow - custom
+        attr0_7:                             "Aura ist versteckt", // aowow - custom
+        attr0_9:                             "Nur angelegte Gegenstände", // aowow - custom
+        attr0_11:                            "Träger wirkt Proc-Auslöser", // aowow - custom
+        attr0_18:                            "Waffe nicht wegstecken", // aowow - custom
+        attr0_22:                            "Ziel bei Wirken verfolgen (nur Spieler)", // aowow - custom
+        attr0_30:                            "Herzschlagresistenz", // aowow - custom
+        sepattributes1:                      "Attributes1", // aowow - custom
+        attr1_0:                             "Zuerst Begleiter freigeben", // aowow - custom
+        attr1_3:                             "Kann nicht umgelenkt werden", // aowow - custom
+        attr1_4:                             "Keine Fähigkeitenerhöhung", // aowow - custom
+        attr1_9:                             "Initiiere Kampf (aktiviert Autoangriff)", // aowow - custom
+        attr1_11:                            "Einzigartige Aura", // aowow - custom
+        attr1_13:                            "Fernsicht umschalten", // aowow - custom
+        attr1_14:                            "Ziel beim Kanalisieren verfolgen", // aowow - custom
+        attr1_17:                            "Kein Auto-Zaubern (KI)", // aowow - custom
+        attr1_18:                            "Verhindert Animation", // aowow - custom
+        attr1_19:                            "Zauberer kann nicht Ziel sein", // aowow - custom
+        attr1_20:                            "Erfordert Combo-Punkte auf dem Ziel (Effektstärke)", // aowow - custom
+        attr1_21:                            "Bedrohung nur bei verfehlen", // aowow - custom
+        attr1_22:                            "Erfordert Combo-Punkte auf dem Ziel (Effektdauer)", // aowow - custom
+        attr1_23:                            "Ignoriere Tod des Besitzers", // aowow - custom
+        attr1_25:                            "Aura bleibt nach Kampf bestehen", // aowow - custom
+        attr1_26:                            "Benötige alle Ziele", // aowow - custom
+        attr1_27:                            "Reduzierte Kosten bei Verfehlen", // aowow - custom
+        attr1_29:                            "Name im Zauberbalken", // aowow - custom
+        attr1_30:                            "Kombo beim Ausweichen", // aowow - custom
+        attr1_31:                            "Beim erlernen Zaubern", // aowow - custom
+        sepattributes2:                      "Attributes2", // aowow - custom
+        attr2_0:                             "Totes Ziel zulässig", // aowow - custom
+        attr2_1:                             "Kein Gestaltwandel-UI", // aowow - custom
+        attr2_2:                             "Ignoriere Sichtlinie", // aowow - custom
+        attr2_3:                             "Erlaube Verstärkungszauber auf niederstufigem Ziel", // aowow - custom
+        attr2_4:                             "Spezialaktionsleiste benutzen", // aowow - custom
+        attr2_5:                             "Automatische Wiederholung", // aowow - custom
+        attr2_7:                             "Fehlgeschlagene Zauber nicht melden", // aowow - custom
+        attr2_9:                             "Immer als Einheit zaubern", // aowow - custom
+        attr2_10:                            "Markierung für besonderes Zähmen", // aowow - custom
+        attr2_11:                            "Lebenslinie", // aowow - custom
+        attr2_12:                            "Verkettung vom Zauberer ausgehend", // aowow - custom
+        attr2_14:                            "Nutzbar während unsichtbar", // aowow - custom
+        attr2_15:                            "Nicht verbrauchen, wenn beim Zaubern erlangt", // aowow - custom
+        attr2_16:                            "Kein aktiver Begleiter", // aowow - custom
+        attr2_17:                            "Kampftimer nicht zurücksetzen", // aowow - custom
+        attr2_18:                            "Erfordert toten Begleiter", // aowow - custom
+        attr2_20:                            "Initiiere Kampf nach Wirken (aktiviert Autoangriff)", // aowow - custom
+        attr2_21:                            "Scheitern, wenn alle Ziele immun", // aowow - custom
+        attr2_22:                            "Keine Initialbedrohung", // aowow - custom
+        attr2_23:                            "Abklingzeit bei Fehlschlag proccen", // aowow - custom
+        attr2_24:                            "Gegenstand mit Besitzerfertigkeit gewirkt", // aowow - custom
+        attr2_25:                            "Manaregenaration nicht blockieren", // aowow - custom
+        attr2_26:                            "Ignoriert Immunität gegen Magieart", // aowow - custom
+        attr2_27:                            "Ignoriere Waffenfertigkeit", // aowow - custom
+        attr2_28:                            "Keine Aktion", // aowow - custom
+        attr2_30:                            "Aktive Bedrohung", // aowow - custom
+        sepattributes3:                      "Attributes3", // aowow - custom
+        attr3_0:                             "Aktiviert PvP", // aowow - custom
+        attr3_1:                             "Keine Ausrüstungs-Voraussetzung für Proc", // aowow - custom
+        attr3_2:                             "Kein Text im Zauberbalken", // aowow - custom
+        attr3_3:                             "Vollständig geblockt", // aowow - custom
+        attr3_4:                             "Kein Wiederbelebungs-Verzögerung", // aowow - custom
+        attr3_5:                             "Kein Haltbarkeitsverlust", // aowow - custom
+        attr3_6:                             "Kann nicht vermieden werden", // aowow - custom
+        attr3_7:                             "Nutzt Regeln fürs DoT-Stapeln", // aowow - custom
+        attr3_9:                             "Kein Proc", // aowow - custom
+        attr3_12:                            "Nur auf Geister", // aowow - custom
+        attr3_13:                            "Verstecke Kanalisierungsbalken", // aowow - custom
+        attr3_14:                            "Ist Ehrenloses Ziel", // aowow - custom
+        attr3_15:                            "Normaler Fernkampfangriff", // aowow - custom
+        attr3_16:                            "Wirker Procs unterdrücken", // aowow - custom
+        attr3_19:                            "Deaktiviert Procs", // aowow - custom
+        attr3_21:                            "Procct nur draußen", // aowow - custom
+        attr3_23:                            "Keine Schadenshistorie", // aowow - custom
+        attr3_25:                            "Als periodischen Zauber behandeln", // aowow - custom
+        attr3_26:                            "Kann durch Procs proccen", // aowow - custom
+        attr3_27:                            "Proc nur bei Wirker", // aowow - custom
+        attr3_28:                            "Ignoriere Beschränkungen an Wirker und Ziel", // aowow - custom
+        attr3_29:                            "Ignoriere Zauberer-Modifikatoren", // aowow - custom
+        attr3_30:                            "Reichweite nicht anzeigen", // aowow - custom
+        attr3_31:                            "Nicht bei AoE-Immunität", // aowow - custom
+        sepattributes4:                      "Attributes4", // aowow - custom
+        attr4_0:                             "Wirken nicht im Log", // aowow - custom
+        attr4_1:                             "Klassenauslöser nur am Ziel", // aowow - custom
+        attr4_3:                             "Verursacht keine hilfreiche Bedrohung", // aowow - custom
+        attr4_4:                             "Verursacht keine offensive Bedrohung", // aowow - custom
+        attr4_5:                             "Erlaube Client-Zielsetzung", // aowow - custom
+        attr4_7:                             "Zaubern während des zauberns zulässig", // aowow - custom
+        attr4_8:                             "Ignoriere Modifikatoren für erlittenen Schaden", // aowow - custom
+        attr4_9:                             "Combat Feedback When Usable", // aowow - custom
+        attr4_10:                            "Kostenskalierung mit Waffengeschwindigkeit", // aowow - custom
+        attr4_11:                            "Keine teilweise Immunität", // aowow - custom
+        attr4_12:                            "Aura ist Stärkungszauber", // aowow - custom
+        attr4_13:                            "Zauberer nicht loggen", // aowow - custom
+        attr4_14:                            "Reaktiver Schadens-Proc", // aowow - custom
+        attr4_15:                            "Nicht im Zauberbuch", // aowow - custom
+        attr4_18:                            "Überspringende Kettengeschosse", // aowow - custom
+        attr4_19:                            "Erlaube Proc im Sitzen", // aowow - custom
+        attr4_20:                            "Anwendung der Aura kann nicht fehlschlagen", // aowow - custom
+        attr4_21:                            "Zulässig beim Betreten der Arena", // aowow - custom
+        attr4_22:                            "Proc unterdrückt Schwung-Animation", // aowow - custom
+        attr4_23:                            "Unterdrücke Waffen-Procs", // aowow - custom
+        attr4_24:                            "Automatischer Fernkampf", // aowow - custom
+        attr4_25:                            "Skalliert mit Statistiken des Besitzers", // aowow - custom
+        attr4_26:                            "Nur in Flugzonen", // aowow - custom
+        attr4_27:                            "Zauberbalkenanzeige erzwingen", // aowow - custom
+        attr4_28:                            "Ignoriere Kampftimer", // aowow - custom
+        attr4_29:                            "Abweisung der Aura unterbricht Zauber", // aowow - custom
+        attr4_31:                            "Blickrichtung von Zauber benutzen", // aowow - custom
+        sepattributes5:                      "Attributes5", // aowow - custom
+        attr5_0:                             "Erlaube Aktionen beim kanalisieren", // aowow - custom
+        attr5_1:                             "Keine Reagenzkosten bei Aura", // aowow - custom
+        attr5_2:                             "Beim Betreten der Arena entfernt", // aowow - custom
+        attr5_4:                             "Löst Kanalisieren aus", // aowow - custom
+        attr5_6:                             "Ignoriere PvP-Check für Gebietseffekt", // aowow - custom
+        attr5_7:                             "Nicht auf Spielern", // aowow - custom
+        attr5_8:                             "Nicht auf von Spielern gesteuertem NSC", // aowow - custom
+        attr5_10:                            "Dauer nicht anzeigen", // aowow - custom
+        attr5_11:                            "Implizierte Zielfindung", // aowow - custom
+        attr5_12:                            "Kettenzielsetzung für Nahkampf", // aowow - custom
+        attr5_13:                            "Zaubertempo beeinflusst Intervall", // aowow - custom
+        attr5_14:                            "Nicht benutzbar wenn bezaubert", // aowow - custom
+        attr5_15:                            "Als Gebietseffekt behandeln", // aowow - custom
+        attr5_16:                            "Aura betrifft nicht nur benötigten angelegten Gegenstand", // aowow - custom
+        attr5_19:                            "KI ist Ziel nicht zugewandt", // aowow - custom
+        attr5_20:                            "Herbeirufen eines Begleiters beim Absteigen nicht versuchen", // aowow - custom
+        attr5_21:                            "Ignoriere Zielvoraussetzungen", // aowow - custom
+        attr5_22:                            "Nicht auf trivialen Zielen", // aowow - custom
+        attr5_23:                            "Kein teilweises Widerstehen", // aowow - custom
+        attr5_24:                            "Ignoriere Zauberer-Voraussetzungen", // aowow - custom
+        attr5_25:                            "Immer in Sichtlinie", // aowow - custom
+        attr5_26:                            "AoE immer in Sichtlinie", // aowow - custom
+        attr5_27:                            "Kein Aura-Symbol beim Zauberer", // aowow - custom
+        attr5_28:                            "Kein Aura-Symbol beim Ziel", // aowow - custom
+        attr5_29:                            "Aura je Wirker einzigartig", // aowow - custom
+        attr5_30:                            "Immer Bodentexturen zeigen", // aowow - custom
+        attr5_31:                            "Nahkampftrefferwertung hinzufügen", // aowow - custom
+        sepattributes6:                      "Attributes6", // aowow - custom
+        attr6_0:                             "Keine Abklingzeit im Tooltip", // aowow - custom
+        attr6_2:                             "Ignoriere Auren auf Zauberer", // aowow - custom
+        attr6_3:                             "Kann immunem Spieler assistieren", // aowow - custom
+        attr6_4:                             "Für Mod Zeitrate ignorieren", // aowow - custom
+        attr6_5:                             "Keine Ressourcen aufbrauchen", // aowow - custom
+        attr6_6:                             "Sende 'spell cast' Ereignis", // aowow - custom
+        attr6_7:                             "Aura ist Waffen-Proc", // aowow - custom
+        attr6_8:                             "Springt nicht auf Ziele unter Gruppenkontrolle über", // aowow - custom
+        attr6_9:                             "Zulässig für bezauberte Ziele", // aowow - custom
+        attr6_10:                            "Aura nicht im Log", // aowow - custom
+        attr6_12:                            "Zulässig beim führen eines Fahrzeugs", // aowow - custom
+        attr6_13:                            "Ignoriere Phasenwechsel", // aowow - custom
+        attr6_14:                            "Primärer Fernkampfangriff für KI", // aowow - custom
+        attr6_15:                            "Keine Zauberzeiterhöhung durch Schaden", // aowow - custom
+        attr6_16:                            "Keine Wegfindung für Sprung", // aowow - custom
+        attr6_17:                            "Erlaube Anlegen beim Zaubern", // aowow - custom
+        attr6_18:                            "Vom Steuernden ausgehend", // aowow - custom
+        attr6_19:                            "Verzögere Kampftimer während Zauber", // aowow - custom
+        attr6_20:                            "Aura-Symbol nur für Zauberer sichtbar (Max 10)", // aowow - custom
+        attr6_22:                            "Absorbtion kann nicht ignoriert werden", // aowow - custom
+        attr6_23:                            "Tappt sofort", // aowow - custom
+        attr6_24:                            "Kann nicht-Anvisierbares anvisieren", // aowow - custom
+        attr6_25:                            "Schlagtimer bei Spontanzauber nicht zurücksetzen", // aowow - custom
+        attr6_26:                            "Fahrzeugimmunitätenkategorie", // aowow - custom
+        attr6_27:                            "Ignoriere Heilungsmodifikatoren", // aowow - custom
+        attr6_28:                            "Wählt nicht automatisch Ziele, wenn es Kampf initiieren würde", // aowow - custom
+        attr6_29:                            "Ignoriere Schadensmodifikator für Zauberer", // aowow - custom
+        attr6_30:                            "Gebundene Effektpunkte deaktivieren", // aowow - custom
+        attr6_31:                            "Ignoriere Modifikatoren für Kategorie-Abklingzeit", // aowow - custom
+        sepattributes7:                      "Attributes7", // aowow - custom
+        attr7_1:                             "Kein Zieldauer-Modifikator", // aowow - custom
+        attr7_3:                             "Debug Zauber", // aowow - custom
+        attr7_4:                             "Als Schlachtzugs-Stärkungszauber behandeln", // aowow - custom
+        attr7_6:                             "Verursacht keine Zauberzeitverlängerung", // aowow - custom
+        attr7_7:                             "Für Ende der Fahrzeugsteuerung vorbereiten", // aowow - custom
+        attr7_8:                             "Horde-spezifischer Zauber", // aowow - custom
+        attr7_9:                             "Allianz-spezifischer Zauber", // aowow - custom
+        attr7_10:                            "Magiebannung entfernt Stapel", // aowow - custom
+        attr7_11:                            "Kann Unterbrechen verursachen", // aowow - custom
+        attr7_12:                            "Kann Stille verursachen", // aowow - custom
+        attr7_13:                            "Nicht unterbrechbar bei fehlendem UI", // aowow - custom
+        attr7_14:                            "Neuwirken bei Wiederbeschwörung", // aowow - custom
+        attr7_15:                            "Schwungtimer bei Zauberbeginn zurücksetzen", // aowow - custom
+        attr7_16:                            "Kann inaktive Ressourcen wiederherstellen", // aowow - custom
+        attr7_17:                            "PvP-Todesstoß nicht loggen", // aowow - custom
+        attr7_18:                            "Attacke bei Sturmangriff auf Einheit", // aowow - custom
+        attr7_19:                            "Zauberfehlschlag an Einheitsziel melden", // aowow - custom
+        attr7_20:                            "Kein Abbruch durch Client während Betäubung, Flucht, Verwirrung", // aowow - custom
+        attr7_21:                            "Abklingzeit beim Laden beibehalten", // aowow - custom
+        attr7_22:                            "Ignoriere Voraussetzung für Kaltwetterflug", // aowow - custom
+        attr7_23:                            "Angriff nicht ausweichbar", // aowow - custom
+        attr7_24:                            "Angriff nicht parrierbar", // aowow - custom
+        attr7_25:                            "Angriff nicht verfehlbar", // aowow - custom
+        attr7_26:                            "Als NSC-Gebietseffekt behandeln", // aowow - custom
+        attr7_27:                            "Umgehe Auren mit 'Verhindere Wiederbelebung'", // aowow - custom
+        attr7_28:                            "Wird mit anderen Stärkungszaubern zusammengefasst", // aowow - custom
+        attr7_29:                            "Reflektion beschützt nur", // aowow - custom
+        attr7_30:                            "Kann von unterdrückten Ziel-Procs proccen", // aowow - custom
+        attr7_31:                            "Zauber immer loggen", // aowow - custom
 
         sepcommunity:               "Community",
         hascomments:                "Verfügt über Kommentare",

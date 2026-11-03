@@ -4652,6 +4652,206 @@ var LANG = {
         customattristalent:                  "Is a talent", // aowow - custom
         customattrauracannotbesaved:         "Aura cannot be saved across logout", // aowow - custom
         customattrcantargetanyprivateobject: "Can target any private object", // aowow - custom
+        sepattributes0:                      "Attributes0", // aowow - custom
+        attr0_0:                             "El fallo de proc consume carga", // aowow - custom
+        attr0_3:                             "No registrar inmunidades fallidas", // aowow - custom
+        attr0_4:                             "Es habilidad", // aowow - custom
+        attr0_5:                             "Receta de profesión", // aowow - custom
+        attr0_7:                             "El aura está oculta", // aowow - custom
+        attr0_9:                             "Solo objeto equipado en mano principal", // aowow - custom
+        attr0_11:                            "El portador lanza el proc", // aowow - custom
+        attr0_18:                            "No afecta la funda", // aowow - custom
+        attr0_22:                            "Rastrear objetivo al lanzar (solo jugador)", // aowow - custom
+        attr0_30:                            "Resistencia periódica", // aowow - custom
+        sepattributes1:                      "Attributes1", // aowow - custom
+        attr1_0:                             "Descartar mascota primero", // aowow - custom
+        attr1_3:                             "No puede ser redirigido", // aowow - custom
+        attr1_4:                             "No aumenta habilidad", // aowow - custom
+        attr1_9:                             "Inicia combate (habilita auto-ataque)", // aowow - custom
+        attr1_11:                            "Aura única", // aowow - custom
+        attr1_13:                            "Alternar vista lejana", // aowow - custom
+        attr1_14:                            "Rastrear objetivo en canalización", // aowow - custom
+        attr1_17:                            "No autocast (IA)", // aowow - custom
+        attr1_18:                            "Previene animación", // aowow - custom
+        attr1_19:                            "Excluye al lanzador", // aowow - custom
+        attr1_20:                            "Requiere puntos de combo en el objetivo (daño)", // aowow - custom
+        attr1_21:                            "Amenaza solo al fallar", // aowow - custom
+        attr1_22:                            "Requiere puntos de combo en el objetivo (duración)", // aowow - custom
+        attr1_23:                            "Ignora la muerte del dueño", // aowow - custom
+        attr1_25:                            "El aura permanece tras el combate", // aowow - custom
+        attr1_26:                            "Requiere todos los objetivos", // aowow - custom
+        attr1_27:                            "Descuenta poder al fallar", // aowow - custom
+        attr1_29:                            "Nombre en barra de canalización", // aowow - custom
+        attr1_30:                            "Combo al esquivar", // aowow - custom
+        attr1_31:                            "Lanzar al aprender", // aowow - custom
+        sepattributes2:                      "Attributes2", // aowow - custom
+        attr2_0:                             "Permite objetivo muerto", // aowow - custom
+        attr2_1:                             "Sin interfaz de cambio de forma", // aowow - custom
+        attr2_2:                             "Ignora línea de visión", // aowow - custom
+        attr2_3:                             "Permite mejora en bajo nivel", // aowow - custom
+        attr2_4:                             "Usa barra de cambio de forma", // aowow - custom
+        attr2_5:                             "Repetición automática", // aowow - custom
+        attr2_7:                             "No reportar fallo de hechizo", // aowow - custom
+        attr2_9:                             "Siempre lanzar como unidad", // aowow - custom
+        attr2_10:                            "Bandera especial de doma", // aowow - custom
+        attr2_11:                            "Sin coste por segundo al objetivo", // aowow - custom
+        attr2_12:                            "Cadena desde el lanzador", // aowow - custom
+        attr2_14:                            "Permitir mientras invisible", // aowow - custom
+        attr2_15:                            "No consumir si se gana durante el lanzamiento", // aowow - custom
+        attr2_16:                            "Sin mascotas activas", // aowow - custom
+        attr2_17:                            "No reiniciar temporizadores de combate", // aowow - custom
+        attr2_18:                            "Requiere mascota muerta", // aowow - custom
+        attr2_20:                            "Inicia combate tras lanzar (habilita auto-ataque)", // aowow - custom
+        attr2_21:                            "Falla si todos los objetivos son inmunes", // aowow - custom
+        attr2_22:                            "Sin amenaza inicial", // aowow - custom
+        attr2_23:                            "Enfriamiento de proc al fallar", // aowow - custom
+        attr2_24:                            "Lanzar objeto con habilidad del dueño", // aowow - custom
+        attr2_25:                            "No bloquear regeneración de maná", // aowow - custom
+        attr2_26:                            "Sin inmunidades de escuela", // aowow - custom
+        attr2_27:                            "Ignorar habilidad de arma", // aowow - custom
+        attr2_28:                            "Amenaza activa", // aowow - custom
+        attr2_30:                            "Amenaza activa", // aowow - custom
+        sepattributes3:                      "Attributes3", // aowow - custom
+        attr3_0:                             "Habilita JcJ", // aowow - custom
+        attr3_1:                             "No requiere equipamiento para proc", // aowow - custom
+        attr3_2:                             "Sin texto en barra de lanzamiento", // aowow - custom
+        attr3_3:                             "Completamente bloqueado", // aowow - custom
+        attr3_4:                             "Sin temporizador de resurrección", // aowow - custom
+        attr3_5:                             "Sin pérdida de durabilidad", // aowow - custom
+        attr3_6:                             "Sin evasión", // aowow - custom
+        attr3_7:                             "Regla de acumulación de DoT", // aowow - custom
+        attr3_9:                             "No es un proc", // aowow - custom
+        attr3_12:                            "Solo en fantasmas", // aowow - custom
+        attr3_13:                            "Ocultar barra de canalización", // aowow - custom
+        attr3_14:                            "Es objetivo sin honor", // aowow - custom
+        attr3_15:                            "Ataque a distancia normal", // aowow - custom
+        attr3_16:                            "Suprime procs del lanzador", // aowow - custom
+        attr3_19:                            "Deshabilita proc", // aowow - custom
+        attr3_21:                            "Solo proc al aire libre", // aowow - custom
+        attr3_23:                            "Sin historial de daño", // aowow - custom
+        attr3_25:                            "Tratar como periódico", // aowow - custom
+        attr3_26:                            "Puede hacer proc de procs", // aowow - custom
+        attr3_27:                            "Solo proc en lanzador", // aowow - custom
+        attr3_28:                            "Ignorar restricciones de lanzador y objetivo", // aowow - custom
+        attr3_29:                            "Ignorar modificadores del lanzador", // aowow - custom
+        attr3_30:                            "No mostrar rango", // aowow - custom
+        attr3_31:                            "No en inmunes a AOE", // aowow - custom
+        sepattributes4:                      "Attributes4", // aowow - custom
+        attr4_0:                             "Sin registro de lanzamiento", // aowow - custom
+        attr4_1:                             "Solo activa en objetivo de clase", // aowow - custom
+        attr4_3:                             "Sin amenaza útil", // aowow - custom
+        attr4_4:                             "Sin amenaza dañina", // aowow - custom
+        attr4_5:                             "Permite elección de objetivo de cliente", // aowow - custom
+        attr4_7:                             "Permite lanzar hechizos durante lanzamiento", // aowow - custom
+        attr4_8:                             "Ignorar modificadores de daño recibido", // aowow - custom
+        attr4_9:                             "Retroalimentación de combate cuando es usable", // aowow - custom
+        attr4_10:                            "Escalado de coste por velocidad de arma", // aowow - custom
+        attr4_11:                            "Sin inmunidad parcial", // aowow - custom
+        attr4_12:                            "El aura es un beneficio", // aowow - custom
+        attr4_13:                            "No registrar lanzador", // aowow - custom
+        attr4_14:                            "Proc de daño reactivo", // aowow - custom
+        attr4_15:                            "No está en el libro de hechizos", // aowow - custom
+        attr4_18:                            "Misiles encadenados rebotan", // aowow - custom
+        attr4_19:                            "Permite activar mientras estás sentado", // aowow - custom
+        attr4_20:                            "El aura nunca rebota", // aowow - custom
+        attr4_21:                            "Permite ingresar a arena", // aowow - custom
+        attr4_22:                            "Proc suprime animación de golpe", // aowow - custom
+        attr4_23:                            "Suprime procs de arma", // aowow - custom
+        attr4_24:                            "Combate a distancia automático", // aowow - custom
+        attr4_25:                            "Escalado de poder del dueño", // aowow - custom
+        attr4_26:                            "Solo en zonas de vuelo", // aowow - custom
+        attr4_27:                            "Forzar barra de lanzamiento", // aowow - custom
+        attr4_28:                            "Ignorar temporizador de combate", // aowow - custom
+        attr4_29:                            "El rebote del aura falla el hechizo", // aowow - custom
+        attr4_31:                            "Usar orientación del hechizo", // aowow - custom
+        sepattributes5:                      "Attributes5", // aowow - custom
+        attr5_0:                             "Permite canalizar en movimiento", // aowow - custom
+        attr5_1:                             "Sin coste de reagente con aura", // aowow - custom
+        attr5_2:                             "Eliminar al entrar en arena", // aowow - custom
+        attr5_4:                             "Activa canalización", // aowow - custom
+        attr5_6:                             "Ignorar comprobación de área de efecto JcJ", // aowow - custom
+        attr5_7:                             "No en jugador", // aowow - custom
+        attr5_8:                             "No en PNJ controlado por jugador", // aowow - custom
+        attr5_10:                            "No mostrar duración", // aowow - custom
+        attr5_11:                            "Objetivo implícito", // aowow - custom
+        attr5_12:                            "Encadenamiento de objetivos cuerpo a cuerpo", // aowow - custom
+        attr5_13:                            "Celeridad afecta auras periódicas", // aowow - custom
+        attr5_14:                            "No disponible mientras está embelesado", // aowow - custom
+        attr5_15:                            "Tratar como efecto de área", // aowow - custom
+        attr5_16:                            "El aura afecta más que el objeto equipado requerido", // aowow - custom
+        attr5_19:                            "La IA no está frente al objetivo", // aowow - custom
+        attr5_20:                            "No intentar volver a invocar mascota al desmontar", // aowow - custom
+        attr5_21:                            "Ignorar requisitos de objetivo", // aowow - custom
+        attr5_22:                            "No en trivial", // aowow - custom
+        attr5_23:                            "Sin resistencias parciales", // aowow - custom
+        attr5_24:                            "Ignorar requisitos del lanzador", // aowow - custom
+        attr5_25:                            "Siempre línea de visión", // aowow - custom
+        attr5_26:                            "Siempre área de efecto en línea de visión", // aowow - custom
+        attr5_27:                            "Sin icono de aura del lanzador", // aowow - custom
+        attr5_28:                            "Sin icono de aura en objetivo", // aowow - custom
+        attr5_29:                            "Aura única por lanzador", // aowow - custom
+        attr5_30:                            "Siempre mostrar textura de suelo", // aowow - custom
+        attr5_31:                            "Índice de golpe cuerpo a cuerpo añadido", // aowow - custom
+        sepattributes6:                      "Attributes6", // aowow - custom
+        attr6_0:                             "No mostrar reutilización en tooltip", // aowow - custom
+        attr6_2:                             "Ignorar auras del lanzador", // aowow - custom
+        attr6_3:                             "Puede asistir a PJ inmune", // aowow - custom
+        attr6_4:                             "Ignorar para modificar velocidad de tiempo", // aowow - custom
+        attr6_5:                             "No consumir recursos", // aowow - custom
+        attr6_6:                             "Enviar evento de lanzamiento de hechizo", // aowow - custom
+        attr6_7:                             "El aura es un proc de arma", // aowow - custom
+        attr6_8:                             "No encadenar a objetivos controlados", // aowow - custom
+        attr6_9:                             "Permite en objetivos embelesados", // aowow - custom
+        attr6_10:                            "Sin registro de aura", // aowow - custom
+        attr6_12:                            "Permitir mientras conduce vehículo", // aowow - custom
+        attr6_13:                            "Ignorar cambio de fase", // aowow - custom
+        attr6_14:                            "Ataque de rango principal de IA", // aowow - custom
+        attr6_15:                            "Sin retroceso", // aowow - custom
+        attr6_16:                            "Sin salto de trayectoria", // aowow - custom
+        attr6_17:                            "Permite equipar mientras lanza hechizo", // aowow - custom
+        attr6_18:                            "Originado por el controlador", // aowow - custom
+        attr6_19:                            "Retrasar temporizador de combate durante lanzamiento", // aowow - custom
+        attr6_20:                            "Icono de aura solo para lanzador (límite 10)", // aowow - custom
+        attr6_22:                            "Absorción que no puede ser ignorada", // aowow - custom
+        attr6_23:                            "Toca inmediatamente", // aowow - custom
+        attr6_24:                            "Puede seleccionar no seleccionables", // aowow - custom
+        attr6_25:                            "No reinicia temporizador de golpe si es instantáneo", // aowow - custom
+        attr6_26:                            "Categoría de inmunidad de vehículo", // aowow - custom
+        attr6_27:                            "Ignorar modificadores de sanación", // aowow - custom
+        attr6_28:                            "No seleccionar objetivo automáticamente al iniciar combate", // aowow - custom
+        attr6_29:                            "Ignorar modificadores de daño del lanzador", // aowow - custom
+        attr6_30:                            "Deshabilitar puntos de efecto vinculados", // aowow - custom
+        attr6_31:                            "Sin modificadores de reutilización por categoría", // aowow - custom
+        sepattributes7:                      "Attributes7", // aowow - custom
+        attr7_1:                             "Sin modificador de duración en objetivo", // aowow - custom
+        attr7_3:                             "Hechizo de depuración", // aowow - custom
+        attr7_4:                             "Tratar como beneficio de banda", // aowow - custom
+        attr7_6:                             "No causa retroceso de hechizo", // aowow - custom
+        attr7_7:                             "Preparar para fin de control de vehículo", // aowow - custom
+        attr7_8:                             "Hechizo específico de la Horda", // aowow - custom
+        attr7_9:                             "Hechizo específico de la Alianza", // aowow - custom
+        attr7_10:                            "Disipar elimina cargas", // aowow - custom
+        attr7_11:                            "Puede causar interrupción", // aowow - custom
+        attr7_12:                            "Puede causar silencio", // aowow - custom
+        attr7_13:                            "Sin UI, no interrumpible", // aowow - custom
+        attr7_14:                            "Relanzar al volver a invocar", // aowow - custom
+        attr7_15:                            "Reiniciar temporizador de golpe al lanzar", // aowow - custom
+        attr7_16:                            "Puede restaurar poder inactivo", // aowow - custom
+        attr7_17:                            "No registrar muerte JcJ", // aowow - custom
+        attr7_18:                            "Atacar al cargar a la unidad", // aowow - custom
+        attr7_19:                            "Reportar fallo de hechizo al objetivo", // aowow - custom
+        attr7_20:                            "Sin fallo de cliente aturdido, huyendo o confuso", // aowow - custom
+        attr7_21:                            "Mantener reutilización tras recarga", // aowow - custom
+        attr7_22:                            "Ignora requisito de vuelo en clima frío", // aowow - custom
+        attr7_23:                            "No puede esquivar ataques", // aowow - custom
+        attr7_24:                            "No puede parar ataques", // aowow - custom
+        attr7_25:                            "No puede fallar ataques", // aowow - custom
+        attr7_26:                            "Tratar como AOE de PNJ", // aowow - custom
+        attr7_27:                            "Ignorar aura de no resurrección", // aowow - custom
+        attr7_28:                            "Consolidar en marco de beneficios de banda", // aowow - custom
+        attr7_29:                            "Reflejo solo defiende", // aowow - custom
+        attr7_30:                            "Puede hacer proc de procs suprimidos del objetivo", // aowow - custom
+        attr7_31:                            "Siempre emitir registro", // aowow - custom
 
         sepcommunity:               "Comunidad",
         hascomments:                "Tiene comentarios",

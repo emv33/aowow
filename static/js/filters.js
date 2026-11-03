@@ -486,6 +486,214 @@ var fi_filters = {
         { id: 89,   name: 'usablefeared',               type: 'yn' },
         { id: 65,   name: 'usesallpower',               type: 'yn' },
 
+        { id: 9999, name: 'sepattributes0' },                          // aowow - custom
+        { id: 1000, name: 'attr0_0',   type: 'yn' }, // aowow - custom
+        { id: 1003, name: 'attr0_3',   type: 'yn' }, // aowow - custom
+        { id: 1004, name: 'attr0_4',   type: 'yn' }, // aowow - custom
+        { id: 1005, name: 'attr0_5',   type: 'yn' }, // aowow - custom
+        { id: 1007, name: 'attr0_7',   type: 'yn' }, // aowow - custom
+        { id: 1009, name: 'attr0_9',   type: 'yn' }, // aowow - custom
+        { id: 1011, name: 'attr0_11',  type: 'yn' }, // aowow - custom
+        { id: 1018, name: 'attr0_18',  type: 'yn' }, // aowow - custom
+        { id: 1022, name: 'attr0_22',  type: 'yn' }, // aowow - custom
+        { id: 1030, name: 'attr0_30',  type: 'yn' }, // aowow - custom
+
+        { id: 9999, name: 'sepattributes1' },                          // aowow - custom
+        { id: 1032, name: 'attr1_0',   type: 'yn' }, // aowow - custom
+        { id: 1035, name: 'attr1_3',   type: 'yn' }, // aowow - custom
+        { id: 1036, name: 'attr1_4',   type: 'yn' }, // aowow - custom
+        { id: 1041, name: 'attr1_9',   type: 'yn' }, // aowow - custom
+        { id: 1043, name: 'attr1_11',  type: 'yn' }, // aowow - custom
+        { id: 1045, name: 'attr1_13',  type: 'yn' }, // aowow - custom
+        { id: 1046, name: 'attr1_14',  type: 'yn' }, // aowow - custom
+        { id: 1049, name: 'attr1_17',  type: 'yn' }, // aowow - custom
+        { id: 1050, name: 'attr1_18',  type: 'yn' }, // aowow - custom
+        { id: 1051, name: 'attr1_19',  type: 'yn' }, // aowow - custom
+        { id: 1052, name: 'attr1_20',  type: 'yn' }, // aowow - custom
+        { id: 1053, name: 'attr1_21',  type: 'yn' }, // aowow - custom
+        { id: 1054, name: 'attr1_22',  type: 'yn' }, // aowow - custom
+        { id: 1055, name: 'attr1_23',  type: 'yn' }, // aowow - custom
+        { id: 1057, name: 'attr1_25',  type: 'yn' }, // aowow - custom
+        { id: 1058, name: 'attr1_26',  type: 'yn' }, // aowow - custom
+        { id: 1059, name: 'attr1_27',  type: 'yn' }, // aowow - custom
+        { id: 1061, name: 'attr1_29',  type: 'yn' }, // aowow - custom
+        { id: 1062, name: 'attr1_30',  type: 'yn' }, // aowow - custom
+        { id: 1063, name: 'attr1_31',  type: 'yn' }, // aowow - custom
+
+        { id: 9999, name: 'sepattributes2' },                          // aowow - custom
+        { id: 1064, name: 'attr2_0',   type: 'yn' }, // aowow - custom
+        { id: 1065, name: 'attr2_1',   type: 'yn' }, // aowow - custom
+        { id: 1066, name: 'attr2_2',   type: 'yn' }, // aowow - custom
+        { id: 1067, name: 'attr2_3',   type: 'yn' }, // aowow - custom
+        { id: 1068, name: 'attr2_4',   type: 'yn' }, // aowow - custom
+        { id: 1069, name: 'attr2_5',   type: 'yn' }, // aowow - custom
+        { id: 1071, name: 'attr2_7',   type: 'yn' }, // aowow - custom
+        { id: 1073, name: 'attr2_9',   type: 'yn' }, // aowow - custom
+        { id: 1074, name: 'attr2_10',  type: 'yn' }, // aowow - custom
+        { id: 1075, name: 'attr2_11',  type: 'yn' }, // aowow - custom
+        { id: 1076, name: 'attr2_12',  type: 'yn' }, // aowow - custom
+        { id: 1078, name: 'attr2_14',  type: 'yn' }, // aowow - custom
+        { id: 1079, name: 'attr2_15',  type: 'yn' }, // aowow - custom
+        { id: 1080, name: 'attr2_16',  type: 'yn' }, // aowow - custom
+        { id: 1081, name: 'attr2_17',  type: 'yn' }, // aowow - custom
+        { id: 1082, name: 'attr2_18',  type: 'yn' }, // aowow - custom
+        { id: 1084, name: 'attr2_20',  type: 'yn' }, // aowow - custom
+        { id: 1085, name: 'attr2_21',  type: 'yn' }, // aowow - custom
+        { id: 1086, name: 'attr2_22',  type: 'yn' }, // aowow - custom
+        { id: 1087, name: 'attr2_23',  type: 'yn' }, // aowow - custom
+        { id: 1088, name: 'attr2_24',  type: 'yn' }, // aowow - custom
+        { id: 1089, name: 'attr2_25',  type: 'yn' }, // aowow - custom
+        { id: 1090, name: 'attr2_26',  type: 'yn' }, // aowow - custom
+        { id: 1091, name: 'attr2_27',  type: 'yn' }, // aowow - custom
+        { id: 1092, name: 'attr2_28',  type: 'yn' }, // aowow - custom
+        { id: 1094, name: 'attr2_30',  type: 'yn' }, // aowow - custom
+
+        { id: 9999, name: 'sepattributes3' },                          // aowow - custom
+        { id: 1096, name: 'attr3_0',   type: 'yn' }, // aowow - custom
+        { id: 1097, name: 'attr3_1',   type: 'yn' }, // aowow - custom
+        { id: 1098, name: 'attr3_2',   type: 'yn' }, // aowow - custom
+        { id: 1099, name: 'attr3_3',   type: 'yn' }, // aowow - custom
+        { id: 1100, name: 'attr3_4',   type: 'yn' }, // aowow - custom
+        { id: 1101, name: 'attr3_5',   type: 'yn' }, // aowow - custom
+        { id: 1102, name: 'attr3_6',   type: 'yn' }, // aowow - custom
+        { id: 1103, name: 'attr3_7',   type: 'yn' }, // aowow - custom
+        { id: 1105, name: 'attr3_9',   type: 'yn' }, // aowow - custom
+        { id: 1108, name: 'attr3_12',  type: 'yn' }, // aowow - custom
+        { id: 1109, name: 'attr3_13',  type: 'yn' }, // aowow - custom
+        { id: 1110, name: 'attr3_14',  type: 'yn' }, // aowow - custom
+        { id: 1111, name: 'attr3_15',  type: 'yn' }, // aowow - custom
+        { id: 1112, name: 'attr3_16',  type: 'yn' }, // aowow - custom
+        { id: 1115, name: 'attr3_19',  type: 'yn' }, // aowow - custom
+        { id: 1117, name: 'attr3_21',  type: 'yn' }, // aowow - custom
+        { id: 1119, name: 'attr3_23',  type: 'yn' }, // aowow - custom
+        { id: 1121, name: 'attr3_25',  type: 'yn' }, // aowow - custom
+        { id: 1122, name: 'attr3_26',  type: 'yn' }, // aowow - custom
+        { id: 1123, name: 'attr3_27',  type: 'yn' }, // aowow - custom
+        { id: 1124, name: 'attr3_28',  type: 'yn' }, // aowow - custom
+        { id: 1125, name: 'attr3_29',  type: 'yn' }, // aowow - custom
+        { id: 1126, name: 'attr3_30',  type: 'yn' }, // aowow - custom
+        { id: 1127, name: 'attr3_31',  type: 'yn' }, // aowow - custom
+
+        { id: 9999, name: 'sepattributes4' },                          // aowow - custom
+        { id: 1128, name: 'attr4_0',   type: 'yn' }, // aowow - custom
+        { id: 1129, name: 'attr4_1',   type: 'yn' }, // aowow - custom
+        { id: 1131, name: 'attr4_3',   type: 'yn' }, // aowow - custom
+        { id: 1132, name: 'attr4_4',   type: 'yn' }, // aowow - custom
+        { id: 1133, name: 'attr4_5',   type: 'yn' }, // aowow - custom
+        { id: 1135, name: 'attr4_7',   type: 'yn' }, // aowow - custom
+        { id: 1136, name: 'attr4_8',   type: 'yn' }, // aowow - custom
+        { id: 1137, name: 'attr4_9',   type: 'yn' }, // aowow - custom
+        { id: 1138, name: 'attr4_10',  type: 'yn' }, // aowow - custom
+        { id: 1139, name: 'attr4_11',  type: 'yn' }, // aowow - custom
+        { id: 1140, name: 'attr4_12',  type: 'yn' }, // aowow - custom
+        { id: 1141, name: 'attr4_13',  type: 'yn' }, // aowow - custom
+        { id: 1142, name: 'attr4_14',  type: 'yn' }, // aowow - custom
+        { id: 1143, name: 'attr4_15',  type: 'yn' }, // aowow - custom
+        { id: 1146, name: 'attr4_18',  type: 'yn' }, // aowow - custom
+        { id: 1147, name: 'attr4_19',  type: 'yn' }, // aowow - custom
+        { id: 1148, name: 'attr4_20',  type: 'yn' }, // aowow - custom
+        { id: 1149, name: 'attr4_21',  type: 'yn' }, // aowow - custom
+        { id: 1150, name: 'attr4_22',  type: 'yn' }, // aowow - custom
+        { id: 1151, name: 'attr4_23',  type: 'yn' }, // aowow - custom
+        { id: 1152, name: 'attr4_24',  type: 'yn' }, // aowow - custom
+        { id: 1153, name: 'attr4_25',  type: 'yn' }, // aowow - custom
+        { id: 1154, name: 'attr4_26',  type: 'yn' }, // aowow - custom
+        { id: 1155, name: 'attr4_27',  type: 'yn' }, // aowow - custom
+        { id: 1156, name: 'attr4_28',  type: 'yn' }, // aowow - custom
+        { id: 1157, name: 'attr4_29',  type: 'yn' }, // aowow - custom
+        { id: 1159, name: 'attr4_31',  type: 'yn' }, // aowow - custom
+
+        { id: 9999, name: 'sepattributes5' },                          // aowow - custom
+        { id: 1160, name: 'attr5_0',   type: 'yn' }, // aowow - custom
+        { id: 1161, name: 'attr5_1',   type: 'yn' }, // aowow - custom
+        { id: 1162, name: 'attr5_2',   type: 'yn' }, // aowow - custom
+        { id: 1164, name: 'attr5_4',   type: 'yn' }, // aowow - custom
+        { id: 1166, name: 'attr5_6',   type: 'yn' }, // aowow - custom
+        { id: 1167, name: 'attr5_7',   type: 'yn' }, // aowow - custom
+        { id: 1168, name: 'attr5_8',   type: 'yn' }, // aowow - custom
+        { id: 1170, name: 'attr5_10',  type: 'yn' }, // aowow - custom
+        { id: 1171, name: 'attr5_11',  type: 'yn' }, // aowow - custom
+        { id: 1172, name: 'attr5_12',  type: 'yn' }, // aowow - custom
+        { id: 1173, name: 'attr5_13',  type: 'yn' }, // aowow - custom
+        { id: 1174, name: 'attr5_14',  type: 'yn' }, // aowow - custom
+        { id: 1175, name: 'attr5_15',  type: 'yn' }, // aowow - custom
+        { id: 1176, name: 'attr5_16',  type: 'yn' }, // aowow - custom
+        { id: 1179, name: 'attr5_19',  type: 'yn' }, // aowow - custom
+        { id: 1180, name: 'attr5_20',  type: 'yn' }, // aowow - custom
+        { id: 1181, name: 'attr5_21',  type: 'yn' }, // aowow - custom
+        { id: 1182, name: 'attr5_22',  type: 'yn' }, // aowow - custom
+        { id: 1183, name: 'attr5_23',  type: 'yn' }, // aowow - custom
+        { id: 1184, name: 'attr5_24',  type: 'yn' }, // aowow - custom
+        { id: 1185, name: 'attr5_25',  type: 'yn' }, // aowow - custom
+        { id: 1186, name: 'attr5_26',  type: 'yn' }, // aowow - custom
+        { id: 1187, name: 'attr5_27',  type: 'yn' }, // aowow - custom
+        { id: 1188, name: 'attr5_28',  type: 'yn' }, // aowow - custom
+        { id: 1189, name: 'attr5_29',  type: 'yn' }, // aowow - custom
+        { id: 1190, name: 'attr5_30',  type: 'yn' }, // aowow - custom
+        { id: 1191, name: 'attr5_31',  type: 'yn' }, // aowow - custom
+
+        { id: 9999, name: 'sepattributes6' },                          // aowow - custom
+        { id: 1192, name: 'attr6_0',   type: 'yn' }, // aowow - custom
+        { id: 1194, name: 'attr6_2',   type: 'yn' }, // aowow - custom
+        { id: 1195, name: 'attr6_3',   type: 'yn' }, // aowow - custom
+        { id: 1196, name: 'attr6_4',   type: 'yn' }, // aowow - custom
+        { id: 1197, name: 'attr6_5',   type: 'yn' }, // aowow - custom
+        { id: 1198, name: 'attr6_6',   type: 'yn' }, // aowow - custom
+        { id: 1199, name: 'attr6_7',   type: 'yn' }, // aowow - custom
+        { id: 1200, name: 'attr6_8',   type: 'yn' }, // aowow - custom
+        { id: 1201, name: 'attr6_9',   type: 'yn' }, // aowow - custom
+        { id: 1202, name: 'attr6_10',  type: 'yn' }, // aowow - custom
+        { id: 1204, name: 'attr6_12',  type: 'yn' }, // aowow - custom
+        { id: 1205, name: 'attr6_13',  type: 'yn' }, // aowow - custom
+        { id: 1206, name: 'attr6_14',  type: 'yn' }, // aowow - custom
+        { id: 1207, name: 'attr6_15',  type: 'yn' }, // aowow - custom
+        { id: 1208, name: 'attr6_16',  type: 'yn' }, // aowow - custom
+        { id: 1209, name: 'attr6_17',  type: 'yn' }, // aowow - custom
+        { id: 1210, name: 'attr6_18',  type: 'yn' }, // aowow - custom
+        { id: 1211, name: 'attr6_19',  type: 'yn' }, // aowow - custom
+        { id: 1212, name: 'attr6_20',  type: 'yn' }, // aowow - custom
+        { id: 1214, name: 'attr6_22',  type: 'yn' }, // aowow - custom
+        { id: 1215, name: 'attr6_23',  type: 'yn' }, // aowow - custom
+        { id: 1216, name: 'attr6_24',  type: 'yn' }, // aowow - custom
+        { id: 1217, name: 'attr6_25',  type: 'yn' }, // aowow - custom
+        { id: 1218, name: 'attr6_26',  type: 'yn' }, // aowow - custom
+        { id: 1219, name: 'attr6_27',  type: 'yn' }, // aowow - custom
+        { id: 1220, name: 'attr6_28',  type: 'yn' }, // aowow - custom
+        { id: 1221, name: 'attr6_29',  type: 'yn' }, // aowow - custom
+        { id: 1222, name: 'attr6_30',  type: 'yn' }, // aowow - custom
+        { id: 1223, name: 'attr6_31',  type: 'yn' }, // aowow - custom
+
+        { id: 9999, name: 'sepattributes7' },                          // aowow - custom
+        { id: 1225, name: 'attr7_1',   type: 'yn' }, // aowow - custom
+        { id: 1227, name: 'attr7_3',   type: 'yn' }, // aowow - custom
+        { id: 1228, name: 'attr7_4',   type: 'yn' }, // aowow - custom
+        { id: 1230, name: 'attr7_6',   type: 'yn' }, // aowow - custom
+        { id: 1231, name: 'attr7_7',   type: 'yn' }, // aowow - custom
+        { id: 1232, name: 'attr7_8',   type: 'yn' }, // aowow - custom
+        { id: 1233, name: 'attr7_9',   type: 'yn' }, // aowow - custom
+        { id: 1234, name: 'attr7_10',  type: 'yn' }, // aowow - custom
+        { id: 1235, name: 'attr7_11',  type: 'yn' }, // aowow - custom
+        { id: 1236, name: 'attr7_12',  type: 'yn' }, // aowow - custom
+        { id: 1237, name: 'attr7_13',  type: 'yn' }, // aowow - custom
+        { id: 1238, name: 'attr7_14',  type: 'yn' }, // aowow - custom
+        { id: 1239, name: 'attr7_15',  type: 'yn' }, // aowow - custom
+        { id: 1240, name: 'attr7_16',  type: 'yn' }, // aowow - custom
+        { id: 1241, name: 'attr7_17',  type: 'yn' }, // aowow - custom
+        { id: 1242, name: 'attr7_18',  type: 'yn' }, // aowow - custom
+        { id: 1243, name: 'attr7_19',  type: 'yn' }, // aowow - custom
+        { id: 1244, name: 'attr7_20',  type: 'yn' }, // aowow - custom
+        { id: 1245, name: 'attr7_21',  type: 'yn' }, // aowow - custom
+        { id: 1246, name: 'attr7_22',  type: 'yn' }, // aowow - custom
+        { id: 1247, name: 'attr7_23',  type: 'yn' }, // aowow - custom
+        { id: 1248, name: 'attr7_24',  type: 'yn' }, // aowow - custom
+        { id: 1249, name: 'attr7_25',  type: 'yn' }, // aowow - custom
+        { id: 1250, name: 'attr7_26',  type: 'yn' }, // aowow - custom
+        { id: 1251, name: 'attr7_27',  type: 'yn' }, // aowow - custom
+        { id: 1252, name: 'attr7_28',  type: 'yn' }, // aowow - custom
+        { id: 1253, name: 'attr7_29',  type: 'yn' }, // aowow - custom
+        { id: 1254, name: 'attr7_30',  type: 'yn' }, // aowow - custom
+        { id: 1255, name: 'attr7_31',  type: 'yn' }, // aowow - custom
+
         { id: 9999, name: 'sepcustomattr' },                            // aowow - custom
         { id: 130,  name: 'customattrenchantproc',                  type: 'yn' }, // aowow - custom
         { id: 131,  name: 'customattrconeback',                     type: 'yn' }, // aowow - custom

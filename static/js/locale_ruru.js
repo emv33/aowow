@@ -4653,6 +4653,206 @@ var LANG = {
         customattristalent:                  "Is a talent", // aowow - custom
         customattrauracannotbesaved:         "Aura cannot be saved across logout", // aowow - custom
         customattrcantargetanyprivateobject: "Can target any private object", // aowow - custom
+        sepattributes0:                      "Attributes0", // aowow - custom
+        attr0_0:                             "Proc Failure Burns Charge", // aowow - custom
+        attr0_3:                             "Do Not Log Immune Misses", // aowow - custom
+        attr0_4:                             "способность", // aowow - custom
+        attr0_5:                             "Ремесленный рецепт", // aowow - custom
+        attr0_7:                             "Аура скрыта", // aowow - custom
+        attr0_9:                             "Held Item Only", // aowow - custom
+        attr0_11:                            "Wearer Casts Proc Trigger", // aowow - custom
+        attr0_18:                            "Do Not Sheath", // aowow - custom
+        attr0_22:                            "Track Target in Cast (Player Only)", // aowow - custom
+        attr0_30:                            "Heartbeat Resist", // aowow - custom
+        sepattributes1:                      "Attributes1", // aowow - custom
+        attr1_0:                             "Сперва отпустить питомца", // aowow - custom
+        attr1_3:                             "Cannot be redirected", // aowow - custom
+        attr1_4:                             "No Skill Increase", // aowow - custom
+        attr1_9:                             "Initiates Combat (Enabled Auto-Attack)", // aowow - custom
+        attr1_11:                            "Aura Unique", // aowow - custom
+        attr1_13:                            "Вкл «дальнее зрение»", // aowow - custom
+        attr1_14:                            "Track Target in Channel", // aowow - custom
+        attr1_17:                            "No AutoCast (AI)", // aowow - custom
+        attr1_18:                            "Prevents Anim", // aowow - custom
+        attr1_19:                            "Исключить заклинателя", // aowow - custom
+        attr1_20:                            "Требует наличия очков комбо на цели (Урон)", // aowow - custom
+        attr1_21:                            "Threat only on Miss", // aowow - custom
+        attr1_22:                            "Требует наличия очков комбо на цели (Длительность)", // aowow - custom
+        attr1_23:                            "Ignore Owner's Death", // aowow - custom
+        attr1_25:                            "Aura Stays After Combat", // aowow - custom
+        attr1_26:                            "Require All Targets", // aowow - custom
+        attr1_27:                            "Discount Power On Miss", // aowow - custom
+        attr1_29:                            "Name in Channel Bar", // aowow - custom
+        attr1_30:                            "Combo on Dodge", // aowow - custom
+        attr1_31:                            "Cast When Learned", // aowow - custom
+        sepattributes2:                      "Attributes2", // aowow - custom
+        attr2_0:                             "Allow Dead Target", // aowow - custom
+        attr2_1:                             "No shapeshift UI", // aowow - custom
+        attr2_2:                             "Ignore Line of Sight", // aowow - custom
+        attr2_3:                             "Allow Low Level Buff", // aowow - custom
+        attr2_4:                             "Use Shapeshift Bar", // aowow - custom
+        attr2_5:                             "Автоповтор", // aowow - custom
+        attr2_7:                             "Do Not Report Spell Failure", // aowow - custom
+        attr2_9:                             "Always Cast As Unit", // aowow - custom
+        attr2_10:                            "Special Taming Flag", // aowow - custom
+        attr2_11:                            "No Target Per-Second Costs", // aowow - custom
+        attr2_12:                            "Chain From Caster", // aowow - custom
+        attr2_14:                            "Allow While Invisible", // aowow - custom
+        attr2_15:                            "Do Not Consume if Gained During Cast", // aowow - custom
+        attr2_16:                            "No Active Pets", // aowow - custom
+        attr2_17:                            "Do Not Reset Combat Timers", // aowow - custom
+        attr2_18:                            "Requires Dead Pet", // aowow - custom
+        attr2_20:                            "Initiate Combat Post-Cast (Enables Auto-Attack)", // aowow - custom
+        attr2_21:                            "Fail on all targets immune", // aowow - custom
+        attr2_22:                            "No initial Threat", // aowow - custom
+        attr2_23:                            "Proc Cooldown On Failure", // aowow - custom
+        attr2_24:                            "Item Cast With Owner Skill", // aowow - custom
+        attr2_25:                            "Don't Block Mana Regen", // aowow - custom
+        attr2_26:                            "No School immunities", // aowow - custom
+        attr2_27:                            "Ignore Weaponskill", // aowow - custom
+        attr2_28:                            "Not an Action", // aowow - custom
+        attr2_30:                            "Активная угроза", // aowow - custom
+        sepattributes3:                      "Attributes3", // aowow - custom
+        attr3_0:                             "PvP Enabling", // aowow - custom
+        attr3_1:                             "No Proc Equip Requirement", // aowow - custom
+        attr3_2:                             "No Casting Bar Text", // aowow - custom
+        attr3_3:                             "Полностью блокировано", // aowow - custom
+        attr3_4:                             "No Res Timer", // aowow - custom
+        attr3_5:                             "No Durability Loss", // aowow - custom
+        attr3_6:                             "No Avoidance", // aowow - custom
+        attr3_7:                             "DoT Stacking Rule", // aowow - custom
+        attr3_9:                             "Not a Proc", // aowow - custom
+        attr3_12:                            "Only On Ghosts", // aowow - custom
+        attr3_13:                            "Hide Channel Bar", // aowow - custom
+        attr3_14:                            "Is Honorless Target", // aowow - custom
+        attr3_15:                            "Normal Ranged Attack", // aowow - custom
+        attr3_16:                            "Suppress Caster Procs", // aowow - custom
+        attr3_19:                            "Disable Proc", // aowow - custom
+        attr3_21:                            "Only Proc Outdoors", // aowow - custom
+        attr3_23:                            "No Damage History", // aowow - custom
+        attr3_25:                            "Treat As Periodic", // aowow - custom
+        attr3_26:                            "Can Proc From Procs", // aowow - custom
+        attr3_27:                            "Only Proc on Caster", // aowow - custom
+        attr3_28:                            "Ignore Caster and Target restrictions", // aowow - custom
+        attr3_29:                            "Ignore Caster Modifiers", // aowow - custom
+        attr3_30:                            "Не отображать дальность", // aowow - custom
+        attr3_31:                            "Not on AOE Immune", // aowow - custom
+        sepattributes4:                      "Attributes4", // aowow - custom
+        attr4_0:                             "No Cast Log", // aowow - custom
+        attr4_1:                             "Class Trigger Only On Target", // aowow - custom
+        attr4_3:                             "No Helpful Threat", // aowow - custom
+        attr4_4:                             "No Harmful Threat", // aowow - custom
+        attr4_5:                             "Allow Client Targeting", // aowow - custom
+        attr4_7:                             "Allow Cast While Casting", // aowow - custom
+        attr4_8:                             "Ignore Damage Taken Modifiers", // aowow - custom
+        attr4_9:                             "Combat Feedback When Usable", // aowow - custom
+        attr4_10:                            "Weapon Speed Cost Scaling", // aowow - custom
+        attr4_11:                            "No Partial Immunity", // aowow - custom
+        attr4_12:                            "Aura Is Buff", // aowow - custom
+        attr4_13:                            "Do Not Log Caster", // aowow - custom
+        attr4_14:                            "Reactive Damage Proc", // aowow - custom
+        attr4_15:                            "Not In Spellbook", // aowow - custom
+        attr4_18:                            "Bouncy Chain Missiles", // aowow - custom
+        attr4_19:                            "Allow Proc While Sitting", // aowow - custom
+        attr4_20:                            "Aura Never Bounces", // aowow - custom
+        attr4_21:                            "Allow Entering Arena", // aowow - custom
+        attr4_22:                            "Proc Suppress Swing Anim", // aowow - custom
+        attr4_23:                            "Suppress Weapon Procs", // aowow - custom
+        attr4_24:                            "Auto Ranged Combat", // aowow - custom
+        attr4_25:                            "Owner Power Scaling", // aowow - custom
+        attr4_26:                            "Flying areas only", // aowow - custom
+        attr4_27:                            "Force Display Castbar", // aowow - custom
+        attr4_28:                            "Ignore Combat Timer", // aowow - custom
+        attr4_29:                            "Aura Bounce Fails Spell", // aowow - custom
+        attr4_31:                            "Use Facing From Spell", // aowow - custom
+        sepattributes5:                      "Attributes5", // aowow - custom
+        attr5_0:                             "Allow Actions During Channel", // aowow - custom
+        attr5_1:                             "No Reagent Cost With Aura", // aowow - custom
+        attr5_2:                             "Remove Entering Arena", // aowow - custom
+        attr5_4:                             "Triggers Channeling", // aowow - custom
+        attr5_6:                             "Ignore Area Effect PvP Check", // aowow - custom
+        attr5_7:                             "Not On Player", // aowow - custom
+        attr5_8:                             "Not On Player Controlled NPC", // aowow - custom
+        attr5_10:                            "Не отображать длительность", // aowow - custom
+        attr5_11:                            "Implied Targeting", // aowow - custom
+        attr5_12:                            "Melee Chain Targeting", // aowow - custom
+        attr5_13:                            "Spell Haste Affects Periodic", // aowow - custom
+        attr5_14:                            "Not Available While Charmed", // aowow - custom
+        attr5_15:                            "Treat as Area Effect", // aowow - custom
+        attr5_16:                            "Aura Affects Not Just Req. Equipped Item", // aowow - custom
+        attr5_19:                            "AI Doesn't Face target", // aowow - custom
+        attr5_20:                            "Do Not Attempt a Pet Resummon When Dismounting", // aowow - custom
+        attr5_21:                            "Ignore Target Requirements", // aowow - custom
+        attr5_22:                            "Not On Trivial", // aowow - custom
+        attr5_23:                            "No Partial Resists", // aowow - custom
+        attr5_24:                            "Ignore Caster Requirements", // aowow - custom
+        attr5_25:                            "Always Line of Sight", // aowow - custom
+        attr5_26:                            "Always AOE Line of Sight", // aowow - custom
+        attr5_27:                            "No Caster Aura Icon", // aowow - custom
+        attr5_28:                            "No Target Aura Icon", // aowow - custom
+        attr5_29:                            "Aura Unique Per Caster", // aowow - custom
+        attr5_30:                            "Always Show Ground Texture", // aowow - custom
+        attr5_31:                            "Add Melee Hit Rating", // aowow - custom
+        sepattributes6:                      "Attributes6", // aowow - custom
+        attr6_0:                             "No Cooldown On Tooltip", // aowow - custom
+        attr6_2:                             "Ignore Caster Auras", // aowow - custom
+        attr6_3:                             "Can Assist Immune PC", // aowow - custom
+        attr6_4:                             "Ignore For Mod Time Rate", // aowow - custom
+        attr6_5:                             "Do Not Consume Resources", // aowow - custom
+        attr6_6:                             "Send spell cast event", // aowow - custom
+        attr6_7:                             "Aura Is Weapon Proc", // aowow - custom
+        attr6_8:                             "Do Not Chain To Crowd-Controlled Targets", // aowow - custom
+        attr6_9:                             "Allow On Charmed Targets", // aowow - custom
+        attr6_10:                            "No Aura Log", // aowow - custom
+        attr6_12:                            "Allow While Riding Vehicle", // aowow - custom
+        attr6_13:                            "Ignore Phase Shift", // aowow - custom
+        attr6_14:                            "Основная атака дальнего боя AI", // aowow - custom
+        attr6_15:                            "No Pushback", // aowow - custom
+        attr6_16:                            "No Jump Pathing", // aowow - custom
+        attr6_17:                            "Allow Equip While Casting", // aowow - custom
+        attr6_18:                            "Originate From Controller", // aowow - custom
+        attr6_19:                            "Delay Combat Timer During Cast", // aowow - custom
+        attr6_20:                            "Aura Icon Only For Caster (Limit 10)", // aowow - custom
+        attr6_22:                            "Absorb Cannot Be Ignore", // aowow - custom
+        attr6_23:                            "Taps immediately", // aowow - custom
+        attr6_24:                            "Can Target Untargetable", // aowow - custom
+        attr6_25:                            "Doesn't Reset Swing Timer if Instant", // aowow - custom
+        attr6_26:                            "Vehicle Immunity Category", // aowow - custom
+        attr6_27:                            "Ignore Healing Modifiers", // aowow - custom
+        attr6_28:                            "Do Not Auto Select Target with Initiates Combat", // aowow - custom
+        attr6_29:                            "Ignore Caster Damage Modifiers", // aowow - custom
+        attr6_30:                            "Disable Tied Effect Points", // aowow - custom
+        attr6_31:                            "No Category Cooldown Mods", // aowow - custom
+        sepattributes7:                      "Attributes7", // aowow - custom
+        attr7_1:                             "No Target Duration Mod", // aowow - custom
+        attr7_3:                             "Заклинание отладки", // aowow - custom
+        attr7_4:                             "Treat as Raid Buff", // aowow - custom
+        attr7_6:                             "Don't Cause Spell Pushback", // aowow - custom
+        attr7_7:                             "Prepare for Vehicle Control End", // aowow - custom
+        attr7_8:                             "Horde Specific Spell", // aowow - custom
+        attr7_9:                             "Alliance Specific Spell", // aowow - custom
+        attr7_10:                            "Dispel Removes Charges", // aowow - custom
+        attr7_11:                            "Can Cause Interrupt", // aowow - custom
+        attr7_12:                            "Can Cause Silence", // aowow - custom
+        attr7_13:                            "No UI Not Interruptible", // aowow - custom
+        attr7_14:                            "Recast On Resummon", // aowow - custom
+        attr7_15:                            "Reset Swing Timer at spell start", // aowow - custom
+        attr7_16:                            "Can Restore Inactive Power", // aowow - custom
+        attr7_17:                            "Do Not Log PvP Kill", // aowow - custom
+        attr7_18:                            "Attack on Charge to Unit", // aowow - custom
+        attr7_19:                            "Report Spell failure to unit target", // aowow - custom
+        attr7_20:                            "No Client Fail While Stunned, Fleeing, Confused", // aowow - custom
+        attr7_21:                            "Retain Cooldown Through Load", // aowow - custom
+        attr7_22:                            "Ignores Cold Weather Flying Requirement", // aowow - custom
+        attr7_23:                            "No Attack Dodge", // aowow - custom
+        attr7_24:                            "No Attack Parry", // aowow - custom
+        attr7_25:                            "No Attack Miss", // aowow - custom
+        attr7_26:                            "Treat as NPC AoE", // aowow - custom
+        attr7_27:                            "Bypass No Resurrect Aura", // aowow - custom
+        attr7_28:                            "Consolidate in raid buff frame", // aowow - custom
+        attr7_29:                            "Reflection Only Defends", // aowow - custom
+        attr7_30:                            "Can Proc From Suppressed Target Procs", // aowow - custom
+        attr7_31:                            "Always Cast Log", // aowow - custom
 
         sepcommunity:               "Сообщество",
         hascomments:                "Есть комментарии",
