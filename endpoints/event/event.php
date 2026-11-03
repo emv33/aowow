@@ -499,16 +499,7 @@ class EventBaseResponse extends TemplateResponse implements ICache
         }
 
         // the holiday half of the event system, none of which was read anywhere
-        if (self::hasTable('game_event_seasonal_questrelation'))
-        {
-            $questIds = array_map('intVal', DB::World()->selectCol('SELECT `questId` FROM game_event_seasonal_questrelation WHERE `eventEntry` = %i', $this->typeId) ?: []);
-            if ($questIds)
-            {
-                $this->extendGlobalIds(Type::QUEST, ...$questIds);
-                $rows[] = [Lang::eventExtra('seasonalQuests'), Lang::concat(array_map(fn($x) => '[quest='.$x.']', $questIds), Lang::CONCAT_NONE)];
-            }
-        }
-
+        // (game_event_seasonal_questrelation is not repeated here: it already feeds quests.eventId, i.e. the Quests tab)
         if (self::hasTable('game_event_quest_condition'))
         {
             $cndRows = DB::World()->selectAssoc('SELECT * FROM game_event_quest_condition WHERE `eventEntry` = %i', $this->typeId) ?: [];
@@ -528,6 +519,11 @@ class EventBaseResponse extends TemplateResponse implements ICache
                 $rows[] = ['[quest='.$q.']', $value];
             }
         }
+
+        // GameEventMgr::StartArenaSeason() starts this event when the server's ArenaSeason.ID config names one of these seasons
+        if (self::hasTable('game_event_arena_seasons'))
+            if ($seasons = DB::World()->selectCol('SELECT `season` FROM game_event_arena_seasons WHERE `eventEntry` = %i ORDER BY `season`', $this->typeId))
+                $rows[] = [Lang::eventExtra('arenaSeason'), implode(', ', $seasons)];
 
         if (self::hasTable('game_event_model_equip'))
         {
