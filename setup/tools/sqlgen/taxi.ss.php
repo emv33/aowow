@@ -16,7 +16,7 @@ CLISetup::registerSetup("sql", new class extends SetupScript
     );
 
     protected array $dbcSourceFiles  = ['taxipath', 'taxinodes', 'taxipathnode', 'worldmaparea', 'worldmaptransforms', 'factiontemplate'];
-    protected array $worldDependency = ['creature', 'creature_template'];
+    protected array $worldDependency = ['creature', 'creature_template', 'gameobject_template'];   // aowow - custom: + gameobject_template, for the paths transports follow
     protected array $setupAfter      = [['dungeonmap', 'worldmaparea'], []]; // accessed by WorldPosition::toZonePos
 
     public function generate() : bool
@@ -31,6 +31,11 @@ CLISetup::registerSetup("sql", new class extends SetupScript
 
         DB::Aowow()->qry('INSERT INTO ::taxipath SELECT tp.id, tp.startNodeId, tp.endNodeId FROM dbc_taxipath tp WHERE tp.startNodeId > 0 AND tp.EndNodeId > 0');
 
+        // aowow - custom start: the paths boats and zeppelins follow (GAMEOBJECT_TYPE_MO_TRANSPORT names one in `data0`);
+        // the two legs of a route are separate paths that different transports follow, so neither is a duplicate
+        $transportPaths = DB::World()->selectCol('SELECT DISTINCT `data0` FROM gameobject_template WHERE `type` = %i AND `data0` > 0', GO_TYPE_MO_TRANSPORT) ?: [];
+        // aowow - custom end
+
         // paths are monodirectional and thus exist twice for regular flight travel (which is bidirectional)
         $paths = DB::Aowow()->selectAssoc('SELECT id AS ARRAY_KEY, tp.* FROM ::taxipath tp');
         foreach ($paths as $i => $p)
@@ -38,6 +43,10 @@ CLISetup::registerSetup("sql", new class extends SetupScript
             foreach ($paths as $j => $_)
             {
                 if ($_['startNodeId'] != $p['endNodeId'] || $_['endNodeId'] != $p['startNodeId'])
+                    continue;
+
+                // aowow - custom: a transport follows the reverse one
+                if (in_array($j, $transportPaths))
                     continue;
 
                 DB::Aowow()->qry('DELETE FROM ::taxipath WHERE id = %i', $j);
@@ -52,7 +61,7 @@ CLISetup::registerSetup("sql", new class extends SetupScript
         /* nodes */
         /*********/
 
-        // all sensible nodes
+        // all sensible nodes (aowow - custom: with the creatures a player is mounted on, mountCreatureIdA / -H)
         $fNodes  = DB::Aowow()->selectAssoc(
            'SELECT tn.`id`,
                    tn.`mapId`,
@@ -63,6 +72,7 @@ CLISetup::registerSetup("sql", new class extends SetupScript
                    0 AS "areaY",
                    1 AS `type`, 0 AS `typeId`, 1 AS "reactA", 1 AS "reactH",
                    tn.`name_loc0`, tn.`name_loc2`, tn.`name_loc3`, tn.`name_loc4`, tn.`name_loc6`, tn.`name_loc8`,
+                   tn.`mountCreatureIdA` AS "mountA", tn.`mountCreatureIdH` AS "mountH",
                    tn.`mapId` AS "_mapId", tn.`posX` AS "_posX", tn.`posY` AS "_posY",
                    IF (tn.`id` NOT IN (15, 148, 225, 235) AND (
                           tn.`id` IN (64, 250) OR (
@@ -83,6 +93,7 @@ CLISetup::registerSetup("sql", new class extends SetupScript
                    0 AS "areaY",
                    1 AS `type`, 0 AS `typeId`, 1 AS "reactA", 1 AS "reactH",
                    tn.`name_loc0`, tn.`name_loc2`, tn.`name_loc3`, tn.`name_loc4`, tn.`name_loc6`, tn.`name_loc8`,
+                   tn.`mountCreatureIdA` AS "mountA", tn.`mountCreatureIdH` AS "mountH",
                    tn.`mapId` AS "_mapId", tn.`posX` AS "_posX", tn.`posY` AS "_posY",
                    IF (tn.name_loc0 NOT LIKE "%Transport%" AND tn.name_loc0 NOT LIKE "%Quest%" AND tn.name_loc0 NOT LIKE "%Start%" AND tn.name_loc0 NOT LIKE "%End%",
                        0, 1 ) AS "_scripted"
@@ -145,6 +156,22 @@ CLISetup::registerSetup("sql", new class extends SetupScript
 
             DB::Aowow()->qry('INSERT INTO ::taxinodes VALUES %l', $n);
         }
+
+
+        // aowow - custom start: a node a path starts or ends at is kept even where it has no place on a map (an
+        // ocean, a test map, a transport node without coordinates), the path would have no name to show without it
+        $unplaced = DB::Aowow()->selectAssoc(
+           'SELECT tn.`id`, IF(tn.`mapId` < 65536, tn.`mapId`, 0) AS "mapId", 0 AS "mapX", 0 AS "mapY", 0 AS "areaId", 0 AS "areaX", 0 AS "areaY", 0 AS "type", 0 AS "typeId", 1 AS "reactA", 1 AS "reactH",
+                   tn.`name_loc0`, tn.`name_loc2`, tn.`name_loc3`, tn.`name_loc4`, tn.`name_loc6`, tn.`name_loc8`,
+                   tn.`mountCreatureIdA` AS "mountA", tn.`mountCreatureIdH` AS "mountH"
+            FROM   dbc_taxinodes tn
+            WHERE  tn.`id` NOT IN (SELECT `id` FROM ::taxinodes) AND
+                   (tn.`id` IN (SELECT `startNodeId` FROM ::taxipath) OR tn.`id` IN (SELECT `endNodeId` FROM ::taxipath))'
+        ) ?: [];
+
+        foreach ($unplaced as $n)
+            DB::Aowow()->qry('INSERT INTO ::taxinodes VALUES %l', $n);
+        // aowow - custom end
 
 
         /**********************************************/

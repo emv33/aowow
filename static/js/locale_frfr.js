@@ -4928,9 +4928,9 @@ var LANG = {
     encounter_lastboss: "final boss",
     fitransport: {
         type:       "Type",
-        route:      "Route",
-        path:       "Path"
+        route:      "Route"
     },
+    transport_path: "Path #$1",
     transport_types: {
         11: "Elevator",
         15: "Transport"
@@ -4942,9 +4942,7 @@ var LANG = {
         flightmaster: "Flight master",
         triggers:     "Also started by"
     },
-    taxipath_nspells:  "$1 spell(s)",
     taxipath_nscripts: "$1 script(s)",
-    taxipath_nobjects: "$1 transport(s)",
     fiwaypointpath: {
         sepgeneral: "General",
         id:         "ID",

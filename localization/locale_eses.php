@@ -1541,9 +1541,11 @@ $lang = array(
         'startsAt'      => "Departs from",
         'endsAt'        => "Arrives at",
         'flightMaster'  => "Flight master",
+        'mount'         => "Mount",
         'flightMasters' => "Flight masters",
         'sentBySpell'   => "Sent by spell",
         'sentByScript'  => "Sent by script",
+        'andMore'       => "and %d more",
         'usedByObject'  => "Used by transport",
         'foundIn'       => "This route runs through"
     ),

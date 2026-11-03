@@ -27,15 +27,17 @@ class TaxiPath
     public const int SRC_SMARTAI      = 3;                  // SMART_ACTION_ACTIVATE_TAXI
     public const int SRC_OBJECT       = 4;                  // a MO_TRANSPORT running the path
 
+    // Map.dbc/id => the id the map page knows the continent's map by (see ?maps)
+
     /**
      * @param  array $pathIds  empty for every path
-     * @return array           pathId => [from, fromArea, fromNpc, fromAreaX, fromAreaY, to, toArea, toNpc, toAreaX, toAreaY, mapId]
+     * @return array           pathId => [from, fromArea, fromNpc, fromAreaX, fromAreaY, to, toArea, toNpc, toAreaX, toAreaY, mapId, mount]
      */
     public static function getPaths(array $pathIds = []) : array
     {
         $loc  = Lang::getLocale()->value;
         $sql  = 'SELECT   tp.`id` AS ARRAY_KEY, tp.`id`,
-                          n1.`name_loc0` AS "from0", n1.`name_loc'.$loc.'` AS "fromLoc", n1.`areaId` AS "fromArea", n1.`type` AS "fromType", n1.`typeId` AS "fromTypeId", n1.`mapId`, n1.`areaX` AS "fromAreaX", n1.`areaY` AS "fromAreaY",
+                          n1.`name_loc0` AS "from0", n1.`name_loc'.$loc.'` AS "fromLoc", n1.`areaId` AS "fromArea", n1.`type` AS "fromType", n1.`typeId` AS "fromTypeId", n1.`mapId`, n1.`areaX` AS "fromAreaX", n1.`areaY` AS "fromAreaY", n1.`mountA`, n1.`mountH`,
                           n2.`name_loc0` AS "to0",   n2.`name_loc'.$loc.'` AS "toLoc",   n2.`areaId` AS "toArea",   n2.`type` AS "toType",   n2.`typeId` AS "toTypeId",             n2.`areaX` AS "toAreaX",   n2.`areaY` AS "toAreaY"
                  FROM     ::taxipath tp
                  JOIN     ::taxinodes n1 ON n1.`id` = tp.`startNodeId`
@@ -61,7 +63,8 @@ class TaxiPath
                 'toNpc'     => $r['toType'] == 'NPC' ? (int)$r['toTypeId'] : 0,
                 'toAreaX'   => (float)$r['toAreaX'],
                 'toAreaY'   => (float)$r['toAreaY'],
-                'mapId'     => (int)$r['mapId']
+                'mapId'     => (int)$r['mapId'],
+                'mount'     => array_values(array_unique(array_filter([(int)$r['mountA'], (int)$r['mountH']])))   // the creature(s) a player rides, by faction, at the start node
             );
 
         return $out;
@@ -83,6 +86,44 @@ class TaxiPath
         $out = [];
         foreach ($rows as $point => $r)
             $out[(int)$point] = array('areaId' => (int)$r['areaId'], 'posX' => (float)$r['posX'], 'posY' => (float)$r['posY']);
+
+        return $out;
+    }
+
+    /**
+     * the same route as getPoints(), placed on the maps of the continents it crosses instead of the zones
+     * the zone-level points are derived from TaxiPathNode.dbc, which also keeps the world position of every node
+     *
+     * @return array point => [continent map id, continent map pseudo zone id (the key the map page uses), posX, posY]
+     */
+    public static function getContinentPoints(int $pathId) : array
+    {
+        $nodes = DB::Aowow()->selectAssoc(
+           'SELECT `nodeIdx` AS ARRAY_KEY, `mapId`, `posX`, `posY` FROM dbc_taxipathnode WHERE `pathId` = %i ORDER BY `nodeIdx` ASC',
+            $pathId
+        ) ?: [];
+
+        $out    = [];
+        $bounds = [];
+        foreach ($nodes as $idx => $n)
+        {
+            $mapId = (int)$n['mapId'];
+            if (!isset(self::CONTINENT_MAPS[$mapId]))       // an instance has no continent to show it on
+                continue;
+
+            // the continent's own entry of WorldMapArea (it has no area)
+            $bounds[$mapId] ??= DB::Aowow()->selectRow('SELECT `left`, `right`, `top`, `bottom` FROM ::worldmaparea WHERE `mapId` = %i AND `areaId` = 0 ORDER BY `id` ASC LIMIT 1', $mapId) ?: false;
+            if (!$b = $bounds[$mapId])
+                continue;
+
+            // same conversion as WorldPosition::toZonePos(): world positions are rotated 90° in relation to map positions
+            $out[(int)$idx] = array(
+                $mapId,
+                self::CONTINENT_MAPS[$mapId],
+                round(($b['left'] - $n['posY']) * 100 / ($b['left'] - $b['right']), 1),
+                round(($b['top']  - $n['posX']) * 100 / ($b['top']  - $b['bottom']), 1)
+            );
+        }
 
         return $out;
     }
@@ -130,6 +171,11 @@ class TaxiPath
             GO_TYPE_MO_TRANSPORT, $pathIds) ?: [] as $r)
             $out[(int)$r['data0']][self::SRC_OBJECT][(int)$r['entry']] = (int)$r['entry'];
 
+        // ... so a node of that path that happens to stand next to one (the Ratchet dock) names none
+        foreach ($out as $id => $src)
+            if (isset($src[self::SRC_OBJECT]))
+                unset($out[$id][self::SRC_FLIGHTMASTER]);
+
         return $out;
     }
 
@@ -169,10 +215,41 @@ class TaxiPath
                     $jsg[Type::NPC][$npcId] = $npcId;
             }
 
-            // what else can start this flight, as counts; the detail page names them
-            $row['nspells']  = count($src[self::SRC_SPELL]   ?? []);
-            $row['nscripts'] = count($src[self::SRC_SMARTAI] ?? []);
-            $row['nobjects'] = count($src[self::SRC_OBJECT]  ?? []);
+            // what else can start this flight: the first few by name, the rest only as a number
+            $starters = [];
+            foreach ($src[self::SRC_SPELL] ?? [] as $spellId)
+                $starters[Type::SPELL.':'.$spellId] = [Type::SPELL, $spellId];
+            foreach ($src[self::SRC_OBJECT] ?? [] as $objectId)
+                $starters[Type::OBJECT.':'.$objectId] = [Type::OBJECT, $objectId];
+
+            $unnamed = 0;                                   // scripts that don't belong to a creature or object template
+            foreach ($src[self::SRC_SMARTAI] ?? [] as [$srcType, $entry])
+            {
+                $type = match ($srcType)
+                {
+                    SmartAI::SRC_TYPE_CREATURE => Type::NPC,
+                    SmartAI::SRC_TYPE_OBJECT   => Type::OBJECT,
+                    default                    => 0
+                };
+
+                if ($type && $entry > 0)                    // a negative entryorguid is a guid, not a template entry
+                    $starters[$type.':'.$entry] = [$type, $entry];
+                else
+                    $unnamed++;
+            }
+
+            $shown = array_slice(array_values($starters), 0, 3);
+            foreach ($shown as [$type, $typeId])
+            {
+                $row['startedby'][] = [Type::getJSGlobalString($type), Type::getFileString($type), $typeId];
+                $jsg[$type][$typeId] = $typeId;
+            }
+
+            $row['nstarted'] = count($starters) + $unnamed;
+            if ($shown && $row['nstarted'] > count($shown))
+                $row['startedmore'] = Lang::taxipath('andMore', [$row['nstarted'] - count($shown)]);
+            else if (!$shown && $unnamed)
+                $row['nscripts'] = $unnamed;
 
             $data[] = $row;
         }

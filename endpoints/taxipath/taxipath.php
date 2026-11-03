@@ -55,6 +55,17 @@ class TaxipathBaseResponse extends TemplateResponse implements ICache
         $src     = TaxiPath::getSources([$this->typeId])[$this->typeId] ?? [];
         $infobox = [Lang::taxipath('id').Lang::main('colon').$this->typeId];
 
+        // a transport is the flight itself, there is no flight master - even where a node of the path lies next to one
+        $isTransport = !empty($src[TaxiPath::SRC_OBJECT]);
+
+        // ... and its nodes are named for the transport, not placed where it sails from and to (the Booty Bay boat's
+        // start node lies in the Barrens, next to the Ratchet dock) - the first and last point of the route are
+        if ($isTransport && ($routeZones = array_values(array_filter(array_column(TaxiPath::getPoints($this->typeId), 'areaId')))))
+        {
+            $this->path['fromArea'] = $routeZones[0];
+            $this->path['toArea']   = $routeZones[array_key_last($routeZones)];
+        }
+
         foreach ([['from', 'fromArea', 'fromNpc'], ['to', 'toArea', 'toNpc']] as $i => [$nk, $ak, $npck])
         {
             $line = Lang::taxipath($i ? 'endsAt' : 'startsAt').Lang::main('colon');
@@ -69,11 +80,18 @@ class TaxipathBaseResponse extends TemplateResponse implements ICache
 
             $infobox[] = $line;
 
-            if ($_ = $this->path[$npck])
+            if (!$isTransport && ($_ = $this->path[$npck]))
             {
                 $this->extendGlobalIds(Type::NPC, $_);
                 $infobox[] = Lang::taxipath('flightMaster').Lang::main('colon').'[npc='.$_.']';
             }
+        }
+
+        // the creature a player is put on - a transport is the ride itself
+        if (!$isTransport && $this->path['mount'])
+        {
+            $this->extendGlobalIds(Type::NPC, ...$this->path['mount']);
+            $infobox[] = Lang::taxipath('mount').Lang::main('colon').Lang::concat($this->path['mount'], Lang::CONCAT_NONE, fn($x) => '[npc='.$x.']');
         }
 
         $this->infobox = new InfoboxMarkup($infobox, ['allow' => Markup::CLASS_STAFF, 'dbpage' => true], 'infobox-contents0');
@@ -133,6 +151,32 @@ class TaxipathBaseResponse extends TemplateResponse implements ICache
             }
         }
 
+        // the same route on the map of each continent it touches, listed before the zones: the whole route in one view
+        // (nodes of an instance, or without the zone-level route, have nothing to show here)
+        $continents = [];
+        $cPrev      = null;
+        $cPoints    = TaxiPath::getContinentPoints($this->typeId);
+        $cFirst     = array_key_first($cPoints);
+        $cLast      = array_key_last($cPoints);
+        foreach ($cPoints as $idx => [$mapId, $mapKey, $x, $y])
+        {
+            $opts = [];
+            if ($idx == $cFirst)
+                $opts = ['label' => "\0$<br /><span class=\"q0\">".Lang::taxipath('startsAt').'</span>', 'type' => 'start'];
+            else if ($idx == $cLast)
+                $opts = ['label' => "\0$<br /><span class=\"q0\">".Lang::taxipath('endsAt').'</span>', 'type' => 'end'];
+
+            if ($cPrev && $cPrev[0] == $mapId)              // a route crossing continents is two separate lines
+                $opts['lines'] = [[$cPrev[2], $cPrev[3]]];
+
+            $continents[$mapKey][0]['coords'][] = [$x, $y, $opts];
+            $cPrev = [$mapId, $mapKey, $x, $y];
+        }
+
+        // a route within one zone is shown on that zone's map, the continent would only shrink it
+        if ($continents && count($data) != 1)
+            $data = $continents + $data;
+
         if ($data)
         {
             foreach ($data as &$areas)
@@ -147,8 +191,14 @@ class TaxipathBaseResponse extends TemplateResponse implements ICache
                 null,
                 [Lang::taxipath('foundIn')]
             );
+            $continentNames = array(
+                -3 => Lang::maps('EasternKingdoms'),
+                -6 => Lang::maps('Kalimdor'),
+                -2 => Lang::maps('Outland'),
+                -5 => Lang::maps('Northrend')
+            );
             foreach ($data as $areaId => $__)
-                $this->map[3][$areaId] = ZoneList::getName($areaId);
+                $this->map[3][$areaId] = $continentNames[$areaId] ?? ZoneList::getName($areaId);
         }
 
 
@@ -159,7 +209,7 @@ class TaxipathBaseResponse extends TemplateResponse implements ICache
         $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"], 'tabsRelated', true);
 
         // tab: flight masters at either end
-        if ($npcIds = array_filter([$this->path['fromNpc'], $this->path['toNpc']]))
+        if (!$isTransport && ($npcIds = array_filter([$this->path['fromNpc'], $this->path['toNpc']])))
             $this->addListTab(new CreatureList([['id', array_values($npcIds)]]), CreatureList::$brickFile, Lang::taxipath('flightMasters'), 'flightmasters');
 
         // tab: spells sending a player down this path
