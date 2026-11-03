@@ -100,10 +100,35 @@ class TextsBaseResponse extends TemplateResponse implements ICache
         else
             $rows = GameText::browse(['query' => $opts['query']]);
 
-        $tabData = ['data' => $this->buildListviewData($rows)];
+        // none picked searches every kind of text
+        if ($opts['src'])
+            $rows = array_filter($rows, fn($r) => array_intersect($r['srcs'], $opts['src']));
+
+        // one tab per kind of text; kinds without a hit get no tab, but the page keeps one
+        // (empty) so the listview's own "no results" state still shows.
+        // a broadcast text is one line however many tables point at it; the source and owner
+        // columns of its row say what does
+        $bySrc = [];
+        foreach ($rows as $r)
+            $bySrc[$r['src']][] = $r;
 
         $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"]);
-        $this->lvTabs->addListviewTab(new Listview($tabData, 'text', 'text'));
+        $first = true;
+        foreach (GameText::SOURCES as $src => $_)
+        {
+            if (!$bySrc && $src != GameText::SRC_CREATURE_TEXT)
+                continue;
+            if ($bySrc && empty($bySrc[$src]))
+                continue;
+
+            $this->lvTabs->addListviewTab(new Listview(array(
+                'id'         => self::TAB_IDS[$src],
+                'name'       => Lang::gameText('sources', $src),
+                'data'       => $this->buildListviewData($bySrc[$src] ?? []),
+                'hiddenCols' => $src == GameText::SRC_BROADCAST ? [] : ['src']   // elsewhere the tab says it already
+            ), 'text', $first ? 'text' : ''));              // the template only needs defining once
+            $first = false;
+        }
 
         parent::generate();
     }
@@ -116,7 +141,8 @@ class TextsBaseResponse extends TemplateResponse implements ICache
         foreach ($rows as $r)
         {
             $row = array(
-                'id'    => $r['id'],
+                'id'    => substr($r['id'], strlen($r['kind']) + 1),   // the tab is one kind, the prefix is its 'kind'
+                'kind'  => $r['kind'],
                 'src'   => $r['src'],
                 'entry' => $r['entry'],
                 'text'  => $r['text']
@@ -126,6 +152,27 @@ class TextsBaseResponse extends TemplateResponse implements ICache
             // all, so the component hands over a label for the cases a g_* lookup cannot cover
             if ($r['ownerName'])
                 $row['ownername'] = $r['ownerName'];
+
+            foreach ($r['refs'] as $ref)
+            {
+                $x = ['src' => $ref['src']];
+                if ($ref['ownerName'])
+                    $x['ownername'] = $ref['ownerName'];
+
+                if ($ref['ownerType'] && $ref['ownerId'] > 0)
+                {
+                    $x['ownerid']  = $ref['ownerId'];
+                    $x['ownerurl'] = Type::getFileString($ref['ownerType']);
+
+                    if ($_ = Type::getJSGlobalString($ref['ownerType']))
+                    {
+                        $x['ownerlookup'] = $_;
+                        $jsg[$ref['ownerType']][$ref['ownerId']] = $ref['ownerId'];
+                    }
+                }
+
+                $row['refs'][] = $x;
+            }
 
             if ($r['ownerType'] && $r['ownerId'] > 0)
             {

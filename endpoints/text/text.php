@@ -52,29 +52,29 @@ class TextBaseResponse extends TemplateResponse implements ICache
 
         $srcLabel = Lang::gameText('sources', $row['src']) ?: ('#'.$row['src']);
 
-        // every source's composite id already bakes in exactly one owner (or none) - browse()
-        // splits a text shared by several npcs/menus into one row per owner rather than listing
-        // several on one row - so there is never more than a single reference here
-        $tag = null;
-        if ($row['ownerType'] && $row['ownerId'] > 0)
-            $tag = match ($row['ownerType'])
-            {
-                Type::NPC    => 'npc',
-                Type::OBJECT => 'object',
-                Type::ITEM   => 'item',
-                Type::GOSSIP => 'gossip',
-                default      => null
-            };
-
-        // the infobox links the owner ([npc=Id] etc.); the title needs its plain name instead
-        $ownerLabel = match (true)
+        // a broadcast text lists everything that points at it; every other row has one owner or none
+        $owners = $row['refs'] ?: ($row['ownerType'] && $row['ownerId'] > 0 ? [$row] : []);
+        $tagOf  = fn(?int $type) => match ($type)
         {
-            $tag === 'npc'    => (string)(CreatureList::getName($row['ownerId']) ?? ''),
-            $tag === 'object' => (string)(GameObjectList::getName($row['ownerId']) ?? ''),
-            $tag === 'item'   => (string)(ItemList::getName($row['ownerId']) ?? ''),
-            $tag === 'gossip' => $row['ownerName'],
-            default           => ''
+            Type::NPC    => 'npc',
+            Type::OBJECT => 'object',
+            Type::ITEM   => 'item',
+            Type::GOSSIP => 'gossip',
+            default      => null
         };
+
+        // the infobox links the owner ([npc=Id] etc.); the title needs its plain name instead,
+        // and only has one to give when there is a single owner
+        $ownerLabel = '';
+        if (count($owners) == 1)
+            $ownerLabel = match ($tagOf($owners[0]['ownerType']))
+            {
+                'npc'    => (string)(CreatureList::getName($owners[0]['ownerId']) ?? ''),
+                'object' => (string)(GameObjectList::getName($owners[0]['ownerId']) ?? ''),
+                'item'   => (string)(ItemList::getName($owners[0]['ownerId']) ?? ''),
+                'gossip' => $owners[0]['ownerName'],
+                default  => ''
+            };
 
 
         /**************/
@@ -96,13 +96,23 @@ class TextBaseResponse extends TemplateResponse implements ICache
 
         $infobox = [Util::ucFirst(Lang::gameText('source')).Lang::main('colon').$srcLabel];
 
-        if ($row['ownerType'] && $row['ownerId'] > 0)
+        $links = [];
+        foreach ($owners as $o)
         {
-            $infobox[] = Lang::gameText('owner').Lang::main('colon').($tag ? '['.$tag.'='.$row['ownerId'].']' : ($row['ownerName'] ?: ('#'.$row['ownerId'])));
+            if (!$o['ownerType'] || $o['ownerId'] <= 0)
+                continue;
 
-            if ($tag)
-                $this->extendGlobalIds($row['ownerType'], $row['ownerId']);
+            if ($tag = $tagOf($o['ownerType']))
+            {
+                $links[] = '['.$tag.'='.$o['ownerId'].']';
+                $this->extendGlobalIds($o['ownerType'], $o['ownerId']);
+            }
+            else
+                $links[] = $o['ownerName'] ?: ('#'.$o['ownerId']);
         }
+
+        if ($links)
+            $infobox[] = Lang::gameText('owner').Lang::main('colon').implode(', ', $links);
 
         $this->infobox = new InfoboxMarkup($infobox, ['allow' => Markup::CLASS_STAFF, 'dbpage' => true], 'infobox-contents0');
 
