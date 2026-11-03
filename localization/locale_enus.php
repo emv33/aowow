@@ -2173,6 +2173,8 @@ $lang = array(
         'loremaster'    => "Loremaster: ",
         'suggestedPl'   => "Suggested players: %d",
         'keepsPvpFlag'  => "Keeps you PvP flagged",
+        'emotes'        => "Quest giver emotes",            // aowow - custom: quest_details, quest_request_items, quest_offer_reward
+        'emoteStages'   => ['offer' => "Offering", 'incomplete' => "Not yet complete", 'complete' => "Complete", 'reward' => "Rewarding"],
         'daily'         => "Daily",
         'weekly'        => "Weekly",
         'monthly'       => "Monthly",

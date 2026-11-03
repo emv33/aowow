@@ -2173,6 +2173,8 @@ $lang = array(
         'loremaster'    => "Maitre des traditions : ",
         'suggestedPl'   => "Joueurs suggérés : %d",
         'keepsPvpFlag'  => "Vous garde en mode JvJ",
+        'emotes'        => "Quest giver emotes",            // aowow - custom: quest_details, quest_request_items, quest_offer_reward
+        'emoteStages'   => ['offer' => "Offering", 'incomplete' => "Not yet complete", 'complete' => "Complete", 'reward' => "Rewarding"],
         'daily'         => "Journalière",
         'weekly'        => "Chaque semaine",
         'monthly'       => "Mensuel",

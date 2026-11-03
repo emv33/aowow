@@ -2173,6 +2173,8 @@ $lang = array(
         'loremaster'    => "Maestro cultural: ",
         'suggestedPl'   => "Jugadores sugeridos: %d",
         'keepsPvpFlag'  => "Mantiene el JcJ activado",
+        'emotes'        => "Quest giver emotes",            // aowow - custom: quest_details, quest_request_items, quest_offer_reward
+        'emoteStages'   => ['offer' => "Offering", 'incomplete' => "Not yet complete", 'complete' => "Complete", 'reward' => "Rewarding"],
         'daily'         => 'Diaria',
         'weekly'        => "Semanal",
         'monthly'       => "Mensual",

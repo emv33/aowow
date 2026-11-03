@@ -2172,6 +2172,8 @@ $lang = array(
         'loremaster'    => "Meister der Lehren: ",
         'suggestedPl'   => "Empfohlene Spielerzahl: %d",
         'keepsPvpFlag'  => "Hält Euch im PvP",
+        'emotes'        => "Quest giver emotes",            // aowow - custom: quest_details, quest_request_items, quest_offer_reward
+        'emoteStages'   => ['offer' => "Offering", 'incomplete' => "Not yet complete", 'complete' => "Complete", 'reward' => "Rewarding"],
         'daily'         => 'Täglich',
         'weekly'        => "Wöchentlich",
         'monthly'       => "Monatlich",
