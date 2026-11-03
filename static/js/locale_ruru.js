@@ -4888,6 +4888,19 @@ var LANG = {
             11: "Title"
         }
     },
+    spawnpool: {
+        name:        "Pool",
+        unnamed:     "Spawn pool #$1",
+        active:      "Active",
+        activetip:   "Members of the pool live at once / all members of the pool: creature and object spawn points, and nested pools",
+        mine:        "Here",
+        minetip:     "Spawn points of this entry in the pool",
+        members:     "Members",
+        pools:       "pools",
+        points:      "Spawn points",
+        respawn:     "Replaced after",
+        respawntip:  "When a spawn of the pool despawns, a random inactive member of the pool is spawned after this time"
+    },
     fispellfocus: {
         name:       "Name",
         objects:    "Objects",
