@@ -307,6 +307,12 @@ class ItemBaseResponse extends TemplateResponse implements ICache
         if ($tab = $this->tabTeaches())                     //
             $this->lvTabs->addListviewTab($tab);
 
+        if ($tab = $this->tabEquippedBy())                  // custom
+            $this->lvTabs->addListviewTab($tab);
+
+        if ($tab = $this->tabEatenBy())                     // custom
+            $this->lvTabs->addListviewTab($tab);
+
         if ($tab = $this->tabSameModelAs())                 // todo (low): should also work for creatures summoned by item
             $this->lvTabs->addListviewTab($tab);
 
@@ -446,6 +452,17 @@ class ItemBaseResponse extends TemplateResponse implements ICache
         if ($tId = $this->subject->getField('totemCategory'))
             if ($tName = DB::Aowow()->selectRow('SELECT * FROM ::totemcategory WHERE `id` = %i', $tId))
                 $infobox[] = Lang::item('tool').'[url=?items&filter=cr=91;crs='.$tId.';crv=0]'.Util::localizedString($tName, 'name').'[/url]';
+
+        // aowow - custom: the enchantment a gem applies when socketed (GemProperties.dbc), which has its own page
+        if ($_ = $this->subject->getField('gemEnchantmentId'))
+        {
+            $this->extendGlobalIds(Type::ENCHANTMENT, $_);
+            $infobox[] = Util::ucFirst(Lang::game('enchantment')).Lang::main('colon').'[enchantment='.$_.']';
+        }
+
+        // aowow - custom: pet diet; ItemPetFood.dbc id, matched against the families' foodMask bit (id - 1)
+        if (($_ = $this->subject->getField('foodType')) && ($food = Lang::exist('pet', 'food', (string)$_)))
+            $infobox[] = Lang::item('petFood').$food;
 
         // extendedCost
         if (!empty($this->subject->getExtendedCost([], $_reqRating)[$this->typeId]))
@@ -1296,6 +1313,48 @@ class ItemBaseResponse extends TemplateResponse implements ICache
             'id'   => 'see-also'
         ), ItemList::$brickFile);
     }
+
+    // aowow - custom start: `creature_equip_template` - the creatures that carry this item as a weapon or shield
+    // aowow - custom: the reverse of the pet page's diet tab
+    private function tabEatenBy() : ?Listview
+    {
+        if (!($foodType = $this->subject->getField('foodType')))
+            return null;
+
+        $pets = new PetList(array(['foodMask', 1 << ($foodType - 1), '&']));
+        if ($pets->error)
+            return null;
+
+        $this->extendGlobalData($pets->getJSGlobals(GLOBALINFO_RELATED));
+
+        return new Listview(array(
+            'data' => $pets->getListviewData(),
+            'name' => Lang::item('eatenBy'),
+            'id'   => 'eaten-by'
+        ), PetList::$brickFile);
+    }
+
+    private function tabEquippedBy() : ?Listview
+    {
+        if (!DB::World()->selectCell('SHOW TABLES LIKE %s', 'creature_equip_template'))
+            return null;
+
+        $ids = DB::World()->selectCol('SELECT `CreatureID` FROM creature_equip_template WHERE `ItemID1` = %i OR `ItemID2` = %i OR `ItemID3` = %i', $this->typeId, $this->typeId, $this->typeId);
+        if ($ids === null)                                  // renamed from entry/itemEntry<n> in 2016
+            $ids = DB::World()->selectCol('SELECT `entry` FROM creature_equip_template WHERE `itemEntry1` = %i OR `itemEntry2` = %i OR `itemEntry3` = %i', $this->typeId, $this->typeId, $this->typeId);
+
+        if (!$ids || ($npcs = new CreatureList(array(['id', array_unique($ids)])))->error)
+            return null;
+
+        $this->extendGlobalData($npcs->getJSGlobals(GLOBALINFO_SELF));
+
+        return new Listview(array(
+            'data' => $npcs->getListviewData(),
+            'name' => Lang::xRef('equippedBy'),
+            'id'   => 'equipped-by'
+        ), CreatureList::$brickFile);
+    }
+    // aowow - custom end
 
     private function tabSameModelAs() : ?Listview
     {
