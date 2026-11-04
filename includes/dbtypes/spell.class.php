@@ -2361,7 +2361,6 @@ class SpellListFilter extends Filter
             SPELL_ATTR0_REQ_AMMO                      =>  48,
             SPELL_ATTR0_ON_NEXT_SWING                 =>  49,
             SPELL_ATTR0_PASSIVE                       =>  50,
-            SPELL_ATTR0_HIDDEN_CLIENTSIDE             =>  51,
             SPELL_ATTR0_HIDE_IN_COMBAT_LOG            =>  84,
             SPELL_ATTR0_ON_NEXT_SWING_2               =>  52,
             SPELL_ATTR0_DAYTIME_ONLY                  =>  53,
@@ -2393,7 +2392,8 @@ class SpellListFilter extends Filter
             SPELL_ATTR1_IS_PICKPOCKET               => 72,
             SPELL_ATTR1_DISPEL_AURAS_ON_IMMUNITY    => 73,
             SPELL_ATTR1_UNAFFECTED_BY_SCHOOL_IMMUNE => 47,
-            SPELL_ATTR1_IS_FISHING                  => 74
+            SPELL_ATTR1_IS_FISHING                  => 74,
+            SPELL_ATTR1_DONT_DISPLAY_IN_AURA_BAR    => 51
         ),
         2 => array(
             SPELL_ATTR2_CANT_TARGET_TAPPED        =>  75,
