@@ -2114,7 +2114,6 @@ $lang = array(
         'territory'     => "Territorium: ",
         'instanceType'  => "Instanzart: ",
         'bgBracket'     => "Level bracket",
-        'graveyard'     => "Graveyard",
         'graveyardUnnamed' => 'Graveyard #%1$d',
         'graveyardUnused' => 'not used',
         'weather'       => "Weather",

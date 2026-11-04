@@ -22,6 +22,10 @@ Listview.templates.graveyard = {
 
                 $WH.ae(a, $WH.ct(t.name || ('#' + t.id)));
                 $WH.ae(td, a);
+
+                // on a zone page: the core never sends this zone's ghosts here
+                if (t.unused)
+                    $WH.ae(td, $WH.ce('div', { className: 'q0 small' }, $WH.ct(t.unused)));
             },
             getVisibleText: function(t) {
                 return t.name || ('#' + t.id);

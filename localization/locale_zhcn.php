@@ -2115,7 +2115,6 @@ $lang = array(
         'territory'     => "领地：",
         'instanceType'  => "副本类型：",
         'bgBracket'     => "Level bracket",
-        'graveyard'     => "Graveyard",
         'graveyardUnnamed' => 'Graveyard #%1$d',
         'graveyardUnused' => 'not used',
         'weather'       => "Weather",

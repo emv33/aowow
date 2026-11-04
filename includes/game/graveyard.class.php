@@ -118,6 +118,135 @@ abstract class Graveyard
 
         return array_filter(array_intersect_key(self::$locCache, array_flip($graveyardIds)));
     }
+    /**
+     * listview rows of the `graveyard` template, out of the link table and, on cores that still ship it, `game_graveyard`
+     *
+     * @param  ?int[] $graveyardIds  only these graveyards (null: all of them)
+     * @param  ?int[] $zoneIds       out: the zones the rows name, for the page's globals
+     * @return array                 [row, ...]
+     */
+    public static function getListviewData(?array $graveyardIds = null, ?array &$zoneIds = []) : array
+    {
+        $zoneIds = [];
+        $zoneTbl = self::hasTable('graveyard_zone')
+            ? 'graveyard_zone'
+            : (self::hasTable('game_graveyard_zone') ? 'game_graveyard_zone' : null);
+
+        if (!$zoneTbl || $graveyardIds === [])
+            return [];
+
+        // [graveyardId => [zones => [zoneId => true], ally => bool, horde => bool, comment => string]]
+        $links = [];
+        $byId  = $graveyardIds === null ? [] : [' WHERE `ID` IN %in', $graveyardIds];
+        foreach (DB::World()->selectAssoc('SELECT * FROM '.$zoneTbl.($byId[0] ?? ''), ...array_slice($byId, 1)) ?: [] as $r)
+        {
+            $lc = array_change_key_case($r, CASE_LOWER);
+            $id = (int)($lc['id'] ?? 0);
+            if (!$id)
+                continue;
+
+            $zone = (int)($lc['ghostzone'] ?? $lc['ghost_zone'] ?? 0);
+            $links[$id]['zones'][$zone] = true;
+
+            // the link table stores the faction template id: 469 Alliance, 67 Horde, 0 any
+            $faction = (int)($lc['faction'] ?? 0);
+            if ($faction == self::TEAMS[self::SIDE_ALLIANCE])
+            {
+                $links[$id]['ally'] = true;
+                $links[$id]['sides'][$zone] = ($links[$id]['sides'][$zone] ?? 0) | self::SIDE_ALLIANCE;
+            }
+            else if ($faction == self::TEAMS[self::SIDE_HORDE])
+            {
+                $links[$id]['horde'] = true;
+                $links[$id]['sides'][$zone] = ($links[$id]['sides'][$zone] ?? 0) | self::SIDE_HORDE;
+            }
+
+            $comment = trim((string)($lc['comment'] ?? ''));
+            if ($comment !== '')
+                $links[$id]['comment'] = $comment;
+        }
+
+        // optional position table on cores that still ship it; its name and map win where present
+        $positions = [];
+        if (self::hasTable('game_graveyard'))
+        {
+            foreach (DB::World()->selectAssoc('SELECT * FROM game_graveyard'.($byId[0] ?? ''), ...array_slice($byId, 1)) ?: [] as $r)
+            {
+                $lc = array_change_key_case($r, CASE_LOWER);
+                $id = (int)($lc['id'] ?? 0);
+
+                $positions[$id] = array(
+                    'name' => trim((string)($lc['comment'] ?? $lc['name'] ?? '')),
+                    'map'  => (int)($lc['map'] ?? $lc['mapid'] ?? $lc['map_id'] ?? 0)
+                );
+            }
+        }
+
+        $ids = array_keys($links);
+        sort($ids);
+
+        // the link table has no map column, so the map is taken from the first ghost zone
+        foreach ($links as $link)
+            foreach (array_keys($link['zones']) as $z)
+                $zoneIds[$z] = $z;
+
+        $zoneIds   = array_values($zoneIds);
+        $mapByZone = [];
+
+        if ($zoneIds)
+            foreach (DB::Aowow()->selectAssoc('SELECT `id` AS ARRAY_KEY, `mapId` FROM ::zones WHERE `id` IN %in', $zoneIds) ?: [] as $zId => $zRow)
+                $mapByZone[(int)$zId] = (int)$zRow['mapId'];
+
+        $rows   = [];
+        $mapIds = [];
+        foreach ($ids as $id)
+        {
+            $link  = $links[$id];
+            $zones = array_keys($link['zones']);
+            sort($zones);
+
+            $pos  = $positions[$id] ?? null;
+            $name = $pos && $pos['name'] !== '' ? $pos['name'] : (string)($link['comment'] ?? '');
+            $map  = $pos && $pos['map'] ? $pos['map'] : (isset($zones[0]) ? ($mapByZone[$zones[0]] ?? 0) : 0);
+
+            $faction = 0;
+            if (!empty($link['ally']))
+                $faction |= self::SIDE_ALLIANCE;
+            if (!empty($link['horde']))
+                $faction |= self::SIDE_HORDE;
+
+            $mapIds[$map] = $map;
+
+            $row = array(
+                'id'       => $id,
+                'name'     => $name === '' ? Lang::zone('graveyardUnnamed', [$id]) : ($name[0] == '$' ? ' '.$name : $name),
+                'map'      => $map,
+                'mapLink'  => isset($zones[0]) ? '?maps='.$zones[0] : '',
+                'zones'    => $zones,
+                'location' => $zones,
+                'faction'  => $faction
+            );
+
+            // the side(s) a zone's link is restricted to; a zone left out is open to both, the label above only sums them up
+            if (!empty($link['sides']))
+                $row['sides'] = $link['sides'];
+
+            $rows[$id] = $row;
+        }
+
+        $mapNameByMap = WorldPosition::getMapNames(array_values($mapIds));
+        foreach ($rows as &$row)
+            $row['mapName'] = $mapNameByMap[$row['map']] ?? '';
+
+        return array_values($rows);
+    }
+
+    private static function hasTable(string $tbl) : bool
+    {
+        static $known = [];
+
+        return $known[$tbl] ??= (bool)DB::World()->selectCell('SHOW TABLES LIKE %s', $tbl);
+    }
 }
 
 ?>

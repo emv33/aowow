@@ -2115,7 +2115,6 @@ $lang = array(
         'territory'     => "Территория: ",
         'instanceType'  => "Тип подземелья: ",
         'bgBracket'     => "Level bracket",
-        'graveyard'     => "Graveyard",
         'graveyardUnnamed' => 'Graveyard #%1$d',
         'graveyardUnused' => 'not used',
         'weather'       => "Weather",

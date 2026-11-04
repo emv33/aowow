@@ -203,12 +203,8 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
             }
         }
 
-        // aowow - custom start: graveyards and weather
-        // `game_graveyard` + `graveyard_zone` say where you resurrect, `game_weather` what falls on
-        // you while you are alive; neither was read anywhere
-        foreach (self::getGraveyards($this->typeId) as $gy)
-            $infobox[] = Lang::zone('graveyard').Lang::main('colon').$gy;
-
+        // aowow - custom start: weather
+        // `game_weather` says what falls on you while you are alive; it was read nowhere
         if ($w = self::getWeather($this->typeId))
             $infobox[] = Lang::zone('weather').Lang::main('colon').$w;
         // aowow - custom end
@@ -777,6 +773,14 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
                     'id'   => 'teleports-here'
                 ), AreaTriggerList::$brickFile, AreaTriggerList::$brickFile));
         }
+
+        // `game_graveyard` + `graveyard_zone`: where the ghosts of this zone resurrect
+        if ($gyData = $this->getGraveyards($this->typeId))
+            $this->lvTabs->addListviewTab(new Listview(array(
+                'data' => $gyData,
+                'name' => Util::ucFirst(Lang::graveyard('title')),
+                'id'   => 'graveyards'
+            ), 'graveyard', 'graveyard'));
         // aowow - custom end
 
         $quests = new QuestList(array(['questSortId', $this->typeId]));
@@ -1358,42 +1362,39 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
 
     // aowow - custom start: graveyard and weather lookups
 
-    /** @return string[] one line per graveyard serving this zone */
-    private static function getGraveyards(int $areaId) : array
+    /** the graveyards linked to the zone as `graveyard` listview rows; the faction column names the side this zone's link is restricted to */
+    private function getGraveyards(int $areaId) : array
     {
-        // 3.3.5 cores keep the position in WorldSafeLocs.dbc, not `game_graveyard`; the link's `Comment` names it
         if (!self::hasTable('graveyard_zone', false))
             return [];
 
-        $rows = DB::World()->selectAssoc('SELECT `ID`, `Faction`, `Comment` FROM graveyard_zone WHERE `GhostZone` = %i ORDER BY `ID`', $areaId) ?: [];
+        $links = DB::World()->selectCol('SELECT `ID` AS ARRAY_KEY, `Faction` FROM graveyard_zone WHERE `GhostZone` = %i', $areaId) ?: [];
+        if (!$links)
+            return [];
+
+        $rows = Graveyard::getListviewData(array_keys($links), $zoneIds);
+        if ($zoneIds)
+            $this->extendGlobalIds(Type::ZONE, ...$zoneIds);
 
         $checkUse = self::hasTable('dbc_worldsafelocs') && self::hasTable('dbc_map');
 
-        $out = [];
-        foreach ($rows as $r)
+        foreach ($rows as &$row)
         {
-            $id   = (int)$r['ID'];
-            $name = trim((string)$r['Comment']) ?: Lang::zone('graveyardUnnamed', [$id]);
-            $line = '[url=?graveyard='.$id.']'.$name.'[/url]';
-            $line = match ((int)$r['Faction'])             // faction template: 469 Alliance, 67 Horde, 0 any
+            // faction template: 469 Alliance, 67 Horde, 0 any
+            $open = match ((int)$links[$row['id']])
             {
-                469     => '[span class=icon-alliance]'.$line.'[/span]',
-                67      => '[span class=icon-horde]'.$line.'[/span]',
-                default => $line
+                469     => Graveyard::SIDE_ALLIANCE,
+                67      => Graveyard::SIDE_HORDE,
+                default => Graveyard::SIDE_ALLIANCE | Graveyard::SIDE_HORDE
             };
+            $row['faction'] = $open == (Graveyard::SIDE_ALLIANCE | Graveyard::SIDE_HORDE) ? 0 : $open;
 
             // links the core never sends a ghost through, see Graveyard::supersededBy()
-            if ($checkUse && ($lost = Graveyard::supersededBy($id, $areaId)))
-            {
-                $open = match ((int)$r['Faction']) { 469 => Graveyard::SIDE_ALLIANCE, 67 => Graveyard::SIDE_HORDE, default => Graveyard::SIDE_ALLIANCE | Graveyard::SIDE_HORDE };
-                if (array_sum(array_keys($lost)) == $open)
-                    $line = '[span class=q0]'.$line.' ('.Lang::zone('graveyardUnused').')[/span]';
-            }
-
-            $out[] = $line;
+            if ($checkUse && ($lost = Graveyard::supersededBy($row['id'], $areaId)) && array_sum(array_keys($lost)) == $open)
+                $row['unused'] = Lang::zone('graveyardUnused');
         }
 
-        return $out;
+        return $rows;
     }
 
     /** the seasonal chances of `game_weather`, summarised as the wettest season */
