@@ -2044,6 +2044,11 @@ var g_skill_categories = {
 };
 
 var g_zones = {
+    // aowow - custom: the continents' pseudo zones, for what lies on them outside every zone
+    "-6": "卡利姆多",
+    "-5": "诺森德",
+    "-3": "东部王国",
+    "-2": "外域",
        1: '丹莫罗',
        3: '荒芜之地',
        4: '诅咒之地',

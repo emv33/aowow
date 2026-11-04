@@ -24,27 +24,8 @@ if ([$mapper, $mapperData, $som, $foundIn] = $this->map):
         echo '            <div id="mapper-zone-generic"></div>'.PHP_EOL;
     endif;
 
-    if (isset($mapper['zone']) && $mapper['zone'] < 0):
-?>
-
-            <div id="mapper" style="width: 778px; margin: 0 auto">
-
-<?php
-        if ($som):
-?>
-
-                <div id="som-generic"></div>
-
-<?php
-        endif;
-?>
-
-                <div id="mapper-generic"></div>
-                <div class="pad clear"></div>
-            </div>
-
-<?php
-    elseif ($mapper):
+    // aowow - custom: a continent (zone < 0) is left aligned like any other zone (upstream: in a centered 778px wrapper)
+    if ($mapper):
         if ($som):
 ?>
 

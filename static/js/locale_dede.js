@@ -1997,6 +1997,11 @@ var g_skill_categories = {
 };
 
 var g_zones = {
+    // aowow - custom: the continents' pseudo zones, for what lies on them outside every zone
+    "-6": 'Kalimdor',
+    "-5": 'Nordend',
+    "-3": 'Östliche Königreiche',
+    "-2": 'Scherbenwelt',
        1: 'Dun Morogh',
        3: 'Ödland',
        4: 'Verwüstete Lande',

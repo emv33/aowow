@@ -1997,6 +1997,11 @@ var g_skill_categories = {
 };
 
 var g_zones = {
+    // aowow - custom: the continents' pseudo zones, for what lies on them outside every zone
+    "-6": 'Kalimdor',
+    "-5": 'Rasganorte',
+    "-3": 'Reinos del Este',
+    "-2": 'Terrallende',
        1: 'Dun Morogh',
        3: 'Tierras Inhóspitas',
        4: 'Las Tierras Devastadas',

@@ -78,6 +78,37 @@ CLISetup::registerSetup("sql", new class extends SetupScript
         foreach ($baseData as $bd)
             DB::Aowow()->qry('INSERT INTO ::zones VALUES %l', $bd);
 
+        // aowow - custom start: a pseudo zone per continent, under the id its map file and the mapper already use, holding
+        // whatever lies on the continent outside every zone (see WorldPosition::toZonePos())
+        $continentCat = [0 => 0, 1 => 1, 530 => 8, 571 => 10];
+        foreach (DB::Aowow()->selectAssoc('SELECT `id` AS ARRAY_KEY, `expansion`, `name_loc0`, `name_loc2`, `name_loc3`, `name_loc4`, `name_loc6`, `name_loc8` FROM dbc_map WHERE `id` IN %in', array_keys(WorldPosition::CONTINENT_MAPS)) ?: [] as $mapId => $m)
+            DB::Aowow()->qry('INSERT INTO ::zones %v', array(
+                'id'            => WorldPosition::CONTINENT_MAPS[$mapId],
+                'mapId'         => $mapId,
+                'mapIdBak'      => $mapId,
+                'parentArea'    => 0,
+                'category'      => $continentCat[$mapId],
+                'flags'         => 0,
+                'cuFlags'       => 0,
+                'faction'       => 2,                       // contested; not shown for a continent
+                'expansion'     => $m['expansion'],
+                'type'          => 0,
+                'maxPlayer'     => 0,
+                'itemLevelReqN' => 0,
+                'itemLevelReqH' => 0,
+                'levelReq'      => 0,
+                'levelReqLFG'   => 0,
+                'levelHeroic'   => 0,
+                'levelMin'      => 0,
+                'levelMax'      => 0,
+                'attunementsN'  => '',
+                'attunementsH'  => '',
+                'parentMapId'   => 0,
+                'parentX'       => 0,
+                'parentY'       => 0
+            ) + array_intersect_key($m, array_flip(['name_loc0', 'name_loc2', 'name_loc3', 'name_loc4', 'name_loc6', 'name_loc8'])));
+        // aowow - custom end
+
         // attach DeathknightStart dungeon to Eastern Kingdoms
         DB::Aowow()->query('UPDATE ::zones SET `category` = 0 WHERE `parentArea` = 4298 OR `id` = 4298');
 

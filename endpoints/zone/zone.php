@@ -53,6 +53,7 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
 
         $_parentArea = $this->subject->getField('parentArea');
         $_type       = $this->subject->getField('type');
+        $_continent  = in_array($this->typeId, WorldPosition::CONTINENT_MAPS);  // aowow - custom: pseudo zone of what lies on a continent outside every zone
 
 
         /*************/
@@ -137,10 +138,13 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
             default       => '%s'
         };
 
-        $infobox[] = Lang::zone('territory').sprintf($wrap, Lang::zone('territories', $faction));
+        if (!$_continent)                                   // aowow - custom: a continent has neither
+        {
+            $infobox[] = Lang::zone('territory').sprintf($wrap, Lang::zone('territories', $faction));
 
-        // Instance Type
-        $infobox[] = Lang::zone('instanceType').'[span class=icon-instance'.$this->subject->getField('type').']'.Lang::zone('instanceTypes', $this->subject->getField('type')).'[/span]';
+            // Instance Type
+            $infobox[] = Lang::zone('instanceType').'[span class=icon-instance'.$this->subject->getField('type').']'.Lang::zone('instanceTypes', $this->subject->getField('type')).'[/span]';
+        }
 
         // Heroic mode
         if ($_ = $this->subject->getField('levelHeroic'))
@@ -321,6 +325,8 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
             $this->extraText = new Markup(Lang::zone('zonePartOf', [$_parentArea]), ['dbpage' => true, 'allow' => Markup::CLASS_ADMIN], 'text-generic');
             $this->extendGlobalIds(Type::ZONE, $_parentArea);
         }
+        else if ($_continent)                               // aowow - custom
+            $this->extraText = new Markup(Lang::zone('continentOutside'), ['dbpage' => true, 'allow' => Markup::CLASS_ADMIN], 'text-generic');
 
         // we cannot fetch spawns via lists. lists are grouped by entry
         $oSpawns = DB::Aowow()->selectAssoc('SELECT * FROM ::spawns WHERE `areaId` = %i AND `type` = %i AND `posX` > 0 AND `posY` > 0', $this->typeId, Type::OBJECT);
@@ -869,8 +875,9 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
         // tab: achievements
 
         // tab: criteria-of
-        $crtOf = new AchievementList(AchievementList::getLocationConditions($this->typeId, $this->subject->getField('category') != MAP_TYPE_ZONE ? $this->subject->getField('mapId') : 0));
-        if (!$crtOf->error)
+        // aowow - custom: no conditions (a continent's pseudo zone) would list every achievement
+        $crtOfCnd = AchievementList::getLocationConditions($this->typeId, $this->subject->getField('category') != MAP_TYPE_ZONE ? $this->subject->getField('mapId') : 0);
+        if ($crtOfCnd && !($crtOf = new AchievementList($crtOfCnd))->error)
         {
             $tabData = array(
                 'data' => $crtOf->getListviewData(),

@@ -2114,6 +2114,7 @@ $lang = array(
         'territory'     => "Territorium: ",
         'instanceType'  => "Instanzart: ",
         'bgBracket'     => "Level bracket",
+        'continentOutside' => "Only what lies on this continent outside every zone is listed here.",  // aowow - custom: pseudo zone of a continent
         'graveyardUnnamed' => 'Graveyard #%1$d',
         'graveyardUnused' => 'not used',
         'weather'       => "Weather",

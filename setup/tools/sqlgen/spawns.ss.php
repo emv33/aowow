@@ -423,7 +423,8 @@ CLISetup::registerSetup("sql", new class extends SetupScript
             return [$point['areaId'], $point['posX'], $point['posY'], $point['floor']];
         }
 
-        // cannot be placed on a map, try to reuse TC assigned areaId (note: area has been invalid in the past)
+        // cannot be placed on a map (a point on a continent outside every zone already came back on the continent's
+        // pseudo zone above - aowow - custom), try to reuse TC assigned areaId (note: area has been invalid in the past)
         if ($area && isset($this->areaParents[$area]))
             return [$this->areaParents[$area], 0, 0, 0];
 

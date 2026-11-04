@@ -44,8 +44,9 @@ abstract class WorldPosition
     // Map.dbc/id => the id the map page knows the continent's map by (see ?maps)
     public const array CONTINENT_MAPS = [0 => -3, 1 => -6, 530 => -2, 571 => -5];
 
-    private static array $zoneMapCache  = [];
-    private static array $alphaMapCache = [];
+    private static array $zoneMapCache   = [];
+    private static array $continentCache = [];         // aowow - custom
+    private static array $alphaMapCache  = [];
 
     /**
      * test zone positions for placability and select most centered position
@@ -163,6 +164,7 @@ abstract class WorldPosition
      * * float dist distance to zone center: i.e. pick priority
      *
      * Reminder that world positions are rotated 90° counterclockwise in relation to zone positions
+     * A point on a continent no zone contains comes back as a single set on the continent's pseudo zone (see CONTINENT_MAPS)
      */
     public static function toZonePos(int $mapId, float $mapX, float $mapY, int $preferedAreaId = 0, int $preferedFloor = -1) : array
     {
@@ -208,6 +210,20 @@ abstract class WorldPosition
                 break;
         }
 
+        // aowow - custom start: a point no zone contains (open sea, the gaps between zones) is still on its continent's map
+        if (!$points && ($cp = self::toContinentPos($mapId, $mapX, $mapY)))
+            return [array(
+                'id'         => 0,
+                'areaId'     => $cp[0],
+                'floor'      => 0,
+                'multifloor' => false,
+                'srcPrio'    => false,
+                'posX'       => $cp[1],
+                'posY'       => $cp[2],
+                'dist'       => sqrt(pow(abs($cp[1] - 50), 2) + pow(abs($cp[2] - 50), 2))
+            )];
+        // aowow - custom end
+
         // sort by srcPrio DESC (primary), dist ASC (secondary)
         usort($points, fn($a, $b) => ($b['srcPrio'] <=> $a['srcPrio']) ?: ($a['dist'] <=> $b['dist']));
 
@@ -225,7 +241,7 @@ abstract class WorldPosition
             return null;
 
         // the continent's own entry of WorldMapArea (it has no area)
-        $b = DB::Aowow()->selectRow('SELECT `left`, `right`, `top`, `bottom` FROM ::worldmaparea WHERE `mapId` = %i AND `areaId` = 0 ORDER BY `id` ASC LIMIT 1', $mapId);
+        $b = self::$continentCache[$mapId] ??= DB::Aowow()->selectRow('SELECT `left`, `right`, `top`, `bottom` FROM ::worldmaparea WHERE `mapId` = %i AND `areaId` = 0 ORDER BY `id` ASC LIMIT 1', $mapId) ?: false;
         if (!$b || $b['left'] == $b['right'] || $b['top'] == $b['bottom'])
             return null;
 

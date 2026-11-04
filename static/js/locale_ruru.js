@@ -1997,6 +1997,11 @@ var g_skill_categories = {
 };
 
 var g_zones = {
+    // aowow - custom: the continents' pseudo zones, for what lies on them outside every zone
+    "-6": 'Калимдор',
+    "-5": 'Нордскол',
+    "-3": 'Восточные королевства',
+    "-2": 'Запределье',
        1: 'Дун Морог',
        3: 'Бесплодные земли',
        4: 'Выжженные земли',
