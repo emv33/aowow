@@ -113,21 +113,27 @@ class GameObjectList extends DBTypeList
         if ($this->curTpl['flags'] & GO_FLAG_LOCKED)
             $x .= '<tr><td>'.Lang::item('locked').'</td></tr>';
 
-        foreach (Lang::getLocks($this->curTpl['lockId'] ?? 0) as [$str, $type, $miscInfo])
+        foreach (Lang::getLocks($this->curTpl['lockId'] ?? 0) as [$type, , $str, $miscInfo])
         {
             $x .= '<tr><td>'.match($type)
             {
-                Type::ITEM  => Lang::item('lockedByItem',  [$str]),
-                TYPE::SPELL => Lang::item('lockedBySpell', [$str]),
-                Type::SKILL => Lang::item('reqSkillValue', [$str, $miscInfo])
+                LOCK_TYPE_ITEM  => Lang::item('lockedByItem',  [$str]),
+                LOCK_TYPE_SPELL => Lang::item('lockedBySpell', [$str]),
+                LOCK_TYPE_SKILL => Lang::item($miscInfo ? 'reqSkillValue' : 'reqSkill', [$str, $miscInfo])
             }.'</td></tr>';
 
             if ($type == Type::SPELL && $miscInfo && !($reagents = new ItemList(array(['id', array_keys($miscInfo)])))->error)
             {
                 $reqReag  = [];
                 foreach ($miscInfo as [$itemId, $qty])
-                    if ($reagents->getEntry($itemId))
-                        $reqReag[] = Lang::main('parensFmt', ['<a href="?item='.$itemId.'">'.$reagents->getField('name', true).'</a>', $qty]);
+                {
+                    if ($item = $reagents->getEntry($itemId))
+                        $_ = '<a href="?item='.$itemId.'">'.new LocString($item).'</a>';
+                    else
+                        $_ = 'Item #'.$itemId;
+
+                    $reqReag[] = ($qty > 1) ? Lang::main('parensFmt', [$_, $qty]) : $_;
+                }
 
                 $x .= '<tr class="q1 whtt-reagents"><td><br />'.Lang::item('reqSkill', [Lang::concat($reqReag, Lang::CONCAT_NONE)]).'</td></tr>';
             }
@@ -135,7 +141,13 @@ class GameObjectList extends DBTypeList
 
         # Quest Tracking Info #
 
-        // cannot display
+        // unsure, if should be displayed
+        // QUEST_TOOLTIP_REQUIREMENTS
+        // QuestTitle cssClass: 'q'
+        // " - ItemName" from gameobject_questitem
+        // QUEST_OBJECTS_FOUND_NOPROGRESS
+        // QUEST_MONSTERS_KILLED_NOPROGRESS
+        // QUEST_ITEMS_NEEDED_NOPROGRESS
 
         $x .= '</table>';
 

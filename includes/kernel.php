@@ -7,7 +7,7 @@ mb_substitute_character('none');                            // drop invalid char
 error_reporting(E_ALL);
 mysqli_report(MYSQLI_REPORT_ERROR);
 
-define('AOWOW_REVISION', 53);
+define('AOWOW_REVISION', 54);
 define('OS_WIN', substr(PHP_OS, 0, 3) == 'WIN');            // OS_WIN as per compile info of php
 define('CLI', PHP_SAPI === 'cli');
 define('CLI_HAS_E', CLI &&                                  // WIN10 and later usually support ANSI escape sequences
@@ -230,8 +230,8 @@ set_exception_handler(function (\Throwable $e) : void
 register_shutdown_function(function() : void
 {
     // defer undisplayed error/exception notes
-    if (!CLI && ($n = Util::getNotes()))
-        $_SESSION['notes'][] = [$n[0], $n[1], 'Deferred issues from previous request'];
+    if (!CLI && ([$msg, $severity] = Util::getNotes()))
+        $_SESSION['notes'][] = [$msg, $severity, 'Deferred issues from previous request'];
 
     if ($e = error_get_last())
     {

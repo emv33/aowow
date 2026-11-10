@@ -306,7 +306,7 @@ class Lang
      * @param bool      $interactive    whether to generate interactive links for HTML/markup output
      * @param int       $fmt            set output format
      *
-     * @return array{string, int, array|int}[]  [label, type, miscInfo]
+     * @return array{int, int, string, array|int}[]  [lockType, lockProperty, label, miscInfo]
      *  miscInfo per type:
      *  * `Type::SKILL` - required skill value
      *  * `Type::SPELL` - required reagents as `[itemId, qty]` pairs
@@ -338,7 +338,7 @@ class Lang
                         $ids[Type::ITEM][] = $prop;
                     }
 
-                    $locks[] = [$name, Type::ITEM, 0];
+                    $locks[] = [LOCK_TYPE_ITEM, $prop, $name, 0];
                     break;
                 case LOCK_TYPE_SKILL:
                     if (!($name = self::spell('lockType', $prop)))
@@ -408,7 +408,7 @@ class Lang
                         $name = implode(self::main('comma'), $links);
                     }
 
-                    $locks[] = [$name, Type::SKILL, $lock['reqSkill'.$i]];
+                    $locks[] = [LOCK_TYPE_SKILL, $prop, $name, $lock['reqSkill'.$i]];
                     break;
                 case LOCK_TYPE_SPELL:
                     if (($spell = new SpellList(array(['id', $prop])))->error)
@@ -422,7 +422,7 @@ class Lang
                         $ids[Type::SPELL][] = $prop;
                     }
 
-                    $locks[] = [$name, Type::SPELL, $spell->getReagentsForCurrent()];
+                    $locks[] = [LOCK_TYPE_SPELL, $prop, $name, $spell->getReagentsForCurrent()];
                     break;
             }
 
@@ -472,17 +472,18 @@ class Lang
 
         if (!$tmp && $class == ITEM_CLASS_ARMOR)
             return self::spell('cat', -11, 1, 8);
-        else if (!$tmp && $class == ITEM_CLASS_WEAPON)
+
+        if (!$tmp && $class == ITEM_CLASS_WEAPON)
             return self::spell('cat', -11, 1, 6);
-        else
-            return implode(self::main('comma'), $tmp);
+
+        return self::concat($tmp, self::CONCAT_NONE);
     }
 
     public static function getStances(int $stanceMask) : string
     {
         $stanceMask &= 0xFF37F6FF;                          // clamp to available stances/forms..
 
-        return implode(self::main('comma'), array_intersect_key(self::game('st'), Util::mask2bits($stanceMask, 1)));
+        return self::concat(array_intersect_key(self::game('st'), Util::mask2bits($stanceMask, 1)), self::CONCAT_NONE);
     }
 
     public static function getMagicSchools(int $schoolMask, bool $short = false) : string
@@ -495,7 +496,7 @@ class Lang
         if ($short && $schoolMask == SPELL_MAGIC_SCHOOLS)
             return self::main('parensFmt', [self::main('all'), self::game('dt', 1)]);;
 
-        return implode(self::main('comma'), array_intersect_key(self::game('sc'), Util::mask2bits($schoolMask)));
+        return self::concat(array_intersect_key(self::game('sc'), Util::mask2bits($schoolMask)), self::CONCAT_NONE);
     }
 
     public static function getClassString(int $classMask, array &$ids = [], int $fmt = self::FMT_HTML) : string
@@ -519,7 +520,7 @@ class Lang
 
         $ids = array_keys($tmp);
 
-        return implode(self::main('comma'), $tmp);
+        return self::concat($tmp, self::CONCAT_NONE);
     }
 
     public static function getRaceString(int $raceMask, array &$ids = [], int $fmt = self::FMT_HTML) : string
@@ -549,26 +550,26 @@ class Lang
 
         $ids = array_keys($tmp);
 
-        return implode(self::main('comma'), $tmp);
+        return self::concat($tmp, self::CONCAT_NONE);
     }
 
     public static function formatSkillBreakpoints(array $bp, int $fmt = self::FMT_MARKUP) : string
     {
-        $tmp = self::game('difficulty');
+        $buff = [];
 
         $base = match ($fmt)
         {
-            self::FMT_HTML   => '<span class="r%1$d">%2$s</span> ',
-            self::FMT_MARKUP => '[color=r%1$d]%2$s[/color] ',
-            self::FMT_RAW    => '%2$s ',
-            default          => '%2$s '
+            self::FMT_HTML   => '<span class="%1$s">%2$s</span>',
+            self::FMT_MARKUP => '[color=%1$s]%2$s[/color]',
+            self::FMT_RAW    => '%2$s',
+            default          => '%2$s'
         };
 
-        for ($i = 0; $i < 4; $i++)
-            if (!empty($bp[$i]))
-                $tmp .= sprintf($base, $i + 1, $bp[$i]);
+        for ($i = 0; $i < 5; $i++)
+            if (isset($bp[$i]))
+                $buff[] = sprintf($base, $i ? 'r'.$i : 'q10', $bp[$i]);
 
-        return trim($tmp);
+        return self::game('difficulty').implode('[small] &nbsp;[/small]', $buff);
     }
 
     public static function makeLink(int $type, int $typeId, string $name, int $fmt = self::FMT_HTML, string $cssClass = '') : string

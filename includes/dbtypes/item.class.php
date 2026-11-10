@@ -515,9 +515,10 @@ class ItemList extends DBTypeList
      *  * s: bool (extraScoket (gloves, belt, bracers))
      *  * g: int[] itemIds - gems
      *  * r: int >0: randomPropId; <0: randomSuffixId
+     *  * x: array: if $subOf, scaling info passed back up to parent tooltip
      * @return ?string html rendered tooltip or null on error
      */
-    public function renderTooltip(bool $interactive = false, int $subOf = 0, ?array $enhance = []) : ?string
+    public function renderTooltip(bool $interactive = false, int $subOf = 0, ?array &$enhance = []) : ?string
     {
         if ($this->error)
             return null;
@@ -673,12 +674,12 @@ class ItemList extends DBTypeList
         {
             $x .= '<span class="q0">'.Lang::item($encrypted ? 'encrypted' : 'locked');
 
-            foreach ($locks as [$str, $type, $miscInfo])
+            foreach ($locks as [$type, , $str, $miscInfo])
                 $x .= '<br />'.match($type)
                 {
-                    Type::ITEM  => Lang::item('lockedByItem',  [$str]),
-                    TYPE::SPELL => Lang::item('lockedBySpell', [$str]),
-                    Type::SKILL => Lang::item('reqSkillValue', [$str, $miscInfo ?: ($_itemLevel * 5)])
+                    LOCK_TYPE_ITEM  => Lang::item('lockedByItem',  [$str]),
+                    LOCK_TYPE_SPELL => Lang::item('lockedBySpell', [$str]),
+                    LOCK_TYPE_SKILL => Lang::item('reqSkillValue', [$str, $miscInfo ?: ($_itemLevel * 5)])
                 };
 
             $x .= '</span><br />';
@@ -967,7 +968,7 @@ class ItemList extends DBTypeList
         # Required Holiday #
 
         if ($eId = $this->curTpl['eventId'])
-            $x .= Lang::item('reqSkill', [WorldeventList::makeLink($eId, cssClass: 'q2')]).'<br />';
+            $x .= Lang::item('reqSkill', [WorldeventList::makeLink($eId, cssClass: 'q1')]).'<br />';
 
 
         #########################
@@ -1192,23 +1193,25 @@ class ItemList extends DBTypeList
                 if (!$createSpell || ($craftSpell = new SpellList(array(['id', $createSpell['id']])))->error)
                     continue;
 
+                $craftItemEnh = [];
                 if (!($craftItem  = new ItemList(array(['id', $craftSpell->curTpl['effect1CreateItemId']])))->error)
-                    if ($itemTT = $craftItem->renderTooltip($interactive, $this->id))
+                    if ($itemTT = $craftItem->renderTooltip($interactive, $this->id, $craftItemEnh))
                         $x .= '<div><br />'.$itemTT.'</div>';
 
                 # Reagents #
 
-                $reagentItems = [];
-                for ($j = 1; $j <= 8; $j++)
-                    if ($rId = $craftSpell->getField('reagent'.$j))
-                        $reagentItems[$rId] = $craftSpell->getField('reagentCount'.$j);
-
-                if ($reagentItems && !($reagents = new ItemList(array(['id', array_keys($reagentItems)])))->error)
+                if ($reagents = $craftSpell->getReagentsForCurrent())
                 {
-                    $reqReag  = [];
-                    foreach ($reagentItems as $itemId => $qty)
-                        if ($reagents->getEntry($itemId))
-                            $reqReag[] = Lang::main('parensFmt', ['<a href="?item='.$itemId.'">'.$reagents->getField('name', true).'</a>', $qty]);
+                    $reqReag = [];
+                    foreach ($reagents as [$iId, $qty])
+                    {
+                        if ($item = $craftSpell->relItems->getEntry($iId))
+                            $_ = '<a href="?item='.$iId.'">'.new LocString($item).'</a>';
+                        else
+                            $_ = 'Item #'.$iId;
+
+                        $reqReag[] = ($qty > 1) ? Lang::main('parensFmt', [$_, $qty]) : $_;
+                    }
 
                     $x .= '<div class="q1 whtt-reagents"><br />'.Lang::item('reqSkill', [Lang::concat($reqReag, Lang::CONCAT_NONE)]).'</div>';
                 }
@@ -1406,27 +1409,25 @@ class ItemList extends DBTypeList
 
 
         // tooltip scaling
-        if (!isset($xCraft))
-        {
-            $itemId = $subOf ?: $this->id;
-
-            $x .= '<!--?';
+        $scale = array(
             // itemId
-            $x .= $itemId;
+            $this->id,
             // scaleMinLevel
-            $x .= ':1';
+            1,
             // scaleMaxLevel
-            $x .= ':' . ($this->ssd[$itemId]['maxLevel'] ?? ($causesScaling ? MAX_LEVEL : 1));
+            max($craftItemEnh['x'][2] ?? 1, $this->ssd[$this->id]['maxLevel'] ?? ($causesScaling ? MAX_LEVEL : 1)),
             // scaleCurLevel
-            $x .= ':' . ($this->ssd[$itemId]['maxLevel'] ?? ($_reqLvl ?: MAX_LEVEL));
-            // scaleDist
-            if ($this->curTpl['scalingStatDistribution'])
-                $x .= ':' . $this->curTpl['scalingStatDistribution'];
-            // scaleFlags
-            if ($this->curTpl['scalingStatValue'])
-                $x .= ':' . $this->curTpl['scalingStatValue'];
-            $x .= '-->';
-        }
+            min($craftItemEnh['x'][3] ?? MAX_LEVEL, $this->ssd[$this->id]['maxLevel'] ?? ($_reqLvl ?: MAX_LEVEL)),
+            // scaleDist (may be omitted)
+            $craftItemEnh['x'][4] ?? $this->curTpl['scalingStatDistribution'],
+            // scaleFlags (may be omitted)
+            $craftItemEnh['x'][5] ?? $this->curTpl['scalingStatValue']
+        );
+
+        if ($subOf)
+            $enhance['x'] = array_slice($scale, 2, null, true);
+        else
+            $x .= '<!--?'.implode(':', array_filter($scale)).'-->';
 
         return $x;
     }
