@@ -26,6 +26,7 @@ class NpcBaseResponse extends TemplateResponse implements ICache
     public ?array  $quotes      = null;
     public  array  $reputation  = [];
     public  string $subname     = '';
+    public  string $modePills   = '';                   // aowow - custom
 
     private  CreatureList $subject;
     private ?CreatureList $altNPCs    = null;
@@ -52,6 +53,11 @@ class NpcBaseResponse extends TemplateResponse implements ICache
 
         $this->h1      = Util::htmlEscape($this->subject->getField('name', true));
         $this->subname = Util::htmlEscape($this->subject->getField('subname', true));
+
+        // aowow - custom: which difficulties of its instance a member of a difficulty set is used in
+        $_modes = $this->subject->getModes();
+        if ($_modes)
+            $this->modePills = CreatureList::modePills(...$_modes);
 
         $this->gPageInfo += array(
             'type'   => $this->type,
@@ -129,6 +135,9 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         // for event encounters a single npc may be reused over multiple difficulties but have different chests assigned
         if ($d = DB::Aowow()->selectCell('SELECT MAX(`difficulty`) FROM ::loot_link WHERE `npcId` IN %in', array_merge($_altIds, [$this->typeId])))
             $mapType = max($mapType, $d > 2 ? 2 : 1);
+        // aowow - custom: the instance creaturedifficulty found for the set beats the guesses above
+        if ($_modes && $_modes[0] != CreatureList::MODE_KIND_UNKNOWN)
+            $mapType = $_modes[0];
 
 
         /***********/
@@ -167,6 +176,10 @@ class NpcBaseResponse extends TemplateResponse implements ICache
             $str = $this->subject->isBoss() ? '[span class=icon-boss]'.Lang::npc('rank', $_).'[/span]' : Lang::npc('rank', $_);
             $infobox[] = Lang::npc('classification', [$str]);
         }
+
+        // aowow - custom: Mode
+        if ($_modes && ($_ = CreatureList::modeLabels(...$_modes)))
+            $infobox[] = Lang::game('mode').implode(', ', array_column($_, 1));
 
         // Reaction
         $color = fn (int $r) : string => match($r)
@@ -391,7 +404,12 @@ class NpcBaseResponse extends TemplateResponse implements ICache
             $this->extendGlobalData($this->altNPCs->getJSGlobals());
             $buff = Lang::npc('versions').'[ul]';
             foreach ($this->altNPCs->iterate() as $id => $__)
-                $buff .= '[li][npc='.$id.'][/li]';
+            {
+                $buff .= '[li][npc='.$id.']';
+                if (($m = $this->altNPCs->getModes()) && ($m = CreatureList::modeLabels(...$m)))   // aowow - custom
+                    $buff .= ' ('.implode(', ', array_column($m, 1)).')';
+                $buff .= '[/li]';
+            }
             $infobox[] = $buff.'[/ul]';
         }
 

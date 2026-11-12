@@ -14,13 +14,20 @@ class CreatureList extends DBTypeList
     public static string $brickFile = 'npc';
     public static string $dataTable = '::creature';
 
+    // aowow - custom start: ::creature_difficulty.kind - also the map type index of Lang::game('modes')
+    public const int MODE_KIND_UNKNOWN = 0;                 // difficulty 1 could be dungeon heroic or raid 25 normal
+    public const int MODE_KIND_DUNGEON = 1;
+    public const int MODE_KIND_RAID    = 2;
+    // aowow - custom end
+
     protected string $queryBase = 'SELECT ct.*, ct.`id` AS ARRAY_KEY FROM ::creature ct';
     public    array  $queryOpts = array(
-                        'ct'   => [['ft', 'qse', 'dct1', 'dct2', 'dct3'], 's' => ', IFNULL(dct1.`id`, IFNULL(dct2.`id`, IFNULL(dct3.`id`, 0))) AS "parentId", IFNULL(dct1.`name_loc0`, IFNULL(dct2.`name_loc0`, IFNULL(dct3.`name_loc0`, ""))) AS "parent_loc0", IFNULL(dct1.`name_loc2`, IFNULL(dct2.`name_loc2`, IFNULL(dct3.`name_loc2`, ""))) AS "parent_loc2", IFNULL(dct1.`name_loc3`, IFNULL(dct2.`name_loc3`, IFNULL(dct3.`name_loc3`, ""))) AS "parent_loc3", IFNULL(dct1.`name_loc4`, IFNULL(dct2.`name_loc4`, IFNULL(dct3.`name_loc4`, ""))) AS "parent_loc4", IFNULL(dct1.`name_loc6`, IFNULL(dct2.`name_loc6`, IFNULL(dct3.`name_loc6`, ""))) AS "parent_loc6", IFNULL(dct1.name_loc8, IFNULL(dct2.`name_loc8`, IFNULL(dct3.`name_loc8`, ""))) AS "parent_loc8", IF(dct1.`difficultyEntry1` = ct.`id`, 1, IF(dct2.`difficultyEntry2` = ct.`id`, 2, IF(dct3.`difficultyEntry3` = ct.`id`, 3, 0))) AS "difficultyMode"'],
+                        'ct'   => [['ft', 'qse', 'dct1', 'dct2', 'dct3', 'cd'], 's' => ', IFNULL(dct1.`id`, IFNULL(dct2.`id`, IFNULL(dct3.`id`, 0))) AS "parentId", IFNULL(dct1.`name_loc0`, IFNULL(dct2.`name_loc0`, IFNULL(dct3.`name_loc0`, ""))) AS "parent_loc0", IFNULL(dct1.`name_loc2`, IFNULL(dct2.`name_loc2`, IFNULL(dct3.`name_loc2`, ""))) AS "parent_loc2", IFNULL(dct1.`name_loc3`, IFNULL(dct2.`name_loc3`, IFNULL(dct3.`name_loc3`, ""))) AS "parent_loc3", IFNULL(dct1.`name_loc4`, IFNULL(dct2.`name_loc4`, IFNULL(dct3.`name_loc4`, ""))) AS "parent_loc4", IFNULL(dct1.`name_loc6`, IFNULL(dct2.`name_loc6`, IFNULL(dct3.`name_loc6`, ""))) AS "parent_loc6", IFNULL(dct1.name_loc8, IFNULL(dct2.`name_loc8`, IFNULL(dct3.`name_loc8`, ""))) AS "parent_loc8", IF(dct1.`difficultyEntry1` = ct.`id`, 1, IF(dct2.`difficultyEntry2` = ct.`id`, 2, IF(dct3.`difficultyEntry3` = ct.`id`, 3, 0))) AS "difficultyMode"'],
                         'nml'  => ['j' => ['::creature_search nml ON nml.`id` = ct.`id` AND nml.`locale` = DB_LOC_I']],
                         'dct1' => ['j' => ['::creature dct1 ON ct.`cuFlags` & 0x02 AND dct1.`difficultyEntry1` = ct.`id`', true]],
                         'dct2' => ['j' => ['::creature dct2 ON ct.`cuFlags` & 0x02 AND dct2.`difficultyEntry2` = ct.`id`', true]],
                         'dct3' => ['j' => ['::creature dct3 ON ct.`cuFlags` & 0x02 AND dct3.`difficultyEntry3` = ct.`id`', true]],
+                        'cd'   => ['j' => ['::creature_difficulty cd ON cd.`id` = ct.`id`', true], 's' => ', cd.`kind` AS "modeKind", cd.`modeMask`'],   // aowow - custom
                         'ft'   => ['j' => '::factiontemplate ft ON ft.`id` = ct.`faction`', 's' => ', ft.`factionId`, IFNULL(ft.`A`, 0) AS "A", IFNULL(ft.`H`, 0) AS "H", ft.`flags` AS "ftFlags"'],
                         'qse'  => ['j' => ['::quests_startend qse ON qse.`type` = 1 AND qse.`typeId` = ct.id', true], 's' => ', IF(MIN(qse.`method`) = 1 OR MAX(qse.`method`) = 3, 1, 0) AS "startsQuests", IF(MIN(qse.`method`) = 2 OR MAX(qse.`method`) = 3, 1, 0) AS "endsQuests"', 'g' => 'ct.`id`'],
                         'qt'   => ['j' => '::quests qt ON qse.`questId` = qt.`id`'],
@@ -319,6 +326,9 @@ class CreatureList extends DBTypeList
                 if ($this->getField('startsQuests'))
                     $data[$this->id]['hasQuests'] = 1;
 
+                if ($_ = $this->getModes())          // aowow - custom
+                    $data[$this->id]['modes'] = $_;
+
                 if ($_ = $this->getField('subname', true))
                     $data[$this->id]['tag'] = $_;
 
@@ -338,6 +348,49 @@ class CreatureList extends DBTypeList
         ksort($data);
         return $data;
     }
+
+    // aowow - custom start: difficulty modes of the members of a difficulty set
+    /** @return array|null [kind, modeMask] or null if the npc isn't part of a difficulty set */
+    public function getModes() : ?array
+    {
+        if (($this->curTpl['modeKind'] ?? null) === null)
+            return null;
+
+        return [(int)$this->curTpl['modeKind'], (int)$this->curTpl['modeMask']];
+    }
+
+    /** @return array [difficulty => [short, long, cssClass]] */
+    public static function modeLabels(int $kind, int $modeMask) : array
+    {
+        $result = [];
+        for ($i = 0; $i < 4; $i++)
+        {
+            if (!($modeMask & (1 << $i)) || !($short = Lang::exist('npcExtra', 'modePills', $kind, $i)))
+                continue;
+
+            $class = match (true)
+            {
+                $kind == self::MODE_KIND_UNKNOWN && $i => 'u',
+                $kind == self::MODE_KIND_DUNGEON && $i,
+                $kind == self::MODE_KIND_RAID && $i > 1 => 'h',
+                default                                 => 'n'
+            };
+
+            $result[$i] = [$short, Lang::game('modes', $kind, $i), $class];
+        }
+
+        return $result;
+    }
+
+    public static function modePills(int $kind, int $modeMask) : string
+    {
+        $buff = '';
+        foreach (self::modeLabels($kind, $modeMask) as [$short, $long, $class])
+            $buff .= ' <span class="mode-pill mode-pill-'.$class.'" title="'.Util::htmlEscape($long).'">'.Util::htmlEscape($short).'</span>';
+
+        return $buff;
+    }
+    // aowow - custom end
 
     public function getJSGlobals(int $addMask = 0) : array
     {
@@ -383,7 +436,8 @@ class CreatureListFilter extends Filter
        106 => [0, 1, 2, 3, 4, 5],                              // visibilityrange
        107 => [ChrClass::WARRIOR->value, ChrClass::PALADIN->value, ChrClass::ROGUE->value, ChrClass::MAGE->value], // npcclass: CLASSMASK_ALL_CREATURES
        113 => [SPELL_SCHOOL_NORMAL, SPELL_SCHOOL_HOLY, SPELL_SCHOOL_FIRE, SPELL_SCHOOL_NATURE, SPELL_SCHOOL_FROST, SPELL_SCHOOL_SHADOW, SPELL_SCHOOL_ARCANE], // meleeschool
-       125 => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]                  // npcmovement: keys of MOVEMENT_FILTER
+       125 => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],                 // npcmovement: keys of MOVEMENT_FILTER
+       143 => [1, 2, 3, 4, 5, 6]                               // npcmode: keys of MODE_FILTER
         // aowow - custom end
     );
 
@@ -525,12 +579,15 @@ class CreatureListFilter extends Filter
         139 => [parent::CR_CALLBACK, 'cbWorldIds',       'leader',                           null      ], // formationleader [yn]
         140 => [parent::CR_CALLBACK, 'cbWorldIds',       'mounted',                          null      ], // ridesmount [yn]
         141 => [parent::CR_CALLBACK, 'cbWorldIds',       'mount',                            null      ], // usedasmount [yn]
-        142 => [parent::CR_CALLBACK, 'cbWorldIds',       'questitems',                       null      ]  // hasquestitems [yn]
+        142 => [parent::CR_CALLBACK, 'cbWorldIds',       'questitems',                       null      ], // hasquestitems [yn]
+        143 => [parent::CR_CALLBACK, 'cbMode',            null,                              null      ], // npcmode [enum]
+        144 => [parent::CR_CALLBACK, 'cbDifficultySlot',  false,                             null      ], // hasdifficultyversions [yn]
+        145 => [parent::CR_FLAG,     'cuFlags',           NPC_CU_DIFFICULTY_DUMMY                      ]  // isdifficultyversion [yn] [staff]
         // aowow - custom end
     );
 
     protected static array $inputFields = array(
-        'cr'    => [parent::V_LIST,     [[1, 3],[5, 13], 15, 16, [18, 29], [31, 104], [106, 142]],                   true ], // criteria ids
+        'cr'    => [parent::V_LIST,     [[1, 3],[5, 13], 15, 16, [18, 29], [31, 104], [106, 145]],                   true ], // criteria ids
         'crs'   => [parent::V_LIST,     [parent::ENUM_NONE, parent::ENUM_ANY, [0, 9999]],                         true ], // criteria operators
         'crv'   => [parent::V_REGEX,    parent::PATTERN_CRV,                                                      true ], // criteria values - only printable chars, no delimiter
         'na'    => [parent::V_NAME,     false,                                                                    false], // name / subname - only printable chars, no delimiter
@@ -763,6 +820,45 @@ class CreatureListFilter extends Filter
             return null;
 
         return $ids ? ['id', $ids] : [0];
+    }
+
+    // npcmode option => [::creature_difficulty.kind, difficulty]
+    private const array MODE_FILTER = array(
+        1 => [CreatureList::MODE_KIND_DUNGEON, 0],          // normal
+        2 => [CreatureList::MODE_KIND_DUNGEON, 1],          // heroic
+        3 => [CreatureList::MODE_KIND_RAID,    0],          // normal 10
+        4 => [CreatureList::MODE_KIND_RAID,    1],          // normal 25
+        5 => [CreatureList::MODE_KIND_RAID,    2],          // heroic 10
+        6 => [CreatureList::MODE_KIND_RAID,    3]           // heroic 25
+    );
+
+    // used in that difficulty; a set of unknown instance type matches both readings of its difficulty
+    protected function cbMode(int $cr, int $crs, string $crv) : ?array
+    {
+        if ($crs == parent::ENUM_ANY)
+            return ['cd.id', null, '!'];
+        if ($crs == parent::ENUM_NONE)
+            return ['cd.id', null];
+
+        if (!isset(self::MODE_FILTER[$crs]))
+            return null;
+
+        [$kind, $diff] = self::MODE_FILTER[$crs];
+        $bit = 1 << $diff;
+
+        if ($diff > 1)
+            return [DB::AND, ['cd.kind', $kind], [['cd.modeMask', $bit, '&'], $bit]];
+
+        return [DB::AND, ['cd.kind', [$kind, CreatureList::MODE_KIND_UNKNOWN]], [['cd.modeMask', $bit, '&'], $bit]];
+    }
+
+    // the parent of a difficulty set: the entry holding the difficulty_entry_* columns
+    protected function cbDifficultySlot(int $cr, int $crs, string $crv) : ?array
+    {
+        if (!$this->int2Bool($crs))
+            return null;
+
+        return $crs ? ['cd.slot', 0] : [DB::OR, ['cd.id', null], ['cd.slot', 0, '!']];
     }
 
     // npcmovement option => [creature_template_movement column, value]; only values that depart from the default

@@ -2816,6 +2816,8 @@ var LANG = {
     lvitem_heroic:     "H",
     lvitem_raid10:     "10",
     lvitem_raid25:     "25",
+    lvnpc_modes:       [["Normal / Normal 10", "Heroisch / Normal 25"], ["Normal", "Heroisch"], ["Normal 10", "Normal 25", "Heroisch 10", "Heroisch 25"]],  // aowow - custom
+    lvnpc_modepills:   [["N / 10N", "H / 25N"], ["N", "H"], ["10N", "25N", "10H", "25H"]],
     lvitem_heroicitem: "Heroisch",
     lvitem_vendorin:   "Händler in ",
     lvitem_reqlevel:   "Ben. ",
@@ -3672,6 +3674,7 @@ var LANG = {
         npcclass:       [   [1, "Krieger"], [2, "Paladin"], [4, "Schurke"], [8, "Magier"]  ],
         mechanic:       [   [1, "Bezaubert"], [2, "Desorientiert"], [3, "Entwaffnet"], [4, "Abgelenkt"], [5, "Flüchtend"], [6, "Ergriffen"], [7, "Unbeweglich"], [8, "Befriedet"], [9, "Schweigend"], [10, "Schlafend"], [11, "Verlangsamt"], [12, "Betäubt"], [13, "Eingefroren"], [14, "Handlungsunfähig"], [15, "Blutend"], [16, "Heilung"], [17, "Verwandelt"], [18, "Verbannt"], [19, "Abgeschirmt"], [20, "Gefesselt"], [21, "Reitend"], [22, "Verführt"], [23, "Vertrieben"], [24, "Entsetzt"], [25, "Unverwundbar"], [26, "Unterbrochen"], [27, "Benommen"], [28, "Entdeckung"], [29, "Unverwundbar"], [30, "Kopfnuss"], [31, "Wütend"]  ],
         npcmovement:    [   [1, "Does not move on the ground"], [2, "Hovers"], [3, "Cannot swim"], [4, "Ignores gravity"], [5, "Flies"], [6, "Rooted"], [7, "May walk when chasing"], [8, "Always walks when chasing"], [9, "May run when idle"], [10, "Always runs when idle"]  ],
+        npcmode:        [   [1, "Normal (Dungeon)"], [2, "Heroisch (Dungeon)"], [3, "Normal 10"], [4, "Normal 25"], [5, "Heroisch 10"], [6, "Heroisch 25"]  ],   // aowow - custom
         side:           [   [1, "Ja"],                              [2, "Allianz"],                         [3, "Horde"],                           [4, "Beide"],                           [5, "Nein"]                                     ],
         faction:        [
                             [null, "Classic"],
@@ -4462,6 +4465,9 @@ var LANG = {
         schoolimmune:       "Immune to school",
         meleeschool:        "Melee damage school",
         npcmovement:        "Movement",
+        npcmode:            "Verwendet im Schwierigkeitsgrad",   // aowow - custom
+        hasdifficultyversions: "Hat Schwierigkeitsgrad-Versionen",
+        isdifficultyversion: "Ist eine Schwierigkeitsgrad-Version",
         equipsitem:         "Equips item #...",
         isvehicle:          "Is a vehicle",
         racialleader:       "Racial leader",

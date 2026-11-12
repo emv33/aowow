@@ -212,6 +212,8 @@ var fi_filters = {
         { id: 1,   name: 'health',              type: 'num' },
         { id: 2,   name: 'mana',                type: 'num' },
         { id: 32,  name: 'instanceboss',        type: 'yn' },
+        { id: 143, name: 'npcmode',             type: 'npcmode-any+none' },     // aowow - custom
+        { id: 144, name: 'hasdifficultyversions', type: 'yn' },                 // aowow - custom
         { id: 38,  name: 'relatedevent',        type: 'event-any+none' },
         { id: 7,   name: 'startsquest',         type: 'side' },
         { id: 8,   name: 'endsquest',           type: 'side' },
@@ -354,7 +356,8 @@ var fi_filters = {
         { id: 999, name: 'sepstaffonly',                    staffonly: true },
         { id: 41,  name: 'haslocation',         type: 'yn', staffonly: true },
         { id: 123, name: 'scriptname',          type: 'str', staffonly: true },
-        { id: 124, name: 'stringid',            type: 'str', staffonly: true }
+        { id: 124, name: 'stringid',            type: 'str', staffonly: true },
+        { id: 145, name: 'isdifficultyversion', type: 'yn', staffonly: true }
     ],
 
     objects: [

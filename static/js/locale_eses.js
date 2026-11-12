@@ -2816,6 +2816,8 @@ var LANG = {
     lvitem_heroic:     "H",
     lvitem_raid10:     "10",
     lvitem_raid25:     "25",
+    lvnpc_modes:       [["Normal / Normal 10", "Heroico / Normal 25"], ["Normal", "Heroico"], ["Normal 10", "Normal 25", "Heróico 10", "Heróico 25"]],  // aowow - custom
+    lvnpc_modepills:   [["N / 10N", "H / 25N"], ["N", "H"], ["10N", "25N", "10H", "25H"]],
     lvitem_heroicitem: "Heroico",
     lvitem_vendorin:   "Vendedor en ",
     lvitem_reqlevel:   "Req. ",
@@ -3672,6 +3674,7 @@ var LANG = {
         npcclass:       [   [1, "Guerrero"], [2, "Paladín"], [4, "Pícaro"], [8, "Mago"]  ],
         mechanic:       [   [1, "Embelesado"], [2, "Desorientado"], [3, "Desarmado"], [4, "Distraído"], [5, "Huyendo"], [6, "Agarrado"], [7, "Enraizado"], [8, "Pacificado"], [9, "Silenciado"], [10, "Dormido"], [11, "Frenado"], [12, "Aturdido"], [13, "Congelado"], [14, "Incapacitado"], [15, "Sangrando"], [16, "Sanacíon"], [17, "Polimorfado"], [18, "Desterrado"], [19, "Protegido"], [20, "Aprisionado"], [21, "Montado"], [22, "Seducido"], [23, "Girado"], [24, "Horrorizado"], [25, "Invulnerable"], [26, "Interrumpido"], [27, "Atontado"], [28, "Descubierto"], [29, "Invulnerable"], [30, "Aporreado"], [31, "Iracundo"]  ],
         npcmovement:    [   [1, "Does not move on the ground"], [2, "Hovers"], [3, "Cannot swim"], [4, "Ignores gravity"], [5, "Flies"], [6, "Rooted"], [7, "May walk when chasing"], [8, "Always walks when chasing"], [9, "May run when idle"], [10, "Always runs when idle"]  ],
+        npcmode:        [   [1, "Normal (mazmorra)"], [2, "Heroico (mazmorra)"], [3, "Normal 10"], [4, "Normal 25"], [5, "Heróico 10"], [6, "Heróico 25"]  ],   // aowow - custom
         side:           [   [1, "Sí"],                              [2, "Alianza"],                         [3, "Horda"],                           [4, "Ambos"],                           [5, "No"]                                       ],
         faction:        [
                             [null, "World of Warcraft"],
@@ -4462,6 +4465,9 @@ var LANG = {
         schoolimmune:       "Immune to school",
         meleeschool:        "Melee damage school",
         npcmovement:        "Movement",
+        npcmode:            "Usado en la dificultad",   // aowow - custom
+        hasdifficultyversions: "Tiene versiones de dificultad",
+        isdifficultyversion: "Es una versión de dificultad",
         equipsitem:         "Equips item #...",
         isvehicle:          "Is a vehicle",
         racialleader:       "Racial leader",

@@ -2817,6 +2817,8 @@ var LANG = {
     lvitem_heroic:     "H",
     lvitem_raid10:     "10",
     lvitem_raid25:     "25",
+    lvnpc_modes:       [["Standard / Normal 10", "Héroïque / Normal 25"], ["Normal", "Héroïque"], ["10 Normal", "25 Normal", "10 Héroïque", "25 Héroïque"]],  // aowow - custom
+    lvnpc_modepills:   [["N / 10N", "H / 25N"], ["N", "H"], ["10N", "25N", "10H", "25H"]],
     lvitem_heroicitem: "Héroïque",
     lvitem_vendorin:   "Marchand dans ",
     lvitem_reqlevel:   "Req. ",
@@ -3673,6 +3675,7 @@ var LANG = {
         npcclass:       [   [1, "Guerrier"], [2, "Paladin"], [4, "Voleur"], [8, "Mage"]  ],
         mechanic:       [   [1, "Charmé"], [2, "Désorienté"], [3, "Désarmé"], [4, "Distrait"], [5, "En fuite"], [6, "Maladroit"], [7, "Immobilisé"], [8, "Pacifié"], [9, "Réduit au silence"], [10, "Endormi"], [11, "Pris au piège"], [12, "Étourdi"], [13, "Gelé"], [14, "Stupéfié"], [15, "Sanguinolent"], [16, "Soins"], [17, "Métamorphosé"], [18, "Banni"], [19, "Protégé"], [20, "Entravé"], [21, "Monté"], [22, "Séduit"], [23, "Repoussé"], [24, "Horrifié"], [25, "Invulnérable"], [26, "Interrompu"], [27, "Hébété"], [28, "Découverte"], [29, "Invulnérable"], [30, "Assommé"], [31, "Enragé"]  ],
         npcmovement:    [   [1, "Does not move on the ground"], [2, "Hovers"], [3, "Cannot swim"], [4, "Ignores gravity"], [5, "Flies"], [6, "Rooted"], [7, "May walk when chasing"], [8, "Always walks when chasing"], [9, "May run when idle"], [10, "Always runs when idle"]  ],
+        npcmode:        [   [1, "Normal (donjon)"], [2, "Héroïque (donjon)"], [3, "10 Normal"], [4, "25 Normal"], [5, "10 Héroïque"], [6, "25 Héroïque"]  ],   // aowow - custom
         side:           [   [1, "Oui"],                             [2, "Alliance"],                        [3, "Horde"],                           [4, "Les deux"],                        [5, "Non"]                                      ],
         faction:        [
                             [null, "Classique"],
@@ -4462,6 +4465,9 @@ var LANG = {
         schoolimmune:       "Immune to school",
         meleeschool:        "Melee damage school",
         npcmovement:        "Movement",
+        npcmode:            "Utilisé en difficulté",   // aowow - custom
+        hasdifficultyversions: "A des versions de difficulté",
+        isdifficultyversion: "Est une version de difficulté",
         equipsitem:         "Equips item #...",
         isvehicle:          "Is a vehicle",
         racialleader:       "Racial leader",

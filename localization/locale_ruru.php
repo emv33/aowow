@@ -1595,6 +1595,11 @@ $lang = array(
         'baseMana'      => "Base mana"
     ),
     'npcExtra' => array(
+        'modePills'     => array(                           // short form of game.modes, same indizes
+            ["О / 10О", "Г / 25О"],
+            ["О", "Г"],
+            ["10О", "25О", "10Г", "25Г"]
+        ),
         'equipped'      => "Equipped",
         'followsLeader' => "Follows",
         'phases'        => "Phase mask",

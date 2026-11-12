@@ -1282,6 +1282,29 @@ Variations:
     background: url(../images/icons/boss.gif) 6px center no-repeat;
 }
 
+/* aowow - custom start: difficulty mode of a member of a difficulty set (npc header, npc listview) */
+.mode-pill {
+    display: inline-block;
+    padding: 0 5px;
+    border: 1px solid;
+    border-radius: 7px;
+    font: bold 10px/13px Verdana, sans-serif;
+    white-space: nowrap;
+    vertical-align: 1px;
+    cursor: help;
+}
+h1 .mode-pill {
+    padding: 0 7px;
+    border-radius: 9px;
+    font-size: 12px;
+    line-height: 17px;
+    vertical-align: 3px;
+}
+.mode-pill-n { color: #9fc8ff; border-color: #3d6890; background-color: #15263a; }
+.mode-pill-h { color: #ffb066; border-color: #9a5a24; background-color: #3a2312; }
+.mode-pill-u { color: #c8c8c8; border-color: #666;    background-color: #262626; }
+/* aowow - custom end */
+
 .icon-bubble {
     padding-left: 22px;
     background: url(../images/icons/bubble.gif) left center no-repeat;

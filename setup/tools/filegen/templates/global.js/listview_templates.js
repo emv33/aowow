@@ -1334,6 +1334,18 @@ Listview.templates = {
 
                     $WH.ae(wrapper, a);
 
+                    // aowow - custom start: difficulty modes of a member of a difficulty set
+                    var pills = Listview.templates.npc.getModePills(npc);
+                    for (var i = 0; i < pills.length; ++i) {
+                        var s = $WH.ce('span');
+                        s.className = 'mode-pill mode-pill-' + pills[i][2];
+                        s.title = pills[i][1];
+                        $WH.ae(s, $WH.ct(pills[i][0]));
+                        $WH.ae(wrapper, $WH.ct(' '));
+                        $WH.ae(wrapper, s);
+                    }
+                    // aowow - custom end
+
                     if (npc.tag != null) {
                         var d = $WH.ce('div');
                         d.className = 'small';
@@ -1365,6 +1377,10 @@ Listview.templates = {
                     }
                     if (npc.boss) {
                         buff += ' boss skull';
+                    }
+                    var pills = Listview.templates.npc.getModePills(npc);    // aowow - custom
+                    for (var i = 0; i < pills.length; ++i) {
+                        buff += ' ' + pills[i][0];
                     }
                     return buff;
                 },
@@ -1541,6 +1557,33 @@ Listview.templates = {
 
         getItemLink: function(npc) {
             return '?npc=' + npc.id;
+        },
+
+        // aowow - custom: [short, long, cssClass] per difficulty of npc.modes = [kind, modeMask]; mirrors CreatureList::modeLabels()
+        getModePills: function(npc) {
+            var res = [];
+            if (npc.modes == null || !LANG.lvnpc_modepills) {
+                return res;
+            }
+
+            var kind = npc.modes[0], mask = npc.modes[1];
+            for (var i = 0; i < 4; ++i) {
+                if (!(mask & (1 << i)) || !LANG.lvnpc_modepills[kind] || !LANG.lvnpc_modepills[kind][i]) {
+                    continue;
+                }
+
+                var cls = 'n';
+                if (kind == 0 && i) {
+                    cls = 'u';
+                }
+                else if ((kind == 1 && i) || (kind == 2 && i > 1)) {
+                    cls = 'h';
+                }
+
+                res.push([LANG.lvnpc_modepills[kind][i], LANG.lvnpc_modes[kind][i], cls]);
+            }
+
+            return res;
         }
     },
 
