@@ -224,7 +224,6 @@ var fi_filters = {
         { id: 109, name: 'mechanicimmune',      type: 'mechanic-any+none' },
         { id: 110, name: 'schoolimmune',        type: 'resistance-any+none' },
         { id: 113, name: 'meleeschool',         type: 'resistance' },
-        { id: 125, name: 'npcmovement',         type: 'npcmovement' },
         { id: 137, name: 'equipsitem',          type: 'str-small' },
         { id: 111, name: 'isvehicle',           type: 'yn' },
         { id: 112, name: 'racialleader',        type: 'yn' },
@@ -256,6 +255,18 @@ var fi_filters = {
         { id: 132, name: 'armormod',            type: 'num' },
         { id: 133, name: 'damagemod',           type: 'num' },
         { id: 134, name: 'xpmod',               type: 'num' },
+
+        { id: 9997, name: 'sepmovement' },                                     // aowow - custom start
+        { id: 146, name: 'npcnoground',         type: 'yn' },
+        { id: 147, name: 'npchovers',           type: 'yn' },
+        { id: 148, name: 'npcnoswim',           type: 'yn' },
+        { id: 149, name: 'npcdisablegravity',   type: 'yn' },
+        { id: 150, name: 'npcflies',            type: 'yn' },
+        { id: 151, name: 'npcrooted',           type: 'yn' },
+        { id: 152, name: 'npcchasemaywalk',     type: 'yn' },
+        { id: 153, name: 'npcchasewalks',       type: 'yn' },
+        { id: 154, name: 'npcidlemayrun',       type: 'yn' },
+        { id: 155, name: 'npcidleruns',         type: 'yn' },                 // aowow - custom end
 
         { id: 14,  name: 'seploot' },
         { id: 12,  name: 'averagemoneydropped', type: 'num' },

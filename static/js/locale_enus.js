@@ -3722,7 +3722,6 @@ var LANG = {
         visibilityrange: [  [0, "Default (100 yd)"], [1, "Tiny (25 yd)"], [2, "Small (50 yd)"], [3, "Large (200 yd)"], [4, "Gigantic (400 yd)"], [5, "Maximum (533 yd)"]  ],
         npcclass:       [   [1, "Warrior"], [2, "Paladin"], [4, "Rogue"], [8, "Mage"]  ],
         mechanic:       [   [1, "Charmed"], [2, "Disoriented"], [3, "Disarmed"], [4, "Distracted"], [5, "Fleeing"], [6, "Gripped"], [7, "Rooted"], [8, "Pacified"], [9, "Silenced"], [10, "Asleep"], [11, "Ensnared"], [12, "Stunned"], [13, "Frozen"], [14, "Incapacitated"], [15, "Bleeding"], [16, "Healing"], [17, "Polymorphed"], [18, "Banished"], [19, "Shielded"], [20, "Shackled"], [21, "Mounted"], [22, "Seduced"], [23, "Turned"], [24, "Horrified"], [25, "Invulnerable"], [26, "Interrupted"], [27, "Dazed"], [28, "Discovery"], [29, "Invulnerable"], [30, "Sapped"], [31, "Enraged"]  ],
-        npcmovement:    [   [1, "Does not move on the ground"], [2, "Hovers"], [3, "Cannot swim"], [4, "Ignores gravity"], [5, "Flies"], [6, "Rooted"], [7, "May walk when chasing"], [8, "Always walks when chasing"], [9, "May run when idle"], [10, "Always runs when idle"]  ],
         npcmode:        [   [1, "Normal (dungeon)"], [2, "Heroic (dungeon)"], [3, "Normal 10"], [4, "Normal 25"], [5, "Heroic 10"], [6, "Heroic 25"]  ],   // aowow - custom
         side:           [   [1, "Yes"],                             [2, "Alliance"],                        [3, "Horde"],                           [4, "Both"],                            [5, "No"]                                       ],
         faction:        [
@@ -4508,7 +4507,17 @@ var LANG = {
         mechanicimmune:     "Immune to mechanic",
         schoolimmune:       "Immune to school",
         meleeschool:        "Melee damage school",
-        npcmovement:        "Movement",
+        sepmovement:        "Movement",
+        npcnoground:        "Does not move on the ground",
+        npchovers:          "Hovers",
+        npcnoswim:          "Cannot swim",
+        npcdisablegravity:  "Ignores gravity",
+        npcflies:           "Flies",
+        npcrooted:          "Rooted",
+        npcchasemaywalk:    "May walk when chasing",
+        npcchasewalks:      "Always walks when chasing",
+        npcidlemayrun:      "May run when idle",
+        npcidleruns:        "Always runs when idle",
         npcmode:            "Used in difficulty",   // aowow - custom
         hasdifficultyversions: "Has difficulty versions",
         isdifficultyversion: "Is a difficulty version",

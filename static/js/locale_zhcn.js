@@ -3722,7 +3722,6 @@ var LANG = {
         visibilityrange: [  [0, "Default (100 yd)"], [1, "Tiny (25 yd)"], [2, "Small (50 yd)"], [3, "Large (200 yd)"], [4, "Gigantic (400 yd)"], [5, "Maximum (533 yd)"]  ],
         npcclass:       [   [1, "战士"], [2, "圣骑士"], [4, "潜行者"], [8, "法师"]  ],
         mechanic:       [   [1, "被魅惑"], [2, "混乱"], [3, "缴械"], [4, "扰乱"], [5, "感觉"], [6, "抓住"], [7, "定身"], [8, "减缓"], [9, "缄默"], [10, "睡眠中"], [11, "被诱捕"], [12, "昏迷中"], [13, "冰封"], [14, "能力丧失"], [15, "流血"], [16, "治疗中"], [17, "变形术"], [18, "驱逐"], [19, "防御"], [20, "束缚"], [21, "骑乘"], [22, "感染"], [23, "策反"], [24, "战栗"], [25, "坚强"], [26, "中断"], [27, "眩晕"], [28, "发现"], [29, "无敌"], [30, "挨闷棍"], [31, "暴怒"]  ],
-        npcmovement:    [   [1, "Does not move on the ground"], [2, "Hovers"], [3, "Cannot swim"], [4, "Ignores gravity"], [5, "Flies"], [6, "Rooted"], [7, "May walk when chasing"], [8, "Always walks when chasing"], [9, "May run when idle"], [10, "Always runs when idle"]  ],
         npcmode:        [   [1, "普通（地下城）"], [2, "英雄（地下城）"], [3, "普通 10人"], [4, "普通 25人"], [5, "英雄 10人"], [6, "英雄 25人"]  ],   // aowow - custom
         side:           [   [1, "是"], [2, "联盟"], [3, "部落"], [4, "双方"], [5, "无"]      ],
         faction:        [
@@ -4505,7 +4504,17 @@ var LANG = {
         mechanicimmune:     "Immune to mechanic",
         schoolimmune:       "Immune to school",
         meleeschool:        "Melee damage school",
-        npcmovement:        "Movement",
+        sepmovement:        "Movement",
+        npcnoground:        "Does not move on the ground",
+        npchovers:          "Hovers",
+        npcnoswim:          "Cannot swim",
+        npcdisablegravity:  "Ignores gravity",
+        npcflies:           "Flies",
+        npcrooted:          "Rooted",
+        npcchasemaywalk:    "May walk when chasing",
+        npcchasewalks:      "Always walks when chasing",
+        npcidlemayrun:      "May run when idle",
+        npcidleruns:        "Always runs when idle",
         npcmode:            "用于难度",   // aowow - custom
         hasdifficultyversions: "有难度版本",
         isdifficultyversion: "是难度版本",

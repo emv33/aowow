@@ -3673,7 +3673,6 @@ var LANG = {
         visibilityrange: [  [0, "Default (100 yd)"], [1, "Tiny (25 yd)"], [2, "Small (50 yd)"], [3, "Large (200 yd)"], [4, "Gigantic (400 yd)"], [5, "Maximum (533 yd)"]  ],
         npcclass:       [   [1, "Krieger"], [2, "Paladin"], [4, "Schurke"], [8, "Magier"]  ],
         mechanic:       [   [1, "Bezaubert"], [2, "Desorientiert"], [3, "Entwaffnet"], [4, "Abgelenkt"], [5, "Flüchtend"], [6, "Ergriffen"], [7, "Unbeweglich"], [8, "Befriedet"], [9, "Schweigend"], [10, "Schlafend"], [11, "Verlangsamt"], [12, "Betäubt"], [13, "Eingefroren"], [14, "Handlungsunfähig"], [15, "Blutend"], [16, "Heilung"], [17, "Verwandelt"], [18, "Verbannt"], [19, "Abgeschirmt"], [20, "Gefesselt"], [21, "Reitend"], [22, "Verführt"], [23, "Vertrieben"], [24, "Entsetzt"], [25, "Unverwundbar"], [26, "Unterbrochen"], [27, "Benommen"], [28, "Entdeckung"], [29, "Unverwundbar"], [30, "Kopfnuss"], [31, "Wütend"]  ],
-        npcmovement:    [   [1, "Does not move on the ground"], [2, "Hovers"], [3, "Cannot swim"], [4, "Ignores gravity"], [5, "Flies"], [6, "Rooted"], [7, "May walk when chasing"], [8, "Always walks when chasing"], [9, "May run when idle"], [10, "Always runs when idle"]  ],
         npcmode:        [   [1, "Normal (Dungeon)"], [2, "Heroisch (Dungeon)"], [3, "Normal 10"], [4, "Normal 25"], [5, "Heroisch 10"], [6, "Heroisch 25"]  ],   // aowow - custom
         side:           [   [1, "Ja"],                              [2, "Allianz"],                         [3, "Horde"],                           [4, "Beide"],                           [5, "Nein"]                                     ],
         faction:        [
@@ -4464,7 +4463,17 @@ var LANG = {
         mechanicimmune:     "Immune to mechanic",
         schoolimmune:       "Immune to school",
         meleeschool:        "Melee damage school",
-        npcmovement:        "Movement",
+        sepmovement:        "Movement",
+        npcnoground:        "Does not move on the ground",
+        npchovers:          "Hovers",
+        npcnoswim:          "Cannot swim",
+        npcdisablegravity:  "Ignores gravity",
+        npcflies:           "Flies",
+        npcrooted:          "Rooted",
+        npcchasemaywalk:    "May walk when chasing",
+        npcchasewalks:      "Always walks when chasing",
+        npcidlemayrun:      "May run when idle",
+        npcidleruns:        "Always runs when idle",
         npcmode:            "Verwendet im Schwierigkeitsgrad",   // aowow - custom
         hasdifficultyversions: "Hat Schwierigkeitsgrad-Versionen",
         isdifficultyversion: "Ist eine Schwierigkeitsgrad-Version",

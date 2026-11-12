@@ -3674,7 +3674,6 @@ var LANG = {
         visibilityrange: [  [0, "Default (100 yd)"], [1, "Tiny (25 yd)"], [2, "Small (50 yd)"], [3, "Large (200 yd)"], [4, "Gigantic (400 yd)"], [5, "Maximum (533 yd)"]  ],
         npcclass:       [   [1, "Воин"], [2, "Паладин"], [4, "Разбойник"], [8, "Маг"]  ],
         mechanic:       [   [1, "Подчинённый"], [2, "Дезориентирован"], [3, "Разоружённый"], [4, "Отвлечён"], [5, "Убегающий"], [6, "Неуклюжий"], [7, "Оплетён"], [8, "Немота"], [9, "В покое"], [10, "Усыплён"], [11, "Пойманный в ловушку"], [12, "Оглушен"], [13, "Замороженный"], [14, "Бездейственный"], [15, "Кровоточащий"], [16, "Целительное"], [17, "Превращён"], [18, "Изгнан"], [19, "Ограждён"], [20, "Скован"], [21, "Оседлавший"], [22, "Соблазнён"], [23, "Обращение"], [24, "Испуганный"], [25, "Неуязвимый"], [26, "Прервано"], [27, "Замедленный"], [28, "Открытие"], [29, "Неуязвимый"], [30, "Ошеломлён"], [31, "Исступление"]  ],
-        npcmovement:    [   [1, "Does not move on the ground"], [2, "Hovers"], [3, "Cannot swim"], [4, "Ignores gravity"], [5, "Flies"], [6, "Rooted"], [7, "May walk when chasing"], [8, "Always walks when chasing"], [9, "May run when idle"], [10, "Always runs when idle"]  ],
         npcmode:        [   [1, "Обычный (подземелье)"], [2, "Героический (подземелье)"], [3, "10-нормал"], [4, "25-нормал"], [5, "10-героич"], [6, "25-героич"]  ],   // aowow - custom
         side:           [   [1, "Да"],                              [2, "Альянс"],                          [3, "Орда"],                            [4, "Обе"],                             [5, "Нет"]                                      ],
         faction:        [
@@ -4463,7 +4462,17 @@ var LANG = {
         mechanicimmune:     "Immune to mechanic",
         schoolimmune:       "Immune to school",
         meleeschool:        "Melee damage school",
-        npcmovement:        "Movement",
+        sepmovement:        "Movement",
+        npcnoground:        "Does not move on the ground",
+        npchovers:          "Hovers",
+        npcnoswim:          "Cannot swim",
+        npcdisablegravity:  "Ignores gravity",
+        npcflies:           "Flies",
+        npcrooted:          "Rooted",
+        npcchasemaywalk:    "May walk when chasing",
+        npcchasewalks:      "Always walks when chasing",
+        npcidlemayrun:      "May run when idle",
+        npcidleruns:        "Always runs when idle",
         npcmode:            "Используется в режиме",   // aowow - custom
         hasdifficultyversions: "Имеет версии для режимов",
         isdifficultyversion: "Является версией для режима",

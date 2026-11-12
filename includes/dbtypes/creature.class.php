@@ -436,7 +436,6 @@ class CreatureListFilter extends Filter
        106 => [0, 1, 2, 3, 4, 5],                              // visibilityrange
        107 => [ChrClass::WARRIOR->value, ChrClass::PALADIN->value, ChrClass::ROGUE->value, ChrClass::MAGE->value], // npcclass: CLASSMASK_ALL_CREATURES
        113 => [SPELL_SCHOOL_NORMAL, SPELL_SCHOOL_HOLY, SPELL_SCHOOL_FIRE, SPELL_SCHOOL_NATURE, SPELL_SCHOOL_FROST, SPELL_SCHOOL_SHADOW, SPELL_SCHOOL_ARCANE], // meleeschool
-       125 => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],                 // npcmovement: keys of MOVEMENT_FILTER
        143 => [1, 2, 3, 4, 5, 6]                               // npcmode: keys of MODE_FILTER
         // aowow - custom end
     );
@@ -562,7 +561,6 @@ class CreatureListFilter extends Filter
         122 => [parent::CR_CALLBACK, 'cbMeleeDamage',    true,                               null      ], // meleemax [num]
         123 => [parent::CR_CALLBACK, 'cbStaffString',    'ScriptOrAI',                       null      ], // scriptname [str] [staff]
         124 => [parent::CR_CALLBACK, 'cbStaffString',    'StringId',                         null      ], // stringid [str] [staff]
-        125 => [parent::CR_CALLBACK, 'cbMovement',       null,                               null      ], // npcmovement [enum]
         126 => [parent::CR_CALLBACK, 'cbTemplateNum',    '(2.5 * `speed_walk`)',             null      ], // walkspeed [num]
         127 => [parent::CR_CALLBACK, 'cbTemplateNum',    '(7.0 * `speed_run`)',              null      ], // runspeed [num]
         128 => [parent::CR_CALLBACK, 'cbTemplateNum',    '`scale`',                          null      ], // scale [num]
@@ -582,12 +580,23 @@ class CreatureListFilter extends Filter
         142 => [parent::CR_CALLBACK, 'cbWorldIds',       'questitems',                       null      ], // hasquestitems [yn]
         143 => [parent::CR_CALLBACK, 'cbMode',            null,                              null      ], // npcmode [enum]
         144 => [parent::CR_CALLBACK, 'cbDifficultySlot',  false,                             null      ], // hasdifficultyversions [yn]
-        145 => [parent::CR_FLAG,     'cuFlags',           NPC_CU_DIFFICULTY_DUMMY                      ]  // isdifficultyversion [yn] [staff]
+        145 => [parent::CR_FLAG,     'cuFlags',           NPC_CU_DIFFICULTY_DUMMY                      ], // isdifficultyversion [yn] [staff]
+        // creature_template_movement values that depart from the default
+        146 => [parent::CR_CALLBACK, 'cbMovement',        'Ground',                          0         ], // npcnoground [yn]
+        147 => [parent::CR_CALLBACK, 'cbMovement',        'Ground',                          2         ], // npchovers [yn]
+        148 => [parent::CR_CALLBACK, 'cbMovement',        'Swim',                            0         ], // npcnoswim [yn]
+        149 => [parent::CR_CALLBACK, 'cbMovement',        'Flight',                          1         ], // npcdisablegravity [yn]
+        150 => [parent::CR_CALLBACK, 'cbMovement',        'Flight',                          2         ], // npcflies [yn]
+        151 => [parent::CR_CALLBACK, 'cbMovement',        'Rooted',                          1         ], // npcrooted [yn]
+        152 => [parent::CR_CALLBACK, 'cbMovement',        'Chase',                           1         ], // npcchasemaywalk [yn]
+        153 => [parent::CR_CALLBACK, 'cbMovement',        'Chase',                           2         ], // npcchasewalks [yn]
+        154 => [parent::CR_CALLBACK, 'cbMovement',        'Random',                          1         ], // npcidlemayrun [yn]
+        155 => [parent::CR_CALLBACK, 'cbMovement',        'Random',                          2         ]  // npcidleruns [yn]
         // aowow - custom end
     );
 
     protected static array $inputFields = array(
-        'cr'    => [parent::V_LIST,     [[1, 3],[5, 13], 15, 16, [18, 29], [31, 104], [106, 145]],                   true ], // criteria ids
+        'cr'    => [parent::V_LIST,     [[1, 3],[5, 13], 15, 16, [18, 29], [31, 104], [106, 124], [126, 155]],       true ], // criteria ids
         'crs'   => [parent::V_LIST,     [parent::ENUM_NONE, parent::ENUM_ANY, [0, 9999]],                         true ], // criteria operators
         'crv'   => [parent::V_REGEX,    parent::PATTERN_CRV,                                                      true ], // criteria values - only printable chars, no delimiter
         'na'    => [parent::V_NAME,     false,                                                                    false], // name / subname - only printable chars, no delimiter
@@ -861,20 +870,6 @@ class CreatureListFilter extends Filter
         return $crs ? ['cd.slot', 0] : [DB::OR, ['cd.id', null], ['cd.slot', 0, '!']];
     }
 
-    // npcmovement option => [creature_template_movement column, value]; only values that depart from the default
-    private const array MOVEMENT_FILTER = array(
-         1 => ['Ground', 0],                                // does not move on the ground
-         2 => ['Ground', 2],                                // hovers
-         3 => ['Swim',   0],                                // cannot swim
-         4 => ['Flight', 1],                                // ignores gravity
-         5 => ['Flight', 2],                                // flies
-         6 => ['Rooted', 1],                                // rooted
-         7 => ['Chase',  1],                                // may walk chasing
-         8 => ['Chase',  2],                                // always walks chasing
-         9 => ['Random', 1],                                // may run when idle
-        10 => ['Random', 2]                                 // always runs when idle
-    );
-
     private static function worldHasTable(string $tbl) : bool
     {
         static $known = [];
@@ -937,19 +932,17 @@ class CreatureListFilter extends Filter
         return $ids ? ['id', $ids] : [0];
     }
 
-    protected function cbMovement(int $cr, int $crs, string $crv) : ?array
+    protected function cbMovement(int $cr, int $crs, string $crv, string $col, int $val) : ?array
     {
-        if (!isset(self::MOVEMENT_FILTER[$crs]))
+        if (!$this->int2Bool($crs))
             return null;
 
-        if (!self::worldHasTable('creature_template_movement'))
-            return [0];
+        $ids = self::worldHasTable('creature_template_movement') ? DB::World()->selectCol('SELECT `CreatureId` FROM creature_template_movement WHERE %n = %i', $col, $val) : [];
 
-        [$col, $val] = self::MOVEMENT_FILTER[$crs];
+        if ($crs)
+            return $ids ? ['id', $ids] : [0];
 
-        $ids = DB::World()->selectCol('SELECT `CreatureId` FROM creature_template_movement WHERE %n = %i', $col, $val);
-
-        return $ids ? ['id', $ids] : [0];
+        return $ids ? ['id', $ids, '!'] : [1];
     }
 
     protected function cbEquipsItem(int $cr, int $crs, string $crv) : ?array
