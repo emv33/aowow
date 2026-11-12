@@ -4405,7 +4405,9 @@ var LANG = {
         poisonvendor:        "Vendedor de venenos",
         reagentvendor:       "Vendedor de reactivos",
 
-        sepnpcflags:        "Flags",
+        sepnpcunitflags:    "Unit flags",
+        sepnpcextraflags:   "Extra flags",
+        sepnpctypeflags:    "Client flags",
         npcinstancebind:    "Binds attacker to instance on death",
         npccivilian:        "Civilian",
         npcnoparry:         "Cannot parry",

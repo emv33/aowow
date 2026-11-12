@@ -4405,7 +4405,9 @@ var LANG = {
         poisonvendor:        "Marchand de poisons",
         reagentvendor:       "Marchand de réactifs",
 
-        sepnpcflags:        "Flags",
+        sepnpcunitflags:    "Unit flags",
+        sepnpcextraflags:   "Extra flags",
+        sepnpctypeflags:    "Client flags",
         npcinstancebind:    "Binds attacker to instance on death",
         npccivilian:        "Civilian",
         npcnoparry:         "Cannot parry",
