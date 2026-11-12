@@ -381,7 +381,9 @@ class CreatureListFilter extends Filter
         38 => parent::ENUM_EVENT,                           // relatedevent
         // aowow - custom start: VisibilityDistanceType of `creature_template_addon`, unit_class
        106 => [0, 1, 2, 3, 4, 5],                              // visibilityrange
-       107 => [ChrClass::WARRIOR->value, ChrClass::PALADIN->value, ChrClass::ROGUE->value, ChrClass::MAGE->value] // npcclass: CLASSMASK_ALL_CREATURES
+       107 => [ChrClass::WARRIOR->value, ChrClass::PALADIN->value, ChrClass::ROGUE->value, ChrClass::MAGE->value], // npcclass: CLASSMASK_ALL_CREATURES
+       113 => [SPELL_SCHOOL_NORMAL, SPELL_SCHOOL_HOLY, SPELL_SCHOOL_FIRE, SPELL_SCHOOL_NATURE, SPELL_SCHOOL_FROST, SPELL_SCHOOL_SHADOW, SPELL_SCHOOL_ARCANE], // meleeschool
+       125 => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]                  // npcmovement: keys of MOVEMENT_FILTER
         // aowow - custom end
     );
 
@@ -488,12 +490,47 @@ class CreatureListFilter extends Filter
         103 => [parent::CR_FLAG,    'typeFlags',         NPC_TYPEFLAG_HAS_NO_SHADOW_BLOB               ], // npcnoshadow
         104 => [parent::CR_FLAG,    'typeFlags',         NPC_TYPEFLAG_DO_NOT_SHEATHE                   ], // npcnosheathe
         106 => [parent::CR_CALLBACK, 'cbVisibilityRange', null,                              null      ], // visibilityrange [enum]
-        107 => [parent::CR_ENUM,    'unitClass',         false,                              true      ]  // npcclass [enum]
+        107 => [parent::CR_ENUM,    'unitClass',         false,                              true      ], // npcclass [enum]
+        108 => [parent::CR_FLAG,    'typeFlags',         NPC_TYPEFLAG_BOSS_MOB                         ], // npcbossmob
+        109 => [parent::CR_CALLBACK, 'cbImmuneMask',     'mechanicImmuneMask',              1         ], // mechanicimmune [enum]
+        110 => [parent::CR_CALLBACK, 'cbImmuneMask',     'schoolImmuneMask',                0         ], // schoolimmune [enum]
+        111 => [parent::CR_BOOLEAN, 'vehicleId'                                                        ], // isvehicle
+        112 => [parent::CR_BOOLEAN, 'racialLeader'                                                     ], // racialleader
+        113 => [parent::CR_ENUM,    'dmgSchool',         false,                              true      ], // meleeschool [enum]
+        114 => [parent::CR_NUMERIC, 'resistance1',       NUM_CAST_INT                                  ], // holres [num]
+        115 => [parent::CR_NUMERIC, 'resistance2',       NUM_CAST_INT                                  ], // firres [num]
+        116 => [parent::CR_NUMERIC, 'resistance3',       NUM_CAST_INT                                  ], // natres [num]
+        117 => [parent::CR_NUMERIC, 'resistance4',       NUM_CAST_INT                                  ], // frores [num]
+        118 => [parent::CR_NUMERIC, 'resistance5',       NUM_CAST_INT                                  ], // shares [num]
+        119 => [parent::CR_NUMERIC, 'resistance6',       NUM_CAST_INT                                  ], // arcres [num]
+        120 => [parent::CR_CALLBACK, 'cbHealthMana',     'armorMin',                        'armorMax' ], // armor [num]
+        121 => [parent::CR_CALLBACK, 'cbMeleeDamage',    false,                              null      ], // meleemin [num]
+        122 => [parent::CR_CALLBACK, 'cbMeleeDamage',    true,                               null      ], // meleemax [num]
+        123 => [parent::CR_CALLBACK, 'cbStaffString',    'ScriptOrAI',                       null      ], // scriptname [str] [staff]
+        124 => [parent::CR_CALLBACK, 'cbStaffString',    'StringId',                         null      ], // stringid [str] [staff]
+        125 => [parent::CR_CALLBACK, 'cbMovement',       null,                               null      ], // npcmovement [enum]
+        126 => [parent::CR_CALLBACK, 'cbTemplateNum',    '(2.5 * `speed_walk`)',             null      ], // walkspeed [num]
+        127 => [parent::CR_CALLBACK, 'cbTemplateNum',    '(7.0 * `speed_run`)',              null      ], // runspeed [num]
+        128 => [parent::CR_CALLBACK, 'cbTemplateNum',    '`scale`',                          null      ], // scale [num]
+        129 => [parent::CR_CALLBACK, 'cbTemplateNum',    '`HoverHeight`',                    null      ], // hoverheight [num]
+        130 => [parent::CR_CALLBACK, 'cbTemplateNum',    '`HealthModifier`',                 null      ], // healthmod [num]
+        131 => [parent::CR_CALLBACK, 'cbTemplateNum',    '`ManaModifier`',                   null      ], // manamod [num]
+        132 => [parent::CR_CALLBACK, 'cbTemplateNum',    '`ArmorModifier`',                  null      ], // armormod [num]
+        133 => [parent::CR_NUMERIC, 'dmgMultiplier',     NUM_CAST_FLOAT                                ], // damagemod [num]
+        134 => [parent::CR_CALLBACK, 'cbTemplateNum',    '`ExperienceModifier`',             null      ], // xpmod [num]
+        135 => [parent::CR_CALLBACK, 'cbWorldIds',       'regen',                            null      ], // regenhealth [yn]
+        136 => [parent::CR_CALLBACK, 'cbWorldIds',       'phased',                           null      ], // phased [yn]
+        137 => [parent::CR_CALLBACK, 'cbEquipsItem',     null,                               null      ], // equipsitem [str]
+        138 => [parent::CR_CALLBACK, 'cbWorldIds',       'follower',                         null      ], // formationfollower [yn]
+        139 => [parent::CR_CALLBACK, 'cbWorldIds',       'leader',                           null      ], // formationleader [yn]
+        140 => [parent::CR_CALLBACK, 'cbWorldIds',       'mounted',                          null      ], // ridesmount [yn]
+        141 => [parent::CR_CALLBACK, 'cbWorldIds',       'mount',                            null      ], // usedasmount [yn]
+        142 => [parent::CR_CALLBACK, 'cbWorldIds',       'questitems',                       null      ]  // hasquestitems [yn]
         // aowow - custom end
     );
 
     protected static array $inputFields = array(
-        'cr'    => [parent::V_LIST,     [[1, 3],[5, 13], 15, 16, [18, 29], [31, 104], 106, 107],                   true ], // criteria ids
+        'cr'    => [parent::V_LIST,     [[1, 3],[5, 13], 15, 16, [18, 29], [31, 104], [106, 142]],                   true ], // criteria ids
         'crs'   => [parent::V_LIST,     [parent::ENUM_NONE, parent::ENUM_ANY, [0, 9999]],                         true ], // criteria operators
         'crv'   => [parent::V_REGEX,    parent::PATTERN_CRV,                                                      true ], // criteria values - only printable chars, no delimiter
         'na'    => [parent::V_NAME,     false,                                                                    false], // name / subname - only printable chars, no delimiter
@@ -726,6 +763,158 @@ class CreatureListFilter extends Filter
             return null;
 
         return $ids ? ['id', $ids] : [0];
+    }
+
+    // npcmovement option => [creature_template_movement column, value]; only values that depart from the default
+    private const array MOVEMENT_FILTER = array(
+         1 => ['Ground', 0],                                // does not move on the ground
+         2 => ['Ground', 2],                                // hovers
+         3 => ['Swim',   0],                                // cannot swim
+         4 => ['Flight', 1],                                // ignores gravity
+         5 => ['Flight', 2],                                // flies
+         6 => ['Rooted', 1],                                // rooted
+         7 => ['Chase',  1],                                // may walk chasing
+         8 => ['Chase',  2],                                // always walks chasing
+         9 => ['Random', 1],                                // may run when idle
+        10 => ['Random', 2]                                 // always runs when idle
+    );
+
+    private static function worldHasTable(string $tbl) : bool
+    {
+        static $known = [];
+
+        return $known[$tbl] ??= (bool)DB::World()->selectCell('SHOW TABLES LIKE %s', $tbl);
+    }
+
+    // mechanicImmuneMask holds mechanic N at bit N-1 (see the npc page), schoolImmuneMask holds school N at bit N
+    protected function cbImmuneMask(int $cr, int $crs, string $crv, string $col, int $offset) : ?array
+    {
+        if ($crs == parent::ENUM_ANY)
+            return [$col, 0, '!'];
+        if ($crs == parent::ENUM_NONE)
+            return [$col, 0];
+
+        $max = $offset ? 31 : SPELL_SCHOOL_ARCANE;
+        if ($crs < $offset || $crs > $max)
+            return null;
+
+        $bit = 1 << ($crs - $offset);
+
+        return [[$col, $bit, '&'], $bit];
+    }
+
+    // the same formula CreatureList::getBaseStats('melee') shows, run as a post-filter as it needs IF()
+    protected function cbMeleeDamage(int $cr, int $crs, string $crv, bool $isMax) : ?array
+    {
+        if (!Util::checkNumeric($crv, NUM_CAST_FLOAT) || !$this->int2Op($crs))
+            return null;
+
+        $speed = 'IF(atkSpeed > 0, atkSpeed / 1000, 2)';
+        $dmg   = $isMax ? '(dmgMax * 1.5 + mleAtkPwrMax / 14)' : '(dmgMin + mleAtkPwrMin / 14)';
+
+        $this->extraOpts['ct']['h'][] = 'ROUND('.$dmg.' * dmgMultiplier * '.$speed.') '.$crs.' '.round($crv);
+
+        return [1];
+    }
+
+    // ScriptName / AI and StringId are only shown to staff on the npc page
+    protected function cbStaffString(int $cr, int $crs, string $crv, string $col) : ?array
+    {
+        if (!User::canSee(U_GROUP_EMPLOYEE))
+            return [1];
+
+        $crv = trim($crv);
+        if ($crv === '')
+            return null;
+
+        return [$col, $crv, 'LIKE'];
+    }
+
+    // creature_template columns the setup step does not import (the npc page reads them from the world db)
+    protected function cbTemplateNum(int $cr, int $crs, string $crv, string $expr) : ?array
+    {
+        if (!Util::checkNumeric($crv, NUM_CAST_FLOAT) || !$this->int2Op($crs))
+            return null;
+
+        $ids = DB::World()->selectCol('SELECT `entry` FROM creature_template WHERE ROUND('.$expr.', 2) '.$crs.' %f', round($crv, 2));
+
+        return $ids ? ['id', $ids] : [0];
+    }
+
+    protected function cbMovement(int $cr, int $crs, string $crv) : ?array
+    {
+        if (!isset(self::MOVEMENT_FILTER[$crs]))
+            return null;
+
+        if (!self::worldHasTable('creature_template_movement'))
+            return [0];
+
+        [$col, $val] = self::MOVEMENT_FILTER[$crs];
+
+        $ids = DB::World()->selectCol('SELECT `CreatureId` FROM creature_template_movement WHERE %n = %i', $col, $val);
+
+        return $ids ? ['id', $ids] : [0];
+    }
+
+    protected function cbEquipsItem(int $cr, int $crs, string $crv) : ?array
+    {
+        if (!Util::checkNumeric($crv, NUM_CAST_INT) || $crv <= 0)
+            return null;
+
+        if (!self::worldHasTable('creature_equip_template'))
+            return [0];
+
+        $ids = DB::World()->selectCol('SELECT DISTINCT `CreatureID` FROM creature_equip_template WHERE `ItemID1` = %i OR `ItemID2` = %i OR `ItemID3` = %i', $crv, $crv, $crv);
+
+        return $ids ? ['id', $ids] : [0];
+    }
+
+    // [yn] criteria answered by a list of creature entries from the world db, matching what the npc page shows
+    protected function cbWorldIds(int $cr, int $crs, string $crv, string $what) : ?array
+    {
+        if (!$this->int2Bool($crs))
+            return null;
+
+        $ids = match ($what)
+        {
+            // 'does not regenerate health' is the line the page shows, so 'yes' is RegenHealth = 1
+            'regen'      => DB::World()->selectCol('SELECT `entry` FROM creature_template WHERE `RegenHealth` = 0'),
+            'phased'     => DB::World()->selectCol('SELECT DISTINCT `id` FROM creature WHERE `phaseMask` NOT IN (0, 1)'),
+            'follower'   => self::worldHasTable('creature_formations') ? DB::World()->selectCol(
+                               'SELECT DISTINCT mc.`id` FROM creature_formations cf JOIN creature mc ON mc.`guid` = cf.`memberGUID` JOIN creature lc ON lc.`guid` = cf.`leaderGUID` WHERE lc.`id` <> mc.`id`'
+                            ) : [],
+            'leader'     => self::worldHasTable('creature_formations') ? DB::World()->selectCol(
+                               'SELECT DISTINCT lc.`id` FROM creature_formations cf JOIN creature mc ON mc.`guid` = cf.`memberGUID` JOIN creature lc ON lc.`guid` = cf.`leaderGUID` WHERE lc.`id` <> mc.`id`'
+                            ) : [],
+            'mounted'    => array_merge(
+                                self::worldHasTable('creature_template_addon') ? DB::World()->selectCol('SELECT `entry` FROM creature_template_addon WHERE `mount` > 0') : [],
+                                self::worldHasTable('creature_addon') ? DB::World()->selectCol('SELECT DISTINCT c.`id` FROM creature_addon ca JOIN creature c ON c.`guid` = ca.`guid` WHERE ca.`mount` > 0') : []
+                            ),
+            // `mount` is a CreatureDisplayID, matched against the rider's model like the npc page's "Mount of:" line
+            'mount'      => array_merge(
+                                self::worldHasTable('creature_template_addon') ? DB::World()->selectCol(
+                                   'SELECT DISTINCT ct.`entry` FROM creature_template ct JOIN creature_template_addon cta ON cta.`mount` > 0 AND cta.`mount` IN (ct.`modelid1`, ct.`modelid2`, ct.`modelid3`, ct.`modelid4`) WHERE cta.`entry` <> ct.`entry`'
+                                ) : [],
+                                self::worldHasTable('creature_addon') ? DB::World()->selectCol(
+                                   'SELECT DISTINCT ct.`entry` FROM creature_template ct JOIN creature_addon ca ON ca.`mount` > 0 AND ca.`mount` IN (ct.`modelid1`, ct.`modelid2`, ct.`modelid3`, ct.`modelid4`) JOIN creature c ON c.`guid` = ca.`guid` WHERE c.`id` <> ct.`entry`'
+                                ) : []
+                            ),
+            'questitems' => self::worldHasTable('creature_questitem') ? DB::World()->selectCol('SELECT DISTINCT `CreatureEntry` FROM creature_questitem WHERE `ItemId` > 0') : [],
+            default      => null
+        };
+
+        if ($ids === null)
+            return null;
+
+        $ids = array_values(array_unique(array_map('intVal', $ids ?: [])));
+
+        if ($what == 'regen')                               // the list holds the 'no' side
+            $crs = !$crs;
+
+        if ($crs)
+            return $ids ? ['id', $ids] : [0];
+
+        return $ids ? ['id', $ids, '!'] : [1];
     }
     // aowow - custom end
 
