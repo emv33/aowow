@@ -136,7 +136,7 @@ class LegacyScript
     /** eventId fields of a gameobject_template row; the column is type dependent, as with gossip */
     public static function getEventIdsForObject(int $objectId) : array
     {
-        $col = 'IF(`type` = '.GO_TYPE_GOOBER.', `data1`, IF(`type` = '.GO_TYPE_CHEST.', `data6`, IF(`type` = '.GO_TYPE_CAMERA.', `data2`, 0)))';
+        $col = 'IF(`type` = '.GO_TYPE_GOOBER.', `data2`, IF(`type` = '.GO_TYPE_CHEST.', `data6`, IF(`type` = '.GO_TYPE_CAMERA.', `data2`, 0)))';
 
         $ids = DB::World()->selectCol('SELECT '.$col.' FROM gameobject_template WHERE `entry` = %i', $objectId) ?: [];
 
@@ -207,7 +207,7 @@ class LegacyScript
             if ($spells)
                 $result[Type::SPELL] = array_merge($result[Type::SPELL] ?? [], array_map('intVal', $spells));
 
-            $col = 'IF(`type` = '.GO_TYPE_GOOBER.', `data1`, IF(`type` = '.GO_TYPE_CHEST.', `data6`, IF(`type` = '.GO_TYPE_CAMERA.', `data2`, 0)))';
+            $col = 'IF(`type` = '.GO_TYPE_GOOBER.', `data2`, IF(`type` = '.GO_TYPE_CHEST.', `data6`, IF(`type` = '.GO_TYPE_CAMERA.', `data2`, 0)))';
             if ($objects = DB::World()->selectCol('SELECT `entry` FROM gameobject_template WHERE '.$col.' IN %in', $events))
                 $result[Type::OBJECT] = array_map('intVal', $objects);
 

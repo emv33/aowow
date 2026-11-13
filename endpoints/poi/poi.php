@@ -162,7 +162,7 @@ class PoiBaseResponse extends TemplateResponse implements ICache
         if (self::hasTable('gameobject_template'))
             $objects = DB::World()->selectCol(
                'SELECT DISTINCT `entry` FROM gameobject_template
-                WHERE (`type` = %i AND `data3` IN %in) OR (`type` = %i AND `data18` IN %in)',
+                WHERE (`type` = %i AND `data3` IN %in) OR (`type` = %i AND `data19` IN %in)',
                 GO_TYPE_QUESTGIVER, $menuIds, GO_TYPE_GOOBER, $menuIds
             ) ?: [];
 

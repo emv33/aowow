@@ -100,7 +100,7 @@ class PoisBaseResponse extends TemplateResponse implements ICache
      * a point of interest carries no map id of its own; the map it belongs to is only reachable
      * through the menus whose options point at it (`gossip_menu_option`.`ActionPoiID`), and from
      * there to whichever NPCs/objects actually present that menu - either as their default
-     * `gossip_menu_id`/`data3`/`data18`, sent explicitly by a SmartAI script, or as a submenu a
+     * `gossip_menu_id`/`data3`/`data19`, sent explicitly by a SmartAI script, or as a submenu a
      * parent menu opens via its own option's `ActionMenuID` (most poi options sit several
      * submenus deep, not on an NPC's/object's own default menu). This mirrors
      * Gossip::getMenusForNPC()/getMenusForObject(), just followed backwards from menu to owner.
@@ -189,12 +189,12 @@ class PoisBaseResponse extends TemplateResponse implements ICache
         {
             $rows = DB::World()->selectAssoc(
                'SELECT
-                    CASE gt.`type` WHEN %i THEN gt.`data3` WHEN %i THEN gt.`data18` END AS "menu",
+                    CASE gt.`type` WHEN %i THEN gt.`data3` WHEN %i THEN gt.`data19` END AS "menu",
                     MIN(g.`map`) AS "map"
                 FROM   gameobject_template gt
                 JOIN   gameobject g ON g.`id` = gt.`entry`
                 WHERE  (gt.`type` = %i AND gt.`data3`  IN %in)
-                   OR  (gt.`type` = %i AND gt.`data18` IN %in)
+                   OR  (gt.`type` = %i AND gt.`data19` IN %in)
                 GROUP BY menu',
                 GO_TYPE_QUESTGIVER, GO_TYPE_GOOBER, GO_TYPE_QUESTGIVER, $menuIds, GO_TYPE_GOOBER, $menuIds
             ) ?: [];
