@@ -217,6 +217,8 @@ if ($this->transfer):
 endif;
 ?>
 
+<?php $this->brick('markup', ['markup' => $this->areaAuras]);   // aowow - custom ?>
+
 <?php $this->brick('markup', ['markup' => $this->questPOI]);   // aowow - custom ?>
 
 <?php $this->brick('markup', ['markup' => $this->legacyScript]);   // aowow - custom ?>

@@ -4593,6 +4593,38 @@ var LANG = {
         endsat:                  "Termina en...",
         suggestedplayers:        "Número de jugadores sugeridos",
         timer:                   "Tiempo contado (segundos)",
+        // aowow - custom start
+        autoaccept:              "Auto accept",
+        autocomplete:            "Completes on accept",
+        monthly:                 "Monthly",
+        raidallowed:             "Can be completed in a raid group",
+        dungeonfinder:           "Dungeon Finder quest",
+        trackingquest:           "Hidden tracking quest",
+        hiddenrewards:           "Rewards hidden until turn-in",
+        extcomplete:             "Completed by an event or script",
+        exclusivegroup:          "Part of an exclusive group",
+        breadcrumb:              "Breadcrumb quest",
+        pooled:                  "Pooled (rotating)",
+        grantsareaaura:          "Grants an area aura",
+        advancesevent:           "Advances a world event",
+        hasgiveremotes:          "Quest giver plays emotes",
+        providesitem:            "Provides an item",
+        castsonaccept:           "Casts a spell on accept",
+
+        seprequirements:         "Requirements",
+        maxlevel:                "Maximum level",
+        requiresprof:            "Requiere una profesión",
+        requiresrepwith:         "Requiere reputación con...",
+        requiredmoney:           "Required money",
+        requiredpvpkills:        "Required PvP kills",
+
+        sepobjectives:           "Objectives",
+        objectivenpc:            "Kill or interact with NPC #...",
+        objectiveobject:         "Use object #...",
+        objectiveitem:           "Collect item #...",
+        objectiveexplore:        "Explore an area",
+        spellcastobjectives:     "Objectives credited by spell casts",
+        // aowow - custom end
         availabletoplayers:      "Disponible para los jugadores",
         id:                      "ID",
         classspecific:           "Específico de clase",
@@ -4606,6 +4638,12 @@ var LANG = {
         itemchoices:             "Opciones de objetos",
         itemrewards:             "Recompensas de objetos",
         moneyrewarded:           "Recompensa de dinero",
+        // aowow - custom start
+        honorrewarded:           "Honor rewarded",
+        arenarewarded:           "Arena points rewarded",
+        talentsrewarded:         "Talent points rewarded",
+        rewardsmail:             "Rewards a mail",
+        // aowow - custom end
         spellrewarded:           "Recompensa de hechizo",
         titlerewarded:           "Título recompensado",
         currencyrewarded:        "Moneda recompensada...",
@@ -4624,7 +4662,12 @@ var LANG = {
         lacksstartend:           "Le falta principio o final",
 
         sepstaffonly:            "Sólo para empleados",
-        flags:                   "Banderas"
+        flags:                   "Banderas",
+        // aowow - custom start
+        specialflags:            "Special flags",
+        hasobjectivemarkers:     "Has objective markers",
+        haslegacyscript:         "Has a legacy script"
+        // aowow - custom end
     },
 
     fispells: {

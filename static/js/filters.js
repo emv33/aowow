@@ -447,9 +447,42 @@ var fi_filters = {
         { id: 21,  name: 'endsat',                  type: 'questend' },
         { id: 11,  name: 'suggestedplayers',        type: 'num' },
         { id: 6,   name: 'timer',                   type: 'num' },
+        { id: 55,  name: 'autoaccept',              type: 'yn' },               // aowow - custom start
+        { id: 48,  name: 'autocomplete',            type: 'yn' },
+        { id: 56,  name: 'monthly',                 type: 'yn' },
+        { id: 49,  name: 'raidallowed',             type: 'yn' },
+        { id: 52,  name: 'dungeonfinder',           type: 'yn' },
+        { id: 50,  name: 'trackingquest',           type: 'yn' },
+        { id: 51,  name: 'hiddenrewards',           type: 'yn' },
+        { id: 53,  name: 'extcomplete',             type: 'yn' },
+        { id: 68,  name: 'exclusivegroup',          type: 'yn' },
+        { id: 69,  name: 'breadcrumb',              type: 'yn' },
+        { id: 71,  name: 'pooled',                  type: 'yn' },
+        { id: 73,  name: 'grantsareaaura',          type: 'yn' },
+        { id: 74,  name: 'advancesevent',           type: 'yn' },
+        { id: 75,  name: 'hasgiveremotes',          type: 'yn' },
+        { id: 62,  name: 'providesitem',            type: 'yn' },
+        { id: 63,  name: 'castsonaccept',           type: 'yn' },
+
+        { id: 9997, name: 'seprequirements' },
+        { id: 57,  name: 'maxlevel',                type: 'num' },
+        { id: 58,  name: 'requiresprof',            type: 'profession' },
+        { id: 59,  name: 'requiresrepwith',         type: 'faction-any+none' },
+        { id: 60,  name: 'requiredmoney',           type: 'num' },
+        { id: 61,  name: 'requiredpvpkills',        type: 'num' },
+
+        { id: 9996, name: 'sepobjectives' },
+        { id: 76,  name: 'objectivenpc',            type: 'num' },
+        { id: 77,  name: 'objectiveobject',         type: 'num' },
+        { id: 78,  name: 'objectiveitem',           type: 'num' },
+        { id: 79,  name: 'objectiveexplore',        type: 'yn' },
+        { id: 54,  name: 'spellcastobjectives',     type: 'yn' },               // aowow - custom end
 
         { id: 999, name: 'sepstaffonly',                        staffonly: true },
         { id: 42,  name: 'flags',               type: 'flags',  staffonly: true },
+        { id: 80,  name: 'specialflags',        type: 'flags',  staffonly: true },  // aowow - custom start
+        { id: 70,  name: 'hasobjectivemarkers', type: 'yn',     staffonly: true },
+        { id: 72,  name: 'haslegacyscript',     type: 'yn',     staffonly: true },  // aowow - custom end
 
         { id: 13,  name: 'sepgainsrewards' },
         { id: 2,   name: 'experiencegained',    type: 'num' },
@@ -458,6 +491,10 @@ var fi_filters = {
         { id: 23,  name: 'itemchoices',         type: 'num' },
         { id: 22,  name: 'itemrewards',         type: 'num' },
         { id: 3,   name: 'moneyrewarded',       type: 'num' },
+        { id: 65,  name: 'honorrewarded',       type: 'num' },                      // aowow - custom start
+        { id: 66,  name: 'arenarewarded',       type: 'num' },
+        { id: 67,  name: 'talentsrewarded',     type: 'num' },
+        { id: 64,  name: 'rewardsmail',         type: 'yn' },                       // aowow - custom end
         { id: 4,   name: 'spellrewarded',       type: 'yn' },
         { id: 1,   name: 'increasesrepwith',    type: 'faction' },
         { id: 10,  name: 'decreasesrepwith',    type: 'faction' },

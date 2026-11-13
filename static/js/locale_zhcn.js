@@ -4634,6 +4634,38 @@ var LANG = {
         endsat:                  "结束于…",
         suggestedplayers:        "建议玩家数",
         timer:                   "计时器（秒）",
+        // aowow - custom start
+        autoaccept:              "Auto accept",
+        autocomplete:            "Completes on accept",
+        monthly:                 "Monthly",
+        raidallowed:             "Can be completed in a raid group",
+        dungeonfinder:           "Dungeon Finder quest",
+        trackingquest:           "Hidden tracking quest",
+        hiddenrewards:           "Rewards hidden until turn-in",
+        extcomplete:             "Completed by an event or script",
+        exclusivegroup:          "Part of an exclusive group",
+        breadcrumb:              "Breadcrumb quest",
+        pooled:                  "Pooled (rotating)",
+        grantsareaaura:          "Grants an area aura",
+        advancesevent:           "Advances a world event",
+        hasgiveremotes:          "Quest giver plays emotes",
+        providesitem:            "Provides an item",
+        castsonaccept:           "Casts a spell on accept",
+
+        seprequirements:         "Requirements",
+        maxlevel:                "Maximum level",
+        requiresprof:            "需要职业",
+        requiresrepwith:         "取代声望…",
+        requiredmoney:           "Required money",
+        requiredpvpkills:        "Required PvP kills",
+
+        sepobjectives:           "Objectives",
+        objectivenpc:            "Kill or interact with NPC #...",
+        objectiveobject:         "Use object #...",
+        objectiveitem:           "Collect item #...",
+        objectiveexplore:        "Explore an area",
+        spellcastobjectives:     "Objectives credited by spell casts",
+        // aowow - custom end
         availabletoplayers:      "向玩家开放",
         id:                      "ID",
         classspecific:           "职业专属",
@@ -4647,6 +4679,12 @@ var LANG = {
         itemchoices:             "物品选择",
         itemrewards:             "物品奖励",
         moneyrewarded:           "金钱奖励",
+        // aowow - custom start
+        honorrewarded:           "Honor rewarded",
+        arenarewarded:           "Arena points rewarded",
+        talentsrewarded:         "Talent points rewarded",
+        rewardsmail:             "Rewards a mail",
+        // aowow - custom end
         spellrewarded:           "法术奖励",
         titlerewarded:           "奖励头衔",
         currencyrewarded:        "奖励货币…",
@@ -4665,7 +4703,12 @@ var LANG = {
         lacksstartend:           "缺乏起始与结束",
 
         sepstaffonly:            "仅限员工",
-        flags:                   "标记"
+        flags:                   "标记",
+        // aowow - custom start
+        specialflags:            "Special flags",
+        hasobjectivemarkers:     "Has objective markers",
+        haslegacyscript:         "Has a legacy script"
+        // aowow - custom end
     },
 
     fispells: {

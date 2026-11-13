@@ -24,6 +24,7 @@ class QuestBaseResponse extends TemplateResponse implements ICache
     public  array       $objectiveList = [];
     public ?IconElement $providedItem  = null;
     public ?Mail        $mail          = null;
+    public ?Markup      $areaAuras     = null;              // aowow - custom
     public ?array       $gains         = null;              // why array|null ? because destructuring an array with less elements than expected is an error, destructuring null just returns false
     public ?array       $rewards       = null;              // so  " if ([$spells, $items, $choice, $money] = $this->rewards): " will either work or cleanly branch to else
     public  string      $objectives    = '';
@@ -249,6 +250,42 @@ class QuestBaseResponse extends TemplateResponse implements ICache
         // Keeps you PvP flagged
         if ($_flags & QUEST_FLAG_FLAGS_PVP)
             $infobox[] = Lang::quest('keepsPvpFlag');
+
+        // aowow - custom start: the Flags / SpecialFlags the core reads that the lines above leave out
+        // Quest::IsAutoComplete(): a QUEST_TYPE_TURNIN quest or one flagged so completes as soon as it is accepted
+        if ($this->subject->getField('questType') == 0 || $_flags & QUEST_FLAG_AUTO_COMPLETE)
+            $infobox[] = Lang::quest('autoComplete');
+
+        // Quest::IsRaidQuest() / IsAllowedInRaid()
+        if ($_flags & QUEST_FLAG_RAID)
+            $infobox[] = Lang::quest('raidAllowed');
+
+        // Player::RewardQuest(): rewarded on completion and never listed in the quest log
+        if ($_flags & QUEST_FLAG_TRACKING)
+            $infobox[] = Lang::quest('tracking');
+
+        // Quest::BuildQueryData(): items and money are only sent with the reward window
+        if ($_flags & QUEST_FLAG_HIDDEN_REWARDS)
+            $infobox[] = Lang::quest('hiddenRewards');
+
+        if ($_specialFlags & QUEST_FLAG_SPECIAL_DUNGEON_FINDER)
+            $infobox[] = Lang::quest('dungeonFinder');
+
+        // set by areatrigger_involvedrelation, SPELL_EFFECT_QUEST_COMPLETE, SCRIPT_COMMAND_QUEST_EXPLORED or a script
+        if ($_specialFlags & QUEST_FLAG_SPECIAL_EXT_COMPLETE)
+            $infobox[] = Lang::quest('extComplete');
+
+        // Player::CastedCreatureOrGO(): the RequiredNpcOrGo objectives count spell casts on them, not kills
+        if ($_specialFlags & QUEST_FLAG_SPECIAL_SPELLCAST)
+            $infobox[] = Lang::quest('spellcastObjectives');
+
+        // game_event_quest_condition: completing the quest advances a world event; the event page lists it the other way round
+        if ($_ = $this->getEventConditions())
+        {
+            $this->extendGlobalIds(Type::WORLDEVENT, ...$_);
+            $infobox[] = Lang::quest('eventCondition').Lang::main('colon').implode(', ', array_map(fn($e) => '[event='.$e.']', $_));
+        }
+        // aowow - custom end
 
         // difficulty
         if ($_ = $this->subject->getColorsForCurrent())
@@ -821,6 +858,11 @@ class QuestBaseResponse extends TemplateResponse implements ICache
             $this->extendGlobalData($poiJSG);
         }
         // aowow - custom end
+
+        // aowow - custom: `spell_area` rows tied to this quest - the auras (often phases) a player gets in an area while on it
+        $saJSG = [];
+        $this->areaAuras = $this->buildAreaAurasMarkup($saJSG);
+        $this->extendGlobalData($saJSG);
 
         // aowow - custom start: legacy script engine
         // not every core still ships these two; LegacyScript checks before querying
@@ -1491,6 +1533,89 @@ class QuestBaseResponse extends TemplateResponse implements ICache
     // aowow - custom end
 
     // aowow - custom start
+    private static function hasWorldTable(string $tbl) : bool
+    {
+        static $known = [];
+
+        return $known[$tbl] ??= (bool)DB::World()->selectCell('SHOW TABLES LIKE %s', $tbl);
+    }
+
+    /** the world events whose progress this quest counts toward */
+    private function getEventConditions() : array
+    {
+        if (!self::hasWorldTable('game_event_quest_condition'))
+            return [];
+
+        return array_values(array_unique(array_map('intVal', DB::World()->selectCol('SELECT DISTINCT `eventEntry` FROM game_event_quest_condition WHERE `quest` = %i', $this->typeId) ?: [])));
+    }
+
+    /**
+     * `spell_area` rows naming this quest in quest_start or quest_end; SpellArea::IsFitToRequirements() applies
+     * the spell while the player's status of each named quest is one of the bits of its status mask
+     */
+    private function buildAreaAurasMarkup(?array &$jsGlobals = []) : ?Markup
+    {
+        $rows = DB::World()->selectAssoc('SELECT * FROM spell_area WHERE `quest_start` = %i OR `quest_end` = %i ORDER BY `spell`, `area`', $this->typeId, $this->typeId);
+        if (!$rows)
+            return null;
+
+        $jsg   = [];
+        $state = function (int $questId, int $mask) use (&$jsg) : string
+        {
+            $names = [];
+            foreach (Lang::quest('questStatus') as $status => $name)
+                if ($mask & (1 << $status))
+                    $names[] = $name;
+
+            $jsg[Type::QUEST][$questId] = $questId;
+
+            return Lang::quest('saQuestState', ['[quest='.$questId.']', implode(', ', $names)]);
+        };
+
+        $buff = '';
+        foreach ($rows as $r)
+        {
+            $spell = (int)$r['spell'];
+            $area  = (int)$r['area'];
+            $jsg[Type::SPELL][$spell] = $spell;
+
+            $when = [];
+            if ($_ = (int)$r['quest_start'])
+                $when[] = $state($_, (int)$r['quest_start_status']);
+            if (($_ = (int)$r['quest_end']) && ($_ != $r['quest_start'] || $r['quest_end_status'] != $r['quest_start_status']))
+                $when[] = $state($_, (int)$r['quest_end_status']);
+
+            if ($_ = (int)$r['aura_spell'])
+            {
+                $jsg[Type::SPELL][abs($_)] = abs($_);
+                $when[] = Lang::quest($_ > 0 ? 'saAura' : 'saNoAura', ['[spell='.abs($_).']']);
+            }
+
+            $raceJsg = [];
+            if ((int)$r['racemask'] && ($_ = Lang::getRaceString((int)$r['racemask'], $raceJsg, Lang::FMT_MARKUP)))
+            {
+                foreach ($raceJsg as $raceId)
+                    $jsg[Type::CHR_RACE][$raceId] = $raceId;
+
+                $when[] = $_;
+            }
+
+            if (in_array((int)$r['gender'], [0, 1]))      // 2: GENDER_NONE, either
+                $when[] = Lang::main('sex', (int)$r['gender'] + 1);
+
+            if ($area)
+                $jsg[Type::ZONE][$area] = $area;
+
+            $buff .= '[tr][td][spell='.$spell.'][/td][td]'.($area ? '[zone='.$area.']' : Lang::quest('saAnywhere')).'[/td][td]'.implode('[br]', $when).
+                     '[/td][td][small class=q0]'.Lang::quest(empty($r['autocast']) ? 'saAllowed' : 'saAutocast').'[/small][/td][/tr]';
+        }
+
+        Util::mergeJsGlobals($jsGlobals, $jsg);
+
+        return new Markup('[pad][h3][toggler id=quest-area-auras]'.Lang::quest('saTitle').'[/toggler][/h3][div id=quest-area-auras clear=left][table class=grid]'.$buff.'[/table][/div]',
+                          ['allow' => Markup::CLASS_STAFF], 'quest-area-auras-generic');
+    }
+
     /** Emotes.dbc ids from quest_details, quest_request_items and quest_offer_reward; those are the negative ids of ?emote= */
     private function getGiverEmotes() : array
     {

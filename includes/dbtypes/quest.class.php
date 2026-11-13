@@ -490,7 +490,9 @@ class QuestListFilter extends Filter
         33 => parent::ENUM_EVENT,                           // relatedevent
         43 => parent::ENUM_CURRENCY,                        // currencyrewarded
          1 => parent::ENUM_FACTION,                         // increasesrepwith
-        10 => parent::ENUM_FACTION                          // decreasesrepwith
+        10 => parent::ENUM_FACTION,                         // decreasesrepwith
+        58 => parent::ENUM_PROFESSION,                      // requiresprof - aowow - custom
+        59 => parent::ENUM_FACTION                          // requiresrepwith - aowow - custom
     );
 
     protected static array $genericFilter = array(
@@ -526,11 +528,46 @@ class QuestListFilter extends Filter
         43 => [parent::CR_CALLBACK,  'cbCurrencyReward', null,                    null], // currencyrewarded [enum]
         44 => [parent::CR_CALLBACK,  'cbLoremaster',     null,                    null], // countsforloremaster_stc [yn]
         45 => [parent::CR_BOOLEAN,   'rewardTitleId'                                  ], // titlerewarded
-        47 => [parent::CR_FLAG,      'flags',            QUEST_FLAG_FLAGS_PVP         ]  // setspvpflag
+        47 => [parent::CR_FLAG,      'flags',            QUEST_FLAG_FLAGS_PVP         ], // setspvpflag
+        // aowow - custom start
+        48 => [parent::CR_CALLBACK,  'cbAutoComplete',   null,                    null], // autocomplete [yn]
+        49 => [parent::CR_FLAG,      'flags',            QUEST_FLAG_RAID              ], // raidallowed
+        50 => [parent::CR_FLAG,      'flags',            QUEST_FLAG_TRACKING          ], // trackingquest
+        51 => [parent::CR_FLAG,      'flags',            QUEST_FLAG_HIDDEN_REWARDS    ], // hiddenrewards
+        52 => [parent::CR_FLAG,      'specialFlags',     QUEST_FLAG_SPECIAL_DUNGEON_FINDER], // dungeonfinder
+        53 => [parent::CR_FLAG,      'specialFlags',     QUEST_FLAG_SPECIAL_EXT_COMPLETE  ], // extcomplete
+        54 => [parent::CR_FLAG,      'specialFlags',     QUEST_FLAG_SPECIAL_SPELLCAST     ], // spellcastobjectives
+        55 => [parent::CR_CALLBACK,  'cbAutoAccept',     null,                    null], // autoaccept [yn]
+        56 => [parent::CR_FLAG,      'specialFlags',     QUEST_FLAG_SPECIAL_MONTHLY   ], // monthly
+        57 => [parent::CR_NUMERIC,   'maxLevel',         NUM_CAST_INT                 ], // maxlevel [num]
+        58 => [parent::CR_ENUM,      'reqSkillId'                                     ], // requiresprof [enum]
+        59 => [parent::CR_CALLBACK,  'cbRequiresRep',    null,                    null], // requiresrepwith [enum]
+        60 => [parent::CR_CALLBACK,  'cbRequiredMoney',  null,                    null], // requiredmoney [num]
+        61 => [parent::CR_NUMERIC,   'reqPlayerKills',   NUM_CAST_INT                 ], // requiredpvpkills [num]
+        62 => [parent::CR_BOOLEAN,   'sourceItemId'                                   ], // providesitem [yn]
+        63 => [parent::CR_BOOLEAN,   'sourceSpellId'                                  ], // castsonaccept [yn]
+        64 => [parent::CR_BOOLEAN,   'rewardMailTemplateId'                           ], // rewardsmail [yn]
+        65 => [parent::CR_NUMERIC,   'rewardHonorPoints', NUM_CAST_INT                ], // honorrewarded [num]
+        66 => [parent::CR_NUMERIC,   'rewardArenaPoints', NUM_CAST_INT                ], // arenarewarded [num]
+        67 => [parent::CR_NUMERIC,   'rewardTalents',    NUM_CAST_INT                 ], // talentsrewarded [num]
+        68 => [parent::CR_BOOLEAN,   'exclusiveGroup'                                 ], // exclusivegroup [yn]
+        69 => [parent::CR_BOOLEAN,   'breadcrumbForQuestId'                           ], // breadcrumb [yn]
+        70 => [parent::CR_CALLBACK,  'cbWorldIds',       'poi',                   null], // hasobjectivemarkers [yn] [staff]
+        71 => [parent::CR_CALLBACK,  'cbWorldIds',       'pooled',                null], // pooled [yn]
+        72 => [parent::CR_CALLBACK,  'cbWorldIds',       'legacyscript',          null], // haslegacyscript [yn] [staff]
+        73 => [parent::CR_CALLBACK,  'cbWorldIds',       'areaauras',             null], // grantsareaaura [yn]
+        74 => [parent::CR_CALLBACK,  'cbWorldIds',       'eventcondition',        null], // advancesevent [yn]
+        75 => [parent::CR_CALLBACK,  'cbWorldIds',       'emotes',                null], // hasgiveremotes [yn]
+        76 => [parent::CR_CALLBACK,  'cbObjective',      'npc',                   null], // objectivenpc [num]
+        77 => [parent::CR_CALLBACK,  'cbObjective',      'object',                null], // objectiveobject [num]
+        78 => [parent::CR_CALLBACK,  'cbObjective',      'item',                  null], // objectiveitem [num]
+        79 => [parent::CR_CALLBACK,  'cbWorldIds',       'explore',               null], // objectiveexplore [yn]
+        80 => [parent::CR_STAFFFLAG, 'specialFlags'                                   ]  // specialflags [staff]
+        // aowow - custom end
     );
 
     protected static array $inputFields = array(
-        'cr'    => [parent::V_RANGE, [1, 47],                                                             true ], // criteria ids
+        'cr'    => [parent::V_RANGE, [1, 80],                                                             true ], // criteria ids - aowow - custom: 48-80 (upstream: 47)
         'crs'   => [parent::V_LIST,  [parent::ENUM_NONE, parent::ENUM_ANY, [0, 99999]],                   true ], // criteria operators
         'crv'   => [parent::V_REGEX, parent::PATTERN_INT,                                                 true ], // criteria values - only numerals
         'na'    => [parent::V_NAME,  false,                                                               false], // name / text - only printable chars, no delimiter
@@ -768,6 +805,125 @@ class QuestListFilter extends Filter
         else
             return ['id', $hasBoth];
     }
+
+    // aowow - custom start
+    private static function worldHasTable(string $tbl) : bool
+    {
+        static $known = [];
+
+        return $known[$tbl] ??= (bool)DB::World()->selectCell('SHOW TABLES LIKE %s', $tbl);
+    }
+
+    // Quest::IsAutoComplete(): QUEST_TYPE_TURNIN or the autocomplete flag
+    protected function cbAutoComplete(int $cr, int $crs, string $crv) : ?array
+    {
+        if (!$this->int2Bool($crs))
+            return null;
+
+        if ($crs)
+            return [DB::OR, ['questType', 0], ['flags', QUEST_FLAG_AUTO_COMPLETE, '&']];
+
+        return [DB::AND, ['questType', 0, '!'], [['flags', QUEST_FLAG_AUTO_COMPLETE, '&'], 0]];
+    }
+
+    // QuestList::isAutoAccept()
+    protected function cbAutoAccept(int $cr, int $crs, string $crv) : ?array
+    {
+        if (!$this->int2Bool($crs))
+            return null;
+
+        if ($crs)
+            return [DB::OR, ['flags', QUEST_FLAG_AUTO_ACCEPT, '&'], ['specialFlags', QUEST_FLAG_SPECIAL_AUTO_ACCEPT, '&']];
+
+        return [DB::AND, [['flags', QUEST_FLAG_AUTO_ACCEPT, '&'], 0], [['specialFlags', QUEST_FLAG_SPECIAL_AUTO_ACCEPT, '&'], 0]];
+    }
+
+    // RequiredMinRepFaction / RequiredMaxRepFaction of quest_template_addon
+    protected function cbRequiresRep(int $cr, int $crs, string $crv) : ?array
+    {
+        if ($crs == parent::ENUM_ANY)
+            return [DB::OR, ['reqMinRepFaction', 0, '!'], ['reqMaxRepFaction', 0, '!']];
+        if ($crs == parent::ENUM_NONE)
+            return [DB::AND, ['reqMinRepFaction', 0], ['reqMaxRepFaction', 0]];
+
+        if (!in_array($crs, self::$enums[$cr]))
+            return null;
+
+        return [DB::OR, ['reqMinRepFaction', $crs], ['reqMaxRepFaction', $crs]];
+    }
+
+    // a negative rewardOrReqMoney is money the quest takes
+    protected function cbRequiredMoney(int $cr, int $crs, string $crv) : ?array
+    {
+        if (!Util::checkNumeric($crv, NUM_CAST_INT) || !$this->int2Op($crs))
+            return null;
+
+        return [DB::AND, ['rewardOrReqMoney', 0, '<'], ['(0 - rewardOrReqMoney)', $crv, $crs]];
+    }
+
+    // RequiredNpcOrGo holds a creature as a positive and a gameobject as a negative entry
+    protected function cbObjective(int $cr, int $crs, string $crv, string $what) : ?array
+    {
+        if (!Util::checkNumeric($crv, NUM_CAST_INT) || $crv <= 0)
+            return null;
+
+        [$cols, $val] = match ($what)
+        {
+            'npc'    => [['reqNpcOrGo1', 'reqNpcOrGo2', 'reqNpcOrGo3', 'reqNpcOrGo4'], (int)$crv],
+            'object' => [['reqNpcOrGo1', 'reqNpcOrGo2', 'reqNpcOrGo3', 'reqNpcOrGo4'], -(int)$crv],
+            'item'   => [['reqItemId1', 'reqItemId2', 'reqItemId3', 'reqItemId4', 'reqItemId5', 'reqItemId6'], (int)$crv]
+        };
+
+        $cnd = [DB::OR];
+        foreach ($cols as $c)
+            $cnd[] = [$c, $val];
+
+        return $cnd;
+    }
+
+    // [yn] criteria answered by a list of quest ids from the world db, matching what the quest page shows
+    protected function cbWorldIds(int $cr, int $crs, string $crv, string $what) : ?array
+    {
+        if (!$this->int2Bool($crs))
+            return null;
+
+        // objective markers and legacy scripts are staff only on the quest page
+        if (in_array($what, ['poi', 'legacyscript']) && !User::canSee(U_GROUP_STAFF))
+            return [1];
+
+        $ids = match ($what)
+        {
+            'poi'            => self::worldHasTable('quest_poi') ? DB::World()->selectCol('SELECT DISTINCT `QuestID` FROM quest_poi') : [],
+            'pooled'         => self::worldHasTable('quest_pool_members') ? DB::World()->selectCol('SELECT DISTINCT `questId` FROM quest_pool_members') : [],
+            'legacyscript'   => array_merge(
+                                    self::worldHasTable('quest_start_scripts') ? DB::World()->selectCol('SELECT DISTINCT `id` FROM quest_start_scripts') : [],
+                                    self::worldHasTable('quest_end_scripts')   ? DB::World()->selectCol('SELECT DISTINCT `id` FROM quest_end_scripts')   : []
+                                ),
+            'areaauras'      => self::worldHasTable('spell_area') ? array_merge(
+                                    DB::World()->selectCol('SELECT DISTINCT `quest_start` FROM spell_area WHERE `quest_start` > 0'),
+                                    DB::World()->selectCol('SELECT DISTINCT `quest_end` FROM spell_area WHERE `quest_end` > 0')
+                                ) : [],
+            'eventcondition' => self::worldHasTable('game_event_quest_condition') ? DB::World()->selectCol('SELECT DISTINCT `quest` FROM game_event_quest_condition') : [],
+            'emotes'         => array_merge(
+                                    self::worldHasTable('quest_details') ? DB::World()->selectCol('SELECT `ID` FROM quest_details WHERE `Emote1` > 0 OR `Emote2` > 0 OR `Emote3` > 0 OR `Emote4` > 0') : [],
+                                    self::worldHasTable('quest_request_items') ? DB::World()->selectCol('SELECT `ID` FROM quest_request_items WHERE `EmoteOnComplete` > 0 OR `EmoteOnIncomplete` > 0') : [],
+                                    self::worldHasTable('quest_offer_reward') ? DB::World()->selectCol('SELECT `ID` FROM quest_offer_reward WHERE `Emote1` > 0 OR `Emote2` > 0 OR `Emote3` > 0 OR `Emote4` > 0') : []
+                                ),
+            'explore'        => self::worldHasTable('areatrigger_involvedrelation') ? DB::World()->selectCol('SELECT DISTINCT `quest` FROM areatrigger_involvedrelation') : [],
+            default          => null
+        };
+
+        if ($ids === null)
+            return null;
+
+        $ids = array_values(array_unique(array_map('intVal', $ids ?: [])));
+
+        if ($crs)
+            return $ids ? ['id', $ids] : [0];
+
+        return $ids ? ['id', $ids, '!'] : [1];
+    }
+    // aowow - custom end
 }
 
 
