@@ -4,31 +4,6 @@ if (typeof $WH == "undefined") { // Local
     var $WH = {};
 }
 
-$WH.$E = function (e) {
-    if (!e) {
-        if (typeof event != 'undefined') {
-            e = event;
-        }
-        else {
-            return null;
-        }
-    }
-
-    // Netscape standard (1 = Left, 2 = Middle, 3 = Right)
-    if (e.which) {
-        e._button = e.which;
-    }
-    else {
-        e._button = e.button + 1;
-    }
-
-    e._target = e.target ? e.target : e.srcElement;
-
-    e._wheelDelta = e.wheelDelta ? e.wheelDelta : -e.detail;
-
-    return e;
-};
-
 $WH.$A = function (a) {
     var r = [];
     for (var i = 0, len = a.length; i < len; ++i) {
@@ -454,8 +429,6 @@ $WH.rf = function() {
 
 // Return false only if no control key is pressed
 $WH.rf2 = function(e) {
-    e = $WH.$E(e);
-
     if (e.ctrlKey || e.shiftKey || e.altKey || e.metaKey) {
         return;
     }
@@ -486,15 +459,6 @@ $WH.dE = function(z, y, x) {
     else if (z.detachEvent) {
         z.detachEvent('on' + y, x);
     }
-}
-
-// Stop propagation
-$WH.sp = function(z) {
-    if (!z) {
-        z = event;
-    }
-
-    z.stopPropagation();
 }
 
 // Set cookie
@@ -1670,7 +1634,8 @@ $WH.g_enhanceTooltip = function(tooltip, isStatic, useGets, showSlider, buff, kn
             // Retrieve tooltip's global information
             var _ = tooltip.match(/<!--\?(\d+):(\d+):(\d+):(\d+)/);
             if (_ && _[2] != _[3]) {
-                this.slider = Slider.init(showSlider, { minValue: parseInt(_[2]), maxValue: parseInt(_[3]), onMove: $WH.g_tooltipSliderMove.bind(this) });
+                this.slider = Slider.init(showSlider, { minValue: parseInt(_[2]), maxValue: parseInt(_[3]), onMove: $WH.g_tooltipSliderMove.bind(this), title: LANG.level });
+
                 Slider.setValue(this.slider, parseInt(_[4]));
 
                 this.slider.onmousemove = $WH.Tooltip.cursorUpdate;
@@ -1678,6 +1643,7 @@ $WH.g_enhanceTooltip = function(tooltip, isStatic, useGets, showSlider, buff, kn
                 this.slider.onmouseover = function(e) {
                     $WH.Tooltip.showAtCursor(e, LANG.tooltip_changelevel2, 0, 0, 'q2');
                 };
+                $WH.Tooltip.simple(Slider.getInput(this.slider), LANG.tooltip_changelevel, 'q2', true);
             }
         }
     }
@@ -2142,7 +2108,6 @@ $WH.Tooltip = {
             }
         }
 
-        e = $WH.$E(e);
         var pos = $WH.g_getCursorPos(e);
 
         $WH.Tooltip.prepare();
@@ -2170,8 +2135,6 @@ $WH.Tooltip = {
         if ($WH.Tooltip.disabled || !$WH.Tooltip.tooltip) {
             return;
         }
-
-        e = $WH.$E(e);
 
         if (!x || x < 10) {
             x = 10;

@@ -4194,7 +4194,7 @@ Listview.templates = {
             if (comment.deleted || comment.rating < -4) {
                 comment.headerCell.css('cursor', 'pointer');
                 comment.headerCell.bind('click', function(e) {
-                    if ($WH.$E(e)._target.nodeName == 'A') {
+                    if (e.target.nodeName == 'A') {
                         return;                             // aowow - custom: prevent toggle if using function buttons
                     }
 
@@ -6943,15 +6943,13 @@ Listview.templates = {
 
         modelShow: function(npcId, displayId, sp, e) {
             if (sp) {
-                e = $WH.$E(e);
-
                 if (e.shiftKey || e.ctrlKey) {
                     return;
                 }
 
                 var
                     j = 0,
-                    el = e._target;
+                    el = e.target;
                 while (el && j < 3) {
                     if (el.nodeName == 'A') {
                         return;
@@ -7061,15 +7059,13 @@ Listview.templates = {
 
         modelShow: function (type, typeId, displayId, slot, sp, e) {
             if (sp) {
-                e = $WH.$E(e);
-
                 if (e.shiftKey || e.ctrlKey) {
                     return;
                 }
 
                 var
                     j = 0,
-                    el = e._target;
+                    el = e.target;
 
                 while (el && j < 3) {
                     if (el.nodeName == 'A') {

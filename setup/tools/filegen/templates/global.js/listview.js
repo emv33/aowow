@@ -1352,10 +1352,8 @@ Listview.prototype = {
 
     itemClick: function(row, e)
     {
-        e = $WH.$E(e);
-
         var i  = 0,
-            el = e._target;
+            el = e.target;
 
         while (el && i < 3)
         {
@@ -1370,8 +1368,6 @@ Listview.prototype = {
 
     submitSearch: function(e)
     {
-        e = $WH.$E(e);
-
         if (!this.onSearchSubmit || e.keyCode != 13)
             return;
 
@@ -2308,13 +2304,13 @@ Listview.cbSelect = function(v)
 Listview.cbClick = function(e)
 {
     setTimeout(Listview.cbUpdate.bind(0, 0, this, this.parentNode.parentNode), 1);
-    $WH.sp(e);
+    e.stopPropagation();
 };
 
 Listview.cbCellClick = function(e)
 {
     setTimeout(Listview.cbUpdate.bind(0, 1, this.firstChild, this.parentNode), 1);
-    $WH.sp(e);
+    e.stopPropagation();
 };
 
 Listview.cbUpdate = function(toggle, cb, tr)
@@ -2327,12 +2323,10 @@ Listview.cbUpdate = function(toggle, cb, tr)
 
 Listview.headerClick = function(col, i, e)
 {
-    e = $WH.$E(e);
-
     if (this.tabClick)
         this.tabClick();
 
-    if (e._button == 3 || e.shiftKey || e.ctrlKey)
+    if (e.button == 1 || e.shiftKey || e.ctrlKey)
     {
         $WH.Tooltip.hide();
         setTimeout(Listview.headerFilter.bind(this, col, null), 1);
@@ -2963,7 +2957,7 @@ Listview.extraCols = {
             td.style.whiteSpace = 'nowrap';
 
             // tiny links are hard to hit, hmkey?
-            td.onclick = (e) => $WH.sp(e);
+            td.onclick = (e) => e.stopPropagation();
 
             var mText = ConditionList.createCell(row.condition);
             Markup.printHtml(mText, td);
@@ -3971,7 +3965,7 @@ Listview.funcBox = {
             {
                 comment.headerCell.css('cursor', 'pointer');
                 comment.headerCell.bind('click', function(e) {
-                    if ($WH.$E(e)._target.nodeName == 'A')
+                    if (e.target.nodeName == 'A')
                         return;
 
                     comment.voteCell.toggle();
@@ -4681,13 +4675,11 @@ Listview.funcBox = {
 
     ssCellClick: function(i, e)
     {
-        e = $WH.$E(e);
-
         if (e.shiftKey || e.ctrlKey)
             return;
 
         var j  = 0,
-            el = e._target;
+            el = e.target;
 
         while (el && j < 3)
         {
@@ -4728,13 +4720,11 @@ Listview.funcBox = {
 
     viCellClick: function(i, e)
     {
-        e = $WH.$E(e);
-
         if (e.shiftKey || e.ctrlKey)
             return;
 
         var j  = 0,
-            el = e._target;
+            el = e.target;
 
         while (el && j < 3)
         {

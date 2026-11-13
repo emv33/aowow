@@ -1122,9 +1122,7 @@ function Profiler() {
                   a = $WH.ce('a')
 
             var toggleAura = function (spell, td, e) {
-                e = $WH.$E(e);
-
-                if (e._button != 3 && !e.shiftKey && !e.ctrlKey)
+                if (e.button != 2 && !e.shiftKey && !e.ctrlKey)
                     return true;
 
                 if (td.className == 'q1') {
@@ -1154,7 +1152,6 @@ function Profiler() {
             td.onmouseup = toggleAura.bind(null, spl, td);
             td.oncontextmenu = $WH.rf;
             td.onclick = function (e) {
-                e = $WH.$E(e);
                 if (e.shiftKey || e.ctrlKey) {
                     return false;
                 }
@@ -1172,8 +1169,6 @@ function Profiler() {
         if (!_isArmoryProfile()) {
             return;
         }
-
-        e = $WH.$E(e);
 
         var menu = [[0, LANG.button_resync, _self.resync]];
 
@@ -1200,8 +1195,6 @@ function Profiler() {
     }
 
     function _showProfileMenu(e) {
-        e = $WH.$E(e);
-
         var menu = [[0, LANG.button_new, '?profile&new']];
 
         if (g_user.id) {
@@ -4517,8 +4510,6 @@ function ProfilerInventory(_parent) {
     }
 
     function _showUpgradesMenu(e) {
-        e = $WH.$E(e);
-
         var inventory = _getInventory(),
         buildData = _talents.getTalentBuilds(),
         items = [],
@@ -5297,11 +5288,9 @@ function ProfilerInventory(_parent) {
     }
 
     function _onMouseUpSlot(slotId, a, e) {
-        e = $WH.$E(e);
-
         _currentSlot = slotId;
 
-        if (e._button == 3 || e.shiftKey || e.ctrlKey) {
+        if (e.button == 2 || e.shiftKey || e.ctrlKey) {
             var pos = $WH.g_getCursorPos(e);
             setTimeout(Menu.showAtXY.bind(null, a.menu, pos.x, pos.y), 1);// Timeout needed for the context menu to be disabled
 
@@ -5323,8 +5312,7 @@ function ProfilerInventory(_parent) {
     }
 
     function _onKeyDownSearch(e) {
-        e = $WH.$E(e);
-        var textbox = e._target;
+        var textbox = e.target;
 
         switch (e.keyCode) {
             case 13: // Enter
@@ -5521,7 +5509,6 @@ function ProfilerInventory(_parent) {
             Icon.setTexture(icon, 1, g_items[itemId].icon.toLowerCase());
 
             a.onclick     = ($WH.OS.mac ? function (e) {
-                e = $WH.$E(e);
                 if (e.shiftKey || e.ctrlKey) {
                     return false;
                 }
@@ -5993,7 +5980,6 @@ function ProfilerInventory(_parent) {
 
                         a.oncontextmenu = $WH.rf;
                         a.onclick = ($WH.OS.mac ? function (e) {
-                            e = $WH.$E(e);
                             if (e.shiftKey || e.ctrlKey) {
                                 return false;
                             }
@@ -6093,7 +6079,6 @@ function ProfilerInventory(_parent) {
 
                     a.oncontextmenu = $WH.rf;
                     a.onclick = ($WH.OS.mac ? function (e) {
-                        e = $WH.$E(e);
                         if (e.shiftKey || e.ctrlKey) {
                             return false ;
                         }
@@ -8588,7 +8573,6 @@ Listview.templates.inventory = {
 
                 a.oncontextmenu = $WH.rf;
                 a.onclick = ($WH.OS.mac ? function (e) {
-                    e = $WH.$E(e);
                     if (e.shiftKey || e.ctrlKey) {
                         return false;
                     }
@@ -8612,7 +8596,6 @@ Listview.templates.inventory = {
                 a = $WH.ce('a');
                 a.oncontextmenu = $WH.rf;
                 a.onclick = ($WH.OS.mac ? function(e) {
-                    e = $WH.$E(e);
                     if (e.shiftKey || e.ctrlKey) {
                         return false;
                     }
@@ -9028,15 +9011,13 @@ Listview.templates.gallery = {
 
     modelShow: function (npcId, displayId, sp, e) {
         if (sp) {
-            e = $WH.$E(e);
-
             if (e.shiftKey || e.ctrlKey) {
                 return;
             }
 
             var
                 j = 0,
-                el = e._target;
+                el = e.target;
 
             while (el && j < 3) {
                 if (el.nodeName == 'A') {
