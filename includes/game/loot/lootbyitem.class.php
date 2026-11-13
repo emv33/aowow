@@ -291,6 +291,8 @@ class LootByItem extends Loot
         if (!$ids)
             return false;
 
+        $parentModes = [];                                  // aowow - custom
+
         if ($baseIds = DB::Aowow()->selectPairs(
            'SELECT `difficultyEntry1` AS ARRAY_KEY, `id` FROM ::creature WHERE `difficultyEntry1` IN %in UNION
             SELECT `difficultyEntry2` AS ARRAY_KEY, `id` FROM ::creature WHERE `difficultyEntry2` IN %in UNION
@@ -303,6 +305,13 @@ class LootByItem extends Loot
             {
                 $this->storeJSGlobals($parentObj->getJSGlobals());
                 $parentData = $parentObj->getListviewData();
+
+                // aowow - custom start: modes of the parent's own loot, merged into the rows of its difficulty versions
+                foreach ($parentObj->iterate() as $pId => $__)
+                    if (in_array($parentObj->getField($dbField), $ids) && ($_ = $parentObj->getModes()))
+                        $parentModes[$pId] = $_;
+                // aowow - custom end
+
                 $ids = array_diff($ids, $baseIds);
             }
         }
@@ -327,7 +336,23 @@ class LootByItem extends Loot
 
             [, &$data, , , &$extraCols, ,] = $this->listviewTabs[$tabRef ?? $tabId];
 
-            $data[]      = array_merge($parentData[$npc->getField('parentId')] ?? $srcData[$npc->id], $result[$npc->getField($dbField)]);
+            $row = array_merge($parentData[$npc->getField('parentId')] ?? $srcData[$npc->id], $result[$npc->getField($dbField)]);
+
+            // aowow - custom start: a difficulty version shown as its parent drops in its own modes, not the parent's
+            if (isset($parentData[$pId = $npc->getField('parentId')]))
+            {
+                $modes = $npc->getModes() ?? $parentModes[$pId] ?? null;
+                if ($modes && isset($parentModes[$pId]))
+                    $modes[1] |= $parentModes[$pId][1];
+
+                if ($modes)
+                    $row['modes'] = $modes;
+                else
+                    unset($row['modes']);
+            }
+            // aowow - custom end
+
+            $data[]      = $row;
             $extraCols[] = '$Listview.extraCols.percent';
         }
 
