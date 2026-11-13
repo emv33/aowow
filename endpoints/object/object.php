@@ -21,6 +21,7 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
     public  int   $typeId  = 0;
     public ?Book  $book    = null;
     public ?array $relBoss = null;
+    public string $modePills = '';                          // aowow - custom
 
     private array $difficulties = [];
     private int   $mapType      = 0;
@@ -47,6 +48,10 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
             $this->generateNotFound(Lang::game('object'), Lang::gameObject('notFound'));
 
         $this->h1 = UIText::unescapeUISequences($this->subject->getField('name', true), Lang::FMT_HTML);
+
+        // aowow - custom: the difficulties of its instance an object of ::objectdifficulty is used in, as on npcs
+        if ($_ = GameObjectList::getModesFor($this->typeId))
+            $this->modePills = CreatureList::modePills(...$_);
 
         $this->gPageInfo += array(
             'type'   => $this->type,
@@ -203,6 +208,10 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
             $infobox[] = Lang::npcExtra('questItems').Lang::main('colon').Lang::concat(array_map(fn($x) => '[item='.$x.']', $_), Lang::CONCAT_NONE);
         }
 
+        // aowow - custom: the phases this object's spawns sit in, as on the npc page
+        if ($_ = DB::World()->selectCol('SELECT DISTINCT `phaseMask` FROM gameobject WHERE `id` = %i AND `phaseMask` NOT IN (0, 1)', $this->typeId))
+            $infobox[] = Lang::npcExtra('phases').Lang::main('colon').implode(', ', array_map(fn($m) => '0x'.strtoupper(dechex((int)$m)), $_));
+
         // trap for X (note: moved to lv-tabs)
 
         // SpellFocus
@@ -320,6 +329,9 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
 
                 $stringIDs .= '[/ul][/div]';
             }
+
+            if ($stringIDs)                                 // aowow - custom: was built but never added
+                $infobox[] = $stringIDs;
         }
 
         if ($infobox)
@@ -544,7 +556,10 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
         // aowow - custom end
 
         // tab: related spells
-        if ($_ = $this->subject->getField('spells'))
+        // aowow - custom: also the spells its SmartAI casts, with a source column as on the npc abilities tab (upstream: template spells only)
+        $tplSpells   = array_filter($this->subject->getField('spells') ?: []);
+        $smartSpells = SmartAI::getSpellCastsForOwner($this->typeId, SmartAI::SRC_TYPE_OBJECT) ?: [];
+        if ($_ = array_unique(array_merge(array_values($tplSpells), $smartSpells)))
         {
             $relSpells = new SpellList(array(['id', $_]));
             if (!$relSpells->error)
@@ -553,14 +568,28 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
                 $data = $relSpells->getListviewData();
 
                 foreach ($data as $relId => $d)
-                    $data[$relId]['trigger'] = array_search($relId, $_);
+                {
+                    $src = [];
+                    if (in_array($relId, $tplSpells))
+                    {
+                        $data[$relId]['trigger'] = array_search($relId, $tplSpells);
+                        $src[] = Lang::gameObject('srcTemplate');
+                    }
+                    if (in_array($relId, $smartSpells))
+                        $src[] = Lang::npc('srcSmartai');
+
+                    $data[$relId]['source'] = implode(', ', $src);
+                }
 
                 $this->lvTabs->addListviewTab(new Listview(array(
                     'data'       => $data,
                     'id'         => 'spells',
                     'name'       => '$LANG.tab_spells',
                     'hiddenCols' => ['skill'],
-                    'extraCols'  => ["\$Listview.funcBox.createSimpleCol('trigger', 'Condition', '10%', 'trigger')"]
+                    'extraCols'  => array(
+                        "\$Listview.funcBox.createSimpleCol('trigger', 'Condition', '10%', 'trigger')",
+                        "\$Listview.funcBox.createSimpleCol('source', '".Lang::gameObject('srcColumn')."', '15%', 'source')"
+                    )
                 ), SpellList::$brickFile));
             }
         }
@@ -887,7 +916,7 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
     private function getTemplateDetails() : array
     {
         $r = DB::World()->selectRow(
-           'SELECT    go.`type`, go.`data0`, go.`data2`, go.`data3`, go.`data4`, go.`data5`, go.`data6`, go.`data9`, go.`data11`,
+           'SELECT    go.*,
                       IFNULL(goa.`flags`, 0) AS "flags", IFNULL(goa.`mingold`, 0) AS "mingold", IFNULL(goa.`maxgold`, 0) AS "maxgold"
             FROM      gameobject_template go
             LEFT JOIN gameobject_template_addon goa ON goa.`entry` = go.`entry`
@@ -952,6 +981,102 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
             $out[] = Lang::gameObject('cooldown', [DateTime::formatTimeElapsed($cooldown * 1000)]);
         if ($autoClose > 0)
             $out[] = Lang::gameObject('autoClose', [DateTime::formatTimeElapsedFloat($autoClose)]);
+
+        $t = (int)$r['type'];
+        $d = fn(int $n) : int => (int)$r['data'.$n];
+
+        switch ($t)
+        {
+            case GO_TYPE_CHEST:
+                // Player::SendLoot() / GameObject::GetLootRecipient(): loot goes round robin, master looter, ...
+                if ($d(15))
+                    $out[] = Lang::gameObject('groupLoot');
+                break;
+            case GO_TYPE_TRAP:
+                // GameObject::GetLevelForTarget()
+                if ($d(1))
+                    $out[] = Lang::gameObject('trapLevel', [$d(1)]);
+                // GameObject::Update(): the first check is delayed by startDelay seconds
+                if ($d(7))
+                    $out[] = Lang::gameObject('startDelay', [DateTime::formatTimeElapsed($d(7) * 1000)]);
+                break;
+            case GO_TYPE_CHAIR:
+                // GameObject::Use(): one seat per slot, sat on at UNIT_STAND_STATE_SIT_LOW_CHAIR + height
+                if ($d(0))
+                    $out[] = Lang::gameObject('chairSeats', [$d(0)]);
+                if ($_ = Lang::unit('bytes1', 0, UNIT_STAND_STATE_SIT_LOW_CHAIR + $d(1)))
+                    $out[] = Lang::npcExtra('standState').Lang::main('colon').$_;
+                break;
+            case GO_TYPE_BARBER_CHAIR:
+                if ($_ = Lang::unit('bytes1', 0, UNIT_STAND_STATE_SIT_LOW_CHAIR + $d(0)))
+                    $out[] = Lang::npcExtra('standState').Lang::main('colon').$_;
+                break;
+            case GO_TYPE_SPELL_FOCUS:
+                // Trinity::GameObjectFocusCheck
+                if ($d(1))
+                    $out[] = Lang::gameObject('focusRadius', [$d(1)]);
+                break;
+            case GO_TYPE_CAMERA:
+                if ($d(1))
+                    $out[] = Lang::gameObject('cinematic', [$d(1)]);
+                break;
+            case GO_TYPE_MO_TRANSPORT:
+                // TransportMgr::GeneratePath()
+                if ($d(1))
+                    $out[] = Lang::gameObject('transportSpeed', [$d(1), $d(2)]);
+                if ($d(8))
+                    $out[] = Lang::gameObject('canBeStopped');
+                break;
+            case GO_TYPE_RITUAL:
+                // GameObject::Use(): the spell goes off once this many players have clicked it
+                if ($d(0))
+                    $out[] = Lang::gameObject('ritualCasters', [$d(0)]);
+                if ($d(6))
+                    $out[] = Lang::gameObject('ritualGrouped');
+                break;
+            case GO_TYPE_SPELLCASTER:
+                if ($d(2))
+                    $out[] = Lang::gameObject('partyOnly');
+                break;
+            case GO_TYPE_FISHINGHOLE:
+                // Trinity::NearestGameObjectFishingHole
+                if ($d(0))
+                    $out[] = Lang::gameObject('fishingRadius', [$d(0)]);
+                break;
+            case GO_TYPE_DESTRUCTIBLE_BUILDING:
+                // GameObject::Create() / ModifyHealth(): damaged once health drops to damagedNumHits
+                if ($d(0) + $d(5))
+                    $out[] = Lang::gameObject('buildingHp', [$d(0) + $d(5), $d(5)]);
+                break;
+        }
+
+        // GameObjectTemplate::GetCharges(): despawns after this many uses
+        if (in_array($t, [GO_TYPE_GUARDPOST, GO_TYPE_SPELLCASTER]) && $d(1))
+            $out[] = Lang::gameObject('charges', [$d(1)]);
+
+        // GameObjectTemplate::GetServerOnly(): GameObject::IsNeverVisible() hides it from every client
+        $serverOnly = [GO_TYPE_GENERIC => 2, GO_TYPE_TRAP => 8, GO_TYPE_SPELL_FOCUS => 3, GO_TYPE_AURA_GENERATOR => 6];
+        if (isset($serverOnly[$t]) && $d($serverOnly[$t]))
+            $out[] = Lang::gameObject('serverOnly');
+
+        // GameObjectTemplate::IsUsableMounted()
+        $mounted = [GO_TYPE_QUESTGIVER => 8, GO_TYPE_TEXT => 3, GO_TYPE_GOOBER => 17, GO_TYPE_SPELLCASTER => 3];
+        if ($t == GO_TYPE_MAILBOX || (isset($mounted[$t]) && $d($mounted[$t])))
+            $out[] = Lang::gameObject('usableMounted');
+
+        // GameObjectTemplate::CannotBeUsedUnderImmunity(); every chest is, which is not worth a line on each of them
+        $noImmune = [GO_TYPE_DOOR => 3, GO_TYPE_BUTTON => 4, GO_TYPE_QUESTGIVER => 5, GO_TYPE_GOOBER => 11, GO_TYPE_FLAGSTAND => 5, GO_TYPE_FLAGDROP => 3];
+        if (isset($noImmune[$t]) && $d($noImmune[$t]))
+            $out[] = Lang::gameObject('noImmune');
+
+        // GameObjectTemplate::IsIgnoringLOSChecks(): the spells it casts skip the line of sight check unless losOK is set
+        $losOK = [GO_TYPE_BUTTON => 8, GO_TYPE_QUESTGIVER => 7, GO_TYPE_CHEST => 10, GO_TYPE_GOOBER => 16, GO_TYPE_FLAGSTAND => 7];
+        if (isset($losOK[$t]) && $d($losOK[$t]))
+            $out[] = Lang::gameObject('needsLos');
+
+        // GameObject::Create(): IsInfiniteGameObject() / IsLargeGameObject() override the map's visibility range
+        if ($vis = GameObjectList::getVisibilityType($r))
+            $out[] = Lang::npcExtra('visibility').Lang::main('colon').sprintf(Lang::npcExtra('visibilityTypes')[$vis], GameObjectList::VISIBILITY_YARDS[$vis]);
 
         return $out;
     }

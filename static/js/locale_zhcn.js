@@ -4306,7 +4306,7 @@ var LANG = {
         locked:                  "已锁",
         millable:                "可研磨",
         notavailable:            "不对玩家开放",
-        objectivequest:          "任务目标",
+        objectivequest:        "任务目标",
         openable:                "可开启",
         partofset:               "物品套装一部分",
         partyloot:               "团队拾取",
@@ -4570,15 +4570,55 @@ var LANG = {
         endsquest:             "结束任务",
         id:                    "ID",
         spellfocus:            "Spell Focus",
+        // aowow - custom start
+        faction:               "阵营",
+        npcmode:               "用于难度",
+        hasdifficultyversions: "有难度版本",
+        usemodel:              "使用模型 #...",
+        scale:                 "Scale",
+        visibilityrange:       "Visibility range",
+        objreadable:           "Readable",
+        objlinkedtrap:         "Has a linked trap",
+        objreqquest:           "Requires a quest",
+        objquestitems:         "Holds quest-only items",
+        objgossip:             "Has a gossip menu",
+        objsmartai:            "Has a SmartAI script",
+        objpooled:             "Pooled spawns",
+        objserveronly:         "Server-side only",
+        objusablemounted:      "Usable while mounted",
+        phased:                "Spawns outside the default phase",
+        // aowow - custom end
 
         seploot:               "拾取",
         averagemoneycontained: "平均含有金钱",
         openable:              "可开启",
+        lootable:              "可拾取",   // aowow - custom
+
+        // aowow - custom start
+        sepobjflags:           "Flags",
+        goflaginuse:           "In use",
+        goflaglocked:          "Locked",
+        goflaginteractcond:    "Cannot interact",
+        goflagtransport:       "Transport",
+        goflagnotselectable:   "Not selectable",
+        goflagnodespawn:       "Never despawns",
+        goflagaiobstacle:      "Triggered",
+        goflagfreezeanim:      "Freeze animation",
+        goflagdamaged:         "Siege damaged",
+        goflagdestroyed:       "Siege destroyed",
+        // aowow - custom end
 
         sepcommunity:          "社区",
         hascomments:           "有评论",
         hasscreenshots:        "有截屏",
-        hasvideos:             "有视频"
+        hasvideos:             "有视频",
+
+        // aowow - custom start
+        sepstaffonly:          "仅限员工",
+        haslocation:           "有地点",
+        scriptname:            "Script name / AI",
+        stringid:              "String ID"
+        // aowow - custom end
     },
 
     fiquests: {
@@ -4587,7 +4627,7 @@ var LANG = {
         daily:                   "日常",
         weekly:                  "每周",
         repeatable:              "可重复",
-        objectiveearnrepwith:    "目标：获得声望…",
+        objectiveearnrepwith:  "目标：获得声望…",
         countsforloremaster_stc: "博学者任务",
         sharable:                "可分享",
         startsfrom:              "始于…",
@@ -5205,7 +5245,7 @@ var LANG = {
     },
     fispellfocus: {
         name:       "Name",
-        objects:    "Objects",
+        objects:               "Objects",
         viewObjects: "View objects"
     },
     fitext: {

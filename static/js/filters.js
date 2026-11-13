@@ -384,15 +384,49 @@ var fi_filters = {
         { id: 2,   name: 'startsquest',         type: 'side' },
         { id: 3,   name: 'endsquest',           type: 'side' },
         { id: 50,  name: 'spellfocus',          type: 'num' },
+        { id: 51,  name: 'faction',             type: 'faction' },              // aowow - custom start
+        { id: 67,  name: 'npcmode',             type: 'npcmode-any+none' },
+        { id: 68,  name: 'hasdifficultyversions', type: 'yn' },
+        { id: 52,  name: 'usemodel',            type: 'num' },
+        { id: 66,  name: 'scale',               type: 'num' },
+        { id: 53,  name: 'visibilityrange',     type: 'visibilityrange-any' },
+        { id: 58,  name: 'objreadable',         type: 'yn' },
+        { id: 59,  name: 'objlinkedtrap',       type: 'yn' },
+        { id: 60,  name: 'objreqquest',         type: 'yn' },
+        { id: 62,  name: 'objquestitems',       type: 'yn' },
+        { id: 63,  name: 'objgossip',           type: 'yn' },
+        { id: 64,  name: 'objsmartai',          type: 'yn' },
+        { id: 61,  name: 'phased',              type: 'yn' },
+        { id: 65,  name: 'objpooled',           type: 'yn' },
+        { id: 69,  name: 'objserveronly',       type: 'yn' },
+        { id: 70,  name: 'objusablemounted',    type: 'yn' },                   // aowow - custom end
 
         { id: 9,   name: 'seploot' },
         { id: 5,   name: 'averagemoneycontained',   type: 'num' },
         { id: 4,   name: 'openable',                type: 'yn' },
+        { id: 57,  name: 'lootable',                type: 'yn' },               // aowow - custom
+
+        { id: 9998, name: 'sepobjflags' },                                      // aowow - custom start
+        { id: 71,  name: 'goflaginuse',         type: 'yn' },
+        { id: 72,  name: 'goflaglocked',        type: 'yn' },
+        { id: 73,  name: 'goflaginteractcond',  type: 'yn' },
+        { id: 74,  name: 'goflagtransport',     type: 'yn' },
+        { id: 75,  name: 'goflagnotselectable', type: 'yn' },
+        { id: 76,  name: 'goflagnodespawn',     type: 'yn' },
+        { id: 77,  name: 'goflagaiobstacle',    type: 'yn' },
+        { id: 78,  name: 'goflagfreezeanim',    type: 'yn' },
+        { id: 79,  name: 'goflagdamaged',       type: 'yn' },
+        { id: 80,  name: 'goflagdestroyed',     type: 'yn' },                   // aowow - custom end
 
         { id: 10,  name: 'sepcommunity' },
         { id: 13,  name: 'hascomments',         type: 'yn' },
         { id: 11,  name: 'hasscreenshots',      type: 'yn' },
-        { id: 18,  name: 'hasvideos',           type: 'yn' }
+        { id: 18,  name: 'hasvideos',           type: 'yn' },
+
+        { id: 999, name: 'sepstaffonly',                    staffonly: true },  // aowow - custom start
+        { id: 54,  name: 'haslocation',         type: 'yn', staffonly: true },
+        { id: 55,  name: 'scriptname',          type: 'str', staffonly: true },
+        { id: 56,  name: 'stringid',            type: 'str', staffonly: true } // aowow - custom end
     ],
 
     quests: [

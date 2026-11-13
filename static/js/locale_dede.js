@@ -4265,7 +4265,7 @@ var LANG = {
         locked:                  "Verschlossen",
         millable:                "Mahlbar",
         notavailable:            "Nicht für Spieler verfügbar",
-        objectivequest:          "Ziel einer Quest",
+        objectivequest:        "Ziel einer Quest",
         openable:                "Kann geöffnet werden",
         partofset:               "Teil eines Sets",
         partyloot:               "Gruppenloot",
@@ -4529,15 +4529,55 @@ var LANG = {
         endsquest:             "Beendet eine Quest",
         id:                    "ID",
         spellfocus:            "Zauberfokus",
+        // aowow - custom start
+        faction:               "Fraktion",
+        npcmode:               "Verwendet im Schwierigkeitsgrad",
+        hasdifficultyversions: "Hat Schwierigkeitsgrad-Versionen",
+        usemodel:              "Verwendet Modell #...",
+        scale:                 "Scale",
+        visibilityrange:       "Visibility range",
+        objreadable:           "Readable",
+        objlinkedtrap:         "Has a linked trap",
+        objreqquest:           "Requires a quest",
+        objquestitems:         "Holds quest-only items",
+        objgossip:             "Has a gossip menu",
+        objsmartai:            "Has a SmartAI script",
+        objpooled:             "Pooled spawns",
+        objserveronly:         "Server-side only",
+        objusablemounted:      "Usable while mounted",
+        phased:                "Spawns outside the default phase",
+        // aowow - custom end
 
         seploot:               "Loot",
         averagemoneycontained: "Durchschnittlich enthaltene Geldmenge",
         openable:              "Kann geöffnet werden",
+        lootable:              "Kann geplündert werden",   // aowow - custom
+
+        // aowow - custom start
+        sepobjflags:           "Flags",
+        goflaginuse:           "In use",
+        goflaglocked:          "Locked",
+        goflaginteractcond:    "Cannot interact",
+        goflagtransport:       "Transport",
+        goflagnotselectable:   "Not selectable",
+        goflagnodespawn:       "Never despawns",
+        goflagaiobstacle:      "Triggered",
+        goflagfreezeanim:      "Freeze animation",
+        goflagdamaged:         "Siege damaged",
+        goflagdestroyed:       "Siege destroyed",
+        // aowow - custom end
 
         sepcommunity:          "Community",
         hascomments:           "Verfügt über Kommentare",
         hasscreenshots:        "Verfügt über Screenshots",
-        hasvideos:             "Verfügt über Videos"
+        hasvideos:             "Verfügt über Videos",
+
+        // aowow - custom start
+        sepstaffonly:          "Nur für Personal",
+        haslocation:           "Hat einen Standort",
+        scriptname:            "Script name / AI",
+        stringid:              "String ID"
+        // aowow - custom end
     },
 
     fiquests: {
@@ -4546,7 +4586,7 @@ var LANG = {
         daily:                   "Täglich",
         weekly:                  "Wöchentlich",
         repeatable:              "Wiederholbar",
-        objectiveearnrepwith:    "Ziel: Ruf sammeln bei...",
+        objectiveearnrepwith:  "Ziel: Ruf sammeln bei...",
         countsforloremaster_stc: "Meister der Lehren-Quest",
         sharable:                "Teilbar",
         startsfrom:              "Startet bei...",
@@ -5164,7 +5204,7 @@ var LANG = {
     },
     fispellfocus: {
         name:       "Name",
-        objects:    "Objects",
+        objects:               "Objects",
         viewObjects: "View objects"
     },
     fitext: {

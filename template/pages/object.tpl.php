@@ -24,7 +24,7 @@
 
 <?php $this->brick('redButtons'); ?>
 
-                <h1><?=$this->h1; ?></h1>
+                <h1><?=$this->h1.$this->modePills; /* aowow - custom: modePills */ ?></h1>
 
 <?php
     $this->brick('markup', ['markup' => $this->article]);

@@ -4265,7 +4265,7 @@ var LANG = {
         locked:                  "Verrouillé",
         millable:                "Pilable",
         notavailable:            "Non disponible aux joueurs",
-        objectivequest:          "Objectif d'une quête",
+        objectivequest:        "Objectif d'une quête",
         openable:                "Ouvrable",
         partofset:               "Fait partie d'un ensemble d'objets",
         partyloot:               "Butin de groupe",
@@ -4529,15 +4529,55 @@ var LANG = {
         endsquest:             "Termine une quête",
         id:                    "ID",
         spellfocus:            "Focus de sort",
+        // aowow - custom start
+        faction:               "Faction",
+        npcmode:               "Utilisé en difficulté",
+        hasdifficultyversions: "A des versions de difficulté",
+        usemodel:              "Utilise le modèle #...",
+        scale:                 "Scale",
+        visibilityrange:       "Visibility range",
+        objreadable:           "Readable",
+        objlinkedtrap:         "Has a linked trap",
+        objreqquest:           "Requires a quest",
+        objquestitems:         "Holds quest-only items",
+        objgossip:             "Has a gossip menu",
+        objsmartai:            "Has a SmartAI script",
+        objpooled:             "Pooled spawns",
+        objserveronly:         "Server-side only",
+        objusablemounted:      "Usable while mounted",
+        phased:                "Spawns outside the default phase",
+        // aowow - custom end
 
         seploot:               "Butin",
         averagemoneycontained: "Argent contenu en moyenne",
         openable:              "Ouvrable",
+        lootable:              "Possède un butin",   // aowow - custom
+
+        // aowow - custom start
+        sepobjflags:           "Flags",
+        goflaginuse:           "In use",
+        goflaglocked:          "Locked",
+        goflaginteractcond:    "Cannot interact",
+        goflagtransport:       "Transport",
+        goflagnotselectable:   "Not selectable",
+        goflagnodespawn:       "Never despawns",
+        goflagaiobstacle:      "Triggered",
+        goflagfreezeanim:      "Freeze animation",
+        goflagdamaged:         "Siege damaged",
+        goflagdestroyed:       "Siege destroyed",
+        // aowow - custom end
 
         sepcommunity:          "Communauté",
         hascomments:           "A des commentaires",
         hasscreenshots:        "A des captures d'écrans",
-        hasvideos:             "A des vidéos"
+        hasvideos:             "A des vidéos",
+
+        // aowow - custom start
+        sepstaffonly:          "Employés seulement",
+        haslocation:           "À un emplacement",
+        scriptname:            "Script name / AI",
+        stringid:              "String ID"
+        // aowow - custom end
     },
 
     fiquests: {
@@ -4546,7 +4586,7 @@ var LANG = {
         daily:                   "Journalière",
         weekly:                  "Chaque semaine",
         repeatable:              "Répétable",
-        objectiveearnrepwith:    "Objectif : Obtenir une réputation avec...",
+        objectiveearnrepwith:  "Objectif : Obtenir une réputation avec...",
         countsforloremaster_stc: "Quête de maitre des traditions",
         sharable:                "Partageable",
         startsfrom:              "Initié par...",
@@ -5164,7 +5204,7 @@ var LANG = {
     },
     fispellfocus: {
         name:       "Name",
-        objects:    "Objects",
+        objects:               "Objects",
         viewObjects: "View objects"
     },
     fitext: {

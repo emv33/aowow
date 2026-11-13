@@ -1618,6 +1618,18 @@ Listview.templates = {
 
                     $WH.ae(wrapper, a);
 
+                    // aowow - custom start: difficulty modes of an object of ::objectdifficulty, as on npcs
+                    var pills = Listview.templates.npc.getModePills(object);
+                    for (var i = 0; i < pills.length; ++i) {
+                        var s = $WH.ce('span');
+                        s.className = 'mode-pill mode-pill-' + pills[i][2];
+                        s.title = pills[i][1];
+                        $WH.ae(s, $WH.ct(pills[i][0]));
+                        $WH.ae(wrapper, $WH.ct(' '));
+                        $WH.ae(wrapper, s);
+                    }
+                    // aowow - custom end
+
                     if (object.method != null) {
                         td.style.position = 'relative';
 

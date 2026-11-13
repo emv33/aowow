@@ -4265,7 +4265,7 @@ var LANG = {
         locked:                  "Cerrado",
         millable:                "Se puede moler",
         notavailable:            "No está disponible a los jugadores",
-        objectivequest:          "Objetivo de misión",
+        objectivequest:        "Objetivo de misión",
         openable:                "Puede abrirse",
         partofset:               "Parte de un conjunto de objetos",
         partyloot:               "Despojo de grupo",
@@ -4529,15 +4529,55 @@ var LANG = {
         endsquest:             "Termina una misión",
         id:                    "ID",
         spellfocus:            "Foco del hechizo",
+        // aowow - custom start
+        faction:               "Facción",
+        npcmode:               "Usado en la dificultad",
+        hasdifficultyversions: "Tiene versiones de dificultad",
+        usemodel:              "Úsa modelo #...",
+        scale:                 "Scale",
+        visibilityrange:       "Visibility range",
+        objreadable:           "Readable",
+        objlinkedtrap:         "Has a linked trap",
+        objreqquest:           "Requires a quest",
+        objquestitems:         "Holds quest-only items",
+        objgossip:             "Has a gossip menu",
+        objsmartai:            "Has a SmartAI script",
+        objpooled:             "Pooled spawns",
+        objserveronly:         "Server-side only",
+        objusablemounted:      "Usable while mounted",
+        phased:                "Spawns outside the default phase",
+        // aowow - custom end
 
         seploot:               "Botín",
         averagemoneycontained: "Cantidad promedio de dinero contenido",
         openable:              "Puede abrirse",
+        lootable:              "Despojale",   // aowow - custom
+
+        // aowow - custom start
+        sepobjflags:           "Flags",
+        goflaginuse:           "In use",
+        goflaglocked:          "Locked",
+        goflaginteractcond:    "Cannot interact",
+        goflagtransport:       "Transport",
+        goflagnotselectable:   "Not selectable",
+        goflagnodespawn:       "Never despawns",
+        goflagaiobstacle:      "Triggered",
+        goflagfreezeanim:      "Freeze animation",
+        goflagdamaged:         "Siege damaged",
+        goflagdestroyed:       "Siege destroyed",
+        // aowow - custom end
 
         sepcommunity:          "Comunidad",
         hascomments:           "Tiene comentarios",
         hasscreenshots:        "Tiene capturas de pantalla",
-        hasvideos:             "Tiene vídeos"
+        hasvideos:             "Tiene vídeos",
+
+        // aowow - custom start
+        sepstaffonly:          "Sólo para empleados",
+        haslocation:           "Tiene localización",
+        scriptname:            "Script name / AI",
+        stringid:              "String ID"
+        // aowow - custom end
     },
 
     fiquests: {
@@ -4546,7 +4586,7 @@ var LANG = {
         daily:                   "Diaria",
         weekly:                  "Semanal",
         repeatable:              "Repetible",
-        objectiveearnrepwith:    "Objetivo: Ganar reputación con...",
+        objectiveearnrepwith:  "Objetivo: Ganar reputación con...",
         countsforloremaster_stc: "Misión del maestro cultural",
         sharable:                "Compartible",
         startsfrom:              "Empieza de...",
@@ -5164,7 +5204,7 @@ var LANG = {
     },
     fispellfocus: {
         name:       "Name",
-        objects:    "Objects",
+        objects:               "Objects",
         viewObjects: "View objects"
     },
     fitext: {

@@ -4309,7 +4309,7 @@ var LANG = {
         locked:                  "Locked",
         millable:                "Millable",
         notavailable:            "Not available to players",
-        objectivequest:          "Objective of a quest",
+        objectivequest:        "Objective of a quest",
         openable:                "Openable",
         partofset:               "Part of an item set",
         partyloot:               "Party loot",
@@ -4573,15 +4573,55 @@ var LANG = {
         endsquest:             "Ends a quest",
         id:                    "ID",
         spellfocus:            "Spell Focus",
+        // aowow - custom start
+        faction:               "Faction",
+        npcmode:               "Used in difficulty",
+        hasdifficultyversions: "Has difficulty versions",
+        usemodel:              "Uses model #...",
+        scale:                 "Scale",
+        visibilityrange:       "Visibility range",
+        objreadable:           "Readable",
+        objlinkedtrap:         "Has a linked trap",
+        objreqquest:           "Requires a quest",
+        objquestitems:         "Holds quest-only items",
+        objgossip:             "Has a gossip menu",
+        objsmartai:            "Has a SmartAI script",
+        objpooled:             "Pooled spawns",
+        objserveronly:         "Server-side only",
+        objusablemounted:      "Usable while mounted",
+        phased:                "Spawns outside the default phase",
+        // aowow - custom end
 
         seploot:               "Loot",
         averagemoneycontained: "Average money contained",
         openable:              "Openable",
+        lootable:              "Lootable",   // aowow - custom
+
+        // aowow - custom start
+        sepobjflags:           "Flags",
+        goflaginuse:           "In use",
+        goflaglocked:          "Locked",
+        goflaginteractcond:    "Cannot interact",
+        goflagtransport:       "Transport",
+        goflagnotselectable:   "Not selectable",
+        goflagnodespawn:       "Never despawns",
+        goflagaiobstacle:      "Triggered",
+        goflagfreezeanim:      "Freeze animation",
+        goflagdamaged:         "Siege damaged",
+        goflagdestroyed:       "Siege destroyed",
+        // aowow - custom end
 
         sepcommunity:          "Community",
         hascomments:           "Has comments",
         hasscreenshots:        "Has screenshots",
-        hasvideos:             "Has videos"
+        hasvideos:             "Has videos",
+
+        // aowow - custom start
+        sepstaffonly:          "Staff only",
+        haslocation:           "Has location",
+        scriptname:            "Script name / AI",
+        stringid:              "String ID"
+        // aowow - custom end
     },
 
     fiquests: {
@@ -4590,7 +4630,7 @@ var LANG = {
         daily:                   "Daily",
         weekly:                  "Weekly",
         repeatable:              "Repeatable",
-        objectiveearnrepwith:    "Objective: Earn reputation with...",
+        objectiveearnrepwith:  "Objective: Earn reputation with...",
         countsforloremaster_stc: "Loremaster quest",
         sharable:                "Sharable",
         startsfrom:              "Starts from...",
@@ -5208,7 +5248,7 @@ var LANG = {
     },
     fispellfocus: {
         name:       "Name",
-        objects:    "Objects",
+        objects:               "Objects",
         viewObjects: "View objects"
     },
     fitext: {

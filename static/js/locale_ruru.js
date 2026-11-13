@@ -4264,7 +4264,7 @@ var LANG = {
         locked:                  "Заперт",
         millable:                "Можно растолочь",
         notavailable:            "Недоступно игрокам",
-        objectivequest:          "Цель задания",
+        objectivequest:        "Цель задания",
         openable:                "Вскрываемый",
         partofset:               "Часть набора предметов",
         partyloot:               "Добыча группы",
@@ -4528,15 +4528,55 @@ var LANG = {
         endsquest:             "Завершает задание",
         id:                    "Номер",
         spellfocus:            "[Spell Focus]",
+        // aowow - custom start
+        faction:               "Фракция",
+        npcmode:               "Используется в режиме",
+        hasdifficultyversions: "Имеет версии для режимов",
+        usemodel:              "Использует модель #...",
+        scale:                 "Scale",
+        visibilityrange:       "Visibility range",
+        objreadable:           "Readable",
+        objlinkedtrap:         "Has a linked trap",
+        objreqquest:           "Requires a quest",
+        objquestitems:         "Holds quest-only items",
+        objgossip:             "Has a gossip menu",
+        objsmartai:            "Has a SmartAI script",
+        objpooled:             "Pooled spawns",
+        objserveronly:         "Server-side only",
+        objusablemounted:      "Usable while mounted",
+        phased:                "Spawns outside the default phase",
+        // aowow - custom end
 
         seploot:               "Добыча",
         averagemoneycontained: "Содержит денег",
         openable:              "Вскрываемый",
+        lootable:              "Предметы",   // aowow - custom
+
+        // aowow - custom start
+        sepobjflags:           "Flags",
+        goflaginuse:           "In use",
+        goflaglocked:          "Locked",
+        goflaginteractcond:    "Cannot interact",
+        goflagtransport:       "Transport",
+        goflagnotselectable:   "Not selectable",
+        goflagnodespawn:       "Never despawns",
+        goflagaiobstacle:      "Triggered",
+        goflagfreezeanim:      "Freeze animation",
+        goflagdamaged:         "Siege damaged",
+        goflagdestroyed:       "Siege destroyed",
+        // aowow - custom end
 
         sepcommunity:          "Сообщество",
         hascomments:           "Есть комментарии",
         hasscreenshots:        "Есть изображения",
-        hasvideos:             "Есть видео"
+        hasvideos:             "Есть видео",
+
+        // aowow - custom start
+        sepstaffonly:          "Только персонал",
+        haslocation:           "Есть карта",
+        scriptname:            "Script name / AI",
+        stringid:              "String ID"
+        // aowow - custom end
     },
 
     fiquests: {
@@ -4545,7 +4585,7 @@ var LANG = {
         daily:                   "Ежедневно",
         weekly:                  "Раз в неделю",
         repeatable:              "Повторяемый",
-        objectiveearnrepwith:    "Цель задания: Получить репутацию с...",
+        objectiveearnrepwith:  "Цель задания: Получить репутацию с...",
         countsforloremaster_stc: "Задание Хранителя мудрости",
         sharable:                "Раздается",
         startsfrom:              "Начинается в...",
@@ -5165,7 +5205,7 @@ var LANG = {
     },
     fispellfocus: {
         name:       "Name",
-        objects:    "Objects",
+        objects:               "Objects",
         viewObjects: "View objects"
     },
     fitext: {
