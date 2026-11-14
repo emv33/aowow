@@ -79,18 +79,6 @@ class PoiBaseResponse extends TemplateResponse implements ICache
 
         $infobox = [Lang::poi('id').Lang::main('colon').$this->typeId];
 
-        if ($npcs)
-        {
-            $this->extendGlobalIds(Type::NPC, ...$npcs);
-            $infobox[] = Lang::poi('presentedBy').Lang::main('colon').implode(', ', array_map(fn($e) => '[npc='.$e.']', $npcs));
-        }
-
-        if ($objects)
-        {
-            $this->extendGlobalIds(Type::OBJECT, ...$objects);
-            $infobox[] = Lang::poi('presentedBy').Lang::main('colon').implode(', ', array_map(fn($e) => '[object='.$e.']', $objects));
-        }
-
         if ($mapId !== null && ($pt = WorldPosition::toZonePos($mapId, $posX, $posY)))
         {
             $p      = $pt[0];
@@ -111,6 +99,32 @@ class PoiBaseResponse extends TemplateResponse implements ICache
         }
 
         $this->infobox = new InfoboxMarkup($infobox, ['allow' => Markup::CLASS_STAFF, 'dbpage' => true], 'infobox-contents0');
+
+
+        /**************/
+        /* Extra Tabs */
+        /**************/
+
+        $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"], 'tabsRelated', true);
+
+        // the creatures and objects presenting a gossip menu that points here; a tab each, named apart only when both exist
+        $tabs = array(
+            ['npcs',    $npcs,    CreatureList::class,    Lang::game('npcs')],
+            ['objects', $objects, GameObjectList::class, Lang::game('objects')]
+        );
+        foreach ($tabs as [$id, $entries, $class, $typeName])
+        {
+            if (!$entries || ($list = new $class([['id', $entries]]))->error)
+                continue;
+
+            $this->extendGlobalData($list->getJSGlobals());
+            $this->addDataLoader('zones');
+            $this->lvTabs->addListviewTab(new Listview(array(
+                'data' => $list->getListviewData(),
+                'name' => $npcs && $objects ? Lang::main('parensFmt', [Lang::poi('presentedBy'), $typeName]) : Lang::poi('presentedBy'),
+                'id'   => 'presented-by-'.$id
+            ), $class::$brickFile));
+        }
 
         parent::generate();
     }
