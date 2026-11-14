@@ -260,7 +260,7 @@ var fi_filters = {
         { id: 162, name: 'npcsanctuary',        type: 'yn' },
         { id: 159, name: 'npcinteractionpause', type: 'yn' },
         { id: 165, name: 'npcpetbar',           type: 'yn' },
-        { id: 158, name: 'npccursor',           type: 'str-small' },                // aowow - custom end
+        { id: 158, name: 'npccursor',           type: 'cursor-any+none' },                // aowow - custom end
         { id: 37,  name: 'id',                  type: 'num', before: 'name' },
 
         { id: 9998, name: 'sepnpcstats' },
@@ -431,7 +431,7 @@ var fi_filters = {
         { id: 70,  name: 'objusablemounted',    type: 'yn' },
         { id: 83,  name: 'objartkits',          type: 'yn' },
         { id: 81,  name: 'objcastbar',          type: 'str-small' },
-        { id: 82,  name: 'objcursor',           type: 'str-small' },            // aowow - custom end
+        { id: 82,  name: 'objcursor',           type: 'cursor-any+none' },            // aowow - custom end
 
         { id: 9,   name: 'seploot' },
         { id: 5,   name: 'averagemoneycontained',   type: 'num' },

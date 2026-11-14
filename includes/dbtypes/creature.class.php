@@ -594,7 +594,7 @@ class CreatureListFilter extends Filter
         155 => [parent::CR_CALLBACK, 'cbMovement',        'Random',                          2         ], // npcidleruns [yn]
         156 => [parent::CR_FLAG,     'dynamicFlags',      0x20                                         ], // npcappearsdead [yn] - UNIT_DYNFLAG_DEAD
         157 => [parent::CR_FLAG,     'dynamicFlags',      0x02                                         ], // npctracked [yn] - UNIT_DYNFLAG_TRACK_UNIT
-        158 => [parent::CR_CALLBACK, 'cbCursor',          null,                              null      ], // npccursor [str]
+        158 => [parent::CR_CALLBACK, 'cbCursor',          null,                              null      ], // npccursor [enum] - ::cursors
         159 => [parent::CR_CALLBACK, 'cbWorldIds',        'pause',                           null      ], // npcinteractionpause [yn]
         160 => [parent::CR_CALLBACK, 'cbWorldIds',        'sheath',                          null      ], // npcweaponsdrawn [yn]
         161 => [parent::CR_FLAG,     'pvpFlags',          UNIT_BYTE2_FLAG_FFA_PVP                      ], // npcffapvp [yn]
@@ -1041,16 +1041,10 @@ class CreatureListFilter extends Filter
         return $ids;
     }
 
-    // creature_template.IconName, the cursor the client shows; not imported
+    // creature_template.IconName, the cursor the client shows; not imported, so the dropdown value is a ::cursors id
     protected function cbCursor(int $cr, int $crs, string $crv) : ?array
     {
-        $crv = trim($crv);
-        if ($crv === '')
-            return null;
-
-        $ids = DB::World()->selectCol('SELECT `entry` FROM creature_template WHERE `IconName` LIKE %~like~', $crv);
-
-        return $ids ? ['id', $ids] : [0];
+        return $this->cursorCondition($crs, 'creature_template');
     }
     // aowow - custom end
 

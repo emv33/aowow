@@ -50,6 +50,10 @@ class NpcsBaseResponse extends TemplateResponse implements ICache
     {
         $this->h1 = Lang::game('npcs');
 
+        // aowow - custom: the options of the cursor criterion come from the world db (setup step `cursors`)
+        if ($_ = Filter::getCursorDropdownJS())
+            $this->addScript([SC_JS_STRING, $_]);
+
         $conditions = [Listview::DEFAULT_SIZE];
         if (!User::canSee(U_GROUP_EMPLOYEE))
             $conditions[] = [['cuFlags', CUSTOM_EXCLUDE_FOR_LISTVIEW, '&'], 0];

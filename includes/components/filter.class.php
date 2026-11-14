@@ -875,6 +875,49 @@ abstract class Filter
     }
 
     abstract protected function createSQLForValues() : array;
+
+    // aowow - custom start
+    /** ::cursors, the IconName values of creature_template / gameobject_template numbered by the `cursors` setup step */
+    public static function getCursors() : array
+    {
+        static $cursors = null;
+
+        if ($cursors === null)
+            $cursors = DB::Aowow()->selectCell('SHOW TABLES LIKE %s', 'aowow_cursors') ? (DB::Aowow()->selectPairs('SELECT `id`, `name` FROM ::cursors ORDER BY `name` ASC') ?: []) : [];
+
+        return $cursors;
+    }
+
+    /** the dropdown the 'cursor' criterion type reads, as an inline script for a listing page */
+    public static function getCursorDropdownJS() : ?string
+    {
+        if (!($cursors = self::getCursors()))
+            return null;
+
+        $opts = [];
+        foreach ($cursors as $id => $name)
+            $opts[] = [(int)$id, $name];
+
+        return 'LANG.fidropdowns.cursor = '.Util::toJSON($opts).';';
+    }
+
+    /** entries of $table whose IconName is cursor $crs; any / none match a set / unset IconName */
+    protected function cursorCondition(int $crs, string $table) : ?array
+    {
+        if ($crs == self::ENUM_ANY || $crs == self::ENUM_NONE)
+        {
+            $ids = DB::World()->selectCol('SELECT `entry` FROM %n WHERE `IconName` <> ""', $table) ?: [];
+            if ($crs == self::ENUM_NONE)
+                return $ids ? ['id', $ids, '!'] : [1];
+        }
+        else if ($name = self::getCursors()[$crs] ?? null)
+            $ids = DB::World()->selectCol('SELECT `entry` FROM %n WHERE `IconName` = %s', $table, $name) ?: [];
+        else
+            return null;
+
+        return $ids ? ['id', $ids] : [0];
+    }
+    // aowow - custom end
 }
 
 ?>

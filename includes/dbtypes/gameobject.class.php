@@ -450,7 +450,7 @@ class GameObjectListFilter extends Filter
         79 => [parent::CR_FLAG,     'flags',           GO_FLAG_DAMAGED           ], // goflagdamaged [yn]
         80 => [parent::CR_FLAG,     'flags',           GO_FLAG_DESTROYED         ], // goflagdestroyed [yn]
         81 => [parent::CR_CALLBACK, 'cbTemplateStr',   'castBarCaption',     null], // objcastbar [str]
-        82 => [parent::CR_CALLBACK, 'cbTemplateStr',   'IconName',           null], // objcursor [str]
+        82 => [parent::CR_CALLBACK, 'cbCursor',        null,                 null], // objcursor [enum] - ::cursors
         83 => [parent::CR_CALLBACK, 'cbWorldIds',      'artkits',            null]  // objartkits [yn]
         // aowow - custom end
     );
@@ -695,6 +695,12 @@ class GameObjectListFilter extends Filter
             return $ids ? ['id', $ids] : [0];
 
         return $ids ? ['id', $ids, '!'] : [1];
+    }
+
+    // gameobject_template.IconName; the dropdown value is a ::cursors id
+    protected function cbCursor(int $cr, int $crs, string $crv) : ?array
+    {
+        return $this->cursorCondition($crs, 'gameobject_template');
     }
 
     // gameobject_template text columns the setup step does not import
