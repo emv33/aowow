@@ -3204,7 +3204,25 @@ class SpellListFilter extends Filter
         1255 => [parent::CR_FLAG,      'attributes7',     SPELL_ATTR7_CLIENT_INDICATOR                                          ], // attr7_31 [yn]
         // aowow - custom end
         200 => [parent::CR_CALLBACK,  'cbSecToMsec',        'recoveryTime'                                                        ], // cooldown [num] (custom)
-        201 => [parent::CR_CALLBACK,  'cbSecToMsec',        'sd.maxDuration'                                                      ]  // duration [num] (custom)
+        201 => [parent::CR_CALLBACK,  'cbSecToMsec',        'sd.maxDuration'                                                      ], // duration [num] (custom)
+        // aowow - custom start: Spell.dbc fields extracted for the spell page
+        202 => [parent::CR_CALLBACK,  'cbMaskBit',          'targetCreatureType'                                                  ], // targetcreaturetype [num]
+        203 => [parent::CR_FLAG,      'facingCasterFlags',  0x1                                                                   ], // reqfacing [yn]
+        204 => [parent::CR_NUMERIC,   'casterAuraState',    NUM_CAST_INT                                                          ], // casteraurastate [num]
+        205 => [parent::CR_NUMERIC,   'targetAuraState',    NUM_CAST_INT                                                          ], // targetaurastate [num]
+        206 => [parent::CR_NUMERIC,   'casterAuraStateNot', NUM_CAST_INT                                                          ], // casteraurastatenot [num]
+        207 => [parent::CR_NUMERIC,   'targetAuraStateNot', NUM_CAST_INT                                                          ], // targetaurastatenot [num]
+        208 => [parent::CR_FLAG,      'interruptFlags',     0x01                                                                  ], // castinterruptedbymove [yn]
+        209 => [parent::CR_FLAG,      'interruptFlags',     0x02                                                                  ], // castpushback [yn]
+        210 => [parent::CR_FLAG,      'interruptFlags',     0x08                                                                  ], // castinterruptible [yn]
+        211 => [parent::CR_FLAG,      'auraInterruptFlags', 0x02                                                                  ], // aurabrokenbydamage [yn]
+        212 => [parent::CR_FLAG,      'auraInterruptFlags', 0x08                                                                  ], // aurabrokenbymove [yn]
+        213 => [parent::CR_STAFFFLAG, 'interruptFlags'                                                                            ], // interruptflags [flags] [staff]
+        214 => [parent::CR_STAFFFLAG, 'auraInterruptFlags'                                                                        ], // aurainterruptflags [flags] [staff]
+        215 => [parent::CR_STAFFFLAG, 'channelInterruptFlags'                                                                     ], // channelinterruptflags [flags] [staff]
+        216 => [parent::CR_NUMERIC,   'speed',              NUM_CAST_FLOAT                                                        ], // missilespeed [num]
+        217 => [parent::CR_CALLBACK,  'cbRunicPowerGain'                                                                          ]  // runicpowergain [num]
+        // aowow - custom end
     );
 
     protected static array $inputFields = array(
@@ -3532,6 +3550,28 @@ class SpellListFilter extends Filter
     }
 
     // prompted for sec, stored as msec
+    // aowow - custom start
+    // the criterion value is the 1-based bit of a mask column (CreatureType n is bit n-1 of targetCreatureType)
+    protected function cbMaskBit(int $cr, int $crs, string $crv, string $field) : ?array
+    {
+        if (!Util::checkNumeric($crv, NUM_CAST_INT) || $crv < 1 || $crv > 32)
+            return null;
+
+        $bit = 1 << ($crv - 1);
+
+        return [[$field, $bit, '&'], $bit];
+    }
+
+    // RuneCost.dbc keeps runic power in tenths
+    protected function cbRunicPowerGain(int $cr, int $crs, string $crv) : ?array
+    {
+        if (!Util::checkNumeric($crv, NUM_CAST_FLOAT) || !$this->int2Op($crs))
+            return null;
+
+        return ['powerGainRunicPower', (int)round($crv * 10), $crs];
+    }
+    // aowow - custom end
+
     protected function cbSecToMsec(int $cr, int $crs, string $crv, string $field) : ?array
     {
         if (!Util::checkNumeric($crv, NUM_CAST_FLOAT) || !$this->int2Op($crs))

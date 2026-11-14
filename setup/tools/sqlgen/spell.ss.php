@@ -109,7 +109,11 @@ CLISetup::registerSetup("sql", new class extends SetupScript
                            0 AS spellDescriptionVariable,
                            0 AS trainingCost,
                            0 AS areaGroupId,
-                           ProcFlags
+                           ProcFlags,
+                           0 AS targetCreatureType,    0 AS facingCasterFlags,                     -- aowow - custom: not every one of these is a spell_dbc column
+                           0 AS casterAuraState,       0 AS targetAuraState,       0 AS casterAuraStateNot,    0 AS targetAuraStateNot,
+                           0 AS interruptFlags,        0 AS auraInterruptFlags,    0 AS channelInterruptFlags,
+                           0 AS speed
                     FROM   spell_dbc
                     LIMIT  %i,%i';
 
@@ -199,7 +203,11 @@ CLISetup::registerSetup("sql", new class extends SetupScript
                               GREATEST(spellDescriptionVariable, 0),
                               0 AS trainingCost,
                               areaGroupId,
-                              procTypeMask
+                              procTypeMask,
+                              targetCreatureType, facingCasterFlags,                                        -- aowow - custom
+                              casterAuraState,    targetAuraState,    casterAuraStateNot, targetAuraStateNot,
+                              interruptFlags,     auraInterruptFlags, channelInterruptFlags,
+                              speed
                     FROM      dbc_spell s
                     LEFT JOIN dbc_spellrunecost  src ON s.runeCostId      = src.id
                     LEFT JOIN dbc_spellradius    sr1 ON s.effect1RadiusId = sr1.id

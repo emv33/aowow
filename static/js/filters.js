@@ -555,6 +555,19 @@ var fi_filters = {
         { id: 26,   name: 'gcdcategory_stc',        type: 'str'                            },
         { id: 40,   name: 'damagetype',             type: 'damagetype'                     },
         { id: 201,  name: 'duration_stc',           type: 'num'                            }, // aowow - custom
+        { id: 202,  name: 'targetcreaturetype',     type: 'num'                            }, // aowow - custom start
+        { id: 203,  name: 'reqfacing',              type: 'yn'                             },
+        { id: 204,  name: 'casteraurastate',        type: 'num'                            },
+        { id: 205,  name: 'targetaurastate',        type: 'num'                            },
+        { id: 206,  name: 'casteraurastatenot',     type: 'num'                            },
+        { id: 207,  name: 'targetaurastatenot',     type: 'num'                            },
+        { id: 208,  name: 'castinterruptedbymove',  type: 'yn'                             },
+        { id: 209,  name: 'castpushback',           type: 'yn'                             },
+        { id: 210,  name: 'castinterruptible',      type: 'yn'                             },
+        { id: 211,  name: 'aurabrokenbydamage',     type: 'yn'                             },
+        { id: 212,  name: 'aurabrokenbymove',       type: 'yn'                             },
+        { id: 216,  name: 'missilespeed',           type: 'num'                            },
+        { id: 217,  name: 'runicpowergain',         type: 'num'                            }, // aowow - custom end
         { id: 109,  name: 'effecttype',             type: 'effecttype'                     },
         { id: 29,   name: 'appliesaura',            type: 'effectauranames-misc'           },
         { id: 15,   name: 'icon',                   type: 'str'                            },
@@ -898,7 +911,10 @@ var fi_filters = {
         { id: 105,  name: 'flags10',      type: 'spell_flags10', staffonly: true },
         { id: 106,  name: 'flags11',      type: 'flags',         staffonly: true },
         { id: 107,  name: 'flags12',      type: 'flags',         staffonly: true },
-        { id: 108,  name: 'flags13',      type: 'flags',         staffonly: true }
+        { id: 108,  name: 'flags13',      type: 'flags',         staffonly: true },
+        { id: 213,  name: 'interruptflags',        type: 'flags',  staffonly: true }, // aowow - custom start
+        { id: 214,  name: 'aurainterruptflags',    type: 'flags',  staffonly: true },
+        { id: 215,  name: 'channelinterruptflags', type: 'flags',  staffonly: true }  // aowow - custom end
     ],
 
     achievements: [

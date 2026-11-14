@@ -3015,6 +3015,78 @@ class SpellBaseResponse extends TemplateResponse implements ICache
         return $path;
     }
 
+    // aowow - custom start
+    /**
+     * target creature type, facing, aura states, interrupt flags, missile speed, runic power gain and the per level
+     * growth of a channel's cost; each named after the core check that reads it
+     */
+    private function getCastRequirements() : array
+    {
+        $out  = [];
+        $bits = function (int $mask, array $labels) : array
+        {
+            $buff = [];
+            foreach ($labels as $bit => $str)
+                if ($mask & $bit)
+                    $buff[] = $str;
+
+            return $buff;
+        };
+
+        // SpellInfo::CheckTargetCreatureType(): bit n-1 is CreatureType n
+        if ($mask = (int)$this->subject->getField('targetCreatureType'))
+        {
+            $types = [];
+            for ($i = 0; $i < 32; $i++)
+                if ($mask & (1 << $i))
+                    $types[] = Lang::exist('game', 'ct', $i + 1) ?? ($i + 1);
+
+            $out[] = Lang::spell('targetCreatureType').Lang::main('colon').implode(', ', $types);
+        }
+
+        // Spell::CheckRange() / CheckCast(): SPELL_FACING_FLAG_INFRONT
+        if ((int)$this->subject->getField('facingCasterFlags') & 0x1)
+            $out[] = Lang::spell('reqFacing');
+
+        // SpellInfo::CheckShapeshift() / Spell::CheckCast(): the caster / target must (not) be in this aura state
+        foreach (['casterAuraState' => 'casterState', 'targetAuraState' => 'targetState', 'casterAuraStateNot' => 'casterStateNot', 'targetAuraStateNot' => 'targetStateNot'] as $col => $label)
+            if ($_ = (int)$this->subject->getField($col))
+                $out[] = Lang::spell($label).Lang::main('colon').(Lang::exist('spell', 'auraStates', $_) ?? $_);
+
+        // Spell::update() / Unit::InterruptNonMeleeSpells(): what stops the cast
+        if ($_ = $bits((int)$this->subject->getField('interruptFlags'), Lang::spell('interruptFlags')))
+            $out[] = Lang::spell('interruptedBy').Lang::main('colon').implode(', ', $_);
+
+        // Unit::RemoveAurasWithInterruptFlags(): what removes the aura
+        if ($_ = $bits((int)$this->subject->getField('auraInterruptFlags'), Lang::spell('auraInterruptFlags')))
+            $out[] = Lang::spell('auraRemovedBy').Lang::main('colon').implode(', ', $_);
+
+        // Spell::cast(): a channel adds its flags to the caster's interrupt mask, so they read as aura interrupt flags;
+        // CHANNEL_FLAG_DELAY (0x4000) instead lets damage push the channel back (Spell::DelayedChannel())
+        if ($chFlags = (int)$this->subject->getField('channelInterruptFlags'))
+        {
+            $labels = Lang::spell('auraInterruptFlags');
+            $labels[0x4000] = Lang::spell('channelDelay');
+            if ($_ = $bits($chFlags, $labels))
+                $out[] = Lang::spell('channelBrokenBy').Lang::main('colon').implode(', ', $_);
+        }
+
+        // Spell::prepare(): a missile travels at this many yards per second
+        if (($_ = (float)$this->subject->getField('speed')) > 0)
+            $out[] = Lang::spell('missileSpeed', [Lang::nf($_, 1)]);
+
+        // Spell::TakeRunePower(): runic power is kept in tenths
+        if ($_ = (int)$this->subject->getField('powerGainRunicPower'))
+            $out[] = Lang::spell('runicPowerGain', [Lang::nf($_ / 10, 1)]);
+
+        // Aura::Update(): the per second cost of a channel grows by this much per caster level
+        if ($_ = (int)$this->subject->getField('powerPerSecondPerLevel'))
+            $out[] = Lang::spell('costPerSecondPerLevel', [$_]);
+
+        return $out;
+    }
+    // aowow - custom end
+
     private function createInfobox(bool $hasCompletion) : array
     {
         $infobox = Lang::getInfoBoxForFlags($this->subject->getField('cuFlags'));
@@ -3109,6 +3181,11 @@ class SpellBaseResponse extends TemplateResponse implements ICache
             $this->extendGlobalIds(Type::SPELL, $extra['requiredSpecialization']);
             $infobox[] = Lang::spell('extraItems', ['[spell='.$extra['requiredSpecialization'].']', Lang::nf($extra['additionalCreateChance'], 1), $extra['additionalMaxNum']]);
         }
+        // aowow - custom end
+
+        // aowow - custom start: Spell.dbc fields read by the core that were not extracted
+        foreach ($this->getCastRequirements() as $line)
+            $infobox[] = $line;
         // aowow - custom end
 
         // training cost

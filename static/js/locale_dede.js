@@ -5048,7 +5048,25 @@ var LANG = {
         flags10:                    "Excluded stances",     // Flags (10) // aowow - custom: upstream: "Flags (10)", not used
         flags11:                    "FamilyFlags (1)",      // Flags (11)
         flags12:                    "FamilyFlags (2)",      // Flags (12)
-        flags13:                    "FamilyFlags (3)"       // Flags (13)
+        flags13:                    "FamilyFlags (3)",       // Flags (13)
+        // aowow - custom start
+        targetcreaturetype:      "Target creature type #...",
+        reqfacing:               "Must face the target",
+        casteraurastate:         "Caster aura state #...",
+        targetaurastate:         "Target aura state #...",
+        casteraurastatenot:      "Caster must not be in aura state #...",
+        targetaurastatenot:      "Target must not be in aura state #...",
+        castinterruptedbymove:   "Cast interrupted by movement",
+        castpushback:            "Cast pushed back by damage",
+        castinterruptible:       "Cast can be interrupted",
+        aurabrokenbydamage:      "Aura removed by damage",
+        aurabrokenbymove:        "Aura removed by moving",
+        missilespeed:            "Missile speed (yd/s)",
+        runicpowergain:          "Runic power generated",
+        interruptflags:          "Interrupt flags",
+        aurainterruptflags:      "Aura interrupt flags",
+        channelinterruptflags:   "Channel interrupt flags"
+        // aowow - custom end
     },
 
     fiachievements: {

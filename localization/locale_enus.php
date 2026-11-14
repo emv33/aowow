@@ -2587,6 +2587,30 @@ $lang = array(
         'durabilityItems' => [-2 => '&lt;all items, equipped and in bags&gt;', -1 => '&lt;all equipped items&gt;'],
         'discovered'    => "Learned via discovery",
         'extraItems'    => '%1$s: %2$s%% chance for more, up to %3$d extra time(s)',  // aowow - custom: skill_extra_item_template
+        // aowow - custom start: Spell.dbc target creature type, facing, aura states, interrupt flags, missile speed
+        'targetCreatureType' => "Target type",
+        'reqFacing'     => "Must face the target",
+        'casterState'   => "Caster must be",
+        'targetState'   => "Target must be",
+        'casterStateNot'=> "Caster must not be",
+        'targetStateNot'=> "Target must not be",
+        'interruptedBy' => "Cast affected by",
+        'interruptFlags'=> [0x01 => "Movement", 0x02 => "Pushback", 0x08 => "Interrupt effects", 0x10 => "Direct damage (cancels)"],
+        'auraRemovedBy' => "Aura removed by",
+        'channelBrokenBy' => "Channel broken by",
+        'channelDelay'  => "Pushback from damage",
+        'auraInterruptFlags' => array(
+            0x00000001 => "Hostile spells",      0x00000002 => "Any damage",          0x00000004 => "Casting",             0x00000008 => "Moving",
+            0x00000010 => "Turning",             0x00000020 => "Jumping",             0x00000040 => "Dismounting",         0x00000080 => "Entering water",
+            0x00000100 => "Leaving water",       0x00000200 => "Unsheathing",         0x00000400 => "Talking to an npc",   0x00000800 => "Looting or using objects",
+            0x00001000 => "Melee attacks",       0x00002000 => "Spell attacks",       0x00008000 => "Shapeshifting",       0x00020000 => "Mounting",
+            0x00040000 => "Standing up",         0x00080000 => "Changing map",        0x00100000 => "Immunity or losing the target", 0x00400000 => "Teleporting",
+            0x00800000 => "Entering PvP combat", 0x01000000 => "Direct damage",       0x02000000 => "Landing",             0x80000000 => "Leaving combat"
+        ),
+        'missileSpeed'  => 'Missile speed: %1$s yd/s',
+        'runicPowerGain'=> 'Generates %1$s runic power',
+        'costPerSecondPerLevel' => 'Cost per second grows by %1$d per level',
+        // aowow - custom end
         'ppm'           => "(%.1f procs per minute)",
         'procChance'    => "Proc chance: %.4g%%",
         'starter'       => "Starter spell",
