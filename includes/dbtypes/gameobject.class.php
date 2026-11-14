@@ -448,12 +448,15 @@ class GameObjectListFilter extends Filter
         77 => [parent::CR_FLAG,     'flags',           GO_FLAG_AI_OBSTACLE       ], // goflagaiobstacle [yn]
         78 => [parent::CR_FLAG,     'flags',           GO_FLAG_FREEZE_ANIMATION  ], // goflagfreezeanim [yn]
         79 => [parent::CR_FLAG,     'flags',           GO_FLAG_DAMAGED           ], // goflagdamaged [yn]
-        80 => [parent::CR_FLAG,     'flags',           GO_FLAG_DESTROYED         ]  // goflagdestroyed [yn]
+        80 => [parent::CR_FLAG,     'flags',           GO_FLAG_DESTROYED         ], // goflagdestroyed [yn]
+        81 => [parent::CR_CALLBACK, 'cbTemplateStr',   'castBarCaption',     null], // objcastbar [str]
+        82 => [parent::CR_CALLBACK, 'cbTemplateStr',   'IconName',           null], // objcursor [str]
+        83 => [parent::CR_CALLBACK, 'cbWorldIds',      'artkits',            null]  // objartkits [yn]
         // aowow - custom end
     );
 
     protected static array $inputFields = array(
-        'cr'  => [parent::V_LIST,  [[1, 5], 7, 11, 13, 15, 16, 18, [50, 80]],        true ], // criteria ids - aowow - custom: 51-80 (upstream: 50)
+        'cr'  => [parent::V_LIST,  [[1, 5], 7, 11, 13, 15, 16, 18, [50, 83]],        true ], // criteria ids - aowow - custom: 51-83 (upstream: 50)
         'crs' => [parent::V_LIST,  [parent::ENUM_NONE, parent::ENUM_ANY, [0, 5000]], true ], // criteria operators
         'crv' => [parent::V_REGEX, parent::PATTERN_CRV,                              true ], // criteria values - aowow - custom: script name / string id are text (upstream: PATTERN_INT)
         'na'  => [parent::V_NAME,  false,                                            false], // name - only printable chars, no delimiter
@@ -679,6 +682,7 @@ class GameObjectListFilter extends Filter
                                'SELECT `entry` FROM gameobject_template WHERE `type` = %i OR (`type` = %i AND `data8` > 0) OR (`type` = %i AND `data3` > 0) OR (`type` = %i AND `data17` > 0) OR (`type` = %i AND `data3` > 0)',
                                 GO_TYPE_MAILBOX, GO_TYPE_QUESTGIVER, GO_TYPE_TEXT, GO_TYPE_GOOBER, GO_TYPE_SPELLCASTER
                             ),
+            'artkits'    => DB::World()->selectCol('SELECT `entry` FROM gameobject_template_addon WHERE `artkit0` > 0 OR `artkit1` > 0 OR `artkit2` > 0 OR `artkit3` > 0'),
             default      => null
         };
 
@@ -691,6 +695,18 @@ class GameObjectListFilter extends Filter
             return $ids ? ['id', $ids] : [0];
 
         return $ids ? ['id', $ids, '!'] : [1];
+    }
+
+    // gameobject_template text columns the setup step does not import
+    protected function cbTemplateStr(int $cr, int $crs, string $crv, string $col) : ?array
+    {
+        $crv = trim($crv);
+        if ($crv === '')
+            return null;
+
+        $ids = DB::World()->selectCol('SELECT `entry` FROM gameobject_template WHERE %n LIKE %~like~', $col, $crv);
+
+        return $ids ? ['id', $ids] : [0];
     }
     // aowow - custom end
 }

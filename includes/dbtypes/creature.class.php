@@ -591,12 +591,24 @@ class CreatureListFilter extends Filter
         152 => [parent::CR_CALLBACK, 'cbMovement',        'Chase',                           1         ], // npcchasemaywalk [yn]
         153 => [parent::CR_CALLBACK, 'cbMovement',        'Chase',                           2         ], // npcchasewalks [yn]
         154 => [parent::CR_CALLBACK, 'cbMovement',        'Random',                          1         ], // npcidlemayrun [yn]
-        155 => [parent::CR_CALLBACK, 'cbMovement',        'Random',                          2         ]  // npcidleruns [yn]
+        155 => [parent::CR_CALLBACK, 'cbMovement',        'Random',                          2         ], // npcidleruns [yn]
+        156 => [parent::CR_FLAG,     'dynamicFlags',      0x20                                         ], // npcappearsdead [yn] - UNIT_DYNFLAG_DEAD
+        157 => [parent::CR_FLAG,     'dynamicFlags',      0x02                                         ], // npctracked [yn] - UNIT_DYNFLAG_TRACK_UNIT
+        158 => [parent::CR_CALLBACK, 'cbCursor',          null,                              null      ], // npccursor [str]
+        159 => [parent::CR_CALLBACK, 'cbWorldIds',        'pause',                           null      ], // npcinteractionpause [yn]
+        160 => [parent::CR_CALLBACK, 'cbWorldIds',        'sheath',                          null      ], // npcweaponsdrawn [yn]
+        161 => [parent::CR_FLAG,     'pvpFlags',          UNIT_BYTE2_FLAG_FFA_PVP                      ], // npcffapvp [yn]
+        162 => [parent::CR_FLAG,     'pvpFlags',          UNIT_BYTE2_FLAG_SANCTUARY                    ], // npcsanctuary [yn]
+        163 => [parent::CR_CALLBACK, 'cbWorldIds',        'animtier',                        null      ], // npcanimtier [yn]
+        164 => [parent::CR_CALLBACK, 'cbWorldIds',        'untrackable',                     null      ], // npcuntrackable [yn]
+        165 => [parent::CR_BOOLEAN,  'petSpellDataId'                                                  ], // npcpetbar [yn]
+        166 => [parent::CR_NUMERIC,  'mleVariance',       NUM_CAST_FLOAT                               ], // meleevariance [num]
+        167 => [parent::CR_NUMERIC,  'rngVariance',       NUM_CAST_FLOAT                               ]  // rangedvariance [num]
         // aowow - custom end
     );
 
     protected static array $inputFields = array(
-        'cr'    => [parent::V_LIST,     [[1, 3],[5, 13], 15, 16, [18, 29], [31, 104], [106, 124], [126, 155]],       true ], // criteria ids
+        'cr'    => [parent::V_LIST,     [[1, 3],[5, 13], 15, 16, [18, 29], [31, 104], [106, 124], [126, 167]],       true ], // criteria ids
         'crs'   => [parent::V_LIST,     [parent::ENUM_NONE, parent::ENUM_ANY, [0, 9999]],                         true ], // criteria operators
         'crv'   => [parent::V_REGEX,    parent::PATTERN_CRV,                                                      true ], // criteria values - only printable chars, no delimiter
         'na'    => [parent::V_NAME,     false,                                                                    false], // name / subname - only printable chars, no delimiter
@@ -901,7 +913,7 @@ class CreatureListFilter extends Filter
             return null;
 
         $speed = 'IF(atkSpeed > 0, atkSpeed / 1000, 2)';
-        $dmg   = $isMax ? '(dmgMax * 1.5 + mleAtkPwrMax / 14)' : '(dmgMin + mleAtkPwrMin / 14)';
+        $dmg   = $isMax ? '(dmgMax * 1.5 + mleAtkPwrMax / 14 * mleVariance)' : '(dmgMin + mleAtkPwrMin / 14 * mleVariance)';
 
         $this->extraOpts['ct']['h'][] = 'ROUND('.$dmg.' * dmgMultiplier * '.$speed.') '.$crs.' '.round($crv);
 
@@ -989,6 +1001,11 @@ class CreatureListFilter extends Filter
                                 ) : []
                             ),
             'questitems' => self::worldHasTable('creature_questitem') ? DB::World()->selectCol('SELECT DISTINCT `CreatureEntry` FROM creature_questitem WHERE `ItemId` > 0') : [],
+            'pause'      => self::worldHasTable('creature_template_movement') ? DB::World()->selectCol('SELECT `CreatureId` FROM creature_template_movement WHERE `InteractionPauseTimer` IS NOT NULL') : [],
+            // Creature::LoadCreaturesAddon(); older revisions pack these into `bytes1` / `bytes2`
+            'sheath'      => self::addonIds('SheathState', '(`bytes2` & 255)', '> 0'),
+            'animtier'    => self::addonIds('AnimTier', '((`bytes1` >> 24) & 255)', '> 0'),
+            'untrackable' => self::addonIds('VisFlags', '((`bytes1` >> 16) & 255)', '& '.UNIT_VIS_FLAGS_UNTRACKABLE),
             default      => null
         };
 
@@ -1004,6 +1021,36 @@ class CreatureListFilter extends Filter
             return $ids ? ['id', $ids] : [0];
 
         return $ids ? ['id', $ids, '!'] : [1];
+    }
+    // aowow - custom end
+
+    // aowow - custom start
+    /** creature entries whose creature_template_addon or creature_addon column, or its packed older spelling, matches $test */
+    private static function addonIds(string $col, string $packed, string $test) : array
+    {
+        $ids = [];
+        foreach (['creature_template_addon' => 'SELECT `entry` FROM creature_template_addon WHERE %s %s', 'creature_addon' => 'SELECT DISTINCT c.`id` FROM creature_addon ca JOIN creature c ON c.`guid` = ca.`guid` WHERE %s %s'] as $tbl => $qry)
+        {
+            if (!self::worldHasTable($tbl))
+                continue;
+
+            $expr = DB::World()->selectCell('SHOW COLUMNS FROM %n LIKE %s', $tbl, $col) ? '`'.$col.'`' : $packed;
+            $ids  = array_merge($ids, DB::World()->selectCol(sprintf($qry, $expr, $test)) ?: []);
+        }
+
+        return $ids;
+    }
+
+    // creature_template.IconName, the cursor the client shows; not imported
+    protected function cbCursor(int $cr, int $crs, string $crv) : ?array
+    {
+        $crv = trim($crv);
+        if ($crv === '')
+            return null;
+
+        $ids = DB::World()->selectCol('SELECT `entry` FROM creature_template WHERE `IconName` LIKE %~like~', $crv);
+
+        return $ids ? ['id', $ids] : [0];
     }
     // aowow - custom end
 

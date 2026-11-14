@@ -799,12 +799,16 @@ trait spawnHelper
 
         if (self::$type == Type::OBJECT)
             return DB::World()->selectAssoc(
-               'SELECT    g.`guid` AS ARRAY_KEY, g.`state`, ga.`invisibilityType`, ga.`invisibilityValue`, go.`faction`, go.`flags`
+               'SELECT    g.`guid` AS ARRAY_KEY, g.`state`, ga.`invisibilityType`, ga.`invisibilityValue`, go.`faction`, go.`flags`,
+                          gt.`type` AS "goType", g.`animprogress`,
+                          IFNULL(ga.`parent_rotation0`, 0) AS "pr0", IFNULL(ga.`parent_rotation1`, 0) AS "pr1", IFNULL(ga.`parent_rotation2`, 0) AS "pr2", IFNULL(ga.`parent_rotation3`, 1) AS "pr3"
                 FROM      gameobject g
+                JOIN      gameobject_template  gt ON gt.`entry`   = g.`id`
                 LEFT JOIN gameobject_addon     ga ON ga.`guid`    = g.`guid`
                 LEFT JOIN gameobject_overrides go ON go.`spawnId` = g.`guid`
-                WHERE     g.`guid` IN %in AND (g.`state` = 0 OR ga.`invisibilityValue` > 0 OR go.`spawnId` IS NOT NULL)',
-                $guids
+                WHERE     g.`guid` IN %in AND (g.`state` = 0 OR ga.`invisibilityValue` > 0 OR go.`spawnId` IS NOT NULL OR gt.`type` IN %in OR
+                          ga.`parent_rotation0` <> 0 OR ga.`parent_rotation1` <> 0 OR ga.`parent_rotation2` <> 0 OR ga.`parent_rotation3` <> 1)',
+                $guids, [OBJECT_TRANSPORT, OBJECT_FISHINGHOLE]
             ) ?: [];
 
         return [];
@@ -848,6 +852,12 @@ trait spawnHelper
                 $lines[] = Lang::npc('spawnFaction', [$x['faction']]);
             if ($x['flags'])
                 $lines[] = Lang::npc('spawnGoFlags', [Util::asHex($x['flags'])]);
+            // GameObject::Create(): only an elevator and a fishing hole take the spawn's animprogress
+            if (in_array($x['goType'], [OBJECT_TRANSPORT, OBJECT_FISHINGHOLE]))
+                $lines[] = Lang::npc('spawnAnimProgress', [$x['animprogress']]);
+            // gameobject_addon: the rotation of the transport or object it is attached to
+            if ($x['pr0'] != 0 || $x['pr1'] != 0 || $x['pr2'] != 0 || $x['pr3'] != 1)
+                $lines[] = Lang::npc('spawnParentRot', [Lang::nf($x['pr0'], 3), Lang::nf($x['pr1'], 3), Lang::nf($x['pr2'], 3), Lang::nf($x['pr3'], 3)]);
         }
 
         return $lines;

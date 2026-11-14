@@ -917,7 +917,8 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
     {
         $r = DB::World()->selectRow(
            'SELECT    go.*,
-                      IFNULL(goa.`flags`, 0) AS "flags", IFNULL(goa.`mingold`, 0) AS "mingold", IFNULL(goa.`maxgold`, 0) AS "maxgold"
+                      IFNULL(goa.`flags`, 0) AS "flags", IFNULL(goa.`mingold`, 0) AS "mingold", IFNULL(goa.`maxgold`, 0) AS "maxgold",
+                      IFNULL(goa.`artkit0`, 0) AS "artkit0", IFNULL(goa.`artkit1`, 0) AS "artkit1", IFNULL(goa.`artkit2`, 0) AS "artkit2", IFNULL(goa.`artkit3`, 0) AS "artkit3"
             FROM      gameobject_template go
             LEFT JOIN gameobject_template_addon goa ON goa.`entry` = go.`entry`
             WHERE     go.`entry` = %i', $this->typeId
@@ -1073,6 +1074,23 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
         $losOK = [GO_TYPE_BUTTON => 8, GO_TYPE_QUESTGIVER => 7, GO_TYPE_CHEST => 10, GO_TYPE_GOOBER => 16, GO_TYPE_FLAGSTAND => 7];
         if (isset($losOK[$t]) && $d($losOK[$t]))
             $out[] = Lang::gameObject('needsLos');
+
+        if ($r['size'] > 0 && $r['size'] != 1)
+            $out[] = Lang::npcExtra('scale', [Lang::nf($r['size'], 2)]);
+
+        // the cast bar text while using it, and the cursor the client shows over it
+        if ($r['castBarCaption'])
+            $out[] = Lang::gameObject('castBar').Lang::main('colon').Util::htmlEscape($r['castBarCaption']);
+        if ($r['IconName'])
+            $out[] = Lang::npcExtra('cursor').Lang::main('colon').Util::htmlEscape($r['IconName']);
+
+        // GameObject::ActivateObject(): the GameObjectArtKit.dbc ids a spell's "Use ArtKit <n>" action switches it to
+        $kits = [];
+        for ($i = 0; $i < 4; $i++)
+            if ($r['artkit'.$i])
+                $kits[] = Lang::gameObject('artKit', [$i, $r['artkit'.$i]]);
+        if ($kits)
+            $out[] = Lang::gameObject('artKits').Lang::main('colon').implode(', ', $kits);
 
         // GameObject::Create(): IsInfiniteGameObject() / IsLargeGameObject() override the map's visibility range
         if ($vis = GameObjectList::getVisibilityType($r))

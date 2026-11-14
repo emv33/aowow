@@ -637,6 +637,13 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         if ($genSpells)
             $conditions[] = ['id', $genSpells];
 
+        // aowow - custom: SpellMgr::LoadPetDefaultSpells() - the action bar of a creature with PetSpellDataId comes from CreatureSpellData.dbc
+        $petBarSpells = [];
+        if (($psd = $this->subject->getField('petSpellDataId')) && DB::Aowow()->selectCell('SHOW TABLES LIKE %s', 'aowow_creaturespelldata'))
+            if ($row = DB::Aowow()->selectRow('SELECT `spell1`, `spell2`, `spell3`, `spell4` FROM ::creaturespelldata WHERE `id` = %i', $psd))
+                if ($petBarSpells = array_values(array_filter(array_map('intVal', $row))))
+                    $conditions[] = ['id', $petBarSpells];
+
         if ($spellClick = DB::World()->selectAssoc('SELECT `spell_id` AS ARRAY_KEY, `cast_flags` AS "0", `user_type` AS "1" FROM npc_spellclick_spells WHERE `npc_entry` = %i', $this->typeId))
         {
             $genSpells = array_merge($genSpells, array_keys($spellClick));
@@ -1644,7 +1651,8 @@ class NpcBaseResponse extends TemplateResponse implements ICache
     {
         $r = DB::World()->selectRow(
            'SELECT    ct.`speed_walk`, ct.`speed_run`, ct.`scale`, ct.`HoverHeight`, ct.`HealthModifier`, ct.`ManaModifier`, ct.`ArmorModifier`,
-                      ct.`DamageModifier`, ct.`ExperienceModifier`, ct.`RegenHealth`, ct.`RacialLeader`, cmi.`BoundingRadius`, cmi.`CombatReach`
+                      ct.`DamageModifier`, ct.`ExperienceModifier`, ct.`RegenHealth`, ct.`RacialLeader`, cmi.`BoundingRadius`, cmi.`CombatReach`,
+                      ct.`IconName`, ct.`BaseVariance`, ct.`RangeVariance`, ct.`dynamicflags`
             FROM      creature_template ct
             LEFT JOIN creature_model_info cmi ON cmi.`DisplayID` = ct.`modelid1`
             WHERE     ct.`entry` = %i', $this->typeId
@@ -1668,6 +1676,11 @@ class NpcBaseResponse extends TemplateResponse implements ICache
             if ($r[$col] != 1)
                 $out[] = Lang::npcExtra('modifier', [Lang::npcExtra('modifiers', $k), Lang::nf($r[$col], 2)]);
 
+        // Creature::CalculateMinMaxDamage(): scales the attack power part of melee / ranged damage; already in the damage ranges below
+        foreach (['meleeVariance' => 'BaseVariance', 'rangedVariance' => 'RangeVariance'] as $k => $col)
+            if ($r[$col] != 1)
+                $out[] = Lang::npcExtra('modifier', [Lang::npcExtra('modifiers', $k), Lang::nf($r[$col], 2)]);
+
         // Trinity::XP::Gain(): kill xp is multiplied by it
         if ($r['ExperienceModifier'] == 0)
             $out[] = Lang::npcExtra('noXP');
@@ -1679,6 +1692,22 @@ class NpcBaseResponse extends TemplateResponse implements ICache
 
         if ($r['RacialLeader'])
             $out[] = Lang::npcExtra('racialLeader');
+
+        // Creature::UpdateEntry(): the dynamic flags every spawn starts with; a spawn's own `dynamicflags` replaces them
+        if ($r['dynamicflags'])
+        {
+            $dyn = [];
+            foreach (Lang::npcExtra('dynFlags') as $bit => $str)
+                if ($r['dynamicflags'] & $bit)
+                    $dyn[] = $str;
+
+            if ($dyn)
+                $out[] = Lang::npcExtra('dynFlagsLabel').Lang::main('colon').implode(', ', $dyn);
+        }
+
+        // the cursor the client shows over the creature
+        if ($r['IconName'])
+            $out[] = Lang::npcExtra('cursor').Lang::main('colon').Util::htmlEscape($r['IconName']);
 
         // Creature::SetObjectScale() scales both by the creature's scale (a scale of 0 takes the model's, approximated as 1 here)
         if ($r['CombatReach'] || $r['BoundingRadius'])
@@ -1711,6 +1740,10 @@ class NpcBaseResponse extends TemplateResponse implements ICache
             if ($_ = $names[$what][(int)$r[$what]] ?? '')
                 $out[] = $_;
         }
+
+        // NPCHandler: a creature stops walking this long when a player talks to it; NULL takes the server's default
+        if (isset($r['interactionpausetimer']))
+            $out[] = Lang::npcExtra('interactionPause', [DateTime::formatTimeElapsedFloat((int)$r['interactionpausetimer'])]);
 
         // the same columns exist per spawn; a creature can move one way in one place and another elsewhere
         if (self::hasTable('creature_movement_override'))
@@ -1821,6 +1854,39 @@ class NpcBaseResponse extends TemplateResponse implements ICache
 
         if ($stand)
             $out[] = Lang::npcExtra('standState').Lang::main('colon').(Lang::unit('bytes1', 0, $stand) ?? Lang::unit('bytes1', 'valueUNK', [$stand, 0]));
+
+        // Creature::LoadCreaturesAddon(): newer revisions split `bytes1` / `bytes2` into named columns; older ones pack
+        // AnimTier and VisFlags into bytes 3 and 2 of `bytes1`, SheathState and PvPFlags into bytes 0 and 1 of `bytes2`
+        $animTier = (int)($lc['animtier']    ?? (((int)($lc['bytes1'] ?? 0) >> 24) & 0xFF));
+        $visFlags = (int)($lc['visflags']    ?? (((int)($lc['bytes1'] ?? 0) >> 16) & 0xFF));
+        $sheath   = (int)($lc['sheathstate'] ?? ((int)($lc['bytes2'] ?? 0) & 0xFF));
+        $pvp      = (int)($lc['pvpflags']    ?? (((int)($lc['bytes2'] ?? 0) >> 8) & 0xFF));
+
+        if ($animTier)
+            $out[] = Lang::npcExtra('animTier').Lang::main('colon').(Lang::unit('bytes1', 3, $animTier) ?? $animTier);
+
+        if ($visFlags)
+        {
+            $vf = [];
+            foreach (Lang::unit('bytes1', 2) as $bit => $str)
+                if ($visFlags & $bit)
+                    $vf[] = $str;
+
+            $out[] = Lang::npcExtra('visFlags').Lang::main('colon').($vf ? implode(', ', $vf) : Util::asHex($visFlags));
+        }
+
+        if ($sheath)
+            $out[] = Lang::npcExtra('sheath').Lang::main('colon').(Lang::exist('npcExtra', 'sheathStates', $sheath) ?? $sheath);
+
+        if ($pvp)
+        {
+            $pf = [];
+            foreach (Lang::npcExtra('pvpFlags') as $bit => $str)
+                if ($pvp & $bit)
+                    $pf[] = $str;
+
+            $out[] = Lang::npcExtra('pvpState').Lang::main('colon').($pf ? implode(', ', $pf) : Util::asHex($pvp));
+        }
 
         // `VisibilityDistanceType` (0 = the map default, which is not worth a line); the core maps the
         // other values to fixed ranges (ObjectDefines.h): tiny 25, small 50, large 200, gigantic 400,

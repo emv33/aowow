@@ -234,6 +234,16 @@ var fi_filters = {
         { id: 140, name: 'ridesmount',          type: 'yn' },
         { id: 141, name: 'usedasmount',         type: 'yn' },
         { id: 142, name: 'hasquestitems',       type: 'yn' },
+        { id: 156, name: 'npcappearsdead',      type: 'yn' },                       // aowow - custom start
+        { id: 157, name: 'npctracked',          type: 'yn' },
+        { id: 164, name: 'npcuntrackable',      type: 'yn' },
+        { id: 160, name: 'npcweaponsdrawn',     type: 'yn' },
+        { id: 163, name: 'npcanimtier',         type: 'yn' },
+        { id: 161, name: 'npcffapvp',           type: 'yn' },
+        { id: 162, name: 'npcsanctuary',        type: 'yn' },
+        { id: 159, name: 'npcinteractionpause', type: 'yn' },
+        { id: 165, name: 'npcpetbar',           type: 'yn' },
+        { id: 158, name: 'npccursor',           type: 'str-small' },                // aowow - custom end
         { id: 37,  name: 'id',                  type: 'num', before: 'name' },
 
         { id: 9998, name: 'sepnpcstats' },
@@ -255,6 +265,8 @@ var fi_filters = {
         { id: 132, name: 'armormod',            type: 'num' },
         { id: 133, name: 'damagemod',           type: 'num' },
         { id: 134, name: 'xpmod',               type: 'num' },
+        { id: 166, name: 'meleevariance',       type: 'num' },                      // aowow - custom
+        { id: 167, name: 'rangedvariance',      type: 'num' },                      // aowow - custom
 
         { id: 9997, name: 'sepmovement' },                                     // aowow - custom start
         { id: 146, name: 'npcnoground',         type: 'yn' },
@@ -399,7 +411,10 @@ var fi_filters = {
         { id: 61,  name: 'phased',              type: 'yn' },
         { id: 65,  name: 'objpooled',           type: 'yn' },
         { id: 69,  name: 'objserveronly',       type: 'yn' },
-        { id: 70,  name: 'objusablemounted',    type: 'yn' },                   // aowow - custom end
+        { id: 70,  name: 'objusablemounted',    type: 'yn' },
+        { id: 83,  name: 'objartkits',          type: 'yn' },
+        { id: 81,  name: 'objcastbar',          type: 'str-small' },
+        { id: 82,  name: 'objcursor',           type: 'str-small' },            // aowow - custom end
 
         { id: 9,   name: 'seploot' },
         { id: 5,   name: 'averagemoneycontained',   type: 'num' },

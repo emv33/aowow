@@ -4509,6 +4509,18 @@ var LANG = {
         xpmod:              "Experience modifier",
         scriptname:         "Script name / AI",
         stringid:           "String ID",
+        npcappearsdead:     "Appears dead",
+        npctracked:         "Always tracked",
+        npcuntrackable:     "Untrackable",
+        npcweaponsdrawn:    "Weapons drawn",
+        npcanimtier:        "Uses swim, hover or fly animations",
+        npcffapvp:          "Free-for-all PvP",
+        npcsanctuary:       "Sanctuary",
+        npcinteractionpause: "Stops when talked to",
+        npcpetbar:          "Has a pet action bar",
+        npccursor:          "Cursor",
+        meleevariance:      "Melee variance",
+        rangedvariance:     "Ranged variance",
 
         sepcommunity:        "Сообщество",
         hascomments:         "Есть комментарии",
@@ -4544,6 +4556,9 @@ var LANG = {
         objpooled:             "Pooled spawns",
         objserveronly:         "Server-side only",
         objusablemounted:      "Usable while mounted",
+        objartkits:            "Has art kits",
+        objcastbar:            "Cast bar text",
+        objcursor:             "Cursor",
         phased:                "Spawns outside the default phase",
         // aowow - custom end
 

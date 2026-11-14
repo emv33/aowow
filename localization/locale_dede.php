@@ -1615,6 +1615,16 @@ $lang = array(
         'standState'    => "Stand state",
         'visibility'    => "Visibility range",
         'visibilityTypes' => [1 => "Tiny (%d yd)", 2 => "Small (%d yd)", 3 => "Large (%d yd)", 4 => "Gigantic (%d yd)", 5 => "Maximum (%d yd)"],
+        'dynFlagsLabel' => "Dynamic flags",
+        'dynFlags'      => [0x01 => "Lootable", 0x02 => "Tracked", 0x04 => "Tapped", 0x08 => "Tapped by player", 0x10 => "Shows creature info", 0x20 => "Appears dead", 0x40 => "Refer-a-friend", 0x80 => "Tapped by threat list"],
+        'cursor'        => "Cursor",
+        'interactionPause' => 'Stops for %1$s when talked to',
+        'animTier'      => "Animations",
+        'visFlags'      => "Visibility flags",
+        'sheath'        => "Weapons",
+        'sheathStates'  => [1 => "Melee weapon drawn", 2 => "Ranged weapon drawn"],
+        'pvpState'      => "PvP state",
+        'pvpFlags'      => [0x01 => "PvP", 0x04 => "Free-for-all PvP", 0x08 => "Sanctuary"],
         'unitFlagLabels' => array(
             UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_IMMUNE_TO_PC => "Cannot be attacked",
             UNIT_FLAG_IMMUNE_TO_NPC                           => "Immune to creatures",
@@ -1660,7 +1670,7 @@ $lang = array(
         'scale'            => 'Scale: %1$s',
         'hoverHeight'      => 'Hover height: %1$s',
         'modifier'         => '%1$s modifier: ×%2$s',
-        'modifiers'        => ['health' => "Health", 'mana' => "Mana", 'armor' => "Armor", 'damage' => "Damage", 'experience' => "Experience"],
+        'modifiers'        => ['health' => "Health", 'mana' => "Mana", 'armor' => "Armor", 'damage' => "Damage", 'experience' => "Experience", 'meleeVariance' => "Melee variance", 'rangedVariance' => "Ranged variance"],
         'noXP'             => "Grants no experience",
         'noRegen'          => "Does not regenerate health",
         'racialLeader'     => "Racial leader",
@@ -1867,7 +1877,10 @@ $lang = array(
         'noImmune'      => "Cannot be used while immune",
         'needsLos'      => "Its spells need line of sight",
         'srcColumn'     => "Source",
-        'srcTemplate'   => "Template",                      // aowow - custom end
+        'srcTemplate'   => "Template",
+        'castBar'       => "Cast bar",
+        'artKits'       => "Art kits",
+        'artKit'        => '%1$d: #%2$d',                   // aowow - custom end
         'goFlags'       => array(
             GO_FLAG_IN_USE           => 'In Benutzung',
             GO_FLAG_LOCKED           => 'Verschlossen',
@@ -1932,6 +1945,8 @@ $lang = array(
         'spawnDynFlags' => 'Dynamic flags: %1$s',
         'spawnFaction'  => 'Faction template: %1$d',
         'spawnGoFlags'  => 'Flags: %1$s',
+        'spawnAnimProgress' => 'Anim progress: %1$d',       // aowow - custom
+        'spawnParentRot'    => 'Parent rotation: %1$s, %2$s, %3$s, %4$s',   // aowow - custom
         'spawnInvis'    => 'Invisible: %1$s, %2$d',
         'spawnOpen'     => "Starts open",
         'invisTypes'    => [0 => "General", 3 => "Trap", 6 => "Drunk"],
