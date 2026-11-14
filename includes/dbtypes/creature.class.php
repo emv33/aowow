@@ -186,7 +186,7 @@ class CreatureList extends DBTypeList
 
     public function getBaseStats(string $type) : array
     {
-        // i'm aware of the BaseVariance/RangedVariance fields ... i'm just totaly unsure about the whole damage calculation
+        // Creature::CalculateMinMaxDamage(): BaseVariance / RangeVariance scale the attack power part of melee / ranged damage
         switch ($type)
         {
             case 'health':
@@ -202,12 +202,12 @@ class CreatureList extends DBTypeList
                 $aMax = $this->getField('armorMax');
                 return [$aMin, $aMax];
             case 'melee':
-                $mleMin = ($this->getField('dmgMin')       + ($this->getField('mleAtkPwrMin') / 14)) * $this->getField('dmgMultiplier') * $this->getField('atkSpeed');
-                $mleMax = ($this->getField('dmgMax') * 1.5 + ($this->getField('mleAtkPwrMax') / 14)) * $this->getField('dmgMultiplier') * $this->getField('atkSpeed');
+                $mleMin = ($this->getField('dmgMin')       + ($this->getField('mleAtkPwrMin') / 14) * $this->getField('mleVariance')) * $this->getField('dmgMultiplier') * $this->getField('atkSpeed');
+                $mleMax = ($this->getField('dmgMax') * 1.5 + ($this->getField('mleAtkPwrMax') / 14) * $this->getField('mleVariance')) * $this->getField('dmgMultiplier') * $this->getField('atkSpeed');
                 return [$mleMin, $mleMax];
             case 'ranged':
-                $rngMin = ($this->getField('dmgMin')       + ($this->getField('rngAtkPwrMin') / 14)) * $this->getField('dmgMultiplier') * $this->getField('rngAtkSpeed');
-                $rngMax = ($this->getField('dmgMax') * 1.5 + ($this->getField('rngAtkPwrMax') / 14)) * $this->getField('dmgMultiplier') * $this->getField('rngAtkSpeed');
+                $rngMin = ($this->getField('dmgMin')       + ($this->getField('rngAtkPwrMin') / 14) * $this->getField('rngVariance')) * $this->getField('dmgMultiplier') * $this->getField('rngAtkSpeed');
+                $rngMax = ($this->getField('dmgMax') * 1.5 + ($this->getField('rngAtkPwrMax') / 14) * $this->getField('rngVariance')) * $this->getField('dmgMultiplier') * $this->getField('rngAtkSpeed');
                 return [$rngMin, $rngMax];
             case 'resistance':
                 $r = [];
