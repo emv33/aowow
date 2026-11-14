@@ -4578,7 +4578,7 @@ var LANG = {
         npcffapvp:          "Free-for-all PvP",
         npcsanctuary:       "Sanctuary",
         npcinteractionpause: "Stops when talked to",
-        npcpetbar:          "Has a pet action bar",
+        npcpetbar:          "Has default pet spells",
         npccursor:          "Cursor",
         meleevariance:      "Melee variance",
         rangedvariance:     "Ranged variance",
