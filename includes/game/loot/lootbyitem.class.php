@@ -291,37 +291,36 @@ class LootByItem extends Loot
         if (!$ids)
             return false;
 
-        $parentModes = [];                                  // aowow - custom
-
-        if ($baseIds = DB::Aowow()->selectPairs(
-           'SELECT `difficultyEntry1` AS ARRAY_KEY, `id` FROM ::creature WHERE `difficultyEntry1` IN %in UNION
-            SELECT `difficultyEntry2` AS ARRAY_KEY, `id` FROM ::creature WHERE `difficultyEntry2` IN %in UNION
-            SELECT `difficultyEntry3` AS ARRAY_KEY, `id` FROM ::creature WHERE `difficultyEntry3` IN %in',
-            $ids, $ids, $ids
-        ))
-        {
-            $parentObj = new CreatureList(array(['id', $baseIds]));
-            if (!$parentObj->error)
-            {
-                $this->storeJSGlobals($parentObj->getJSGlobals());
-                $parentData = $parentObj->getListviewData();
-
-                // aowow - custom start: modes of the parent's own loot, merged into the rows of its difficulty versions
-                foreach ($parentObj->iterate() as $pId => $__)
-                    if (in_array($parentObj->getField($dbField), $ids) && ($_ = $parentObj->getModes()))
-                        $parentModes[$pId] = $_;
-                // aowow - custom end
-
-                $ids = array_diff($ids, $baseIds);
-            }
-        }
-
         $npc = new CreatureList(array([$dbField, $ids]));
         if ($npc->error)
             return false;
 
         $srcData = $npc->getListviewData();
         $this->storeJSGlobals($npc->getJSGlobals(GLOBALINFO_SELF | GLOBALINFO_RELATED));
+
+        // aowow - custom start: a difficulty version is shown as its parent, found through the version's own parentId
+        // (upstream: looked up parents by difficultyEntryN IN loot ids and dropped the parents' own loot rows,
+        //  missing versions that share their parent's loot id or use a loot id that is no creature entry)
+        $parentData = [];
+        $parentIds  = [];
+        foreach ($npc->iterate() as $__)
+            if ($_ = $npc->getField('parentId'))
+                $parentIds[] = $_;
+
+        if ($parentIds)
+        {
+            $parentObj = new CreatureList(array(['id', array_unique($parentIds)]));
+            if (!$parentObj->error)
+            {
+                $this->storeJSGlobals($parentObj->getJSGlobals());
+                $parentData = $parentObj->getListviewData();
+            }
+        }
+
+        // staff see every version in a row of its own; everyone else gets one row per parent and identical drop
+        $separate = User::canSee(U_GROUP_STAFF);
+        $merged   = [];                                     // [tab-parent-modeKind-drop => &row]
+        // aowow - custom end
 
         foreach ($npc->iterate() as $__)
         {
@@ -338,22 +337,33 @@ class LootByItem extends Loot
 
             $row = array_merge($parentData[$npc->getField('parentId')] ?? $srcData[$npc->id], $result[$npc->getField($dbField)]);
 
-            // aowow - custom start: a difficulty version shown as its parent drops in its own modes, not the parent's
-            if (isset($parentData[$pId = $npc->getField('parentId')]))
+            // aowow - custom start: each version drops in its own modes, not the parent's
+            $modes = $npc->getModes();
+            if ($separate)
+                $row['id'] = $npc->id;                      // keeps its own id, as the parent's would repeat across rows
+            else
             {
-                $modes = $npc->getModes() ?? $parentModes[$pId] ?? null;
-                if ($modes && isset($parentModes[$pId]))
-                    $modes[1] |= $parentModes[$pId][1];
+                $key = ($tabRef ?? $tabId).'-'.$row['id'].'-'.($modes[0] ?? '').'-'.serialize($result[$npc->getField($dbField)]);
+                if (isset($merged[$key]))
+                {
+                    if ($modes)
+                        $merged[$key]['modes'][1] |= $modes[1];
 
-                if ($modes)
-                    $row['modes'] = $modes;
-                else
-                    unset($row['modes']);
+                    continue;
+                }
             }
+
+            if ($modes)
+                $row['modes'] = $modes;
+            else
+                unset($row['modes']);
             // aowow - custom end
 
             $data[]      = $row;
             $extraCols[] = '$Listview.extraCols.percent';
+
+            if (!$separate)                                 // aowow - custom
+                $merged[$key] = &$data[array_key_last($data)];
         }
 
         return true;
