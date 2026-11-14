@@ -10,6 +10,11 @@ Listview.templates.outdoorpvp = {
             width: '30%',
             align: 'left',
             compute: function(t, td) {
+                if (t.battlefield) {                        // battlefield_template rows have no detail page
+                    $WH.ae(td, $WH.ct(t.scriptName || ('#' + t.typeId)));
+                    return;
+                }
+
                 var a = $WH.ce('a');
                 a.style.fontFamily = 'Verdana, sans-serif';
                 a.href = this.getItemLink(t);

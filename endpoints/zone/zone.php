@@ -253,6 +253,10 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
             if ($_ = Lang::zone('lfgTypes', $lfg['type']))
                 $infobox[] = Lang::zone('lfgType').Lang::main('colon').$_;
 
+            // `lfg_dungeon_template` - where the Dungeon Finder teleports a group in; LFGMgr falls back to the entrance areatrigger without it
+            if ($_ = self::getLFGEntrance($lfg['id'], $mapId))
+                $infobox[] = Lang::zone('lfgEntrance').Lang::main('colon').$_;
+
             // `lfg_dungeon_rewards` - the reward quest a completed run hands out, which was read nowhere
             foreach (self::getLFGRewards($lfg['id']) as $rw)
             {
@@ -1193,6 +1197,26 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
         $r = DB::World()->selectRow('SELECT * FROM battleground_template WHERE `ID` = %i', $bgTypeId);
 
         return $r ? array_change_key_case($r, CASE_LOWER) : [];
+    }
+
+    /** the teleport point of `lfg_dungeon_template`, as a map pin where the instance has a floor map, else as coordinates */
+    private static function getLFGEntrance(int $dungeonId, int $mapId) : ?string
+    {
+        if ($dungeonId <= 0 || !self::hasTable('lfg_dungeon_template', false))
+            return null;
+
+        if (!($r = DB::World()->selectRow('SELECT `position_x`, `position_y`, `position_z` FROM lfg_dungeon_template WHERE `dungeonId` = %i', $dungeonId)))
+            return null;
+
+        if ($pt = WorldPosition::toZonePos($mapId, (float)$r['position_x'], (float)$r['position_y']))
+        {
+            $pt   = $pt[0];
+            $pins = str_pad((string)(int)round($pt['posX'] * 10), 3, '0', STR_PAD_LEFT).str_pad((string)(int)round($pt['posY'] * 10), 3, '0', STR_PAD_LEFT);
+
+            return '[lightbox=map zone='.$pt['areaId'].($pt['floor'] > 1 ? ' floor='.($pt['floor'] - 1) : '').' pins='.$pins.']'.Lang::nf($pt['posX'], 1).', '.Lang::nf($pt['posY'], 1).'[/lightbox]';
+        }
+
+        return implode(', ', array_map(fn($v) => Lang::nf((float)$v, 1), [$r['position_x'], $r['position_y'], $r['position_z']]));
     }
 
     /** `lfg_dungeon_rewards` - the quest the Dungeon Finder hands out for a run, by level cap */

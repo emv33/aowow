@@ -120,6 +120,8 @@ $this->brick('markup', ['markup' => $this->rawRow]);   // aowow - custom
 
 $this->brick('markup', ['markup' => $this->levelCurve]);   // aowow - custom
 
+$this->brick('markup', ['markup' => $this->splineChains]);   // aowow - custom
+
 ?>
 
 <?php if ($this->hasLvTabs()): ?>

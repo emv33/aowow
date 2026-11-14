@@ -55,7 +55,7 @@ class PoiBaseResponse extends TemplateResponse implements ICache
         if (!$row)
             $this->generateNotFound(Lang::poi('title'), Lang::poi('notFound'));
 
-        $name = trim((string)$row['name']);
+        $name = Gossip::getPOILocaleNames([$this->typeId])[$this->typeId] ?? trim((string)$row['name']);   // aowow - custom: points_of_interest_locale
         $posX = (float)$row['x'];
         $posY = (float)$row['y'];
 

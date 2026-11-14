@@ -353,9 +353,26 @@ class Gossip
         if ($rows === null)
             $rows = DB::World()->selectAssoc('SELECT `entry` AS "ID", `x`, `y`, `icon`, `icon_name` AS "name" FROM points_of_interest WHERE `entry` IN %in', $ids) ?: [];
 
+        $locNames = self::getPOILocaleNames(array_column($rows, 'ID'));
+
         $out = [];
         foreach ($rows as $r)
-            $out[$r['ID']] = ['x' => (float)$r['x'], 'y' => (float)$r['y'], 'icon' => (int)$r['icon'], 'name' => (string)$r['name']];
+            $out[$r['ID']] = ['x' => (float)$r['x'], 'y' => (float)$r['y'], 'icon' => (int)$r['icon'], 'name' => $locNames[$r['ID']] ?? (string)$r['name']];
+
+        return $out;
+    }
+
+    /** `points_of_interest_locale` - the point's name in the page's locale, read nowhere until now */
+    public static function getPOILocaleNames(array $ids) : array
+    {
+        $loc = Lang::getLocale();
+        if (!$ids || $loc == Locale::EN || !DB::World()->selectCell('SHOW TABLES LIKE %s', 'points_of_interest_locale'))
+            return [];
+
+        $out = [];
+        foreach (DB::World()->selectAssoc('SELECT `ID`, `Name` FROM points_of_interest_locale WHERE `ID` IN %in AND `locale` = %s', $ids, $loc->json()) ?: [] as $r)
+            if ($_ = trim((string)$r['Name']))
+                $out[(int)$r['ID']] = $_;
 
         return $out;
     }

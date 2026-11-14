@@ -44,7 +44,11 @@ class OutdoorpvpsBaseResponse extends TemplateResponse implements ICache
         $this->redButtons[BUTTON_WOWHEAD] = false;
 
         $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"]);
-        $this->lvTabs->addListviewTab(new Listview(['data' => $this->buildListviewData()], 'outdoorpvp', 'outdoorpvp'));
+        $this->lvTabs->addListviewTab(new Listview(['data' => $this->buildListviewData(), 'id' => 'outdoorpvp', 'name' => Util::ucFirst(Lang::outdoorpvp('title'))], 'outdoorpvp', 'outdoorpvp'));
+
+        // aowow - custom: `battlefield_template`, the same TypeId / ScriptName pair for Wintergrasp-style battlefields; no detail page of their own
+        if ($bf = $this->buildBattlefieldData())
+            $this->lvTabs->addListviewTab(new Listview(['data' => $bf, 'id' => 'battlefields', 'name' => Lang::outdoorpvp('battlefields')], 'outdoorpvp', 'outdoorpvp'));
 
         parent::generate();
     }
@@ -73,6 +77,30 @@ class OutdoorpvpsBaseResponse extends TemplateResponse implements ICache
 
         return $data;
     }
+
+    // aowow - custom start
+    private function buildBattlefieldData() : array
+    {
+        if (!DB::World()->selectCell('SHOW TABLES LIKE %s', 'battlefield_template'))
+            return [];
+
+        $data = [];
+        foreach (DB::World()->selectAssoc('SELECT * FROM battlefield_template ORDER BY `TypeId` ASC') ?: [] as $r)
+        {
+            $lc = array_change_key_case($r, CASE_LOWER);
+
+            $data[] = array(
+                'id'          => (int)($lc['typeid'] ?? 0),
+                'typeId'      => (int)($lc['typeid'] ?? 0),
+                'scriptName'  => (string)($lc['scriptname'] ?? ''),
+                'comment'     => (string)($lc['comment'] ?? ''),
+                'battlefield' => 1
+            );
+        }
+
+        return $data;
+    }
+    // aowow - custom end
 
     protected function generateMetadata(bool $useArticle = true) : void
     {

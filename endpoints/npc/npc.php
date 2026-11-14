@@ -27,6 +27,7 @@ class NpcBaseResponse extends TemplateResponse implements ICache
     public  array  $reputation  = [];
     public  string $subname     = '';
     public  string $modePills   = '';                   // aowow - custom
+    public ?Markup $splineChains = null;                // aowow - custom
 
     private  CreatureList $subject;
     private ?CreatureList $altNPCs    = null;
@@ -215,6 +216,10 @@ class NpcBaseResponse extends TemplateResponse implements ICache
             // aowow - custom: vehicle_template; Unit::_ExitVehicle() despawns a summoned vehicle this long after its owner exits (default 1ms)
             if ($_ = DB::World()->selectCell('SELECT `despawnDelayMs` FROM vehicle_template WHERE `creatureId` = %i', $this->typeId))
                 $infobox[] = Lang::npcExtra('vehicleDespawn', [DateTime::formatTimeElapsedFloat($_)]);
+
+            // aowow - custom: `vehicle_seat_addon`, keyed by the VehicleSeat.dbc ids of the vehicle's seats
+            if ($_ = self::getSeatAddons((int)$this->subject->getField('vehicleId')))
+                $infobox[] = Lang::npcExtra('seats').Lang::main('colon').'[ul][li]'.implode('[/li][li]', $_).'[/li][/ul]';
         }
 
         // is visible as ghost (redundant to extraFlags)
@@ -274,6 +279,7 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         // `pet_levelstats` and `pet_name_generation` are keyed by creature entry, not by the pet
         // family `?pet=` is built on, so this is the only page they can hang off
         $this->levelCurve = self::buildPetTable($this->typeId);
+        $this->splineChains = self::buildSplineChains($this->typeId);   // aowow - custom
 
         // the object side of this is imported by objects.ss.php; the creature side was not read at all
         if ($_ = self::getQuestItems($this->typeId))
@@ -1591,6 +1597,47 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         return $known[$tbl] ??= (bool)DB::World()->selectCell('SHOW TABLES LIKE %s', $tbl);
     }
 
+    /**
+     * Vehicle::Vehicle() / Unit::_ExitVehicle(): a seat can turn its passenger by an angle and set where they land
+     * on leaving, either relative to the vehicle (offset) or as an absolute position (destination)
+     */
+    private static function getSeatAddons(int $vehicleId) : array
+    {
+        if (!$vehicleId || !self::hasTable('vehicle_seat_addon') || !DB::Aowow()->selectCell('SHOW TABLES LIKE %s', 'aowow_vehicleseats'))
+            return [];
+
+        if (!($seats = DB::Aowow()->selectRow('SELECT `seat1`, `seat2`, `seat3`, `seat4`, `seat5`, `seat6`, `seat7`, `seat8` FROM ::vehicleseats WHERE `id` = %i', $vehicleId)))
+            return [];
+
+        $seats = array_filter(array_map('intVal', array_values($seats)));
+        if (!$seats)
+            return [];
+
+        $rows = DB::World()->selectAssoc('SELECT `SeatEntry` AS ARRAY_KEY, `SeatOrientation`, `ExitParamX`, `ExitParamY`, `ExitParamZ`, `ExitParamO`, `ExitParamValue` FROM vehicle_seat_addon WHERE `SeatEntry` IN %in', $seats) ?: [];
+
+        $out = [];
+        foreach ($seats as $idx => $seatId)
+        {
+            if (!($r = $rows[$seatId] ?? null))
+                continue;
+
+            $bits = [];
+            if ((float)$r['SeatOrientation'])
+                $bits[] = Lang::npcExtra('seatFacing', [Lang::nf(rad2deg((float)$r['SeatOrientation']), 0)]);
+
+            $pos = implode(', ', array_map(fn($v) => Lang::nf((float)$v, 2), [$r['ExitParamX'], $r['ExitParamY'], $r['ExitParamZ'], $r['ExitParamO']]));
+            if ($r['ExitParamValue'] == 1)
+                $bits[] = Lang::npcExtra('seatExitOffset', [$pos]);
+            else if ($r['ExitParamValue'] == 2)
+                $bits[] = Lang::npcExtra('seatExitDest', [$pos]);
+
+            if ($bits)
+                $out[] = Lang::npcExtra('seat', [$idx, $seatId]).Lang::main('colon').implode(', ', $bits);
+        }
+
+        return $out;
+    }
+
     /** the weapons a creature visibly carries; the key column was renamed between revisions */
     private static function getEquipment(int $npcId) : array
     {
@@ -1767,6 +1814,61 @@ class NpcBaseResponse extends TemplateResponse implements ICache
      * creature's own stats are the ones it has while it is a creature, which is a different set
      * the second is the pool the client draws a summoned pet's name from, two halves joined
      */
+    /**
+     * `script_spline_chain_meta` / `script_spline_chain_waypoints` - the spline paths a C++ script moves this creature
+     * along (SystemMgr::LoadScriptSplineChains()); the points carry no map, so they are drawn on the map of its spawns
+     */
+    private static function buildSplineChains(int $npcId) : ?Markup
+    {
+        if (!self::hasTable('script_spline_chain_meta') || !self::hasTable('script_spline_chain_waypoints'))
+            return null;
+
+        $meta = DB::World()->selectAssoc('SELECT `chainId`, `splineId`, `expectedDuration`, `msUntilNext`, `velocity` FROM script_spline_chain_meta WHERE `entry` = %i ORDER BY `chainId`, `splineId`', $npcId);
+        if (!$meta)
+            return null;
+
+        $points = [];
+        foreach (DB::World()->selectAssoc('SELECT `chainId`, `splineId`, `x`, `y` FROM script_spline_chain_waypoints WHERE `entry` = %i ORDER BY `chainId`, `splineId`, `wpId`', $npcId) ?: [] as $p)
+            $points[$p['chainId']][$p['splineId']][] = [(float)$p['x'], (float)$p['y']];
+
+        $mapId = (int)DB::World()->selectCell('SELECT `map` FROM creature WHERE `id` = %i LIMIT 1', $npcId);
+
+        $rows = '';
+        foreach ($meta as $m)
+        {
+            $pts  = $points[$m['chainId']][$m['splineId']] ?? [];
+            $pins = '';
+            $zone = 0;
+            foreach ($pts as [$x, $y])
+            {
+                if (!($pt = WorldPosition::toZonePos($mapId, $x, $y, $zone)))
+                    continue;
+
+                $pt   = $pt[0];
+                $zone = $zone ?: (int)$pt['areaId'];
+                if ((int)$pt['areaId'] != $zone)
+                    continue;
+
+                $pins .= str_pad((string)(int)round($pt['posX'] * 10), 3, '0', STR_PAD_LEFT).str_pad((string)(int)round($pt['posY'] * 10), 3, '0', STR_PAD_LEFT);
+            }
+
+            $where = $zone && $pins ? '[lightbox=map zone='.$zone.' pins='.$pins.']'.Lang::npcExtra('splinePoints', [count($pts)]).'[/lightbox]' : Lang::npcExtra('splinePoints', [count($pts)]);
+
+            $info = [];
+            if ($m['velocity'] > 0)
+                $info[] = Lang::npcExtra('splineSpeed', [Lang::nf((float)$m['velocity'], 2)]);
+            if ($m['expectedDuration'])
+                $info[] = DateTime::formatTimeElapsedFloat((int)$m['expectedDuration']);
+            if ($m['msUntilNext'])
+                $info[] = Lang::npcExtra('splineNext', [DateTime::formatTimeElapsedFloat((int)$m['msUntilNext'])]);
+
+            $rows .= '[tr][td]'.Lang::npcExtra('splineId', [$m['chainId'], $m['splineId']]).'[/td][td]'.$where.'[/td][td][small class=q0]'.implode(', ', $info).'[/small][/td][/tr]';
+        }
+
+        return new Markup('[pad][h3][toggler=hidden id=spline-chains]'.Lang::npcExtra('splineChains').'[/toggler][/h3][div=hidden id=spline-chains clear=left][table class=grid]'.$rows.'[/table][/div]',
+                          ['allow' => Markup::CLASS_STAFF], 'spline-chains-generic');
+    }
+
     private static function buildPetTable(int $npcId) : ?Markup
     {
         $stats = [];

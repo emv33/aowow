@@ -59,10 +59,12 @@ class PoisBaseResponse extends TemplateResponse implements ICache
         if (!$rows)
             $rows = DB::World()->selectAssoc('SELECT `entry` AS "ID", `x`, `y`, `icon_name` AS "name" FROM points_of_interest ORDER BY `entry` ASC');
 
+        $locNames = Gossip::getPOILocaleNames(array_column($rows ?: [], 'ID'));   // aowow - custom: points_of_interest_locale
+
         $pois = [];
         foreach ($rows ?: [] as $r)
         {
-            $name = trim((string)$r['name']);
+            $name = $locNames[(int)$r['ID']] ?? trim((string)$r['name']);
             $pois[(int)$r['ID']] = array(
                 'id'   => (int)$r['ID'],
                 'name' => $name !== '' && $name[0] == '$' ? ' '.$name : $name,

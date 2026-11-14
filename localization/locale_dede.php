@@ -1408,7 +1408,8 @@ $lang = array(
         'notFound'      => "This outdoor PvP zone doesn't exist.",
         'id'            => "Type ID",
         'scriptName'    => "Script",
-        'comment'       => "Comment"
+        'comment'       => "Comment",
+        'battlefields'  => "Battlefields"
     ),
     'poi' => array(
         'title'         => "Points of interest",
@@ -1625,6 +1626,16 @@ $lang = array(
         'sheathStates'  => [1 => "Melee weapon drawn", 2 => "Ranged weapon drawn"],
         'pvpState'      => "PvP state",
         'pvpFlags'      => [0x01 => "PvP", 0x04 => "Free-for-all PvP", 0x08 => "Sanctuary"],
+        'seats'         => "Seats",
+        'seat'          => 'Seat %1$d (#%2$d)',
+        'seatFacing'    => 'turns the passenger by %1$s°',
+        'seatExitOffset'=> 'exit offset %1$s',
+        'seatExitDest'  => 'exits to %1$s',
+        'splineChains'  => "Scripted spline paths",
+        'splineId'      => 'Chain %1$d, spline %2$d',
+        'splinePoints'  => '%1$d points',
+        'splineSpeed'   => '%1$s yd/s',
+        'splineNext'    => 'next after %1$s',
         'unitFlagLabels' => array(
             UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_IMMUNE_TO_PC => "Cannot be attacked",
             UNIT_FLAG_IMMUNE_TO_NPC                           => "Immune to creatures",
@@ -2174,6 +2185,7 @@ $lang = array(
         'lfgRewardFirst'  => "first run",
         'lfgRewardRepeat' => "repeat",
         'lfgType'       => "Dungeon Finder type",
+        'lfgEntrance'   => "Dungeon Finder teleport",          // aowow - custom: lfg_dungeon_template
         'lfgTypes'      => array(
             1 => "Dungeon",
             2 => "Raid",
