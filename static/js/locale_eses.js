@@ -3962,7 +3962,7 @@ var LANG = {
                             [270, "Ignorar resistencia del objetivo para habilidad"],              [271, "Modificar daño recibido % del lanzador"],                    [272, "Ignorar reinicio de temporizador de ataque"],                 [273, "Rayos X"],                                                        [274, "Habilidad no consume munición"],
                             [275, "Modificar habilidad ignora cambio de forma"],                   [276, "Modificar daño de mecánica hecho %"],                        [277, "Modificar máximo de objetivos afectados"],                    [278, "Desarmar arma a distancia"],                                      [279, "Generar efecto"],
                             [280, "Modificar penetración de armadura %"],                          [281, "Modificar ganancia de honor %"],                             [282, "Modificar salud base %"],                                     [283, "Modificar sanación recibida % del lanzador"],                     [284, "Aura vinculada"],
-                            [285, "Modificar poder de ataque por resistencia a escuela"],          [286, "Permitir que habilidad periódica sea crítica"],              [287, "Modificar probabilidad de desvío de hechizo"],                [288, "Ignorar dirección de golpe"],                                     [290, "Modificar probabilidad de crítico"],
+                            [285, "Modificar poder de ataque por resistencia a escuela"],          [286, "Permitir que habilidad periódica sea crítica"],              [287, "Modificar probabilidad de desvío de hechizo"],                [288, "Ignorar dirección de golpe"],[289, "Prevent Durability Loss"],[290, "Modificar probabilidad de crítico"],
                             [291, "Modificar experiencia de misión ganada %"],                     [292, "Abrir establo"],                                             [293, "Sobrescribir hechizos"],                                      [294, "Prevenir regeneración de poder"],                                 [296, "Establecer ID de vehículo"],
                             [297, "Explosión espiritual"],                                         [298, "Estrangular"],                                               [300, "Compartir daño %"],                                           [301, "Modificar absorción de sanación de escuela"],                     [303, "Modificar daño hecho vs aurastate - %"],
                             [304, "Fingir ebrio"],                                                 [305, "Modificar velocidad mínima %"],                              [307, "Prueba de absorción de sanación"],                            [308, "Modificar probabilidad de golpe crítico para lanzador"],          [310, "Modificar evitación de daño en área de mascota"],
@@ -5065,7 +5065,21 @@ var LANG = {
         runicpowergain:          "Runic power generated",
         interruptflags:          "Interrupt flags",
         aurainterruptflags:      "Aura interrupt flags",
-        channelinterruptflags:   "Channel interrupt flags"
+        channelinterruptflags:   "Channel interrupt flags",
+        hasprocentry:            "Has a proc entry (spell_proc)",
+        linkedspells:            "Has linked spells",
+        spellgroup:              "In a spell group",
+        bonusdata:               "Has bonus coefficients",
+        targetposition:          "Teleports to a fixed position",
+        petauras:                "Grants pet auras",
+        threatmod:               "Has a threat modifier",
+        requiresspell:           "Requires another spell",
+        areaspell:               "Applies in an area (spell_area)",
+        difficultyversions:      "Has difficulty versions",
+        extraitems:              "Can create extra items",
+        perfectitems:            "Can create a perfect item",
+        scriptname:              "Script name",
+        haslegacyscript:         "Has a legacy script"
         // aowow - custom end
     },
 

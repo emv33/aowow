@@ -3221,7 +3221,22 @@ class SpellListFilter extends Filter
         214 => [parent::CR_STAFFFLAG, 'auraInterruptFlags'                                                                        ], // aurainterruptflags [flags] [staff]
         215 => [parent::CR_STAFFFLAG, 'channelInterruptFlags'                                                                     ], // channelinterruptflags [flags] [staff]
         216 => [parent::CR_NUMERIC,   'speed',              NUM_CAST_FLOAT                                                        ], // missilespeed [num]
-        217 => [parent::CR_CALLBACK,  'cbRunicPowerGain'                                                                          ]  // runicpowergain [num]
+        217 => [parent::CR_CALLBACK,  'cbRunicPowerGain'                                                                          ], // runicpowergain [num]
+        // the world tables the spell page reads
+        218 => [parent::CR_CALLBACK,  'cbWorldIds',         'proc'                                                                ], // hasprocentry [yn]
+        219 => [parent::CR_CALLBACK,  'cbWorldIds',         'linked'                                                              ], // linkedspells [yn]
+        220 => [parent::CR_CALLBACK,  'cbWorldIds',         'group'                                                               ], // spellgroup [yn]
+        221 => [parent::CR_CALLBACK,  'cbWorldIds',         'bonus'                                                               ], // bonusdata [yn]
+        222 => [parent::CR_CALLBACK,  'cbWorldIds',         'position'                                                            ], // targetposition [yn]
+        223 => [parent::CR_CALLBACK,  'cbWorldIds',         'petauras'                                                            ], // petauras [yn]
+        224 => [parent::CR_CALLBACK,  'cbWorldIds',         'threat'                                                              ], // threatmod [yn]
+        225 => [parent::CR_CALLBACK,  'cbWorldIds',         'required'                                                            ], // requiresspell [yn]
+        226 => [parent::CR_CALLBACK,  'cbWorldIds',         'area'                                                                ], // areaspell [yn]
+        227 => [parent::CR_CALLBACK,  'cbWorldIds',         'difficulty'                                                          ], // difficultyversions [yn]
+        228 => [parent::CR_CALLBACK,  'cbWorldIds',         'extraitems'                                                          ], // extraitems [yn]
+        229 => [parent::CR_CALLBACK,  'cbWorldIds',         'perfectitems'                                                        ], // perfectitems [yn]
+        230 => [parent::CR_CALLBACK,  'cbScriptName'                                                                              ], // scriptname [str] [staff]
+        231 => [parent::CR_CALLBACK,  'cbWorldIds',         'legacyscript'                                                        ]  // haslegacyscript [yn] [staff]
         // aowow - custom end
     );
 
@@ -3560,6 +3575,87 @@ class SpellListFilter extends Filter
         $bit = 1 << ($crv - 1);
 
         return [[$field, $bit, '&'], $bit];
+    }
+
+    private static function worldHasTable(string $tbl) : bool
+    {
+        static $known = [];
+
+        return $known[$tbl] ??= (bool)DB::World()->selectCell('SHOW TABLES LIKE %s', $tbl);
+    }
+
+    // a negative id in spell_proc / spell_script_names stands for every rank of that first rank (spell_ranks)
+    private static function withRanks(array $ids) : array
+    {
+        $out = $first = [];
+        foreach ($ids as $id)
+        {
+            $out[] = abs((int)$id);
+            if ((int)$id < 0)
+                $first[] = -(int)$id;
+        }
+
+        if ($first && self::worldHasTable('spell_ranks'))
+            $out = array_merge($out, DB::World()->selectCol('SELECT `spell_id` FROM spell_ranks WHERE `first_spell_id` IN %in', $first) ?: []);
+
+        return $out;
+    }
+
+    // [yn] criteria answered by a list of spell ids from the world tables the spell page reads
+    protected function cbWorldIds(int $cr, int $crs, string $crv, string $what) : ?array
+    {
+        if (!$this->int2Bool($crs))
+            return null;
+
+        // legacy scripts are staff only on the spell page
+        if ($what == 'legacyscript' && !User::canSee(U_GROUP_STAFF))
+            return [1];
+
+        $col = fn(string $tbl, string $qry) : array => self::worldHasTable($tbl) ? (DB::World()->selectCol($qry) ?: []) : [];
+
+        $ids = match ($what)
+        {
+            'proc'         => self::withRanks($col('spell_proc', 'SELECT `SpellId` FROM spell_proc')),
+            // a negative trigger fires on aura removal, a negative effect removes that aura; either way the spell takes part
+            'linked'       => array_merge($col('spell_linked_spell', 'SELECT ABS(`spell_trigger`) FROM spell_linked_spell'), $col('spell_linked_spell', 'SELECT ABS(`spell_effect`) FROM spell_linked_spell')),
+            'group'        => $col('spell_group', 'SELECT `spell_id` FROM spell_group WHERE `spell_id` > 0'),
+            'bonus'        => $col('spell_bonus_data', 'SELECT `entry` FROM spell_bonus_data'),
+            'position'     => $col('spell_target_position', 'SELECT `ID` FROM spell_target_position'),
+            'petauras'     => $col('spell_pet_auras', 'SELECT `spell` FROM spell_pet_auras'),
+            'threat'       => $col('spell_threat', 'SELECT `entry` FROM spell_threat'),
+            'required'     => $col('spell_required', 'SELECT `spell_id` FROM spell_required'),
+            'area'         => $col('spell_area', 'SELECT `spell` FROM spell_area'),
+            'difficulty'   => array_merge(...array_map(fn($c) => DB::Aowow()->selectCol('SELECT %n FROM ::spelldifficulty WHERE %n > 0', $c, $c) ?: [], ['normal10', 'normal25', 'heroic10', 'heroic25'])),
+            'extraitems'   => $col('skill_extra_item_template', 'SELECT `spellId` FROM skill_extra_item_template'),
+            'perfectitems' => $col('skill_perfect_item_template', 'SELECT `spellId` FROM skill_perfect_item_template'),
+            'legacyscript' => $col('spell_scripts', 'SELECT `id` FROM spell_scripts'),
+            default        => null
+        };
+
+        if ($ids === null)
+            return null;
+
+        $ids = array_values(array_unique(array_map('intVal', $ids)));
+
+        if ($crs)
+            return $ids ? ['id', $ids] : [0];
+
+        return $ids ? ['id', $ids, '!'] : [1];
+    }
+
+    // spell_script_names is only shown to staff on the spell page
+    protected function cbScriptName(int $cr, int $crs, string $crv) : ?array
+    {
+        if (!User::canSee(U_GROUP_STAFF))
+            return [1];
+
+        $crv = trim($crv);
+        if ($crv === '' || !self::worldHasTable('spell_script_names'))
+            return null;
+
+        $ids = self::withRanks(DB::World()->selectCol('SELECT `spell_id` FROM spell_script_names WHERE `ScriptName` LIKE %~like~', $crv) ?: []);
+
+        return $ids ? ['id', array_values(array_unique($ids))] : [0];
     }
 
     // RuneCost.dbc keeps runic power in tenths

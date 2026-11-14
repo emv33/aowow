@@ -567,7 +567,19 @@ var fi_filters = {
         { id: 211,  name: 'aurabrokenbydamage',     type: 'yn'                             },
         { id: 212,  name: 'aurabrokenbymove',       type: 'yn'                             },
         { id: 216,  name: 'missilespeed',           type: 'num'                            },
-        { id: 217,  name: 'runicpowergain',         type: 'num'                            }, // aowow - custom end
+        { id: 217,  name: 'runicpowergain',         type: 'num'                            },
+        { id: 218,  name: 'hasprocentry',           type: 'yn'                             },
+        { id: 219,  name: 'linkedspells',           type: 'yn'                             },
+        { id: 220,  name: 'spellgroup',             type: 'yn'                             },
+        { id: 221,  name: 'bonusdata',              type: 'yn'                             },
+        { id: 222,  name: 'targetposition',         type: 'yn'                             },
+        { id: 223,  name: 'petauras',               type: 'yn'                             },
+        { id: 224,  name: 'threatmod',              type: 'yn'                             },
+        { id: 225,  name: 'requiresspell',          type: 'yn'                             },
+        { id: 226,  name: 'areaspell',              type: 'yn'                             },
+        { id: 227,  name: 'difficultyversions',     type: 'yn'                             },
+        { id: 228,  name: 'extraitems',             type: 'yn'                             },
+        { id: 229,  name: 'perfectitems',           type: 'yn'                             }, // aowow - custom end
         { id: 109,  name: 'effecttype',             type: 'effecttype'                     },
         { id: 29,   name: 'appliesaura',            type: 'effectauranames-misc'           },
         { id: 15,   name: 'icon',                   type: 'str'                            },
@@ -914,7 +926,9 @@ var fi_filters = {
         { id: 108,  name: 'flags13',      type: 'flags',         staffonly: true },
         { id: 213,  name: 'interruptflags',        type: 'flags',  staffonly: true }, // aowow - custom start
         { id: 214,  name: 'aurainterruptflags',    type: 'flags',  staffonly: true },
-        { id: 215,  name: 'channelinterruptflags', type: 'flags',  staffonly: true }  // aowow - custom end
+        { id: 215,  name: 'channelinterruptflags', type: 'flags',  staffonly: true },
+        { id: 230,  name: 'scriptname',            type: 'str',    staffonly: true },
+        { id: 231,  name: 'haslegacyscript',       type: 'yn',     staffonly: true }  // aowow - custom end
     ],
 
     achievements: [

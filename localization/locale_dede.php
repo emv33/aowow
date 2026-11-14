@@ -2972,7 +2972,7 @@ $lang = array(
             'Ignore Target Resistance for Ability', 'Mod Damage Taken % from Caster',       'Ignore Swing Timer Reset',             'X-Ray',                                'Ability Consume No Ammo',
 /*275+ */   'Mod Ability Ignore Shapeshift',        'Mod Mechanic Damage Done %',           'Mod Max Affected Targets',             'Disarm Ranged Weapon',                 'Spawn Effect',
             'Mod Armor Penetration %',              'Mod Honor Gain %',                     'Mod Base Health %',                    'Mod Healing Taken % from Caster',      'Linked Aura',
-            'Mod Attack Power by School Resistance','Allow Periodic Ability to Crit',       'Mod Spell Deflect Chance',             'Ignore Hit Direction',                 '',
+            'Mod Attack Power by School Resistance','Allow Periodic Ability to Crit',       'Mod Spell Deflect Chance',             'Ignore Hit Direction',                 'Prevent Durability Loss',
             'Mod Crit Chance',                      'Mod Quest Experience Gained %',        'Open Stable',                          'Override Spells',                      'Prevent Power Regeneration',
             '',                                     'Set Vehicle Id',                       'Spirit Burst',                         'Strangulate',                          '',
 /*300+ */   'Share Damage %',                       'Mod Absorb School Healing',            '',                                     'Mod Damage Done vs Aurastate - %',     'Fake Inebriate',

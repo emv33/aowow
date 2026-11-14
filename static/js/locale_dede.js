@@ -3962,7 +3962,7 @@ var LANG = {
                             [270, "Ignore Target Resistance for Ability"],[271, "Mod Damage Taken % from Caster"],[272, "Ignore Swing Timer Reset"],[273, "X-Ray"],                         [274, "Ability Consume No Ammo"],
                             [275, "Mod Ability Ignore Shapeshift"], [276, "Mod Mechanic Damage Done %"],    [277, "Mod Max Affected Targets"],      [278, "Disarm Ranged Weapon"],          [279, "Spawn Effect"],
                             [280, "Mod Armor Penetration %"],       [281, "Mod Honor Gain %"],              [282, "Mod Base Health %"],             [283, "Mod Healing Taken % from Caster"],[284, "Linked Aura"],
-                            [285, "Mod Attack Power by School Resistance"],[286, "Allow Periodic Ability to Crit"],[287, "Mod Spell Deflect Chance"],[288, "Ignore Hit Direction"],         [290, "Mod Crit Chance"],
+                            [285, "Mod Attack Power by School Resistance"],[286, "Allow Periodic Ability to Crit"],[287, "Mod Spell Deflect Chance"],[288, "Ignore Hit Direction"],[289, "Prevent Durability Loss"],[290, "Mod Crit Chance"],
                             [291, "Mod Quest Experience Gained %"], [292, "Open Stable"],                   [293, "Override Spells"],               [294, "Prevent Power Regeneration"],    [296, "Set Vehicle Id"],
                             [297, "Spirit Burst"],                  [298, "Strangulate"],                   [300, "Share Damage %"],                [301, "Mod Absorb School Healing"],     [303, "Mod Damage Done vs Aurastate - %"],
                             [304, "Fake Inebriate"],                [305, "Mod Minimum Speed %"],           [307, "Heal Absorb Test"],              [308, "Mod Critical Strike Chance for Caster"],[310, "Mod Pet AOE Damage Avoidance"],
@@ -5065,7 +5065,21 @@ var LANG = {
         runicpowergain:          "Runic power generated",
         interruptflags:          "Interrupt flags",
         aurainterruptflags:      "Aura interrupt flags",
-        channelinterruptflags:   "Channel interrupt flags"
+        channelinterruptflags:   "Channel interrupt flags",
+        hasprocentry:            "Has a proc entry (spell_proc)",
+        linkedspells:            "Has linked spells",
+        spellgroup:              "In a spell group",
+        bonusdata:               "Has bonus coefficients",
+        targetposition:          "Teleports to a fixed position",
+        petauras:                "Grants pet auras",
+        threatmod:               "Has a threat modifier",
+        requiresspell:           "Requires another spell",
+        areaspell:               "Applies in an area (spell_area)",
+        difficultyversions:      "Has difficulty versions",
+        extraitems:              "Can create extra items",
+        perfectitems:            "Can create a perfect item",
+        scriptname:              "Script name",
+        haslegacyscript:         "Has a legacy script"
         // aowow - custom end
     },
 
