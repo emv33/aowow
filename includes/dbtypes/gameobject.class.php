@@ -346,6 +346,23 @@ class GameObjectList extends DBTypeList
         return array_values($ids);
     }
 
+    /** the first object of the ::objectdifficulty row $id is listed in, if that row has more than one */
+    public static function getDifficultyParentOf(int $id) : ?int
+    {
+        static $parents = null;
+
+        if ($parents === null)
+        {
+            $parents = [];
+            foreach (DB::Aowow()->selectAssoc('SELECT `normal10`, `normal25`, `heroic10`, `heroic25` FROM ::objectdifficulty') ?: [] as $r)
+                if (count($set = array_values(array_filter(array_map('intVal', $r)))) > 1)
+                    foreach ($set as $member)
+                        $parents[$member] ??= $set[0];
+        }
+
+        return $parents[$id] ?? null;
+    }
+
     /**
      * GameObject::Create() overrides the map's visibility range with VisibilityDistanceType::Infinite for
      * GameObjectTemplate::IsInfiniteGameObject() and ::Large for IsLargeGameObject(); the `large` field

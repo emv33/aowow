@@ -449,6 +449,25 @@ class LootByItem extends Loot
         if ($srcObj->error)
             return false;
 
+        // aowow - custom start: a member of an ::objectdifficulty set is shown as the set's first object, like npc difficulty versions
+        $parentOf = [];
+        foreach ($srcObj->iterate() as $id => $__)
+            if (($_ = GameObjectList::getDifficultyParentOf($id)) && $_ != $id)
+                $parentOf[$id] = $_;
+
+        $parentData = [];
+        if ($parentOf)
+        {
+            $parentObj = new GameObjectList(array(['id', array_unique($parentOf)]));
+            if (!$parentObj->error)
+                $parentData = $parentObj->getListviewData();
+        }
+
+        // staff see every member in a row of its own; everyone else gets one row per set and identical drop
+        $separate = User::canSee(U_GROUP_STAFF);
+        $merged   = [];                                     // [tab-parent-modeKind-drop => &row]
+        // aowow - custom end
+
         foreach ($srcObj->getListviewData() as $id => $row)
         {
             $tabId = match($row['type'])
@@ -461,10 +480,39 @@ class LootByItem extends Loot
 
             [, &$tabData, , , &$extraCols, , &$visibleCols] = $this->listviewTabs[$tabId];
 
-            $tabData[]   = array_merge($row, $result[$srcObj->getEntry($id)['lootId']]);
+            // aowow - custom start: each member drops in its own modes, not the parent's
+            $drop  = $result[$srcObj->getEntry($id)['lootId']];
+            $modes = $row['modes'] ?? null;
+            if (isset($parentOf[$id], $parentData[$parentOf[$id]]))
+                $row = $parentData[$parentOf[$id]];
+
+            if ($separate)
+                $row['id'] = $id;                           // keeps its own id, as the parent's would repeat across rows
+            else
+            {
+                $key = $tabId.'-'.$row['id'].'-'.($modes[0] ?? '').'-'.serialize($drop);
+                if (isset($merged[$key]))
+                {
+                    if ($modes)
+                        $merged[$key]['modes'][1] |= $modes[1];
+
+                    continue;
+                }
+            }
+
+            if ($modes)
+                $row['modes'] = $modes;
+            else
+                unset($row['modes']);
+            // aowow - custom end
+
+            $tabData[]   = array_merge($row, $drop);
             $extraCols[] = '$Listview.extraCols.percent';
             if ($tabId != 15)
                 $visibleCols[] = 'skill';
+
+            if (!$separate)                                 // aowow - custom
+                $merged[$key] = &$tabData[array_key_last($tabData)];
         }
 
         return true;
