@@ -1679,7 +1679,7 @@ $lang = array(
         'vehicleDespawn'   => 'Despawns %1$s after its summoner leaves it',
         'unitData'         => "Unit data",
         'speeds'           => 'Speed: %1$s walking, %2$s running yd/s',
-        'scale'            => 'Scale: %1$s',
+        'scale'            => 'Scale: ×%1$s',
         'hoverHeight'      => 'Hover height: %1$s',
         'modifier'         => '%1$s modifier: ×%2$s',
         'modifiers'        => ['health' => "Health", 'mana' => "Mana", 'armor' => "Armor", 'damage' => "Damage", 'experience' => "Experience", 'meleeVariance' => "Melee variance", 'rangedVariance' => "Ranged variance"],
