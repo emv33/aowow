@@ -263,15 +263,6 @@ class NpcBaseResponse extends TemplateResponse implements ICache
                 $infobox[] = $line;
         }
 
-        // the reverse of the Mount: line above - who rides this creature's model
-        if ($_ = self::getMountOf($this->typeId))
-        {
-            foreach ($_ as $id)
-                $this->extendGlobalIds(Type::NPC, $id);
-
-            $infobox[] = Lang::npcExtra('mountOf').Lang::main('colon').Lang::concat(array_map(fn($x) => '[npc='.$x.']', $_), Lang::CONCAT_NONE);
-        }
-
         // skin, linking to the npc search for every creature sharing it (same filter as the listview skin column)
         if ($_ = $this->subject->getField('textureString'))
             $infobox[] = Lang::npcExtra('skin').Lang::main('colon').'[url=?npcs&filter=cr=35;crs=0;crv='.urlencode($_).']'.$_.'[/url]';
@@ -1151,6 +1142,23 @@ class NpcBaseResponse extends TemplateResponse implements ICache
                     'name'        => '$LANG.tab_samemodelas',
                     'id'          => 'same-model-as',
                     'visibleCols' => ['skin']
+                ), CreatureList::$brickFile));
+            }
+        }
+
+        // aowow - custom: tab: ridden by - the reverse of the Mount: infobox line, the creatures riding this creature's model
+        if ($_ = self::getMountOf($this->typeId))
+        {
+            $riders = new CreatureList(array(['id', $_]));
+            if (!$riders->error)
+            {
+                $this->extendGlobalData($riders->getJSGlobals());
+
+                $this->addDataLoader('zones');
+                $this->lvTabs->addListviewTab(new Listview(array(
+                    'data' => $riders->getListviewData(),
+                    'name' => Lang::npcExtra('riddenBy'),
+                    'id'   => 'ridden-by'
                 ), CreatureList::$brickFile));
             }
         }
