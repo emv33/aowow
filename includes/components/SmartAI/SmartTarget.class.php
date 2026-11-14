@@ -128,15 +128,16 @@ class SmartTarget
                 if ($this->param[0])
                     $this->param[10] = Lang::concat(Util::mask2bits($this->param[0]));
                 break;
+            // guid, entry - an unresolved guid (0 never resolves) still names the entry it is checked against
             case self::TARGET_CREATURE_GUID:
-                if ($_ = $this->resolveGuid(Type::NPC, $this->param[0]))
+                if ($_ = ($this->param[0] ? $this->resolveGuid(Type::NPC, $this->param[0]) : null) ?: $this->param[1])
                 {
                     $this->jsGlobals[Type::NPC][$_] = $_;
                     $this->param[10] = $_;
                 }
                 break;
             case self::TARGET_GAMEOBJECT_GUID:
-                if ($_ = $this->resolveGuid(Type::OBJECT, $this->param[0]))
+                if ($_ = ($this->param[0] ? $this->resolveGuid(Type::OBJECT, $this->param[0]) : null) ?: $this->param[1])
                 {
                     $this->jsGlobals[Type::OBJECT][$_] = $_;
                     $this->param[10] = $_;
@@ -170,7 +171,7 @@ class SmartTarget
 
         return match ($this->type)
         {
-            SmartTarget::TARGET_CREATURE_GUID => $this->resolveGuid(Type::NPC, $this->param[0]) ?? 0,
+            SmartTarget::TARGET_CREATURE_GUID => ($this->param[0] ? $this->resolveGuid(Type::NPC, $this->param[0]) : null) ?: $this->param[1],
             SmartTarget::TARGET_CREATURE_RANGE,
             SmartTarget::TARGET_CREATURE_DISTANCE,
             SmartTarget::TARGET_CLOSEST_CREATURE => $this->param[0],
