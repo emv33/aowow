@@ -4335,7 +4335,26 @@ var LANG = {
 
         sepstaffonly:            "Employés seulement",
         flags:                   "Drapeaux",
-        flags2:                  "Drapeaux (2)"
+        flags2:                  "Drapeaux (2)",
+        // aowow - custom start
+        nocreator:               "Does not name its creator",
+        noreagentcost:           "Its spells use no reagents",
+        notusableinarenas:       "Not usable in arenas",
+        realtimeduration:        "Duration runs while offline",
+        ignorequeststatus:       "Drops without the quest",
+        followlootrules:         "Always follows group loot rules",
+        greedonly:               "Cannot roll Need",
+        goldandcost:             "Costs gold on top of its currency price",
+        zonebound:               "Only usable in a zone or map",
+        foodtype:                "Pet food type #...",
+        bagfamily:               "Bag family bit #...",
+        ammotype:                "Ammo type (2 arrows, 3 bullets)",
+        duration:                "Duration (seconds)",
+        reqhonorrank:            "Required PvP rank",
+        reqcityrank:             "Required city rank",
+        itemlimitcategory:       "Limit category #...",
+        scriptname:              "Script name"
+        // aowow - custom end
     },
 
     fiitemsets: {

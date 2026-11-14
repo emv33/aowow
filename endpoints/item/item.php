@@ -623,6 +623,27 @@ class ItemBaseResponse extends TemplateResponse implements ICache
         if ($_bagFamily & BAG_FAMILY_MASK_KEYS)
             $infobox[] = Lang::item('atKeyring');
 
+        // aowow - custom start: the item flags the core reads that the lines above leave out
+        if ($_flags & ITEM_FLAG_NO_CREATOR)                 // Item::SetCreator() is skipped, so a crafted copy names no maker
+            $infobox[] = Lang::item('noCreator');
+        if ($_flags & ITEM_FLAG_NO_REAGENT_COST)            // Spell::TakeReagents() / CheckItems(): its spells skip their reagents
+            $infobox[] = Lang::item('noReagentCost');
+        if ($_flags & ITEM_FLAG_NOT_USEABLE_IN_ARENA)       // Player::CanUseItem() in an arena
+            $infobox[] = Lang::item('noArena');
+
+        // flagsCustom (ItemFlagsCustom); 0x1, the real time duration, is named by the tooltip
+        if ($this->subject->getField('flagsCustom') & 0x2)  // ITEM_FLAGS_CU_IGNORE_QUEST_STATUS: drops whether or not the quest is active
+            $infobox[] = Lang::item('ignoreQuestStatus');
+        if ($this->subject->getField('flagsCustom') & 0x4)  // ITEM_FLAGS_CU_FOLLOW_LOOT_RULES: always rolled for, even below the threshold
+            $infobox[] = Lang::item('followLootRules');
+
+        if ($_ = $this->getClientData())
+            $infobox[] = Lang::item('clientData').Lang::main('colon').'[ul][li]'.implode('[/li][li]', $_).'[/li][/ul]';
+
+        if (User::canSee(U_GROUP_EMPLOYEE) && ($_ = $this->subject->getField('scriptName')))
+            $infobox[] = 'Script'.Lang::main('colon').$_;
+        // aowow - custom end
+
         // completion row added by InfoboxMarkup
 
         // original name
@@ -631,6 +652,48 @@ class ItemBaseResponse extends TemplateResponse implements ICache
 
         return $infobox;
     }
+
+    // aowow - custom start
+    /** item_template values the core only passes on to the client (or uses for one calculation); sheath and PageMaterial are not imported */
+    private function getClientData() : array
+    {
+        $r = DB::World()->selectRow('SELECT `ammo_type`, `RangedModRange`, `LanguageID`, `Material`, `sheath`, `PageMaterial`, `socketContent_1`, `socketContent_2`, `socketContent_3` FROM item_template WHERE `entry` = %i', $this->typeId);
+        if (!$r)
+            return [];
+
+        $out = [];
+
+        if ($r['ammo_type'])
+            $out[] = Lang::item('ammoType').Lang::main('colon').(Lang::exist('item', 'ammoTypes', $r['ammo_type']) ?? $r['ammo_type']);
+
+        // Spell::CheckRange(): a ranged weapon scales the maximum range of its spells by this percentage
+        if ($r['RangedModRange'] > 0 && $r['RangedModRange'] != 100)
+            $out[] = Lang::item('rangeMod', [Lang::nf($r['RangedModRange'], 1)]);
+
+        if ($r['LanguageID'])
+            $out[] = Lang::item('language').Lang::main('colon').(Lang::exist('game', 'languages', $r['LanguageID']) ?? $r['LanguageID']);
+
+        if ($r['Material'])
+            $out[] = Lang::item('material').Lang::main('colon').(Lang::exist('item', 'materials', $r['Material']) ?? $r['Material']);
+
+        if ($r['sheath'])
+            $out[] = Lang::item('sheath').Lang::main('colon').(Lang::exist('item', 'sheathTypes', $r['sheath']) ?? $r['sheath']);
+
+        if ($r['PageMaterial'])
+            $out[] = Lang::item('pageMaterial', [$r['PageMaterial']]);
+
+        for ($i = 1; $i <= 3; $i++)
+        {
+            if (!($gem = (int)$r['socketContent_'.$i]))
+                continue;
+
+            $this->extendGlobalIds(Type::ITEM, $gem);
+            $out[] = Lang::item('socketContent', [$i]).Lang::main('colon').'[item='.$gem.']';
+        }
+
+        return $out;
+    }
+    // aowow - custom end
 
     private function tabUnlocks() : array
     {

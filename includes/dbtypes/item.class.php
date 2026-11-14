@@ -2197,7 +2197,25 @@ class ItemListFilter extends Filter
         177 => [parent::CR_STAFFFLAG, 'flagsExtra'                                                         ], // flags2
         200 => [parent::CR_CALLBACK,  'cbHasItemVisual',        null,                    null              ], // itemvisual [enum] (custom)
      // 201 => [parent::CR_CALLBACK,  'cbHasSpellVisual',       null,                    null              ]  // spellvisual [str] (custom) - unused for now, looks like it's really only shooting/throwing animations for ranged weapons
-        202 => [parent::CR_NUMERIC,   'itemLimitCategory',      NUM_CAST_INT                                ]  // itemlimitcategory - dbc_itemlimitcategory, no fixed list needed
+        202 => [parent::CR_NUMERIC,   'itemLimitCategory',      NUM_CAST_INT                                ], // itemlimitcategory - dbc_itemlimitcategory, no fixed list needed
+        // aowow - custom start
+        203 => [parent::CR_FLAG,      'flags',                  ITEM_FLAG_NO_CREATOR                        ], // nocreator [yn]
+        204 => [parent::CR_FLAG,      'flags',                  ITEM_FLAG_NO_REAGENT_COST                   ], // noreagentcost [yn]
+        205 => [parent::CR_FLAG,      'flags',                  ITEM_FLAG_NOT_USEABLE_IN_ARENA              ], // notusableinarenas [yn]
+        206 => [parent::CR_FLAG,      'flagsCustom',            0x1                                         ], // realtimeduration [yn] - ITEM_FLAGS_CU_DURATION_REAL_TIME
+        207 => [parent::CR_FLAG,      'flagsCustom',            0x2                                         ], // ignorequeststatus [yn] - ITEM_FLAGS_CU_IGNORE_QUEST_STATUS
+        208 => [parent::CR_FLAG,      'flagsCustom',            0x4                                         ], // followlootrules [yn] - ITEM_FLAGS_CU_FOLLOW_LOOT_RULES
+        209 => [parent::CR_FLAG,      'flagsExtra',             0x100                                       ], // greedonly [yn] - ITEM_FLAG2_CAN_ONLY_ROLL_GREED
+        210 => [parent::CR_FLAG,      'flagsExtra',             0x4                                         ], // goldandcost [yn] - ITEM_FLAG2_DONT_IGNORE_BUY_PRICE
+        211 => [parent::CR_NUMERIC,   'foodType',               NUM_CAST_INT                                ], // foodtype [num]
+        212 => [parent::CR_CALLBACK,  'cbBagFamily',            null,                    null              ], // bagfamily [num]
+        213 => [parent::CR_NUMERIC,   'duration',               NUM_CAST_INT                                ], // duration [num]
+        214 => [parent::CR_NUMERIC,   'requiredHonorRank',      NUM_CAST_INT                                ], // reqhonorrank [num]
+        215 => [parent::CR_NUMERIC,   'requiredCityRank',       NUM_CAST_INT                                ], // reqcityrank [num]
+        216 => [parent::CR_CALLBACK,  'cbZoneBound',            null,                    null              ], // zonebound [yn]
+        217 => [parent::CR_CALLBACK,  'cbScriptName',           null,                    null              ], // scriptname [str] [staff]
+        218 => [parent::CR_CALLBACK,  'cbAmmoType',             null,                    null              ]  // ammotype [num]
+        // aowow - custom end
     );
 
     protected static array $inputFields   = array(
@@ -2205,7 +2223,7 @@ class ItemListFilter extends Filter
         'wtv'   => [parent::V_RANGE,    [1, 999],                                                            true ], // weight values
         'jc'    => [parent::V_LIST,     [1],                                                                 false], // use jewelcrafter gems for weight calculation
         'gm'    => [parent::V_LIST,     [2, 3, 4],                                                           false], // gem rarity for weight calculation
-        'cr'    => [parent::V_LIST,     [[1, 177], 200],                                                     true ], // criteria ids
+        'cr'    => [parent::V_LIST,     [[1, 177], 200, [202, 218]],                                                     true ], // aowow - custom: 202-218 (upstream: 200) criteria ids
         'crs'   => [parent::V_LIST,     [parent::ENUM_NONE, parent::ENUM_ANY, [0, 99999]],                   true ], // criteria operators
         'crv'   => [parent::V_REGEX,    parent::PATTERN_CRV,                                                 true ], // criteria values - only printable chars, no delimiters
         'upg'   => [parent::V_REGEX,    '/[^\d:]/ui',                                                        true ], // upgrade item ids
@@ -2868,6 +2886,52 @@ class ItemListFilter extends Filter
 
         return Stat::getIndexFrom(Stat::IDX_FILTER_CR_ID, $v) > 0;
     }
+
+    // aowow - custom start
+    // BagFamily is a mask; the criterion value is one of its bits as a number (1 = arrows, 2 = bullets, ...)
+    protected function cbBagFamily(int $cr, int $crs, string $crv) : ?array
+    {
+        if (!Util::checkNumeric($crv, NUM_CAST_INT) || $crv < 1 || $crv > 32)
+            return null;
+
+        $bit = 1 << ($crv - 1);
+
+        return [['bagFamily', $bit, '&'], $bit];
+    }
+
+    // item_template.area / .Map: Player::CanUseItem() / Spell::CheckCast() only allow it there
+    protected function cbZoneBound(int $cr, int $crs, string $crv) : ?array
+    {
+        if (!$this->int2Bool($crs))
+            return null;
+
+        return $crs ? [DB::OR, ['area', 0, '>'], ['map', 0, '>']] : [DB::AND, ['area', 0], ['map', 0]];
+    }
+
+    // the ScriptName is only shown to staff on the item page
+    protected function cbScriptName(int $cr, int $crs, string $crv) : ?array
+    {
+        if (!User::canSee(U_GROUP_EMPLOYEE))
+            return [1];
+
+        $crv = trim($crv);
+        if ($crv === '')
+            return null;
+
+        return ['scriptName', $crv, 'LIKE'];
+    }
+
+    // item_template.ammo_type is not imported: 2 arrows, 3 bullets
+    protected function cbAmmoType(int $cr, int $crs, string $crv) : ?array
+    {
+        if (!Util::checkNumeric($crv, NUM_CAST_INT) || !$this->int2Op($crs))
+            return null;
+
+        $ids = DB::World()->selectCol('SELECT `entry` FROM item_template WHERE `ammo_type` '.$crs.' %i', $crv);
+
+        return $ids ? ['id', $ids] : [0];
+    }
+    // aowow - custom end
 }
 
 ?>

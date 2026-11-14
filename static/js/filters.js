@@ -177,6 +177,22 @@ var fi_filters = {
         { id: 155, name: 'usableinarenas',          type: 'yn' },
         { id: 156, name: 'usablewhenshapeshifted',  type: 'yn' },
         { id: 200, name: 'itemvisual',              type: 'itemvisuals-any+none' },  // aowow - custom
+        { id: 203, name: 'nocreator',               type: 'yn' },               // aowow - custom start
+        { id: 204, name: 'noreagentcost',           type: 'yn' },
+        { id: 205, name: 'notusableinarenas',       type: 'yn' },
+        { id: 206, name: 'realtimeduration',        type: 'yn' },
+        { id: 207, name: 'ignorequeststatus',       type: 'yn' },
+        { id: 208, name: 'followlootrules',         type: 'yn' },
+        { id: 209, name: 'greedonly',               type: 'yn' },
+        { id: 210, name: 'goldandcost',             type: 'yn' },
+        { id: 216, name: 'zonebound',               type: 'yn' },
+        { id: 211, name: 'foodtype',                type: 'num' },
+        { id: 212, name: 'bagfamily',               type: 'num' },
+        { id: 218, name: 'ammotype',                type: 'num' },
+        { id: 213, name: 'duration',                type: 'num' },
+        { id: 214, name: 'reqhonorrank',            type: 'num' },
+        { id: 215, name: 'reqcityrank',             type: 'num' },
+        { id: 202, name: 'itemlimitcategory',       type: 'num' },              // aowow - custom end
     //  { id: 201, name: 'spellvisual',             type: 'str-small' }, // aowow - custom
 
         { id: 112, name: 'sepcommunity' },
@@ -186,7 +202,8 @@ var fi_filters = {
 
         { id: 1,   name: 'sepstaffonly',                       staffonly: true },
         { id: 176, name: 'flags',               type: 'flags', staffonly: true },
-        { id: 177, name: 'flags2',              type: 'flags', staffonly: true }
+        { id: 177, name: 'flags2',              type: 'flags', staffonly: true },
+        { id: 217, name: 'scriptname',          type: 'str',   staffonly: true }    // aowow - custom
     ],
 
     itemsets: [
