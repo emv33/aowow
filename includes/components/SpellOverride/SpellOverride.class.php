@@ -30,7 +30,13 @@ class SpellOverride
     private array $rows      = [];                          // [label, value]
     private array $jsGlobals = [];
 
-    public function __construct(public readonly int $spellId) { }
+    private int $firstRank;
+
+    // the core looks spell_group and spell_threat up through the first rank of the spell (SpellMgr::GetFirstSpellInChain)
+    public function __construct(public readonly int $spellId, int $firstRank = 0)
+    {
+        $this->firstRank = $firstRank ?: $spellId;
+    }
 
     private static function hasTable(string $tbl) : bool
     {
@@ -88,7 +94,8 @@ class SpellOverride
         if (!self::hasTable('spell_threat'))
             return;
 
-        if (!($r = DB::World()->selectRow('SELECT `flatMod`, `pctMod`, `apPctMod` FROM spell_threat WHERE `entry` = %i', $this->spellId)))
+        // the spell's own row, else its first rank's (SpellMgr::GetSpellThreatEntry)
+        if (!($r = DB::World()->selectRow('SELECT `flatMod`, `pctMod`, `apPctMod` FROM spell_threat WHERE `entry` IN %in ORDER BY `entry` = %i DESC LIMIT 1', array_unique([$this->spellId, $this->firstRank]), $this->spellId)))
             return;
 
         $parts = [];
@@ -144,13 +151,13 @@ class SpellOverride
         $this->add(Lang::spellOverride('petAura'), implode('[br]', $out));
     }
 
-    /** spells in a group cannot stack with one another; the rule lives in a second table */
+    /** spells in a group cannot stack with one another; the rule lives in a second table; only first ranks are listed, standing for all their ranks */
     private function groups() : void
     {
         if (!self::hasTable('spell_group'))
             return;
 
-        $groupIds = DB::World()->selectCol('SELECT `id` FROM spell_group WHERE `spell_id` = %i', $this->spellId) ?: [];
+        $groupIds = DB::World()->selectCol('SELECT `id` FROM spell_group WHERE `spell_id` = %i', $this->firstRank) ?: [];
         $groupIds = array_values(array_filter(array_map('intVal', $groupIds)));
         if (!$groupIds)
             return;
@@ -162,7 +169,7 @@ class SpellOverride
         $out = [];
         foreach ($groupIds as $gId)
         {
-            $peers = DB::World()->selectCol('SELECT `spell_id` FROM spell_group WHERE `id` = %i AND `spell_id` <> %i', $gId, $this->spellId) ?: [];
+            $peers = DB::World()->selectCol('SELECT `spell_id` FROM spell_group WHERE `id` = %i AND `spell_id` <> %i', $gId, $this->firstRank) ?: [];
             $peers = array_values(array_filter(array_map('intVal', $peers), fn($x) => $x > 0));
 
             foreach ($peers as $id)

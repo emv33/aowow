@@ -3584,7 +3584,19 @@ class SpellListFilter extends Filter
         return $known[$tbl] ??= (bool)DB::World()->selectCell('SHOW TABLES LIKE %s', $tbl);
     }
 
-    // a negative id in spell_proc / spell_script_names stands for every rank of that first rank (spell_ranks)
+    // every rank chained to one of these first ranks; talents chain from Talent.dbc, the rest from spell_ranks (SpellMgr::LoadSpellTalentRanks / LoadSpellRanks)
+    private static function laterRanks(array $firstIds) : array
+    {
+        if (!$firstIds)
+            return [];
+
+        $out = self::worldHasTable('spell_ranks') ? (DB::World()->selectCol('SELECT `spell_id` FROM spell_ranks WHERE `first_spell_id` IN %in', $firstIds) ?: []) : [];
+        $tal = DB::Aowow()->selectCol('SELECT rnk.`spell` FROM ::talents rnk JOIN ::talents r1 ON r1.`id` = rnk.`id` AND r1.`rank` = 1 WHERE r1.`spell` IN %in', $firstIds) ?: [];
+
+        return array_merge($out, $tal);
+    }
+
+    // a negative id in spell_proc / spell_script_names stands for every rank of that first rank
     private static function withRanks(array $ids) : array
     {
         $out = $first = [];
@@ -3595,10 +3607,13 @@ class SpellListFilter extends Filter
                 $first[] = -(int)$id;
         }
 
-        if ($first && self::worldHasTable('spell_ranks'))
-            $out = array_merge($out, DB::World()->selectCol('SELECT `spell_id` FROM spell_ranks WHERE `first_spell_id` IN %in', $first) ?: []);
+        return array_merge($out, self::laterRanks($first));
+    }
 
-        return $out;
+    // spell_group lists first ranks only and spell_threat / spell_bonus_data fall back to the first rank's row, so a row on a first rank covers all its ranks
+    private static function withLaterRanks(array $ids) : array
+    {
+        return array_merge($ids, self::laterRanks(array_values(array_unique(array_map('intVal', $ids)))));
     }
 
     // [yn] criteria answered by a list of spell ids from the world tables the spell page reads
@@ -3618,11 +3633,11 @@ class SpellListFilter extends Filter
             'proc'         => self::withRanks($col('spell_proc', 'SELECT `SpellId` FROM spell_proc')),
             // a negative trigger fires on aura removal, a negative effect removes that aura; either way the spell takes part
             'linked'       => array_merge($col('spell_linked_spell', 'SELECT ABS(`spell_trigger`) FROM spell_linked_spell'), $col('spell_linked_spell', 'SELECT ABS(`spell_effect`) FROM spell_linked_spell')),
-            'group'        => $col('spell_group', 'SELECT `spell_id` FROM spell_group WHERE `spell_id` > 0'),
-            'bonus'        => $col('spell_bonus_data', 'SELECT `entry` FROM spell_bonus_data'),
+            'group'        => self::withLaterRanks($col('spell_group', 'SELECT `spell_id` FROM spell_group WHERE `spell_id` > 0')),
+            'bonus'        => self::withLaterRanks($col('spell_bonus_data', 'SELECT `entry` FROM spell_bonus_data')),
             'position'     => $col('spell_target_position', 'SELECT `ID` FROM spell_target_position'),
             'petauras'     => $col('spell_pet_auras', 'SELECT `spell` FROM spell_pet_auras'),
-            'threat'       => $col('spell_threat', 'SELECT `entry` FROM spell_threat'),
+            'threat'       => self::withLaterRanks($col('spell_threat', 'SELECT `entry` FROM spell_threat')),
             'required'     => $col('spell_required', 'SELECT `spell_id` FROM spell_required'),
             'area'         => $col('spell_area', 'SELECT `spell` FROM spell_area'),
             'difficulty'   => array_merge(...array_map(fn($c) => DB::Aowow()->selectCol('SELECT %n FROM ::spelldifficulty WHERE %n > 0', $c, $c) ?: [], ['normal10', 'normal25', 'heroic10', 'heroic25'])),

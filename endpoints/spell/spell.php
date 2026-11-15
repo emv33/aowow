@@ -147,7 +147,7 @@ class SpellBaseResponse extends TemplateResponse implements ICache
         // aowow - custom start: world DB overrides of the dbc data shown above
         if (User::canSee(U_GROUP_STAFF))
         {
-            $so = new SpellOverride($this->typeId);
+            $so = new SpellOverride($this->typeId, $this->firstRank);
             $this->spellOverride = $so->getMarkup();         // fills the globals; must run first
             $this->extendGlobalData($so->getJSGlobals());
         }
@@ -2058,7 +2058,8 @@ class SpellBaseResponse extends TemplateResponse implements ICache
             $allDoTs = false;
         }
 
-        if ($s = DB::World()->selectRow('SELECT `direct_bonus` AS "0", `dot_bonus` AS "1", `ap_bonus` AS "2", `ap_dot_bonus` AS "3" FROM spell_bonus_data WHERE `entry` = %i', $this->firstRank))
+        // the spell's own row, else its first rank's (SpellMgr::GetSpellBonusData)
+        if ($s = DB::World()->selectRow('SELECT `direct_bonus` AS "0", `dot_bonus` AS "1", `ap_bonus` AS "2", `ap_dot_bonus` AS "3" FROM spell_bonus_data WHERE `entry` IN %in ORDER BY `entry` = %i DESC LIMIT 1', array_unique([$this->typeId, $this->firstRank]), $this->typeId))
             $scaling = $s;
 
         if (!in_array($this->subject->getField('typeCat'), [-2, -3, -7, 7]) || $this->subject->getField('damageClass') == SPELL_DAMAGE_CLASS_NONE)
@@ -3235,8 +3236,9 @@ class SpellBaseResponse extends TemplateResponse implements ICache
 
         // spell script
         if (User::canSee(U_GROUP_STAFF))
-            if ($_ = DB::World()->selectCell('SELECT `ScriptName` FROM spell_script_names WHERE ABS(`spell_id`) = %i', $this->firstRank))
-                $infobox[] = 'Script'.Lang::main('colon').$_;
+            // a positive id binds that spell alone, a negative one every rank of that first rank (ObjectMgr::LoadSpellScriptNames)
+            if ($_ = DB::World()->selectCol('SELECT DISTINCT `ScriptName` FROM spell_script_names WHERE `spell_id` IN %in', array_unique([$this->typeId, -$this->firstRank])))
+                $infobox[] = 'Script'.Lang::main('colon').implode(', ', $_);
 
         return $infobox;
     }
