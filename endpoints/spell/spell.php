@@ -1059,24 +1059,38 @@ class SpellBaseResponse extends TemplateResponse implements ICache
         if (!DB::World()->selectCell('SELECT 1 FROM spell_group WHERE `spell_id` = %i', $this->firstRank))
             return [];
 
-        // unpack recursion
-        $groups = DB::World()->selectCol('SELECT `id` AS ARRAY_KEY, `spell_id` AS ARRAY_KEY2, `spell_id` FROM spell_group');
-        foreach ($groups as $i => $group)
+        // unpack recursion: a negative spell_id pulls in every spell of that group (SpellMgr::GetSetOfSpellsInSpellGroup)
+        $direct = DB::World()->selectCol('SELECT `id` AS ARRAY_KEY, `spell_id` AS ARRAY_KEY2, `spell_id` FROM spell_group');
+        $unpack = function (int $gId, array $seen = []) use (&$unpack, $direct) : array
         {
-            foreach ($group as $j => $g)
-            {
-                if ($g > 0)
-                    continue;
+            if (isset($seen[$gId]))
+                return [];
 
-                foreach ($groups[-$g] ?? [] as $new)
-                    $groups[$i][] = $new;
+            $seen[$gId] = $gId;
+            $spells     = [];
+            foreach ($direct[$gId] ?? [] as $s)
+                $spells = array_merge($spells, $s > 0 ? [$s] : $unpack(-$s, $seen));
 
-                unset($group[$j]);
-            }
-        }
+            return array_unique($spells);
+        };
 
         // find ourselves
-        if (!($filtered = array_filter($groups, fn($x) => in_array($this->firstRank, $x))))
+        $filtered = [];
+        foreach ($direct as $gId => $entries)
+        {
+            if (!in_array($this->firstRank, $spells = $unpack($gId)))
+                continue;
+
+            // a spell sharing a subgroup of this group with us follows the subgroup's rule instead (SpellMgr::CheckSpellGroupStackRules)
+            foreach ($entries as $e)
+                if ($e < 0 && in_array($this->firstRank, $sub = $unpack(-$e)))
+                    $spells = array_diff($spells, $sub);
+
+            if ($spells)
+                $filtered[$gId] = $spells;
+        }
+
+        if (!$filtered)
             return [];
 
         // get rule set
