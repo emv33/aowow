@@ -151,33 +151,61 @@ class SpellOverride
         $this->add(Lang::spellOverride('petAura'), implode('[br]', $out));
     }
 
-    /** spells in a group cannot stack with one another; the rule lives in a second table; only first ranks are listed, standing for all their ranks */
+    /**
+     * spells in a group cannot stack with one another; the rule lives in a second table
+     * only first ranks are listed, standing for all their ranks, and a negative spell_id nests that whole group inside
+     */
     private function groups() : void
     {
         if (!self::hasTable('spell_group'))
             return;
 
-        $groupIds = DB::World()->selectCol('SELECT `id` FROM spell_group WHERE `spell_id` = %i', $this->firstRank) ?: [];
-        $groupIds = array_values(array_filter(array_map('intVal', $groupIds)));
-        if (!$groupIds)
+        $direct = DB::World()->selectCol('SELECT `id` AS ARRAY_KEY, `spell_id` AS ARRAY_KEY2, `spell_id` FROM spell_group') ?: [];
+
+        // every spell of a group, its nested groups unpacked (SpellMgr::GetSetOfSpellsInSpellGroup)
+        $unpack = function (int $gId, array $seen = []) use (&$unpack, $direct) : array
+        {
+            if (isset($seen[$gId]))
+                return [];
+
+            $seen[$gId] = $gId;
+            $spells     = [];
+            foreach ($direct[$gId] ?? [] as $s)
+                $spells = array_merge($spells, (int)$s > 0 ? [(int)$s] : $unpack(-(int)$s, $seen));
+
+            return array_unique($spells);
+        };
+
+        $peers = [];
+        foreach ($direct as $gId => $entries)
+        {
+            if (!in_array($this->firstRank, $spells = $unpack($gId)))
+                continue;
+
+            // a spell sharing a subgroup of this group with us follows the subgroup's rule instead (SpellMgr::CheckSpellGroupStackRules)
+            foreach ($entries as $e)
+                if ((int)$e < 0 && in_array($this->firstRank, $sub = $unpack(-(int)$e)))
+                    $spells = array_diff($spells, $sub);
+
+            $peers[$gId] = array_values(array_diff($spells, [$this->firstRank]));
+        }
+
+        if (!$peers)
             return;
 
         $rules = self::hasTable('spell_group_stack_rules')
-               ? (DB::World()->selectPairs('SELECT `group_id`, `stack_rule` FROM spell_group_stack_rules WHERE `group_id` IN %in', $groupIds) ?: [])
+               ? (DB::World()->selectPairs('SELECT `group_id`, `stack_rule` FROM spell_group_stack_rules WHERE `group_id` IN %in', array_keys($peers)) ?: [])
                : [];
 
         $out = [];
-        foreach ($groupIds as $gId)
+        foreach ($peers as $gId => $ids)
         {
-            $peers = DB::World()->selectCol('SELECT `spell_id` FROM spell_group WHERE `id` = %i AND `spell_id` <> %i', $gId, $this->firstRank) ?: [];
-            $peers = array_values(array_filter(array_map('intVal', $peers), fn($x) => $x > 0));
-
-            foreach ($peers as $id)
+            foreach ($ids as $id)
                 $this->jsGlobals[Type::SPELL][$id] = $id;
 
             $rule = Lang::spellOverride('stackRules', (int)($rules[$gId] ?? 0)) ?: Lang::spellOverride('stackRules', 0);
             $out[] = Lang::spellOverride('groupLine', [$gId, $rule]) .
-                     ($peers ? ': ' . Lang::concat(array_map(fn($x) => '[spell='.$x.']', $peers), Lang::CONCAT_NONE) : '');
+                     ($ids ? ': ' . Lang::concat(array_map(fn($x) => '[spell='.$x.']', $ids), Lang::CONCAT_NONE) : '');
         }
 
         $this->add(Lang::spellOverride('group'), implode('[br]', $out));
