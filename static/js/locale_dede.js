@@ -4374,6 +4374,7 @@ var LANG = {
     },
 
     finpcs: {
+        spawncount:          "Number of spawns",               // aowow - custom
         sepgeneral:          "Allgemein",
         canrepair:           "Kann reparieren",
         faction:             "Fraktion",
@@ -4553,6 +4554,7 @@ var LANG = {
     },
 
     fiobjects: {
+        spawncount:          "Number of spawns",               // aowow - custom
         sepgeneral:            "Allgemein",
         foundin:               "Befindet sich in...",
         requiredskilllevel:    "Benötigte Fertigkeitsstufe (Kräuter/Vorkommen/Schließkisten)",

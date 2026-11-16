@@ -4415,6 +4415,7 @@ var LANG = {
     },
 
     finpcs: {
+        spawncount:          "Number of spawns",               // aowow - custom
         sepgeneral:          "一般",
         canrepair:           "可维修",
         faction:             "阵营",
@@ -4594,6 +4595,7 @@ var LANG = {
     },
 
     fiobjects: {
+        spawncount:          "Number of spawns",               // aowow - custom
         sepgeneral:            "一般",
         foundin:               "发现于…",
         requiredskilllevel:    "需要等级能力（草药、矿脉、提箱）",

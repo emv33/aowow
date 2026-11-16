@@ -942,16 +942,16 @@ trait spawnHelper
                     $this->createFullSpawns(...$info);
 
                 return $this->spawnResult[SPAWNINFO_FULL];
-            case SPAWNINFO_ZONES:
-                if (empty($this->spawnResult[SPAWNINFO_ZONES]))
+            case SPAWNINFO_ZONES:                           // aowow - custom: === null - a list none of which is spawned left this empty and re-ran the query for every row (upstream: empty())
+                if ($this->spawnResult[SPAWNINFO_ZONES] === null)
                     $this->createZoneSpawns();
 
                 return $this->spawnResult[SPAWNINFO_ZONES][$this->id] ?? [];
-            case SPAWNINFO_QUEST:
-                if (empty($this->spawnResult[SPAWNINFO_QUEST]))
+            case SPAWNINFO_QUEST:                           // aowow - custom: === null, as SPAWNINFO_ZONES (upstream: empty())
+                if ($this->spawnResult[SPAWNINFO_QUEST] === null)
                     $this->createQuestSpawns();
 
-                return $this->spawnResult[SPAWNINFO_QUEST];
+                return $this->spawnResult[SPAWNINFO_QUEST] ?? [];   // aowow - custom: ?? [] - a sound has none, and the method returns an array
         }
 
         return [];

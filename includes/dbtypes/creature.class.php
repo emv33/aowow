@@ -603,12 +603,13 @@ class CreatureListFilter extends Filter
         164 => [parent::CR_CALLBACK, 'cbWorldIds',        'untrackable',                     null      ], // npcuntrackable [yn]
         165 => [parent::CR_BOOLEAN,  'petSpellDataId'                                                  ], // npcpetbar [yn]
         166 => [parent::CR_NUMERIC,  'mleVariance',       NUM_CAST_FLOAT                               ], // meleevariance [num]
-        167 => [parent::CR_NUMERIC,  'rngVariance',       NUM_CAST_FLOAT                               ]  // rangedvariance [num]
+        167 => [parent::CR_NUMERIC,  'rngVariance',       NUM_CAST_FLOAT                               ], // rangedvariance [num]
+        168 => [parent::CR_CALLBACK, 'cbSpawnCount',      null,                              null      ]  // spawncount [num]
         // aowow - custom end
     );
 
     protected static array $inputFields = array(
-        'cr'    => [parent::V_LIST,     [[1, 3],[5, 13], 15, 16, [18, 29], [31, 104], [106, 124], [126, 167]],       true ], // criteria ids
+        'cr'    => [parent::V_LIST,     [[1, 3],[5, 13], 15, 16, [18, 29], [31, 104], [106, 124], [126, 168]],       true ], // criteria ids
         'crs'   => [parent::V_LIST,     [parent::ENUM_NONE, parent::ENUM_ANY, [0, 9999]],                         true ], // criteria operators
         'crv'   => [parent::V_REGEX,    parent::PATTERN_CRV,                                                      true ], // criteria values - only printable chars, no delimiter
         'na'    => [parent::V_NAME,     false,                                                                    false], // name / subname - only printable chars, no delimiter
@@ -934,6 +935,68 @@ class CreatureListFilter extends Filter
     }
 
     // creature_template columns the setup step does not import (the npc page reads them from the world db)
+    protected function cbSpawnCount(int $cr, int $crs, string $crv) : ?array   // aowow - custom
+    {
+        return $this->spawnCount('creature', $crs, $crv);
+    }
+
+    // aowow - custom start: the value of a callback criterion per listed npc, for its listing column - see Filter::getCriteriaValues()
+    protected function valSpawnCount(DBTypeList $list, array $ids) : array
+    {
+        return $this->spawnCountValues('creature', $ids);
+    }
+
+    /** a single value where min and max agree, else the range; numeric sorting reads the lower end */
+    protected function valHealthMana(DBTypeList $list, array $ids, string $fieldA, string $fieldB) : array
+    {
+        $out = [];
+        foreach ($list->iterate() as $id => $__)
+        {
+            $lo = min((int)$list->getField($fieldA), (int)$list->getField($fieldB));
+            $hi = max((int)$list->getField($fieldA), (int)$list->getField($fieldB));
+            $out[$id] = $lo == $hi ? $lo : $lo.' - '.$hi;
+        }
+
+        return $out;
+    }
+
+    /** the same damage cbMeleeDamage() compares */
+    protected function valMeleeDamage(DBTypeList $list, array $ids, bool $isMax) : array
+    {
+        $out = [];
+        foreach ($list->iterate() as $id => $__)
+        {
+            $speed = $list->getField('atkSpeed') > 0 ? $list->getField('atkSpeed') / 1000 : 2;
+            $dmg   = $isMax
+                   ? $list->getField('dmgMax') * 1.5 + $list->getField('mleAtkPwrMax') / 14 * $list->getField('mleVariance')
+                   : $list->getField('dmgMin') + $list->getField('mleAtkPwrMin') / 14 * $list->getField('mleVariance');
+
+            $out[$id] = (int)round($dmg * $list->getField('dmgMultiplier') * $speed);
+        }
+
+        return $out;
+    }
+
+    protected function valMoneyDrop(DBTypeList $list, array $ids) : array
+    {
+        $out = [];
+        foreach ($list->iterate() as $id => $__)
+            $out[$id] = (int)(($list->getField('minGold') + $list->getField('maxGold')) / 2);
+
+        return $out;
+    }
+
+    protected function valStaffString(DBTypeList $list, array $ids, string $col) : ?array
+    {
+        return User::canSee(U_GROUP_EMPLOYEE) ? $this->rowValues($list, $col) : null;
+    }
+
+    protected function valTemplateNum(DBTypeList $list, array $ids, string $expr) : array
+    {
+        return array_map('floatval', DB::World()->selectCol('SELECT `entry` AS ARRAY_KEY, ROUND('.$expr.', 2) FROM creature_template WHERE `entry` IN %in', $ids) ?: []);
+    }
+    // aowow - custom end
+
     protected function cbTemplateNum(int $cr, int $crs, string $crv, string $expr) : ?array
     {
         if (!Util::checkNumeric($crv, NUM_CAST_FLOAT) || !$this->int2Op($crs))

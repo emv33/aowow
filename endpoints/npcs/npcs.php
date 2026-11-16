@@ -116,6 +116,10 @@ class NpcsBaseResponse extends TemplateResponse implements ICache
             else if ($this->filter->fiExtraCols)
                 $tabData['extraCols'] = '$fi_getExtraCols(fi_extraCols, 0, 0)';
 
+            // aowow - custom: a column for every value criterion of the filter
+            if (!$fiRepCols)
+                $this->filter->addCriteriaColumns($npcs, $tabData, 'npcs');
+
             if ($this->category)
                 $tabData['hiddenCols'] = ['type'];
 

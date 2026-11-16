@@ -101,6 +101,8 @@ class ObjectsBaseResponse extends TemplateResponse implements ICache
             if ($objects->hasSetFields('reqSkill'))
                 $tabData['visibleCols'] = ['skill'];
 
+            $this->filter->addCriteriaColumns($objects, $tabData, 'objects');   // aowow - custom: a column for every value criterion of the filter
+
             // create note if search limit was exceeded
             if ($objects->getMatches() > Listview::DEFAULT_SIZE)
             {

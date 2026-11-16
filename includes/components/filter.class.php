@@ -696,6 +696,111 @@ abstract class Filter
         return $qry ? [DB::OR, ...$qry] : [];
     }
 
+    // aowow - custom start: a listing column for every value criterion of the filter
+    /**
+     * the value each listed row has for every set criterion that is a value rather than a yes / no -
+     * numbers, strings and enums read off the row, a callback criterion through a val<Name>() of the filter
+     * (cbTemplateNum => valTemplateNum) where it has one; a yes / no criterion reads the same on every row
+     *
+     * @return array  cr => [id => value]
+     */
+    public function getCriteriaValues(DBTypeList $list) : array
+    {
+        $ids = $list->getFoundIDs();
+        if (!$ids || empty($this->values['cr']))
+            return [];
+
+        $out = [];
+        foreach (array_unique($this->values['cr']) as $cr)
+        {
+            [$crType, $colOrFn, $param1, $param2] = array_pad(static::$genericFilter[$cr] ?? [], 4, null);
+            if (!is_string($colOrFn))
+                continue;
+
+            $vals = match ($crType)
+            {
+                // the id has a column of its own; a joined column ('s.areaId') holds a list per row, not one value
+                self::CR_NUMERIC, self::CR_NUMSTRING,
+                self::CR_STRING,  self::CR_ENUM     => $colOrFn != 'id' && !str_contains($colOrFn, '.') ? $this->rowValues($list, $colOrFn) : null,
+                self::CR_CALLBACK                   => method_exists($this, $fn = 'val'.substr($colOrFn, 2)) ? $this->$fn($list, $ids, $param1, $param2) : null,
+                default                             => null
+            };
+
+            if ($vals)
+                $out[$cr] = $vals;
+        }
+
+        return $out;
+    }
+
+    /**
+     * add getCriteriaValues() to a listview tab: a `cr<n>` field on every row and a column per criterion,
+     * built client side by fi_getCriteriaCols() from the criterion's own definition in filters.js
+     *
+     * @param string $fiType  the fi_filters key of the listing (npcs, objects, ...)
+     */
+    public function addCriteriaColumns(DBTypeList $list, array &$tabData, string $fiType) : void
+    {
+        if (!($vals = $this->getCriteriaValues($list)))
+            return;
+
+        foreach ($tabData['data'] as $id => &$row)
+            foreach ($vals as $cr => $byId)
+                $row['cr'.$cr] = $byId[$id] ?? null;
+        unset($row);
+
+        $tabData['extraCols'] = '$fi_getCriteriaCols('.Util::toJSON($fiType).', '.Util::toJSON(array_keys($vals)).')';
+    }
+
+    /** a column of the list's own rows */
+    protected function rowValues(DBTypeList $list, string $col) : array
+    {
+        $out = [];
+        foreach ($list->iterate() as $id => $__)
+            $out[$id] = $list->getField($col);
+
+        return $out;
+    }
+
+    /** the spawnCount() criterion read the other way: how many rows of the spawn table each entry has */
+    protected function spawnCountValues(string $table, array $ids) : array
+    {
+        $n = DB::World()->selectCol('SELECT `id` AS ARRAY_KEY, COUNT(*) FROM %n WHERE `id` IN %in GROUP BY `id`', $table, $ids) ?: [];
+
+        return array_map(fn($id) => (int)($n[$id] ?? 0), array_combine($ids, $ids));
+    }
+
+    /**
+     * entries by how many rows of a world spawn table (`creature`, `gameobject`) they have
+     * an entry with no spawn has no row to count, so a comparison 0 satisfies is answered by exclusion
+     */
+    protected function spawnCount(string $table, int $crs, string $crv) : ?array
+    {
+        if (!Util::checkNumeric($crv, NUM_CAST_INT) || !$this->int2Op($crs))
+            return null;
+
+        $n = (int)$crv;
+        $zeroMatches = match ($crs)
+        {
+            '>'  => 0 >  $n,
+            '>=' => 0 >= $n,
+            '='  => 0 == $n,
+            '<=' => 0 <= $n,
+            '<'  => 0 <  $n,
+            '!=' => 0 != $n
+        };
+
+        if ($zeroMatches)
+        {
+            $not = DB::World()->selectCol('SELECT `id` FROM %n GROUP BY `id` HAVING NOT (COUNT(*) '.$crs.' %i)', $table, $n);
+            return $not ? ['id', $not, '!'] : [1];
+        }
+
+        $ids = DB::World()->selectCol('SELECT `id` FROM %n GROUP BY `id` HAVING COUNT(*) '.$crs.' %i', $table, $n);
+        return $ids ? ['id', $ids] : [0];
+    }
+    // aowow - custom end
+
     protected function int2Op(mixed &$op) : bool
     {
         $op = match ($op) {

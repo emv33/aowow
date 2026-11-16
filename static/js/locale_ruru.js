@@ -4373,6 +4373,7 @@ var LANG = {
     },
 
     finpcs: {
+        spawncount:          "Number of spawns",               // aowow - custom
         sepgeneral:          "Общее",
         canrepair:           "Может ремонтировать",
         faction:             "Фракция",
@@ -4552,6 +4553,7 @@ var LANG = {
     },
 
     fiobjects: {
+        spawncount:          "Number of spawns",               // aowow - custom
         sepgeneral:            "Общее",
         foundin:               "Доступно в...",
         requiredskilllevel:    "Тебуется уровень профессии (травничество/горное дело/вскрытие замков)",

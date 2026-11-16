@@ -226,6 +226,7 @@ var fi_filters = {
         { id: 5,   name: 'canrepair',           type: 'yn' },
         { id: 3,   name: 'faction',             type: 'faction' },
         { id: 6,   name: 'foundin',             type: 'zone' },
+        { id: 168, name: 'spawncount',          type: 'num' },                      // aowow - custom
         { id: 1,   name: 'health',              type: 'num' },
         { id: 2,   name: 'mana',                type: 'num' },
         { id: 32,  name: 'instanceboss',        type: 'yn' },
@@ -407,6 +408,7 @@ var fi_filters = {
     objects: [
         { id: 8,   name: 'sepgeneral' },
         { id: 1,   name: 'foundin',             type: 'zone' },
+        { id: 84,  name: 'spawncount',          type: 'num' },                      // aowow - custom
         { id: 15,  name: 'id',                  type: 'num', before: 'name' },
         { id: 16,  name: 'relatedevent',        type: 'event-any+none' },
         { id: 7,   name: 'requiredskilllevel',  type: 'num' },
@@ -2443,6 +2445,49 @@ function fi_initPresets(_this) {
         g_addTooltip(helpLink, LANG.tooltip_statweighting, 'q');
     }
 }
+
+// aowow - custom start: a listing column for every value criterion of the filter (Filter::addCriteriaColumns())
+function fi_getCriteriaCols(type, crs) {
+    var res     = [],
+        langref = LANG['fi' + type] || {};
+
+    for (let i = 0; i < crs.length; ++i) {
+        let f   = fi_Lookup(crs[i], type),
+            key = 'cr' + crs[i];
+
+        if (!f || !f.name) {
+            continue;
+        }
+
+        let col = {
+            id:    key,
+            name:  langref[f.name] || f.name,
+            value: key,
+            type:  f.type == 'num' ? 'num' : 'text',
+            width: '10%'
+        };
+
+        // a range ("min - max") sorts by its lower end, an empty value first
+        if (col.type == 'num') {
+            col.sortFunc = function (a, b) {
+                var x = parseFloat(a[key]), y = parseFloat(b[key]);
+                return (isNaN(x) ? -Infinity : x) - (isNaN(y) ? -Infinity : y) || 0;
+            };
+        }
+
+        // money criteria hold copper
+        if (/money/i.test(f.name)) {
+            col.compute = function (row, td) {
+                td.innerHTML = g_getMoneyHtml(row[key] || 0);
+            };
+        }
+
+        res.push(col);
+    }
+
+    return res;
+}
+// aowow - custom end
 
 function fi_getExtraCols(wt, gm, pu) {
     if (!wt.length) {

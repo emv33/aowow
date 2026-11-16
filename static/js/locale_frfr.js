@@ -4374,6 +4374,7 @@ var LANG = {
     },
 
     finpcs: {
+        spawncount:          "Number of spawns",               // aowow - custom
         sepgeneral:          "Général",
         canrepair:           "Peut réparer",
         faction:             "Faction",
@@ -4553,6 +4554,7 @@ var LANG = {
     },
 
     fiobjects: {
+        spawncount:          "Number of spawns",               // aowow - custom
         sepgeneral:            "Général",
         foundin:               "Se trouve dans...",
         requiredskilllevel:    "Niveau de compétence requis (herbes/filons/cantines)",

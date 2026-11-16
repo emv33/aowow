@@ -468,12 +468,13 @@ class GameObjectListFilter extends Filter
         80 => [parent::CR_FLAG,     'flags',           GO_FLAG_DESTROYED         ], // goflagdestroyed [yn]
         81 => [parent::CR_CALLBACK, 'cbTemplateStr',   'castBarCaption',     null], // objcastbar [str]
         82 => [parent::CR_CALLBACK, 'cbCursor',        null,                 null], // objcursor [enum] - ::cursors
-        83 => [parent::CR_CALLBACK, 'cbWorldIds',      'artkits',            null]  // objartkits [yn]
+        83 => [parent::CR_CALLBACK, 'cbWorldIds',      'artkits',            null], // objartkits [yn]
+        84 => [parent::CR_CALLBACK, 'cbSpawnCount',    null,                 null]  // spawncount [num]
         // aowow - custom end
     );
 
     protected static array $inputFields = array(
-        'cr'  => [parent::V_LIST,  [[1, 5], 7, 11, 13, 15, 16, 18, [50, 83]],        true ], // criteria ids - aowow - custom: 51-83 (upstream: 50)
+        'cr'  => [parent::V_LIST,  [[1, 5], 7, 11, 13, 15, 16, 18, [50, 84]],        true ], // criteria ids - aowow - custom: 51-84 (upstream: 50)
         'crs' => [parent::V_LIST,  [parent::ENUM_NONE, parent::ENUM_ANY, [0, 5000]], true ], // criteria operators
         'crv' => [parent::V_REGEX, parent::PATTERN_CRV,                              true ], // criteria values - aowow - custom: script name / string id are text (upstream: PATTERN_INT)
         'na'  => [parent::V_NAME,  false,                                            false], // name - only printable chars, no delimiter
@@ -715,6 +716,38 @@ class GameObjectListFilter extends Filter
     }
 
     // gameobject_template.IconName; the dropdown value is a ::cursors id
+    protected function cbSpawnCount(int $cr, int $crs, string $crv) : ?array   // aowow - custom
+    {
+        return $this->spawnCount('gameobject', $crs, $crv);
+    }
+
+    // aowow - custom start: the value of a callback criterion per listed object, for its listing column - see Filter::getCriteriaValues()
+    protected function valSpawnCount(DBTypeList $list, array $ids) : array
+    {
+        return $this->spawnCountValues('gameobject', $ids);
+    }
+
+    protected function valMoneyContained(DBTypeList $list, array $ids) : array
+    {
+        return array_map('intval', DB::World()->selectCol('SELECT `entry` AS ARRAY_KEY, FLOOR((`mingold` + `maxgold`) / 2) FROM gameobject_template_addon WHERE `entry` IN %in', $ids) ?: []);
+    }
+
+    protected function valStaffString(DBTypeList $list, array $ids, string $col) : ?array
+    {
+        return User::canSee(U_GROUP_EMPLOYEE) ? $this->rowValues($list, $col) : null;
+    }
+
+    protected function valTemplateNum(DBTypeList $list, array $ids, string $expr) : array
+    {
+        return array_map('floatval', DB::World()->selectCol('SELECT `entry` AS ARRAY_KEY, ROUND('.$expr.', 2) FROM gameobject_template WHERE `entry` IN %in', $ids) ?: []);
+    }
+
+    protected function valTemplateStr(DBTypeList $list, array $ids, string $col) : array
+    {
+        return DB::World()->selectCol('SELECT `entry` AS ARRAY_KEY, %n FROM gameobject_template WHERE `entry` IN %in', $col, $ids) ?: [];
+    }
+    // aowow - custom end
+
     protected function cbCursor(int $cr, int $crs, string $crv) : ?array
     {
         return $this->cursorCondition($crs, 'gameobject_template');
