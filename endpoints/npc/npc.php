@@ -33,6 +33,8 @@ class NpcBaseResponse extends TemplateResponse implements ICache
     private ?CreatureList $altNPCs    = null;
     private  array        $soundIds   = [];
     private  array        $criteriaOf = [];
+    private ?SpawnTab     $spawnTab   = null;            // aowow - custom
+    private  array        $saiBoxOf   = [];             // aowow - custom: guid => id of the SmartAI box showing its own script
 
     public function __construct(string $id)
     {
@@ -141,22 +143,21 @@ class NpcBaseResponse extends TemplateResponse implements ICache
             $mapType = $_modes[0];
 
 
+        // aowow - custom: the spawns, read before the infobox, which may only state for the whole entry what holds for every spawn
+        $this->spawnTab = new SpawnTab($this, Type::NPC, $this->typeId, $this->spawnFacts());
+        $common         = $this->spawnTab->getCommon();
+        $hasSpawns      = $this->spawnTab->hasSpawns();
+
+
         /***********/
         /* Infobox */
         /***********/
 
         $infobox = Lang::getInfoBoxForFlags($this->subject->getField('cuFlags'));
 
-        // Event (ignore events, where the object only gets removed)
-        if ($_ = DB::World()->selectCol('SELECT DISTINCT ge.`eventEntry` FROM game_event ge, game_event_creature gec, creature c WHERE ge.`eventEntry` = gec.`eventEntry` AND c.`guid` = gec.`guid` AND c.`id` = %i', $this->typeId))
-        {
-            $this->extendGlobalIds(Type::WORLDEVENT, ...$_);
-            $ev = [];
-            foreach ($_ as $i => $e)
-                $ev[] = ($i % 2 ? '[br]' : ' ') . '[event='.$e.']';
-
-            $infobox[] = Lang::game('eventShort', [implode(',', $ev)]);
-        }
+        // aowow - custom: the events of every spawn; those of only some are in their row of the Spawns tab (upstream: any spawn's events)
+        if ($_ = $common['event'] ?? null)
+            $infobox[] = $_;
 
         // Level
         if ($this->subject->getField('rank') != NPC_RANK_BOSS)
@@ -229,27 +230,21 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         // id
         // aowow - custom start: equipment, formations and phasing
         // `creature_equip_template`, `creature_formations` and `phase_definitions` were unread
-        if ($_ = self::getEquipment($this->typeId))
-        {
-            foreach ($_ as $itemId)
-                $this->extendGlobalIds(Type::ITEM, $itemId);
+        // the lines below are per spawn: with spawns, only what every spawn has the same of (the rest is in the Spawns tab);
+        // without any, what the template gives a summoned one
+        if ($_ = $hasSpawns ? ($common['equip'] ?? null) : self::equipLine($this, self::equipmentSets($this->typeId), 1))
+            $infobox[] = $_;
 
-            $infobox[] = Lang::npcExtra('equipped').Lang::main('colon').Lang::concat(array_map(fn($x) => '[item='.$x.']', $_), Lang::CONCAT_NONE);
-        }
+        if ($_ = $common['follows'] ?? null)
+            $infobox[] = $_;
 
-        if ($_ = self::getFormationLeader($this->typeId))
-        {
-            $this->extendGlobalIds(Type::NPC, $_);
-            $infobox[] = Lang::npcExtra('followsLeader').Lang::main('colon').'[npc='.$_.']';
-        }
-
-        if ($_ = self::getPhases($this->typeId))
-            $infobox[] = Lang::npcExtra('phases').Lang::main('colon').implode(', ', $_);
+        if ($_ = $common['phase'] ?? null)
+            $infobox[] = $_;
 
         // `creature_template_movement` and `creature_movement_override` were read nowhere, so every
         // creature was presented as if it moved like every other one
-        if ($_ = self::getMovement($this->typeId))
-            $infobox[] = Lang::npcExtra('movement').Lang::main('colon').implode(', ', $_);
+        if ($_ = $hasSpawns ? ($common['movement'] ?? null) : self::movementLine(self::templateMovement($this->typeId)))
+            $infobox[] = $_;
 
         // the creature_template columns the setup step folds into the stats below or doesn't import at all
         if ($_ = $this->getUnitData())
@@ -257,11 +252,14 @@ class NpcBaseResponse extends TemplateResponse implements ICache
 
         // `creature_template_addon` holds the mount a creature rides and the emote it stands in,
         // beyond the auras the spell tab already reads from the same row
-        if ($_ = self::getAddon($this, $this->typeId))
+        if ($hasSpawns)
         {
-            foreach ($_ as $line)
-                $infobox[] = $line;
+            foreach ($common as $key => $line)
+                if (str_starts_with($key, 'addon:'))
+                    $infobox[] = $line;
         }
+        else if ($_ = self::templateAddon($this->typeId))
+            array_push($infobox, ...self::addonLines($this, $_));
 
         // skin, linking to the npc search for every creature sharing it (same filter as the listview skin column)
         if ($_ = $this->subject->getField('textureString'))
@@ -290,52 +288,12 @@ class NpcBaseResponse extends TemplateResponse implements ICache
 
         if (User::canSee(U_GROUP_EMPLOYEE))
         {
-            // aowow - custom: a spawn with a StringId but no ScriptName of its own was dropped (upstream: `ScriptName` IS NOT NULL)
-            $spawnData = DB::Aowow()->selectAssoc('SELECT `guid` AS "0", `ScriptName` AS "1", `StringId` AS "2" FROM ::spawns WHERE `type` = %i AND `typeId` = %i AND (`ScriptName` IS NOT NULL OR `StringId` IS NOT NULL) ORDER BY `guid` ASC', Type::NPC, $this->typeId);
+            // aowow - custom: the AI / script every spawn runs - a spawn's own ScriptName replaces the template's; one that only some
+            // run is in their row of the Spawns tab (upstream: the template's, with the spawns' own in a toggler)
+            if ($_ = $hasSpawns ? ($common['script'] ?? null) : self::scriptLine((string)$this->subject->getField('ScriptOrAI')))
+                $infobox[] = $_;
 
-            // AI
-            $scripts = null;
-            if ($_ = $this->subject->getField('ScriptOrAI'))
-                $scripts = match($_)
-                {
-                    'NullAI',    'AggressorAI',
-                    'ReactorAI', 'GuardAI',
-                    'PetAI',     'TotemAI',
-                    'SmartAI' => 'AI'.Lang::main('colon').$_,
-                    default   => 'Script'.Lang::main('colon').$_
-                };
-
-
-            if ($moreAI = array_filter(array_column($spawnData, 1, 0)))
-            {
-                $scripts ??= 'Script'.Lang::main('colon').'…';
-                $scripts   = '[toggler=hidden id=scriptName]'.$scripts.'[/toggler][div=hidden id=scriptName][ul]';
-                foreach ($moreAI as $guid => $script)
-                    $scripts .= sprintf('[li]GUID: %d - %s[/li]', $guid, $script);
-
-                $scripts .= '[/ul][/div]';
-            }
-
-            if ($scripts)
-                $infobox[] = $scripts;
-
-            // StringId
-            $stringIDs = null;
-            if ($_ = $this->subject->getField('StringId'))
-                $stringIDs = 'StringID'.Lang::main('colon').$_;
-
-            if ($moreStrings = array_filter(array_column($spawnData, 2, 0)))
-            {
-                $stringIDs ??= 'StringID'.Lang::main('colon').'…';
-                $stringIDs   = '[toggler=hidden id=stringId]'.$stringIDs.'[/toggler][div=hidden id=stringId][ul]';
-                foreach ($moreStrings as $guid => $stringId)
-                    $stringIDs .= sprintf('[li]GUID: %d - %s[/li]', $guid, $stringId);
-
-                $stringIDs .= '[/ul][/div]';
-            }
-
-            if ($stringIDs)
-                $infobox[] = $stringIDs;
+            // aowow - custom: no StringID line - the spawns' StringIds are in the Spawns tab, the template's in the raw template row (upstream: a StringID line, the spawns' in a toggler)
 
             // Mechanic immune
             if ($immuneMask = $this->subject->getField('mechanicImmuneMask'))
@@ -510,7 +468,11 @@ class NpcBaseResponse extends TemplateResponse implements ICache
 
                 $sai = new SmartAI(SmartAI::SRC_TYPE_CREATURE, -$g, ['uid' => 'sai-'.$g, 'title' => $ttl, 'ownerEntry' => $this->typeId]);
                 if ($sai->prepare())
+                {
                     $found[] = $sai;
+                    foreach ($guids as $x)                  // aowow - custom: for the spawns tab to link the box
+                        $this->saiBoxOf[$x] = 'sai-'.$g;
+                }
             }
 
             if ($found)                                     // multiple guid-specific tables collapsed by default; a single one stays open unless there's already an entry-level table shown
@@ -1203,6 +1165,9 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         }
         // aowow - custom end
 
+        if ($tab = $this->spawnTab->getListview($this->saiBoxOf))   // aowow - custom
+            $this->lvTabs->addListviewTab($tab);
+
         // tab: passengers
         // aowow - custom start: per-spawn accessories (`vehicle_accessory`) join the template's, and both tables' `description` is shown
         $seats = $descs = [];                               // accessory => [seat label => seat label], [text => text]
@@ -1339,6 +1304,238 @@ class NpcBaseResponse extends TemplateResponse implements ICache
             $ids[] = $_;
 
         return array_map('strval', $ids);
+    }
+    // aowow - custom end
+
+    // aowow - custom start: tab: spawns
+    /**
+     * what only a creature spawn has, for SpawnTab - its movement, overrides, addon, formation, accessories
+     *
+     * `shared` is what the infobox states for the entry: the equipment, formation leader, movement, addon and script a
+     * spawn ends up with - its own row where it has one (creature_addon and ScriptName replace the template's, a
+     * creature_movement_override column its NULLs excepted, equipment_id picks one set or none), else the template's
+     */
+    private function spawnFacts() : \Closure
+    {
+        return function (array $rows, array $guids) : array
+        {
+            $byGuid = fn(string $sql, ...$args) : array => DB::World()->selectAssoc($sql, ...$args) ?: [];
+            $out    = [];
+
+            $tplAddon = self::templateAddon($this->typeId);
+            $addons   = self::hasTable('creature_addon') ? $byGuid('SELECT `guid` AS ARRAY_KEY, ca.* FROM creature_addon ca WHERE `guid` IN %in', $guids) : [];
+
+            // ObjectMgr::LoadCreatureMovementOverrides(): a NULL column of the override takes the template's
+            $tplMove   = self::templateMovement($this->typeId);
+            $overrides = self::hasTable('creature_movement_override') ? $byGuid('SELECT `SpawnId` AS ARRAY_KEY, cmo.* FROM creature_movement_override cmo WHERE `SpawnId` IN %in', $guids) : [];
+
+            $sets    = self::equipmentSets($this->typeId);
+            $tplAI   = (string)$this->subject->getField('ScriptOrAI');
+            $isStaff = User::canSee(U_GROUP_EMPLOYEE);
+
+            $modelEquip = [];
+            if (self::hasTable('game_event_model_equip'))
+                foreach ($byGuid('SELECT `guid`, `eventEntry`, `modelid`, `equipment_id` FROM game_event_model_equip WHERE `guid` IN %in', $guids) as $e)
+                {
+                    $this->extendGlobalIds(Type::WORLDEVENT, (int)$e['eventEntry']);
+                    $modelEquip[(int)$e['guid']][] = Lang::spawns('eventModelEquip', ['[event='.(int)$e['eventEntry'].']', (int)$e['modelid'], (int)$e['equipment_id']]);
+                }
+
+            // creature_formations: the leader this spawn follows, and how many follow it
+            $leaders = $followers = [];
+            if (self::hasTable('creature_formations'))
+            {
+                foreach ($byGuid('SELECT cf.`memberGUID`, cf.`leaderGUID`, c.`id` FROM creature_formations cf LEFT JOIN creature c ON c.`guid` = cf.`leaderGUID` WHERE cf.`memberGUID` IN %in AND cf.`leaderGUID` <> cf.`memberGUID`', $guids) as $f)
+                    if ($e = (int)$f['id'])
+                        $leaders[(int)$f['memberGUID']] = $e;
+
+                foreach (DB::World()->selectCol('SELECT `leaderGUID` AS ARRAY_KEY, COUNT(*) FROM creature_formations WHERE `leaderGUID` IN %in AND `leaderGUID` <> `memberGUID` GROUP BY `leaderGUID`', $guids) ?: [] as $g => $n)
+                    $followers[(int)$g] = (int)$n;
+            }
+
+            $accessories = [];
+            if (self::hasTable('vehicle_accessory'))
+                foreach ($byGuid('SELECT `guid`, `accessory_entry`, `seat_id` FROM vehicle_accessory WHERE `guid` IN %in ORDER BY `seat_id`', $guids) as $a)
+                {
+                    $this->extendGlobalIds(Type::NPC, (int)$a['accessory_entry']);
+                    $accessories[(int)$a['guid']][] = '[npc='.(int)$a['accessory_entry'].'] [small class=q0]('.Lang::npc('seat').' '.(int)$a['seat_id'].')[/small]';
+                }
+
+            foreach ($rows as $r)
+            {
+                $guid   = (int)$r['guid'];
+                $d      = [];
+                $shared = [];
+
+                // Creature::GetDefaultMovementType(): 0 idle, 1 random, 2 waypoints
+                $move   = Lang::exist('spawns', 'movementTypes', (string)(int)$r['movementtype']) ?? ('#'.(int)$r['movementtype']);
+                $wander = (float)($r['wander_distance'] ?? $r['spawndist'] ?? 0);
+                if ((int)$r['movementtype'] == 1 && $wander)
+                    $move .= ' ('.Lang::nf($wander, 1).' yd)';
+
+                if ($_ = (int)$r['modelid'])
+                    $d[] = Lang::spawns('model').Lang::main('colon').'#'.$_;
+
+                // ObjectMgr::ChooseCreatureFlags(): a non-zero value replaces the template's; `dynamicflags` is dropped on load
+                foreach (['npcflag' => 'npcFlags', 'unit_flags' => 'unitFlags'] as $col => $label)
+                    if ($_ = (int)($r[$col] ?? 0))
+                        $d[] = Lang::spawns($label).Lang::main('colon').Util::asHex($_);
+
+                if ($_ = self::equipLine($this, $sets, (int)$r['equipment_id']))
+                    $shared['equip'] = $_;
+
+                if ($e = $leaders[$guid] ?? 0)
+                {
+                    $this->extendGlobalIds(Type::NPC, $e);
+                    $shared['follows'] = Lang::npcExtra('followsLeader').Lang::main('colon').'[npc='.$e.']';
+                }
+
+                $mv = $tplMove;
+                foreach (array_change_key_case($overrides[$guid] ?? [], CASE_LOWER) as $k => $v)
+                    if ($k != 'spawnid' && $v !== null)
+                        $mv[$k] = $v;
+                if ($_ = self::movementLine($mv))
+                    $shared['movement'] = $_;
+
+                // Creature::GetCreatureAddon(): the spawn's own row replaces the template's whole
+                $addon = isset($addons[$guid]) ? array_change_key_case($addons[$guid], CASE_LOWER) : $tplAddon;
+                if ($_ = (int)($addon['path_id'] ?? 0))
+                    $d[] = Lang::spawns('path').Lang::main('colon').'[url=?waypointpath='.$_.']#'.$_.'[/url]';
+
+                foreach (self::addonLines($this, $addon) as $i => $line)
+                    $shared['addon:'.strtok($line, ':')] = $line;
+
+                if ($auras = array_filter(array_map('intVal', preg_split('/\s+/', trim((string)($addon['auras'] ?? ''))))))
+                {
+                    $this->extendGlobalIds(Type::SPELL, ...$auras);
+                    $d[] = Lang::spawns('auras').Lang::main('colon').implode(', ', array_map(fn($x) => '[spell='.$x.']', $auras));
+                }
+
+                // a spawn's own ScriptName replaces the template's script (ObjectMgr::GetScriptId of the CreatureData)
+                if ($isStaff && ($_ = self::scriptLine(trim((string)($r['scriptname'] ?? '')) ?: $tplAI)))
+                    $shared['script'] = $_;
+
+                array_push($d, ...($modelEquip[$guid] ?? []));
+
+                if ($_ = $followers[$guid] ?? 0)
+                    $d[] = Lang::spawns('leads', [$_]);
+
+                if ($_ = $accessories[$guid] ?? null)
+                    $d[] = Lang::npc('accessory').Lang::main('colon').implode(', ', $_);
+
+                $out[$guid] = ['movement' => $move, 'details' => $d, 'shared' => $shared];
+            }
+
+            return $out;
+        };
+    }
+
+    /** the AI or script line of the infobox, as upstream words it */
+    private static function scriptLine(string $name) : ?string
+    {
+        if ($name === '')
+            return null;
+
+        return match ($name)
+        {
+            'NullAI',    'AggressorAI',
+            'ReactorAI', 'GuardAI',
+            'PetAI',     'TotemAI',
+            'SmartAI' => 'AI'.Lang::main('colon').$name,
+            default   => 'Script'.Lang::main('colon').$name
+        };
+    }
+
+    /** `creature_equip_template` as set id => item ids; the key column was renamed between revisions */
+    private static function equipmentSets(int $npcId) : array
+    {
+        if (!self::hasTable('creature_equip_template'))
+            return [];
+
+        $rows = DB::World()->selectAssoc('SELECT * FROM creature_equip_template WHERE `CreatureID` = %i', $npcId);
+        if ($rows === null)
+            $rows = DB::World()->selectAssoc('SELECT * FROM creature_equip_template WHERE `entry` = %i', $npcId) ?: [];
+
+        $out = [];
+        foreach ($rows as $r)
+        {
+            $lc  = array_change_key_case($r, CASE_LOWER);
+            $set = (int)($lc['id'] ?? 1);
+            foreach (['itemid1', 'itemid2', 'itemid3'] as $k)
+                if ($_ = (int)($lc[$k] ?? 0))
+                    $out[$set][$_] = $_;
+        }
+
+        ksort($out);
+        return $out;
+    }
+
+    /**
+     * the weapons a creature with this equipment_id carries - Creature::LoadEquipment(): 0 none, -1 a random set,
+     * n that set, a set that does not exist none; a summon takes set 1
+     */
+    private static function equipLine(self $resp, array $sets, int $eq) : ?string
+    {
+        $items = fn(array $ids) : string => Lang::concat(array_map(fn($x) => '[item='.$x.']', $ids), Lang::CONCAT_NONE);
+
+        if ($eq < 0 && $sets)
+        {
+            foreach ($sets as $ids)
+                $resp->extendGlobalIds(Type::ITEM, ...$ids);
+
+            return Lang::npcExtra('equipped').Lang::main('colon').(count($sets) > 1 ? Lang::spawns('equipRandom').' - ' : '').implode(' / ', array_map($items, $sets));
+        }
+
+        if ($eq <= 0 || !($ids = $sets[$eq] ?? null))
+            return null;
+
+        $resp->extendGlobalIds(Type::ITEM, ...$ids);
+        return Lang::npcExtra('equipped').Lang::main('colon').$items($ids);
+    }
+
+    /** `creature_template_movement`, keys lowercased; a NULL column is the core's default */
+    private static function templateMovement(int $npcId) : array
+    {
+        if (!self::hasTable('creature_template_movement'))
+            return [];
+
+        return array_change_key_case(DB::World()->selectRow('SELECT * FROM creature_template_movement WHERE `CreatureId` = %i', $npcId) ?: [], CASE_LOWER);
+    }
+
+    /**
+     * how a creature moves - ground, water and air, plus how it behaves while chasing or idle
+     *
+     * only what departs from the default is named, as saying "runs, swims, does not fly, is not
+     * rooted" of every creature in the game says nothing about any of them
+     */
+    private static function movementLine(array $r) : ?string
+    {
+        $names = Lang::npcExtra('movementTypes');
+        $out   = [];
+
+        // a NULL column means "inherit the default", which is what the absent row already says
+        foreach (array_keys($names) as $what)
+            if (isset($r[$what]) && ($_ = $names[$what][(int)$r[$what]] ?? ''))
+                $out[] = $_;
+
+        // NPCHandler: a creature stops walking this long when a player talks to it; NULL takes the server's default
+        if (isset($r['interactionpausetimer']))
+            $out[] = Lang::npcExtra('interactionPause', [DateTime::formatTimeElapsedFloat((int)$r['interactionpausetimer'])]);
+
+        return $out ? Lang::npcExtra('movement').Lang::main('colon').implode(', ', $out) : null;
+    }
+
+    /**
+     * `creature_template_addon`, keys lowercased
+     *
+     * `mount` is a CreatureDisplayID, not a creature_template entry - see formatMount()
+     */
+    private static function templateAddon(int $npcId) : array
+    {
+        if (!self::hasTable('creature_template_addon'))
+            return [];
+
+        return array_change_key_case(DB::World()->selectRow('SELECT * FROM creature_template_addon WHERE `entry` = %i', $npcId) ?: [], CASE_LOWER);
     }
     // aowow - custom end
 
@@ -1697,62 +1894,9 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         return $out;
     }
 
-    /** the weapons a creature visibly carries; the key column was renamed between revisions */
-    private static function getEquipment(int $npcId) : array
-    {
-        if (!self::hasTable('creature_equip_template'))
-            return [];
 
-        $rows = DB::World()->selectAssoc('SELECT * FROM creature_equip_template WHERE `CreatureID` = %i', $npcId);
-        if ($rows === null)
-            $rows = DB::World()->selectAssoc('SELECT * FROM creature_equip_template WHERE `entry` = %i', $npcId) ?: [];
 
-        $out = [];
-        foreach ($rows as $r)
-        {
-            $lc = array_change_key_case($r, CASE_LOWER);
-            foreach (['itemid1', 'itemid2', 'itemid3'] as $k)
-                if ($_ = (int)($lc[$k] ?? 0))
-                    $out[$_] = $_;
-        }
 
-        return array_values($out);
-    }
-
-    /** the creature this one walks in formation behind; the formation is keyed by guid, not entry */
-    private static function getFormationLeader(int $npcId) : int
-    {
-        if (!self::hasTable('creature_formations'))
-            return 0;
-
-        return (int)DB::World()->selectCell(
-           'SELECT   lc.`id`
-            FROM     creature_formations cf
-            JOIN     creature mc ON mc.`guid` = cf.`memberGUID`
-            JOIN     creature lc ON lc.`guid` = cf.`leaderGUID`
-            WHERE    mc.`id` = %i AND lc.`id` <> mc.`id`
-            LIMIT    1', $npcId
-        );
-    }
-
-    /** the phases this creature's spawns sit in - the answer to "why can I not see it" */
-    private static function getPhases(int $npcId) : array
-    {
-        $masks = DB::World()->selectCol('SELECT DISTINCT `phaseMask` FROM creature WHERE `id` = %i AND `phaseMask` NOT IN (0, 1)', $npcId) ?: [];
-
-        $out = [];
-        foreach ($masks as $m)
-            $out[] = '0x'.strtoupper(dechex((int)$m));
-
-        return $out;
-    }
-
-    /**
-     * how this creature moves - ground, water and air, plus how it behaves while chasing or idle
-     *
-     * only what departs from the default is named, as saying "runs, swims, does not fly, is not
-     * rooted" of every creature in the game says nothing about any of them
-     */
     private function getUnitData() : array
     {
         $r = DB::World()->selectRow(
@@ -1825,46 +1969,6 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         return $out;
     }
 
-    private static function getMovement(int $npcId) : array
-    {
-        if (!self::hasTable('creature_template_movement'))
-            return [];
-
-        if (!($r = DB::World()->selectRow('SELECT * FROM creature_template_movement WHERE `CreatureId` = %i', $npcId)))
-            return [];
-
-        $r     = array_change_key_case($r, CASE_LOWER);
-        $names = Lang::npcExtra('movementTypes');
-        $out   = [];
-
-        // a NULL column means "inherit the default", which is what the absent row already says
-        foreach (array_keys($names) as $what)
-        {
-            if (!isset($r[$what]))
-                continue;
-
-            if ($_ = $names[$what][(int)$r[$what]] ?? '')
-                $out[] = $_;
-        }
-
-        // NPCHandler: a creature stops walking this long when a player talks to it; NULL takes the server's default
-        if (isset($r['interactionpausetimer']))
-            $out[] = Lang::npcExtra('interactionPause', [DateTime::formatTimeElapsedFloat((int)$r['interactionpausetimer'])]);
-
-        // the same columns exist per spawn; a creature can move one way in one place and another elsewhere
-        if (self::hasTable('creature_movement_override'))
-        {
-            $nOverride = (int)DB::World()->selectCell(
-               'SELECT COUNT(1) FROM creature_movement_override cmo JOIN creature c ON c.`guid` = cmo.`SpawnId` WHERE c.`id` = %i',
-                $npcId
-            );
-
-            if ($nOverride)
-                $out[] = Lang::npcExtra('movementOverride', [$nOverride]);
-        }
-
-        return $out;
-    }
 
     /**
      * `pet_levelstats` and `pet_name_generation`, neither of which was read anywhere
@@ -1975,33 +2079,16 @@ class NpcBaseResponse extends TemplateResponse implements ICache
                           ['allow' => Markup::CLASS_ADMIN], 'level-curve-generic');
     }
 
-    /**
-     * the mount a creature rides and the emote it stands in, from `creature_template_addon`
-     *
-     * the same row's auras are read by the spell tab already; these two columns were not. a
-     * per-spawn `creature_addon` row can override either, and every spawn that does is listed
-     * by GUID in a collapsed disclosure, the same shape as the ScriptName/StringId one above.
-     *
-     * `mount` is a CreatureDisplayID, not a creature_template entry - [npc=$mount] would only
-     * ever match by coincidence. Resolve it to a real template that actually uses that model
-     * so the tag has something real to link/tooltip; fall back to the bare id if none does.
-     */
-    private static function getAddon(self $resp, int $npcId) : array
+
+    // aowow - custom: the template's `creature_template_addon` and a spawn's own `creature_addon` read the same way
+    /** @param array $lc  an addon row, keys lowercased */
+    private static function addonLines(self $resp, array $lc) : array
     {
-        if (!self::hasTable('creature_template_addon'))
-            return [];
-
-        $row = DB::World()->selectRow('SELECT * FROM creature_template_addon WHERE `entry` = %i', $npcId);
-        if (!$row)
-            return [];
-
-        $lc     = array_change_key_case($row, CASE_LOWER);
         $mount  = (int)($lc['mount'] ?? 0);
         $emote  = (int)($lc['emote'] ?? 0);
         // newer revisions split `bytes1` into `StandState` / `AnimTier` / ...; older ones pack
         // UnitStandStateType into the low byte of `bytes1`
         $stand  = (int)($lc['standstate'] ?? ((int)($lc['bytes1'] ?? 0) & 0xFF));
-        $sCol   = isset($lc['standstate']) ? 'ca.`StandState`' : '(ca.`bytes1` & 255)';
         $out    = [];
 
         if ($mount)
@@ -2059,49 +2146,6 @@ class NpcBaseResponse extends TemplateResponse implements ICache
                 $out[] = Lang::npcExtra('visibility').Lang::main('colon').sprintf(Lang::npcExtra('visibilityTypes')[$vis], $yards[$vis]);
         }
 
-        if (!$out)
-            return [];
-
-        // per-spawn rows that say something different from the template
-        if (self::hasTable('creature_addon'))
-        {
-            $rows = DB::World()->selectAssoc(
-               'SELECT   c.`guid` AS ARRAY_KEY, ca.`mount`, ca.`emote`, '.$sCol.' AS "stand"
-                FROM     creature_addon ca
-                JOIN     creature c ON c.`guid` = ca.`guid`
-                WHERE    c.`id` = %i AND (ca.`mount` <> %i OR ca.`emote` <> %i OR '.$sCol.' <> %i)
-                ORDER BY c.`guid` ASC',
-                $npcId, $mount, $emote, $stand
-            ) ?: [];
-
-            if ($rows)
-            {
-                $items = '';
-                foreach ($rows as $guid => $r)
-                {
-                    $bits = [];
-
-                    if (($m = (int)$r['mount']) !== $mount)
-                        $bits[] = Lang::npcExtra('mount').Lang::main('colon').($m ? self::formatMount($resp, $m) : Lang::npcExtra('noMount'));
-
-                    if (($e = (int)$r['emote']) !== $emote)
-                    {
-                        if ($e)
-                            $resp->extendGlobalIds(Type::EMOTE, $e);
-                        $bits[] = Lang::npcExtra('emote').Lang::main('colon').($e ? '[emote='.$e.']' : Lang::npcExtra('noEmote'));
-                    }
-
-                    if (($st = (int)$r['stand']) !== $stand)
-                        $bits[] = Lang::npcExtra('standState').Lang::main('colon').(Lang::unit('bytes1', 0, $st) ?? Lang::unit('bytes1', 'valueUNK', [$st, 0]));
-
-                    $items .= sprintf('[li]GUID: %d - %s[/li]', $guid, implode(', ', $bits));
-                }
-
-                $out[] = '[toggler=hidden id=addonOverride]'.Lang::npcExtra('addonOverride', [count($rows)]).
-                          '[/toggler][div=hidden id=addonOverride][ul]'.$items.'[/ul][/div]';
-            }
-        }
-
         return $out;
     }
 
@@ -2128,7 +2172,7 @@ class NpcBaseResponse extends TemplateResponse implements ICache
     /**
      * the reverse of formatMount() - every npc that rides this one's model as a mount
      *
-     * `creature_template_addon`/`creature_addon`.mount is a CreatureDisplayID (see getAddon()),
+     * `creature_template_addon`/`creature_addon`.mount is a CreatureDisplayID (see templateAddon()),
      * so this matches against this creature's own modelid1-4 rather than its entry
      */
     private static function getMountOf(int $npcId) : array

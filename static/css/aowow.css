@@ -1790,6 +1790,11 @@ span.icon-instance8 {
     cursor: pointer;
 }
 
+/* aowow - custom: a row the template's itemClick() leaves out */
+.listview-mode-default tbody.clickable tr.unclickable {
+    cursor: auto;
+}
+
 .listview-mode-default tbody tr:hover {
     background-color: #202020;
 }

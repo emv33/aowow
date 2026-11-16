@@ -1346,8 +1346,12 @@ Listview.prototype = {
             tr.className += ' mergerow';
         }
 
-        if (this.getItemLink)
+        // aowow - custom start: || a template's own click action, which may leave some rows out (upstream: getItemLink only)
+        if (this.template.itemClick && this.template.isItemClickable && !this.template.isItemClickable(row))
+            tr.className += ' unclickable';
+        else if (this.getItemLink || this.template.itemClick)
             tr.onclick = this.itemClick.bind(this, row);
+        // aowow - custom end
     },
 
     itemClick: function(row, e)
@@ -1362,6 +1366,10 @@ Listview.prototype = {
 
             el = el.parentNode;
         }
+
+        // aowow - custom: a template may act on a click instead of linking somewhere
+        if (this.template.itemClick)
+            return this.template.itemClick.call(this, row, e);
 
         location.href = this.getItemLink(row);
     },

@@ -24,6 +24,8 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
     public string $modePills = '';                          // aowow - custom
 
     private array $difficulties = [];
+    private ?SpawnTab $spawnTab = null;                     // aowow - custom
+    private array $saiBoxOf     = [];                   // aowow - custom: guid => id of the SmartAI box showing its own script
     private int   $mapType      = 0;
 
     private  GameObjectList $subject;
@@ -105,38 +107,27 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
         }
 
 
+        // aowow - custom: the spawns, read before the infobox, which may only state for the whole entry what holds for every spawn
+        $this->spawnTab = new SpawnTab($this, Type::OBJECT, $this->typeId, $this->spawnFacts());
+        $common         = $this->spawnTab->getCommon();
+        $hasSpawns      = $this->spawnTab->hasSpawns();
+
+
         /***********/
         /* Infobox */
         /***********/
 
         $infobox = Lang::getInfoBoxForFlags($this->subject->getField('cuFlags'));
 
-        // Event (ignore events, where the object only gets removed)
-        if ($_ = DB::World()->selectCol('SELECT DISTINCT ge.`eventEntry` FROM game_event ge, game_event_gameobject geg, gameobject g WHERE ge.`eventEntry` = geg.`eventEntry` AND g.`guid` = geg.`guid` AND g.`id` = %i', $this->typeId))
-        {
-            $this->extendGlobalIds(Type::WORLDEVENT, ...$_);
-            $ev = [];
-            foreach ($_ as $i => $e)
-                $ev[] = ($i % 2 ? '[br]' : ' ') . '[event='.$e.']';
+        // aowow - custom: the events of every spawn; those of only some are in their row of the Spawns tab (upstream: any spawn's events)
+        if ($_ = $common['event'] ?? null)
+            $infobox[] = $_;
 
-            $infobox[] = Lang::game('eventShort', [implode(',', $ev)]);
-        }
-
-        // Faction
-        if ($_ = DB::Aowow()->selectCell('SELECT `factionId` FROM ::factiontemplate WHERE `id` = %i', $this->subject->getField('faction')))
-        {
-            $this->extendGlobalIds(Type::FACTION, $_);
-            $infobox[] = Util::ucFirst(Lang::game('faction')).Lang::main('colon').'[faction='.$_.']';
-        }
-
-        // Reaction
-        $color = fn (int $r) : string => match($r)
-        {
-             1      => 'q2',                                // q2  green
-            -1      => 'q10',                               // q10 red
-            default => 'q'                                  // q   yellow
-        };
-        $infobox[] = Lang::npc('react', ['[color='.$color($this->subject->getField('A')).']A[/color] [color='.$color($this->subject->getField('H')).']H[/color]']);
+        // aowow - custom: Faction and Reaction - a spawn's `gameobject_overrides` row replaces the template's faction, so with spawns
+        // these are the ones every spawn has (upstream: the template's)
+        foreach (($hasSpawns ? [$common['faction'] ?? null, $common['react'] ?? null] : self::factionLines($this, (int)$this->subject->getField('faction'))) as $_)
+            if ($_)
+                $infobox[] = $_;
 
         // reqSkill +  difficulty
         switch ($this->subject->getField('typeCat'))
@@ -193,8 +184,12 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
             $infobox[] = Lang::gameObject('trap').Lang::main('colon').'[object='.$_.']';
         }
 
-        // aowow - custom: the type dependent data<n> fields and the template addon's gold and flags
-        if ($_ = $this->getTemplateDetails())
+        // aowow - custom: the type dependent data<n> fields and the template addon's gold and flags; a spawn's override replaces the
+        // flags, so with spawns they are the ones every spawn has
+        if ($hasSpawns && ($_ = $common['flags'] ?? null))
+            $infobox[] = $_;
+
+        if ($_ = $this->getTemplateDetails(!$hasSpawns))
             foreach ($_ as $line)
                 $infobox[] = $line;
 
@@ -208,9 +203,9 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
             $infobox[] = Lang::npcExtra('questItems').Lang::main('colon').Lang::concat(array_map(fn($x) => '[item='.$x.']', $_), Lang::CONCAT_NONE);
         }
 
-        // aowow - custom: the phases this object's spawns sit in, as on the npc page
-        if ($_ = DB::World()->selectCol('SELECT DISTINCT `phaseMask` FROM gameobject WHERE `id` = %i AND `phaseMask` NOT IN (0, 1)', $this->typeId))
-            $infobox[] = Lang::npcExtra('phases').Lang::main('colon').implode(', ', array_map(fn($m) => '0x'.strtoupper(dechex((int)$m)), $_));
+        // aowow - custom: the phase every spawn sits in, as on the npc page; differing ones are in the Spawns tab
+        if ($_ = $common['phase'] ?? null)
+            $infobox[] = $_;
 
         // trap for X (note: moved to lv-tabs)
 
@@ -293,47 +288,11 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
             if ($id == $this->typeId)
                 $infobox[] = Lang::game('mode').Lang::game('modes', $this->mapType, $n);
 
+        // aowow - custom: the AI / script every spawn runs - a spawn's own ScriptName replaces the template's; one that only some run is in
+        // their row of the Spawns tab (upstream: the template's with the spawns' own in a toggler, and a StringID line built but never shown)
         if (User::canSee(U_GROUP_EMPLOYEE))
-        {
-            // aowow - custom: a spawn with a StringId but no ScriptName of its own was dropped (upstream: `ScriptName` IS NOT NULL)
-            $spawnData = DB::Aowow()->selectAssoc('SELECT `guid` AS "0", `ScriptName` AS "1", `StringId` AS "2" FROM ::spawns WHERE `type` = %i AND `typeId` = %i AND (`ScriptName` IS NOT NULL OR `StringId` IS NOT NULL) ORDER BY `guid` ASC', Type::OBJECT, $this->typeId);
-
-            // AI
-            $scripts = null;
-            if ($_ = $this->subject->getField('ScriptOrAI'))
-                $scripts = ($_ == 'SmartGameObjectAI' ? 'AI' :  'Script').Lang::main('colon').$_;
-
-            if ($moreAI = array_filter(array_column($spawnData, 1, 0)))
-            {
-                $scripts ??= 'Script'.Lang::main('colon').'…';
-                $scripts   = '[toggler=hidden id=scriptName]'.$scripts.'[/toggler][div=hidden id=scriptName][ul]';
-                foreach ($moreAI as $guid => $script)
-                    $scripts .= sprintf('[li]GUID: %d - %s[/li]', $guid, $script);
-
-                $scripts .= '[/ul][/div]';
-            }
-
-            if ($scripts)
-                $infobox[] = $scripts;
-
-            // StringId
-            $stringIDs = null;
-            if ($_ = $this->subject->getField('StringId'))
-                $stringIDs = 'StringID'.Lang::main('colon').$_;
-
-            if ($moreStrings = array_filter(array_column($spawnData, 2, 0)))
-            {
-                $stringIDs ??= 'StringID'.Lang::main('colon').'…';
-                $stringIDs   = '[toggler=hidden id=stringId]'.$stringIDs.'[/toggler][div=hidden id=stringId][ul]';
-                foreach ($moreStrings as $guid => $stringId)
-                    $stringIDs .= sprintf('[li]GUID: %d - %s[/li]', $guid, $stringId);
-
-                $stringIDs .= '[/ul][/div]';
-            }
-
-            if ($stringIDs)                                 // aowow - custom: was built but never added
-                $infobox[] = $stringIDs;
-        }
+            if ($_ = $hasSpawns ? ($common['script'] ?? null) : self::scriptLine((string)$this->subject->getField('ScriptOrAI')))
+                $infobox[] = $_;
 
         if ($infobox)
             $this->infobox = new InfoboxMarkup($infobox, ['allow' => Markup::CLASS_STAFF, 'dbpage' => true], 'infobox-contents0');
@@ -439,7 +398,11 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
 
                 $sai = new SmartAI(SmartAI::SRC_TYPE_OBJECT, -$g, ['uid' => 'sai-'.$g, 'title' => $ttl]);
                 if ($sai->prepare())
+                {
                     $found[] = $sai;
+                    foreach ($guids as $x)                  // aowow - custom: for the spawns tab to link the box
+                        $this->saiBoxOf[$x] = 'sai-'.$g;
+                }
             }
 
             if ($found)                                     // multiple guid-specific tables collapsed by default; a single one stays open unless there's already an entry-level table shown
@@ -849,6 +812,9 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
         }
         // aowow - custom end
 
+        if ($tab = $this->spawnTab->getListview($this->saiBoxOf))   // aowow - custom
+            $this->lvTabs->addListviewTab($tab);
+
         // tab: condition-for
         $cnd = new Conditions();
         $cnd->getByCondition(Type::OBJECT, $this->typeId)
@@ -862,6 +828,110 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
 
         parent::generate();
     }
+
+    // aowow - custom start: tab: spawns
+    /**
+     * what only an object spawn has, for SpawnTab - its state, rotation and addon
+     *
+     * `shared` is what the infobox states for the entry: the faction, reaction, flags and script a spawn ends up with -
+     * GameObject::GetGameObjectOverride(): a `gameobject_overrides` row replaces both the template's faction and flags,
+     * zeroes included; a spawn's own ScriptName replaces the template's script
+     */
+    private function spawnFacts() : \Closure
+    {
+        return function (array $rows, array $guids) : array
+        {
+            $has      = fn(string $t) : bool => (bool)DB::World()->selectCell('SHOW TABLES LIKE %s', $t);
+            $addons   = $has('gameobject_addon')     ? (DB::World()->selectAssoc('SELECT `guid` AS ARRAY_KEY, ga.* FROM gameobject_addon ga WHERE `guid` IN %in', $guids) ?: []) : [];
+            $overr    = $has('gameobject_overrides') ? (DB::World()->selectAssoc('SELECT `spawnId` AS ARRAY_KEY, `faction`, `flags` FROM gameobject_overrides WHERE `spawnId` IN %in', $guids) ?: []) : [];
+            $tplFlags = $has('gameobject_template_addon') ? (int)DB::World()->selectCell('SELECT `flags` FROM gameobject_template_addon WHERE `entry` = %i', $this->typeId) : 0;
+            $tplFact  = (int)$this->subject->getField('faction');
+            $tplAI    = (string)$this->subject->getField('ScriptOrAI');
+            $isStaff  = User::canSee(U_GROUP_EMPLOYEE);
+            $quat     = fn(array $q) : string => '[small]'.implode(', ', array_map(fn($x) => Lang::nf((float)$x, 4), $q)).'[/small]';
+            $out      = [];
+
+            foreach ($rows as $r)
+            {
+                $guid   = (int)$r['guid'];
+                $d      = [];
+                $shared = [];
+
+                // GOState: 0 active (a door open), 1 ready (closed), 2 destroyed
+                $state = Lang::exist('spawns', 'goStates', (string)(int)$r['state']) ?? ('#'.(int)$r['state']);
+                if (($anim = (int)$r['animprogress']) && $anim != 100)
+                    $state .= ' ('.Lang::spawns('animProgress', [$anim]).')';
+
+                // the quaternion only says more than `orientation` when the object is tilted
+                if ((float)$r['rotation0'] || (float)$r['rotation1'])
+                    $d[] = Lang::spawns('rotation').Lang::main('colon').$quat([$r['rotation0'], $r['rotation1'], $r['rotation2'], $r['rotation3']]);
+
+                if ($a = $addons[$guid] ?? null)
+                {
+                    $lc = array_change_key_case($a, CASE_LOWER);
+                    $pr = [$lc['parent_rotation0'] ?? 0, $lc['parent_rotation1'] ?? 0, $lc['parent_rotation2'] ?? 0, $lc['parent_rotation3'] ?? 1];
+                    if ((float)$pr[0] || (float)$pr[1] || (float)$pr[2] || (float)$pr[3] != 1.0)
+                        $d[] = Lang::spawns('parentRotation').Lang::main('colon').$quat($pr);
+
+                    if ($iv = (int)($lc['invisibilityvalue'] ?? 0))
+                        $d[] = Lang::spawns('invisibility').Lang::main('colon').(Lang::exist('spell', 'invisibilityType', (string)(int)($lc['invisibilitytype'] ?? 0)) ?? '#'.(int)($lc['invisibilitytype'] ?? 0)).' ('.$iv.')';
+                }
+
+                $o = $overr[$guid] ?? null;
+                [$shared['faction'], $shared['react']] = self::factionLines($this, $o ? (int)$o['faction'] : $tplFact);
+                $shared['flags'] = self::flagsLine($o ? (int)$o['flags'] : $tplFlags);
+
+                if ($isStaff)
+                    $shared['script'] = self::scriptLine(trim((string)($r['scriptname'] ?? '')) ?: $tplAI);
+
+                $out[$guid] = ['state' => $state, 'details' => $d, 'shared' => array_filter($shared)];
+            }
+
+            return $out;
+        };
+    }
+
+    /** [faction line, reaction line] of a faction template, as the infobox words them */
+    private static function factionLines(self $resp, int $factionTemplate) : array
+    {
+        $ft = DB::Aowow()->selectRow('SELECT `factionId`, `A`, `H` FROM ::factiontemplate WHERE `id` = %i', $factionTemplate) ?: ['factionId' => 0, 'A' => 0, 'H' => 0];
+
+        $faction = null;
+        if ($_ = (int)$ft['factionId'])
+        {
+            $resp->extendGlobalIds(Type::FACTION, $_);
+            $faction = Util::ucFirst(Lang::game('faction')).Lang::main('colon').'[faction='.$_.']';
+        }
+
+        $color = fn (int $r) : string => match($r)
+        {
+             1      => 'q2',                                // q2  green
+            -1      => 'q10',                               // q10 red
+            default => 'q'                                  // q   yellow
+        };
+
+        return [$faction, Lang::npc('react', ['[color='.$color((int)$ft['A']).']A[/color] [color='.$color((int)$ft['H']).']H[/color]'])];
+    }
+
+    /** the gameobject flags line of the infobox */
+    private static function flagsLine(int $mask) : ?string
+    {
+        $flags = [];
+        foreach (Lang::gameObject('goFlags') as $bit => $str)
+            if ($mask & $bit)
+                $flags[] = $str;
+        if ($mask & 0x20)                                   // GO_FLAG_NODESPAWN
+            $flags[] = Lang::gameObject('noDespawn');
+
+        return $flags ? Lang::gameObject('flags').Lang::main('colon').implode(', ', $flags) : null;
+    }
+
+    /** the AI or script line of the infobox, as upstream words it */
+    private static function scriptLine(string $name) : ?string
+    {
+        return $name !== '' ? ($name == 'SmartGameObjectAI' ? 'AI' : 'Script').Lang::main('colon').$name : null;
+    }
+    // aowow - custom end
 
     // aowow - custom start
     /** the StringIds of the template and of every spawn - CONDITION_STRING_ID matches either */
@@ -928,7 +998,7 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
 
     // aowow - custom start
     /** read as GameObjectTemplate's union and its helpers (IsDespawnAtAction(), GetAutoCloseTime(), GetCooldown()) do */
-    private function getTemplateDetails() : array
+    private function getTemplateDetails(bool $withFlags = true) : array
     {
         $r = DB::World()->selectRow(
            'SELECT    go.*,
@@ -943,14 +1013,9 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
 
         $out = [];
 
-        $flags = [];
-        foreach (Lang::gameObject('goFlags') as $bit => $str)
-            if ($r['flags'] & $bit)
-                $flags[] = $str;
-        if ($r['flags'] & 0x20)                             // GO_FLAG_NODESPAWN
-            $flags[] = Lang::gameObject('noDespawn');
-        if ($flags)
-            $out[] = Lang::gameObject('flags').Lang::main('colon').implode(', ', $flags);
+        // the template's flags; a spawn's override replaces them, so with spawns the page states the ones every spawn has
+        if ($withFlags && ($_ = self::flagsLine((int)$r['flags'])))
+            $out[] = $_;
 
         if ($_ = intVal(($r['mingold'] + $r['maxgold']) / 2))
             $out[] = Lang::npc('worth', ['[tooltip=tooltip_avgmoneydropped][money='.$_.'][/tooltip]']);

@@ -1433,6 +1433,27 @@ $lang = array(
         'objects'       => "Objects providing this focus",
         'noObjects'     => "No gameobject in the world DB provides this focus."
     ),
+    'spawns' => array(
+        'title'           => "Spawns",
+        'movementTypes'   => ["Stays in place", "Wanders", "Follows its path"],
+        'model'           => "Display ID",
+        'equipRandom'     => "random",
+        'npcFlags'        => "NPC flags",
+        'unitFlags'       => "Unit flags",
+        'path'            => "Waypoint path",
+        'auras'           => "Auras",
+        'ownSmartAI'      => "Has a SmartAI script of its own",
+        'pool'            => "Spawn pool",
+        'eventAdded'      => "Spawned during",
+        'eventRemoved'    => "Removed during",
+        'eventModelEquip' => 'During %1$s: display ID #%2$d, equipment #%3$d',
+        'leads'           => 'Leads a formation of %1$d',
+        'goStates'        => ["Active", "Ready", "Destroyed"],
+        'animProgress'    => 'animation at %1$d',
+        'rotation'        => "Rotation",
+        'parentRotation'  => "Parent rotation",
+        'invisibility'    => "Invisibility"
+    ),
     'warden' => array(
         'title'         => "Warden checks",
         'notFound'      => "This warden check doesn't exist.",
@@ -1712,8 +1733,6 @@ $lang = array(
             NPC_TYPEFLAG_DO_NOT_SHEATHE                       => "Does not sheathe its weapon"
         ),
         'clientFlags'   => "Client display flags",
-        'addonOverride' => '%1$d spawn(s) override it',
-        'movementOverride' => '%1$d spawn(s) move differently',
         'vehicleDespawn'   => 'Despawns %1$s after its summoner leaves it',
         'unitData'         => "Unit data",
         'speeds'           => 'Speed: %1$s walking, %2$s running yd/s',

@@ -123,6 +123,9 @@ spl_autoload_register(function (string $class) : void
         case __NAMESPACE__.'\WardenCheck':                  // aowow - custom
             require_once 'includes/components/WardenCheck/WardenCheck.class.php';
             break;
+        case __NAMESPACE__.'\SpawnTab':                     // aowow - custom
+            require_once 'includes/components/SpawnTab/SpawnTab.class.php';
+            break;
     }
 });
 

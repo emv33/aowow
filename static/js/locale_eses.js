@@ -5277,6 +5277,18 @@ var LANG = {
         snow:       "Snow",
         storm:      "Storm"
     },
+    fispawn: {                                              // aowow - custom
+        location: "Location",
+        position: "Position",
+        mode:     "Mode",
+        event:    "Event",
+        phase:    "Phase mask",
+        respawn:  "Respawn",
+        movement: "Movement",
+        state:    "State",
+        stringId: "StringId",
+        details:  "Details"
+    },
     fiwarden: {                                             // aowow - custom
         type:          "Type",
         category:      "Category",

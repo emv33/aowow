@@ -47,6 +47,7 @@ class Listview implements \JsonSerializable
         'summongroup'       => ['template' => 'summongroup',       'id' => 'summongroup',                                         ], // aowow - custom
         'spawnpool'         => ['template' => 'spawnpool',         'id' => 'spawnpool',                                           ], // aowow - custom
         'wardencheck'       => ['template' => 'wardencheck',       'id' => 'wardencheck',                                         ], // aowow - custom
+        'spawn'             => ['template' => 'spawn',             'id' => 'spawns',                                              ], // aowow - custom
         'icongallery'       => ['template' => 'icongallery',       'id' => 'icons',                                               ],
         'item'              => ['template' => 'item',              'id' => 'items',           'name' => '$LANG.tab_items'         ],
         'itemset'           => ['template' => 'itemset',           'id' => 'itemsets',        'name' => '$LANG.tab_itemsets'      ],
