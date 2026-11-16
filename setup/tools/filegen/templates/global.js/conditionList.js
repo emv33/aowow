@@ -226,11 +226,28 @@ var ConditionList = new function() {
                 break;
 
             case 47:
-                var quest_states = {};
+                var quest_states = {},
+                    allStates    = 0;
                 for (let i in g_quest_states)
+                {
                     quest_states[i * 1 + 1] = g_quest_states[i];
+                    allStates |= 1 << i;
+                }
 
-                param[1] = _makeList(entry[2], quest_states, '$2');
+                // aowow - custom: a mask that takes most of the states reads as "always" when listed; it is worded by the ones it leaves
+                // out - unless that would negate "not yet seen" (QUEST_STATUS_NONE) into a double negative
+                var stateMask = entry[2] & allStates,
+                    nIn = 0, nOut = 0;
+                for (let i in g_quest_states)
+                    (stateMask & (1 << i)) ? nIn++ : nOut++;
+
+                if (nOut && nIn > nOut && (stateMask & 1))
+                {
+                    stateMask = allStates & ~stateMask;
+                    negate    = !negate;
+                }
+
+                param[1] = _makeList(stateMask, quest_states, '$2');
                 break;
 
             case 60:

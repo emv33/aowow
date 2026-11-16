@@ -539,7 +539,8 @@ class Conditions
     }
     // aowow - custom end
 
-    public function addExternalCondition(int $srcType, string $groupKey, array $condition, bool $orGroup = false) : void
+    // aowow - custom: $elseGroup - add to that alternative, so one alternative can hold several conditions (upstream: $orGroup only)
+    public function addExternalCondition(int $srcType, string $groupKey, array $condition, bool $orGroup = false, ?int $elseGroup = null) : void
     {
         if (!isset(self::$source[$srcType]))
             return;
@@ -556,7 +557,9 @@ class Conditions
 
         if ($c = $this->prepareCondition($cId, $cVal1, $cVal2, $cVal3, $cString))
         {
-            if ($orGroup)
+            if ($elseGroup !== null)
+                $this->result[$srcType][$groupKey][$elseGroup][] = $c;
+            else if ($orGroup)
                 $this->result[$srcType][$groupKey][] = [$c];
             else if (!isset($this->result[$srcType][$groupKey][0]))
                 $this->result[$srcType][$groupKey][0] = [$c];

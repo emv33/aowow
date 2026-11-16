@@ -2311,6 +2311,7 @@ $lang = array(
         'eventCondition'=> "Advances world event",
         'saTitle'       => "Area auras",
         'saQuestState'  => '%1$s is %2$s',
+        'saQuestStateNot' => '%1$s is not %2$s',
         'questStatus'   => [0 => "not taken", 1 => "complete", 3 => "in progress", 5 => "failed", 6 => "rewarded"],
         'saAura'        => 'Has %1$s',
         'saNoAura'      => 'Does not have %1$s',

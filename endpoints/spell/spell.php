@@ -903,8 +903,30 @@ class SpellBaseResponse extends TemplateResponse implements ICache
 
     private function tabZone() : ?Listview
     {
-        if (!($areaSpells = DB::World()->selectAssoc('SELECT `area` AS ARRAY_KEY, `aura_spell` AS "0", `quest_start` AS "1", `quest_end` AS "2", `quest_start_status` AS "3", `quest_end_status` AS "4", `racemask` AS "5", `gender` AS "6" FROM spell_area WHERE `spell` = %i', $this->typeId)))
+        // aowow - custom start: every spell_area row of an area, each its own alternative - the core applies the spell when any of
+        // them matches (upstream: keyed by area, so only one row per area survived)
+        $rows = DB::World()->selectAssoc('SELECT `area` AS "area", `aura_spell` AS "0", `quest_start` AS "1", `quest_end` AS "2", `quest_start_status` AS "3", `quest_end_status` AS "4", `racemask` AS "5", `gender` AS "6" FROM spell_area WHERE `spell` = %i', $this->typeId);
+        if (!$rows)
             return null;
+
+        $areaSpells = [];                                   // areaId => [[aura, questStart, ..], ..]
+        foreach ($rows as $r)
+        {
+            $area = (int)$r['area'];
+            unset($r['area']);
+            $areaSpells[$area][] = array_values($r);
+        }
+
+        // an alternative without a single condition lets anyone have the spell there, which makes the others moot
+        foreach ($areaSpells as &$alts)
+        {
+            if (array_filter($alts, fn($c) => !$c[0] && !$c[1] && !$c[2] && !$c[5] && $c[6] == 2))
+                $alts = [];
+            else
+                sort($alts);
+        }
+        unset($alts);
+        // aowow - custom end
 
         if (($zones = new ZoneList(array(['id', array_keys($areaSpells)])))->error)
             return null;
@@ -952,6 +974,7 @@ class SpellBaseResponse extends TemplateResponse implements ICache
                 $v['subzones'][] = $row['id'];
                 break;
             }
+            unset($v);
 
             // add self as potential subzone; IF we are a parentZone without added children, we get filtered in JScript
             if (!$set)
@@ -968,35 +991,53 @@ class SpellBaseResponse extends TemplateResponse implements ICache
             foreach ($resultLv as &$_)
                 if (isset($parents[$_['__parent']]))
                     $_ = array_merge($_, $parents[$_['__parent']]);
+            unset($_);
         }
 
+        // aowow - custom: the conditions are keyed by row, not by zone id - the subzone rows of one zone all carry the parent's id,
+        // and keyed by it every one of them showed the conditions of all (upstream: $lv['id'])
         $cnd = new Conditions();
         foreach ($resultLv as $idx => $lv)
         {
-            [$auraSpell, $questStart, $questEnd, $questStartState, $questEndState, $raceMask, $gender] = $lv['__condition'];
+            $key = (string)($idx + 1);
+            $resultLv[$idx]['__cndKey'] = $key;
 
-            if ($auraSpell)
-                $cnd->addExternalCondition(Conditions::SRC_NONE, $lv['id'], [$auraSpell > 0 ? Conditions::AURA : -Conditions::AURA, abs($auraSpell)]);
+            foreach (array_values($lv['__condition']) as $alt => [$auraSpell, $questStart, $questEnd, $questStartState, $questEndState, $raceMask, $gender])
+            {
+                if ($auraSpell)
+                    $cnd->addExternalCondition(Conditions::SRC_NONE, $key, [$auraSpell > 0 ? Conditions::AURA : -Conditions::AURA, abs($auraSpell)], elseGroup: $alt);
 
-            if ($questStart)
-                $cnd->addExternalCondition(Conditions::SRC_NONE, $lv['id'], [Conditions::QUESTSTATE, $questStart, $questStartState]);
+                // SpellArea::IsFitToRequirements() checks both masks, so for the same quest the status has to be in both
+                // (upstream: the quest_end mask was dropped when it named the same quest)
+                if ($questStart && $questStart == $questEnd)
+                    $cnd->addExternalCondition(Conditions::SRC_NONE, $key, [Conditions::QUESTSTATE, $questStart, $questStartState & $questEndState], elseGroup: $alt);
+                else
+                {
+                    if ($questStart)
+                        $cnd->addExternalCondition(Conditions::SRC_NONE, $key, [Conditions::QUESTSTATE, $questStart, $questStartState], elseGroup: $alt);
 
-            if ($questEnd && $questEnd != $questStart)
-                $cnd->addExternalCondition(Conditions::SRC_NONE, $lv['id'], [Conditions::QUESTSTATE, $questEnd, $questEndState]);
+                    if ($questEnd)
+                        $cnd->addExternalCondition(Conditions::SRC_NONE, $key, [Conditions::QUESTSTATE, $questEnd, $questEndState], elseGroup: $alt);
+                }
 
-            if ($raceMask)
-                $cnd->addExternalCondition(Conditions::SRC_NONE, $lv['id'], [Conditions::CHR_RACE, $raceMask]);
+                if ($raceMask)
+                    $cnd->addExternalCondition(Conditions::SRC_NONE, $key, [Conditions::CHR_RACE, $raceMask], elseGroup: $alt);
 
-            if ($gender != 2)                       // 2: both
-                $cnd->addExternalCondition(Conditions::SRC_NONE, $lv['id'], [Conditions::GENDER, $gender]);
+                if ($gender != 2)                       // 2: both
+                    $cnd->addExternalCondition(Conditions::SRC_NONE, $key, [Conditions::GENDER, $gender], elseGroup: $alt);
+            }
 
             // remove temp storage from result
             unset($resultLv[$idx]['__condition']);
             unset($resultLv[$idx]['__parent']);
         }
 
-        if ($cnd->toListviewColumn($resultLv, $extraCols))
+        if ($cnd->toListviewColumn($resultLv, $extraCols, '__cndKey'))
             $this->extendGlobalData($cnd->getJSGlobals());
+
+        foreach ($resultLv as &$_)
+            unset($_['__cndKey']);
+        unset($_);
 
         $tabData = ['data' => $resultLv];
 

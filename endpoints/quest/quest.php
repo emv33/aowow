@@ -1590,14 +1590,23 @@ class QuestBaseResponse extends TemplateResponse implements ICache
         $jsg   = [];
         $state = function (int $questId, int $mask) use (&$jsg) : string
         {
-            $names = [];
+            $in = $out = [];
             foreach (Lang::quest('questStatus') as $status => $name)
+            {
                 if ($mask & (1 << $status))
-                    $names[] = $name;
+                    $in[] = $name;
+                else
+                    $out[] = $name;
+            }
 
             $jsg[Type::QUEST][$questId] = $questId;
 
-            return Lang::quest('saQuestState', ['[quest='.$questId.']', implode(', ', $names)]);
+            // a mask that takes most of the states reads as "always" when listed; it is worded by the ones it leaves out - unless
+            // that would negate "not taken" (QUEST_STATUS_NONE) into a double negative
+            if ($out && count($in) > count($out) && ($mask & 1))
+                return Lang::quest('saQuestStateNot', ['[quest='.$questId.']', Lang::concat($out, Lang::CONCAT_OR)]);
+
+            return Lang::quest('saQuestState', ['[quest='.$questId.']', Lang::concat($in, Lang::CONCAT_OR)]);
         };
 
         $buff = '';
@@ -1607,11 +1616,19 @@ class QuestBaseResponse extends TemplateResponse implements ICache
             $area  = (int)$r['area'];
             $jsg[Type::SPELL][$spell] = $spell;
 
-            $when = [];
-            if ($_ = (int)$r['quest_start'])
-                $when[] = $state($_, (int)$r['quest_start_status']);
-            if (($_ = (int)$r['quest_end']) && ($_ != $r['quest_start'] || $r['quest_end_status'] != $r['quest_start_status']))
-                $when[] = $state($_, (int)$r['quest_end_status']);
+            // both are checked, so naming the same quest they require a status of both masks - one line, not two that seem to disagree
+            $when  = [];
+            $qs    = (int)$r['quest_start'];
+            $qe    = (int)$r['quest_end'];
+            if ($qs && $qs == $qe)
+                $when[] = $state($qs, (int)$r['quest_start_status'] & (int)$r['quest_end_status']);
+            else
+            {
+                if ($qs)
+                    $when[] = $state($qs, (int)$r['quest_start_status']);
+                if ($qe)
+                    $when[] = $state($qe, (int)$r['quest_end_status']);
+            }
 
             if ($_ = (int)$r['aura_spell'])
             {
