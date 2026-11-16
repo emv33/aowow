@@ -346,7 +346,7 @@ function Listview(opt)
             id: 'debug-id',
             compute: function(data, td)
             {
-                if (data.id)
+                if (data.id != null)                        // aowow - custom: an id of 0 is an id too (upstream: if (data.id))
                 {
                     let pre = $WH.ce('pre', { style: { display: 'inline', margin: '0' }}, $WH.ct(data.id));
                     $WH.clickToCopy(pre);
@@ -355,7 +355,7 @@ function Listview(opt)
             },
             getVisibleText: function(data)
             {
-                return data.id || '';
+                return data.id != null ? String(data.id) : '';  // aowow - custom: (upstream: data.id || '')
             },
             getValue: function(data)
             {

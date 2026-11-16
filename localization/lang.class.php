@@ -73,6 +73,7 @@ class Lang
     private static array $factionchange;
     private static array $spellfocus;
     private static array $summongroup;
+    private static array $warden;                          // aowow - custom
     private static array $rawRow;
     private static array $dataIntegrity;
 

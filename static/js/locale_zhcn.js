@@ -1020,7 +1020,8 @@ var mn_database = [
     [119, 'Spell Focuses', '?spellfocuses', null, {requiredAccess: 1726}],    // aowow - custom
     [120, 'Waypoint Paths', '?waypointpaths', null, {requiredAccess: 1726}],    // aowow - custom
     [121, 'Summon Groups', '?summongroups', null, {requiredAccess: 1726}],    // aowow - custom
-    [122, 'Spawn Pools', '?spawnpools', null, {requiredAccess: 1726}]    // aowow - custom
+    [122, 'Spawn Pools', '?spawnpools', null, {requiredAccess: 1726}],    // aowow - custom
+    [123, 'Warden Checks', '?wardenchecks', null, {requiredAccess: 1726}]    // aowow - custom
 ];
 
 var mn_guides = [
@@ -5316,6 +5317,16 @@ var LANG = {
         rain:       "Rain",
         snow:       "Snow",
         storm:      "Storm"
+    },
+    fiwarden: {                                             // aowow - custom
+        type:          "Type",
+        category:      "Category",
+        categories:    ["Injection", "Lua", "Client modification"],
+        unsupported:   "Not supported",
+        target:        "Target",
+        comment:       "Comment",
+        action:        "Action",
+        actionDefault: "Server default"
     },
     fioutdoorpvp: {
         scriptName: "Script",

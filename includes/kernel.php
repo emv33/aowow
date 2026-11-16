@@ -120,6 +120,9 @@ spl_autoload_register(function (string $class) : void
         case __NAMESPACE__.'\RawRow':
             require_once 'includes/components/RawRow/RawRow.class.php';
             break;
+        case __NAMESPACE__.'\WardenCheck':                  // aowow - custom
+            require_once 'includes/components/WardenCheck/WardenCheck.class.php';
+            break;
     }
 });
 
