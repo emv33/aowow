@@ -279,7 +279,9 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
         // aowow - custom start: `instance_template` was read nowhere
         // it is the server's own row for an instance map - whether mounts work inside, which map it
         // is entered from, and the name of the C++ script that runs it
-        foreach ($this->getInstanceTemplate($mapId, $pa ?? null) as $line)
+        // a sub-area has no entrance row of its own; it is entered through its parent zone's
+        $entrance = $pa ?: ($_parentArea ? DB::Aowow()->selectRow('SELECT `areaId`, `posX`, `posY`, `floor` FROM ::spawns WHERE `type`= %i AND `typeId` = %i ', Type::ZONE, $_parentArea) : null);
+        foreach ($this->getInstanceTemplate($mapId, $entrance ?: null) as $line)
             $infobox[] = $line;
         // aowow - custom end
 
@@ -1252,15 +1254,16 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
         // the map an instance is entered from, which is how the core groups its resets
         if ($parent = (int)($r['parent'] ?? 0))
         {
-            if ($zoneId = (int)DB::Aowow()->selectCell('SELECT `id` FROM ::zones WHERE `mapId` = %i AND `parentArea` = 0 AND (`cuFlags` & %i) = 0 LIMIT 1', $parent, CUSTOM_EXCLUDE_FOR_LISTVIEW))
+            // the zone's own spawn row marks the entrance on the map it is entered from
+            if ($portal)
+                $out[] = Lang::zone('enteredFrom').Lang::main('colon').self::makeMapLink($portal);
+            // without a position a continent is all there is to name; its pseudo zone is beyond the [zone] tag's positive ids
+            else if (isset(WorldPosition::CONTINENT_MAPS[$parent]))
+                $out[] = Lang::zone('enteredFrom').Lang::main('colon').'[url=?zone='.WorldPosition::CONTINENT_MAPS[$parent].']'.ZoneList::getName(WorldPosition::CONTINENT_MAPS[$parent]).'[/url]';
+            else if ($zoneId = (int)DB::Aowow()->selectCell('SELECT `id` FROM ::zones WHERE `mapId` = %i AND `parentArea` = 0 AND `id` > 0 AND (`cuFlags` & %i) = 0 LIMIT 1', $parent, CUSTOM_EXCLUDE_FOR_LISTVIEW))
             {
                 $this->extendGlobalIds(Type::ZONE, $zoneId);
-
-                // the zone's own spawn row marks the entrance on the map it is entered from
-                if ($portal)
-                    $out[] = Lang::zone('enteredFrom').Lang::main('colon').self::makeMapLink($portal);
-                else
-                    $out[] = Lang::zone('enteredFrom').Lang::main('colon').'[zone='.$zoneId.']';
+                $out[] = Lang::zone('enteredFrom').Lang::main('colon').'[zone='.$zoneId.']';
             }
         }
 
