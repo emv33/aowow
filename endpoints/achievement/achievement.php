@@ -117,6 +117,10 @@ class AchievementBaseResponse extends TemplateResponse implements ICache
         if ($criteriaCount = count($this->subject->getCriteria()))
             $infobox[] = '[url=?achievement-criteria&ac='.$this->typeId.']'.Lang::achievement('criteria').Lang::main('colon').$criteriaCount.'[/url]';
 
+        // aowow - custom: `disables` of its criteria (DISABLE_TYPE_ACHIEVEMENT_CRITERIA)
+        if ($lines = XRef::disables(array_map(fn($c) => [4, (int)$c['id']], $this->subject->getCriteria())))
+            $infobox[] = Lang::xRef('disabled').Lang::main('colon').implode('[br]', $lines);
+
         // icon
         if ($_ = $this->subject->getField('iconId'))
         {

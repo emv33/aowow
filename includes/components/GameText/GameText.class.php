@@ -614,16 +614,19 @@ class GameText
 
         [$creatureId, $groupId, $rowId] = array_map('intval', $p);
 
-        $txt = DB::World()->selectCell(
-           'SELECT `Text` FROM creature_text WHERE `CreatureID` = %i AND `GroupID` = %i AND `ID` = %i',
+        $ct = DB::World()->selectRow(
+           'SELECT `Text`, `comment` FROM creature_text WHERE `CreatureID` = %i AND `GroupID` = %i AND `ID` = %i',
             $creatureId, $groupId, $rowId
         );
 
-        if ($txt === null)
+        if ($ct === null)
             return null;
 
-        $out = self::row(self::SRC_CREATURE_TEXT, $id, $creatureId, (string)$txt, Type::NPC, $creatureId);
-        $out['raw'] = (string)$txt;
+        $txt = (string)$ct['Text'];
+
+        $out = self::row(self::SRC_CREATURE_TEXT, $id, $creatureId, $txt, Type::NPC, $creatureId);
+        $out['raw']     = $txt;
+        $out['comment'] = trim((string)$ct['comment']);   // aowow - custom: the row's dev comment
 
         return $out;
     }

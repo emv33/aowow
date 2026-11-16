@@ -69,13 +69,22 @@ class FactionchangeBaseResponse extends TemplateResponse implements ICache
             if (!DB::World()->selectCell('SHOW TABLES LIKE %s', $table))
                 continue;
 
-            $rows = DB::World()->selectAssoc('SELECT `'.$aCol.'` AS "a", `'.$hCol.'` AS "h" FROM '.$table.' ORDER BY `'.$aCol.'` ASC') ?: [];
+            // aowow - custom: the items table names each side in a dev comment of its own
+            $comments = $table == 'player_factionchange_items' ? ', `commentA` AS "cA", `commentH` AS "cH"' : '';
+
+            $rows = DB::World()->selectAssoc('SELECT `'.$aCol.'` AS "a", `'.$hCol.'` AS "h"'.$comments.' FROM '.$table.' ORDER BY `'.$aCol.'` ASC') ?: [];
             foreach ($rows as $r)
             {
                 $a = (int)$r['a'];
                 $h = (int)$r['h'];
 
-                $data[] = array('type' => $type, 'alliance' => $a, 'horde' => $h, 'id' => $a ?: $h);
+                $row = array('type' => $type, 'alliance' => $a, 'horde' => $h, 'id' => $a ?: $h);
+                if ($_ = trim((string)($r['cA'] ?? '')))
+                    $row['commentA'] = $_;
+                if ($_ = trim((string)($r['cH'] ?? '')))
+                    $row['commentH'] = $_;
+
+                $data[] = $row;
 
                 if ($a)
                     $jsg[$type][$a] = $a;

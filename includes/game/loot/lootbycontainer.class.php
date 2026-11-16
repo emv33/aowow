@@ -104,7 +104,8 @@ class LootByContainer extends Loot
                 'group'         => $entry['GroupId'],
                 'parentRef'     => $tableName == self::REFERENCE ? $lootId : 0,
                 'realChanceMod' => $baseChance,
-                'groupChance'   => 0
+                'groupChance'   => 0,
+                'comment'       => trim((string)($entry['Comment'] ?? ''))  // aowow - custom: the row's dev comment
             );
 
             $where = [['(`cuFlags` & %i) = 0', Cfg::get('PUBLIC_ACCESS') ? CUSTOM_UNAVAILABLE : CUSTOM_EXCLUDE_FOR_LISTVIEW | CUSTOM_UNAVAILABLE], [DB::OR, []]];
@@ -245,6 +246,10 @@ class LootByContainer extends Loot
                         if (!is_int(strpos($this->results[$k]['group'], $loot['group'])))
                             $this->results[$k]['group'] .= ', '.$loot['group'];
 
+                        // aowow - custom: merged rows keep every distinct comment
+                        if ($loot['comment'] !== '' && !in_array($loot['comment'], explode('; ', $this->results[$k]['comment'] ?? ''), true))
+                            $this->results[$k]['comment'] = isset($this->results[$k]['comment']) ? $this->results[$k]['comment'].'; '.$loot['comment'] : $loot['comment'];
+
                         continue;
                     }
                 }
@@ -263,6 +268,8 @@ class LootByContainer extends Loot
                     $base['reference'] = $loot['parentRef'];
                 if ($loot['condition'])
                     $base['condition'] = $loot['condition'];
+                if ($loot['comment'] !== '')                // aowow - custom
+                    $base['comment'] = $loot['comment'];
 
                 if (empty($loot['reference']))              // regular drop
                 {
@@ -283,6 +290,10 @@ class LootByContainer extends Loot
                             $row = &$this->results[$k];
                             if (!is_int(strpos($row['group'], $loot['group'])))
                                 $row['group'] .= ', '.$loot['group'];
+
+                            // aowow - custom: merged rows keep every distinct comment
+                            if ($loot['comment'] !== '' && !in_array($loot['comment'], explode('; ', $row['comment'] ?? ''), true))
+                                $row['comment'] = isset($row['comment']) ? $row['comment'].'; '.$loot['comment'] : $loot['comment'];
 
                             // move excessive % to extra loot
                             if ($row['count'] + $base['count'] == 20000)
@@ -345,6 +356,10 @@ class LootByContainer extends Loot
                 if ($set & (1 << $idx))
                     $this->extraCols[] = "\$Listview.funcBox.createSimpleCol('".$field."', '".$title."', '7%', '".$field."')";
         }
+
+        // aowow - custom: the loot rows' dev comments
+        if (array_filter(array_column($this->results, 'comment')))
+            $this->extraCols[] = "\$Listview.funcBox.createSimpleCol('comment', '".Lang::main('comment')."', '15%', 'comment')";
 
         foreach ($this->results as &$row)
         {

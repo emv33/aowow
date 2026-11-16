@@ -464,9 +464,10 @@ class Conditions
         if ($id)
             $where[] = ['`SourceId` IN %in', $id];
 
+        // aowow - custom: `Comment` is read along, see prepareCondition()
         $this->rows = array_merge($this->rows, DB::World()->selectAssoc(
            'SELECT   `SourceTypeOrReferenceId`, `SourceEntry`, `SourceGroup`, `SourceId`, `ElseGroup`,
-                     `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `ConditionStringValue1`, `NegativeCondition`
+                     `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `ConditionStringValue1`, `NegativeCondition`, `Comment`
             FROM     conditions
             WHERE    %and
             ORDER BY `SourceTypeOrReferenceId`, `SourceEntry`, `SourceGroup`, `ElseGroup` ASC',
@@ -496,12 +497,36 @@ class Conditions
                 ['c2.`ConditionValue2` = %i', $typeId]
             ]];
 
+        return $this->addGroupsMatching($lookups);
+    }
+
+    // aowow - custom start: CONDITION_STRING_ID picks creatures and objects by a StringId, not by entry
+    /**
+     * every condition source that names one of these StringIds - of a template or of one of its spawns,
+     * as Creature::HasStringId() / GameObject::HasStringId() check both
+     */
+    public function getByStringId(string ...$stringIds) : self
+    {
+        $stringIds = array_values(array_unique(array_filter($stringIds, fn($x) => $x !== '')));
+        if (!$stringIds)
+            return $this;
+
+        return $this->addGroupsMatching([[DB::AND, [
+            ['c2.`ConditionTypeOrReference` = %i', self::STRING_ID],
+            ['c2.`ConditionStringValue1` IN %in', $stringIds]
+        ]]]);
+    }
+
+    /** all conditions of every source group one of whose conditions matches any of $lookups */
+    private function addGroupsMatching(array $lookups) : self
+    {
         if (!$lookups)
             return $this;
 
         $this->rows = array_merge($this->rows, DB::World()->selectAssoc(
            'SELECT   c1.`SourceTypeOrReferenceId`, c1.`SourceEntry`, c1.`SourceGroup`, c1.`SourceId`, c1.`ElseGroup`,
-                     c1.`ConditionTypeOrReference`, c1.`ConditionTarget`, c1.`ConditionValue1`, c1.`ConditionValue2`, c1.`ConditionValue3`, c1.`ConditionStringValue1`, c1.`NegativeCondition`
+                     c1.`ConditionTypeOrReference`, c1.`ConditionTarget`, c1.`ConditionValue1`, c1.`ConditionValue2`, c1.`ConditionValue3`, c1.`ConditionStringValue1`, c1.`NegativeCondition`,
+                     c1.`Comment`
             FROM     conditions c1
             JOIN     conditions c2 ON c1.SourceTypeOrReferenceId = c2.SourceTypeOrReferenceId AND c1.SourceEntry = c2.SourceEntry AND c1.SourceGroup = c2.SourceGroup AND c1.SourceId = c2.SourceId
             WHERE    %or
@@ -512,6 +537,7 @@ class Conditions
 
         return $this;
     }
+    // aowow - custom end
 
     public function addExternalCondition(int $srcType, string $groupKey, array $condition, bool $orGroup = false) : void
     {
@@ -777,8 +803,15 @@ class Conditions
         if (!$this->rows)
             return !empty($this->result);                   // respect previously added externalCnd
 
+        $seen = [];                                         // aowow - custom: one source group can be found by several lookups (by entry and by StringId)
         foreach ($this->rows as $r)
         {
+            $pk = implode(':', [$r['SourceTypeOrReferenceId'], $r['SourceGroup'], $r['SourceEntry'], $r['SourceId'], $r['ElseGroup'], $r['ConditionTypeOrReference'], $r['ConditionTarget'], $r['ConditionValue1'], $r['ConditionValue2'], $r['ConditionValue3']]);
+            if (isset($seen[$pk]))
+                continue;
+
+            $seen[$pk] = true;
+
             if (!isset(self::$source[$r['SourceTypeOrReferenceId']]))
             {
                 trigger_error('Conditions: skipping condition with unknown SourceTypeOrReferenceId #'.$r['SourceTypeOrReferenceId'], E_USER_WARNING);
@@ -800,7 +833,8 @@ class Conditions
                 $r['ConditionValue1'],
                 $r['ConditionValue2'],
                 $r['ConditionValue3'],
-                $r['ConditionStringValue1']
+                $r['ConditionStringValue1'],
+                (string)($r['Comment'] ?? '')
             );
             if (!$cnd)
                 continue;
@@ -840,7 +874,7 @@ class Conditions
         return [$sType, $sGroup, $sEntry, $sId, $cTarget];
     }
 
-    private function prepareCondition(int $cId, int $cVal1, int $cVal2, int $cVal3, string $cString1) : array
+    private function prepareCondition(int $cId, int $cVal1, int $cVal2, int $cVal3, string $cString1, string $comment = '') : array
     {
         if ($fn = self::$conditions[abs($cId)][self::IDX_CND_FN])
             if (!$this->$fn(abs($cId), $cVal1, $cVal2, $cVal3, $cString1))
@@ -862,6 +896,13 @@ class Conditions
         {
             $result    = array_pad($result, 4, null);
             $result[4] = $cString1;
+        }
+
+        // aowow - custom: the row's `Comment` goes last, after the string value's slot
+        if ($comment = trim($comment))
+        {
+            $result    = array_pad($result, 5, null);
+            $result[5] = $comment;
         }
 
         return $result;

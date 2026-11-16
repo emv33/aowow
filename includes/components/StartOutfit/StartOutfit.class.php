@@ -543,6 +543,59 @@ class StartOutfit
         return $out;
     }
 
+    // aowow - custom start: the dev comments of the creation rows the blocks are read from
+    /**
+     * `playercreateinfo_skills`.`comment`, `playercreateinfo_cast_spell`.`note` and, for staff only like the
+     * spells themselves, `playercreateinfo_spell_custom`.`Note` - every row that applies to the pair
+     *
+     * @return string[]  one markup line per row with a comment
+     */
+    private function rowComments(int $race, int $class, bool $withCustom) : array
+    {
+        $raceBit  = 1 << ($race  - 1);
+        $classBit = 1 << ($class - 1);
+        $applies  = function (array $r) use ($raceBit, $classBit) : bool
+        {
+            $lc = array_change_key_case($r, CASE_LOWER);
+            $rm = (int)($lc['racemask']  ?? 0);
+            $cm = (int)($lc['classmask'] ?? 0);
+
+            return (!$rm || ($rm & $raceBit)) && (!$cm || ($cm & $classBit));
+        };
+
+        // [table, column holding the id, Type of that id, comment column]; the rows are read whole, as castSpells() does
+        $sources = [['playercreateinfo_skills', 'skill', Type::SKILL, 'comment'], ['playercreateinfo_cast_spell', 'spell', Type::SPELL, 'note']];
+        if ($withCustom)
+            $sources[] = ['playercreateinfo_spell_custom', 'spell', Type::SPELL, 'note'];
+
+        $out = [];
+        foreach ($sources as [$tbl, $idCol, $type, $cmtCol])
+        {
+            if (!self::hasTable($tbl))
+                continue;
+
+            static $rowsOf = [];                            // a page renders many pairs from the same few tables
+            foreach ($rowsOf[$tbl] ??= (DB::World()->selectAssoc('SELECT * FROM %n', $tbl) ?: []) as $r)
+            {
+                if (!$applies($r))
+                    continue;
+
+                $lc  = array_change_key_case($r, CASE_LOWER);
+                $id  = (int)($lc[$idCol] ?? 0);
+                $cmt = trim((string)($lc[$cmtCol] ?? ''));
+                if (!$id || $cmt === '')
+                    continue;
+
+                $this->jsGlobals[$type][$id] = $id;
+                // world db text, so a '[' of its own is escaped for Markup
+                $out[] = '['.Type::getFileString($type).'='.$id.']'.Lang::main('colon').'[small class=q0]'.str_replace('[', '\\[', $cmt).'[/small]';
+            }
+        }
+
+        return $out;
+    }
+    // aowow - custom end
+
     private function renderGrid(array $th, array $rows) : string
     {
         $tblId = Util::createHash(12);
@@ -625,6 +678,9 @@ class StartOutfit
                 $this->jsGlobals[Type::ZONE][$p['zone']] = $p['zone'];
                 $rows[] = [Lang::startOutfit('startsIn'), '[zone='.$p['zone'].']'];
             }
+
+            if ($_ = $this->rowComments($p['race'], $p['class'], $isStaff))     // aowow - custom
+                $rows[] = [Lang::main('comment'), implode('[br]', $_)];
 
             $uid   = 'start-outfit-'.$p['race'].'-'.$p['class'];
             $body .= '[pad][h3][toggler id='.$uid.']'.$head.'[/toggler][/h3][div id='.$uid.' clear=left]'.

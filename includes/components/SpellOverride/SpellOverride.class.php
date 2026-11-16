@@ -109,6 +109,20 @@ class SpellOverride
         $this->add(Lang::spellOverride('threat'), implode(', ', $parts));
     }
 
+    /** `spell_bonus_data` - the coefficients are part of the spell details already, only the row's dev comment is not */
+    private function bonusComment() : void
+    {
+        if (!self::hasTable('spell_bonus_data'))
+            return;
+
+        // the spell's own row, else its first rank's (SpellMgr::GetSpellBonusData)
+        $c = DB::World()->selectCell('SELECT `comments` FROM spell_bonus_data WHERE `entry` IN %in ORDER BY `entry` = %i DESC LIMIT 1', array_unique([$this->spellId, $this->firstRank]), $this->spellId);
+
+        // world db text, so a '[' of its own is escaped for Markup
+        if ($c = trim((string)$c))
+            $this->add(Lang::spellOverride('bonusComment'), str_replace('[', '\\[', $c));
+    }
+
     private function required() : void
     {
         if (!self::hasTable('spell_required'))
@@ -215,6 +229,7 @@ class SpellOverride
     {
         $this->targetPosition();
         $this->threat();
+        $this->bonusComment();
         $this->required();
         $this->petAuras();
         $this->groups();

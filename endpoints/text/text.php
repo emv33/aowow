@@ -114,6 +114,10 @@ class TextBaseResponse extends TemplateResponse implements ICache
         if ($links)
             $infobox[] = Lang::gameText('owner').Lang::main('colon').implode(', ', $links);
 
+        // aowow - custom: the row's dev comment; world db text, so a '[' of its own is escaped for Markup
+        if ($_ = $row['comment'] ?? '')
+            $infobox[] = Lang::main('comment').Lang::main('colon').str_replace('[', '\\[', $_);
+
         $this->infobox = new InfoboxMarkup($infobox, ['allow' => Markup::CLASS_STAFF, 'dbpage' => true], 'infobox-contents0');
 
         // a page_text row is BBCode's own [tag]-based Markup only in name - the format it actually

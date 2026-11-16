@@ -135,6 +135,14 @@ class SummongroupBaseResponse extends TemplateResponse implements ICache
             array_map(fn($id) => $members[$id].'x [npc='.$id.']', $memberIds)
         );
 
+        // aowow - custom: the members' dev comments, each distinct one once; world db text, so a '[' of its own is escaped for Markup
+        $comments = DB::World()->selectCol(
+           'SELECT DISTINCT TRIM(`Comment`) FROM creature_summon_groups WHERE `summonerId` = %i AND `summonerType` = %i AND `groupId` = %i AND TRIM(IFNULL(`Comment`, "")) <> ""',
+            $sId, $sType, $gId
+        ) ?: [];
+        if ($comments)
+            $infobox[] = Lang::main('comment').Lang::main('colon').implode('; ', array_map(fn($c) => str_replace('[', '\\[', $c), $comments));
+
         $this->infobox = new InfoboxMarkup($infobox, ['allow' => Markup::CLASS_STAFF, 'dbpage' => true], 'infobox-contents0');
 
 

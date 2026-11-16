@@ -290,7 +290,8 @@ class NpcBaseResponse extends TemplateResponse implements ICache
 
         if (User::canSee(U_GROUP_EMPLOYEE))
         {
-            $spawnData = DB::Aowow()->selectAssoc('SELECT `guid` AS "0", `ScriptName` AS "1", `StringId` AS "2" FROM ::spawns WHERE `type` = %i AND `typeId` = %i AND `ScriptName` IS NOT NULL ORDER BY `guid` ASC', Type::NPC, $this->typeId);
+            // aowow - custom: a spawn with a StringId but no ScriptName of its own was dropped (upstream: `ScriptName` IS NOT NULL)
+            $spawnData = DB::Aowow()->selectAssoc('SELECT `guid` AS "0", `ScriptName` AS "1", `StringId` AS "2" FROM ::spawns WHERE `type` = %i AND `typeId` = %i AND (`ScriptName` IS NOT NULL OR `StringId` IS NOT NULL) ORDER BY `guid` ASC', Type::NPC, $this->typeId);
 
             // AI
             $scripts = null;
@@ -412,6 +413,15 @@ class NpcBaseResponse extends TemplateResponse implements ICache
 
         if ($stats = $this->getCreatureStats($mapType, $_altIds))
             $infobox[] = ($_altIds ? Lang::main('parensFmt', [Lang::npc('stats'), Lang::game('modes', $mapType, 0)]) : Lang::npc('stats')).Lang::main('colon').'[ul][li]'.implode('[/li][li]', $stats).'[/li][/ul]';
+
+        // aowow - custom: `creature_classlevelstats` dev comments of the class / level rows the stats are built from;
+        // world db text, so a '[' of its own is escaped for Markup
+        $clsComments = DB::World()->selectCol(
+           'SELECT DISTINCT TRIM(`comment`) FROM creature_classlevelstats WHERE `class` = %i AND `level` BETWEEN %i AND %i AND TRIM(IFNULL(`comment`, "")) <> ""',
+            (int)$this->subject->getField('unitClass'), (int)$this->subject->getField('minLevel'), (int)$this->subject->getField('maxLevel')
+        ) ?: [];
+        if ($clsComments)
+            $infobox[] = Lang::npc('statsComment').Lang::main('colon').implode('; ', array_map(fn($c) => str_replace('[', '\\[', $c), $clsComments));
 
         if ($infobox)
         {
@@ -1194,7 +1204,25 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         // aowow - custom end
 
         // tab: passengers
-        if ($_ = DB::World()->selectCol('SELECT `accessory_entry` AS ARRAY_KEY, GROUP_CONCAT(`seat_id` SEPARATOR ", ") FROM vehicle_template_accessory WHERE `entry` = %i GROUP BY `accessory_entry`', $this->typeId))
+        // aowow - custom start: per-spawn accessories (`vehicle_accessory`) join the template's, and both tables' `description` is shown
+        $seats = $descs = [];                               // accessory => [seat label => seat label], [text => text]
+        foreach (DB::World()->selectAssoc('SELECT `accessory_entry` AS "0", `seat_id` AS "1", `description` AS "2" FROM vehicle_template_accessory WHERE `entry` = %i', $this->typeId) ?: [] as [$acc, $seat, $desc])
+        {
+            $seats[$acc][$seat] = $seat;
+            if ($desc = trim((string)$desc))
+                $descs[$acc][$desc] = $desc;
+        }
+
+        if (DB::World()->selectCell('SHOW TABLES LIKE %s', 'vehicle_accessory'))
+            foreach (DB::World()->selectAssoc('SELECT va.`accessory_entry` AS "0", va.`seat_id` AS "1", va.`description` AS "2", va.`guid` AS "3" FROM vehicle_accessory va JOIN creature c ON c.`guid` = va.`guid` WHERE c.`id` = %i ORDER BY va.`guid`, va.`seat_id`', $this->typeId) ?: [] as [$acc, $seat, $desc, $guid])
+            {
+                $label = $seat.' (GUID: '.$guid.')';
+                $seats[$acc][$label] = $label;
+                if ($desc = trim((string)$desc))
+                    $descs[$acc][$desc] = $desc;
+            }
+
+        if ($_ = array_map(fn($x) => implode(', ', $x), $seats))
         {
             $passengers = new CreatureList(array(['id', array_keys($_)]));
             if (!$passengers->error)
@@ -1204,6 +1232,12 @@ class NpcBaseResponse extends TemplateResponse implements ICache
                 if (User::canSee(U_GROUP_STAFF))
                     foreach ($data as $id => &$d)
                         $d['seat'] = $_[$id];
+                unset($d);
+
+                foreach ($data as $id => &$d)
+                    if (isset($descs[$id]))
+                        $d['description'] = implode('; ', $descs[$id]);
+                unset($d);
 
                 $this->extendGlobalData($passengers->getJSGlobals(GLOBALINFO_SELF));
 
@@ -1216,10 +1250,14 @@ class NpcBaseResponse extends TemplateResponse implements ICache
                 if (User::canSee(U_GROUP_STAFF))
                     $tabData['extraCols'] = ["\$Listview.funcBox.createSimpleCol('seat', '".Lang::npc('seat')."', '10%', 'seat')"];
 
+                if ($descs)
+                    $tabData['extraCols'][] = "\$Listview.funcBox.createSimpleCol('description', '".Lang::npc('accessoryDesc')."', '20%', 'description')";
+
                 $this->addDataLoader('zones');
                 $this->lvTabs->addListviewTab(new Listview($tabData, CreatureList::$brickFile));
             }
         }
+        // aowow - custom end
 
         /* tab sounds:
             * activity sounds => CreatureDisplayInfo.dbc => (CreatureModelData.dbc => ) CreatureSoundData.dbc
@@ -1257,6 +1295,7 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         $cnd->getBySource(Conditions::SRC_CREATURE_TEMPLATE_VEHICLE, entry: $this->typeId)
             ->getBySource(Conditions::SRC_SPELL_CLICK_EVENT, group: $this->typeId)
             ->getByCondition(Type::NPC, $this->typeId)
+            ->getByStringId(...$this->stringIds())          // aowow - custom
             ->prepare();
         if ($tab = $cnd->toListviewTab())
         {
@@ -1290,6 +1329,18 @@ class NpcBaseResponse extends TemplateResponse implements ICache
 
         parent::generate();
     }
+
+    // aowow - custom start
+    /** the StringIds of the template and of every spawn - CONDITION_STRING_ID matches either */
+    private function stringIds() : array
+    {
+        $ids = DB::Aowow()->selectCol('SELECT DISTINCT `StringId` FROM ::spawns WHERE `type` = %i AND `typeId` = %i AND `StringId` IS NOT NULL', Type::NPC, $this->typeId) ?: [];
+        if ($_ = $this->subject->getField('StringId'))
+            $ids[] = $_;
+
+        return array_map('strval', $ids);
+    }
+    // aowow - custom end
 
     private function getRepForId(array $entries, array &$spillover) : array
     {

@@ -327,28 +327,36 @@ class LegacyScript
 
     private function buildTable() : string
     {
-        $hasPos = false;
-        $rows   = [];
+        $hasPos     = false;
+        $hasComment = false;                                // aowow - custom
+        $rows       = [];
 
         foreach ($this->rows as $r)
         {
             if ($r['x'] || $r['y'] || $r['z'])
                 $hasPos = true;
 
+            // aowow - custom: the row's dev comment (event_scripts / waypoint_scripts `Comment`)
+            $comment = trim((string)($r['Comment'] ?? ''));
+            if ($comment !== '')
+                $hasComment = true;
+
             $rows[] = array(
                 $r['delay'] ? Lang::formatTime($r['delay'] * 1000) : Lang::legacyScript('instantly'),
                 $this->describe($r),
-                ($r['x'] || $r['y'] || $r['z']) ? '[small class=q0]'.sprintf('%.1f, %.1f, %.1f', $r['x'], $r['y'], $r['z']).'[/small]' : ''
+                ($r['x'] || $r['y'] || $r['z']) ? '[small class=q0]'.sprintf('%.1f, %.1f, %.1f', $r['x'], $r['y'], $r['z']).'[/small]' : '',
+                $comment !== '' ? '[small class=q0]'.self::escapeText($comment).'[/small]' : ''
             );
         }
 
         $th = array(
             [Lang::legacyScript('delay'),   '120px'],
             [Lang::legacyScript('action'),  'auto' ],
-            [Lang::legacyScript('atPos'),   '160px']
+            [Lang::legacyScript('atPos'),   '160px'],
+            [Lang::legacyScript('comment'), 'auto' ]
         );
 
-        return $this->renderGrid($th, $rows, $hasPos ? [] : [2]);
+        return $this->renderGrid($th, $rows, array_merge($hasPos ? [] : [2], $hasComment ? [] : [3]));
     }
 
     /** `script_waypoint` holds plain coordinates for an escort, not commands */
@@ -367,7 +375,7 @@ class LegacyScript
                 '#[b]'.(int)($r['pointid'] ?? 0).'[/b]',
                 '[small class=q0]'.sprintf('%.1f, %.1f, %.1f', (float)($r['location_x'] ?? 0), (float)($r['location_y'] ?? 0), (float)($r['location_z'] ?? 0)).'[/small]',
                 ($_ = (int)($r['waittime'] ?? 0)) ? Lang::formatTime($_) : '',
-                $text
+                self::escapeText($text)
             );
         }
 
@@ -379,6 +387,12 @@ class LegacyScript
         );
 
         return $this->renderGrid($th, $rows, $hasText ? [] : [3]);
+    }
+
+    /** world db text, set into markup: a '[' of its own is escaped so Markup reads it as text */
+    private static function escapeText(string $text) : string
+    {
+        return str_replace('[', '\\[', $text);
     }
 
     /** turn one row into readable markup, linking every id the command points at */

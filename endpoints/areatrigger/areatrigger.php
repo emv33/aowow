@@ -267,7 +267,7 @@ class AreatriggerBaseResponse extends TemplateResponse implements ICache
             return [];
 
         $rows = DB::World()->selectAssoc(
-           'SELECT `mapId`, `difficulty`, `level_min`, `level_max`, `item_level`, `item`, `item2`, `quest_done_A`, `quest_done_H`, `completed_achievement`, `quest_failed_text`
+           'SELECT `mapId`, `difficulty`, `level_min`, `level_max`, `item_level`, `item`, `item2`, `quest_done_A`, `quest_done_H`, `completed_achievement`, `quest_failed_text`, `comment`
             FROM   access_requirement
             WHERE  `mapId` IN %in
             ORDER BY `mapId`, `difficulty`', $mapIds
@@ -335,6 +335,10 @@ class AreatriggerBaseResponse extends TemplateResponse implements ICache
 
             if (!$reqs)
                 continue;
+
+            // aowow - custom: the row's dev comment; world db text, so a '[' of its own is escaped for Markup
+            if ($_ = trim((string)$r['comment']))
+                $reqs[] = '[small class=q0]'.str_replace('[', '\\[', $_).'[/small]';
 
             $label = match ((int)($mapTypes[$r['mapId']] ?? -1))
             {

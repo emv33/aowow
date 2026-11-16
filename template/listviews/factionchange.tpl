@@ -43,6 +43,14 @@ Listview.templates.factionchange = {
                     $WH.ae(td, Icon.create(entry.icon, 0, null, a.href, null, null, null, null, true));
 
                 $WH.ae(td, a);
+
+                // aowow - custom: the row's dev comment for this side
+                if (t.commentA) {
+                    var s = $WH.ce('small');
+                    s.className = 'q0';
+                    $WH.ae(s, $WH.ct(' ' + t.commentA));
+                    $WH.ae(td, s);
+                }
             },
             getVisibleText: function(t) {
                 var nameCol = 'name_' + Locale.getName(),
@@ -79,6 +87,14 @@ Listview.templates.factionchange = {
                     $WH.ae(td, Icon.create(entry.icon, 0, null, a.href, null, null, null, null, true));
 
                 $WH.ae(td, a);
+
+                // aowow - custom: the row's dev comment for this side
+                if (t.commentH) {
+                    var s = $WH.ce('small');
+                    s.className = 'q0';
+                    $WH.ae(s, $WH.ct(' ' + t.commentH));
+                    $WH.ae(td, s);
+                }
             },
             getVisibleText: function(t) {
                 var nameCol = 'name_' + Locale.getName(),

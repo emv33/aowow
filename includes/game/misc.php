@@ -272,7 +272,8 @@ class Game
                      'IF(bctl.`Text` <> "" AND bctl.`Text1` <> "" AND bctl.`Text` <> bctl.`Text1`, CONCAT(bctl.`Text`, CHAR(31), bctl.`Text1`),
                          IFNULL(NULLIF(bctl.`Text`, ""), IFNULL(NULLIF(bctl.`Text1`, ""), IFNULL(ctl.`Text`, "")))) AS text_loc%i,', Lang::getLocale()->value,
                      '%end
-                      IF(bct.`SoundEntriesID` > 0, bct.`SoundEntriesID`, ct.`Sound`) AS "soundId"
+                      IF(bct.`SoundEntriesID` > 0, bct.`SoundEntriesID`, ct.`Sound`) AS "soundId",
+                      ct.`comment`
             FROM      creature_text ct
             LEFT JOIN broadcast_text bct         ON ct.`BroadcastTextId` = bct.`ID`
             %if', Lang::getLocale()->value,
@@ -341,8 +342,11 @@ class Game
                 if ($t['talkType'] != 4)
                     $prefix = ($talkSource ?: '%s').' '.Lang::npc('textTypes', $t['talkType']).Lang::main('colon').($t['lang'] ? '['.Lang::game('languages', $t['lang']).'] ' : ' ');
 
+                // aowow - custom: the row's dev comment, after the line; the page formats the line once more, so a '%' of its own is doubled
+                $comment = trim((string)($t['comment'] ?? ''));
+
                 if ($asHTML)
-                    $msg = '<div><span class="s'.$t['talkType'].'">'.$prefix.($t['range'] ? sprintf(Util::$dfnString, Lang::npc('textRanges', $t['range']), $msg) : $msg).'</span></div>';
+                    $msg = '<div><span class="s'.$t['talkType'].'">'.$prefix.($t['range'] ? sprintf(Util::$dfnString, Lang::npc('textRanges', $t['range']), $msg) : $msg).'</span>'.($comment !== '' ? ' <small class="q0">'.str_replace('%', '%%', Util::htmlEscape($comment)).'</small>' : '').'</div>';
                 else
                     $msg = '[div][span class=s'.$t['talkType'].']'.$prefix.html_entity_decode($msg).'[/span][/div]';
 

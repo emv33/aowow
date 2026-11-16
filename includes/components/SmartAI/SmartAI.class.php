@@ -315,7 +315,8 @@ class SmartAI
            'SELECT   `id`, `link`,
                      `event_type`,  `event_param1`,  `event_param2`,  `event_param3`,  `event_param4`,  `event_param5`, `event_phase_mask`, `event_chance`, `event_flags`,
                      `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6`,
-                     `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_param4`, `target_x`, `target_y`, `target_z`, `target_o`
+                     `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_param4`, `target_x`, `target_y`, `target_z`, `target_o`,
+                     `comment`
             FROM     smart_scripts
             WHERE    `entryorguid` = %i AND `source_type` = %i
             ORDER BY `id` ASC',
@@ -329,7 +330,8 @@ class SmartAI
                 'event'     => new SmartEvent($r['id'], $r['event_type'], $r['event_phase_mask'], $r['event_chance'], $r['event_flags'], [$r['event_param1'], $r['event_param2'], $r['event_param3'], $r['event_param4'], $r['event_param5']], $this),
                 'action'    => new SmartAction($r['id'], $r['action_type'], [$r['action_param1'], $r['action_param2'], $r['action_param3'], $r['action_param4'], $r['action_param5'], $r['action_param6']], $this),
                 'target'    => new SmartTarget($r['id'], $r['target_type'], [$r['target_param1'], $r['target_param2'], $r['target_param3'], $r['target_param4']], [$r['target_x'], $r['target_y'], $r['target_z'], $r['target_o']], $this),
-                'condition' => (new Conditions())->getBySource(Conditions::SRC_SMART_EVENT, $r['id'] + 1, $entry, $srcType)
+                'condition' => (new Conditions())->getBySource(Conditions::SRC_SMART_EVENT, $r['id'] + 1, $entry, $srcType),
+                'comment'   => trim((string)$r['comment'])     // aowow - custom
             );
         }
     }
@@ -998,8 +1000,13 @@ class SmartAI
                 $evtBody.($evtFooter ? '[div float=right margin=0px clear=both width=100% align=right][i][small class=q0]'.$evtFooter.'[/small][/i][/div]' : ''),
                 $this->itr['event']->chance.'%',
                 $actBody.($actFooter ? '[div float=right margin=0px clear=both width=100% align=right][i][small class=q0]'.$actFooter.'[/small][/i][/div]' : ''),
-                $this->itr['condition']->toMarkupTag()
+                $this->itr['condition']->toMarkupTag(),
+                // aowow - custom: the row's dev comment; world db text, so a '[' of its own is escaped for Markup
+                $this->itr['comment'] !== '' ? '[small class=q0]'.str_replace('[', '\\[', $this->itr['comment']).'[/small]' : ''
             );
+
+            if ($this->itr['comment'] !== '')
+                $visibleCols |= (1 << 6);
         }
 
         $th = array(
@@ -1008,7 +1015,8 @@ class SmartAI
             ['Event',     '30%%'],
             ['Chance',    '60px'],
             ['Action',    'auto'],
-            ['Condition', 'auto']
+            ['Condition', 'auto'],
+            ['Comment',   'auto']                           // aowow - custom
         );
 
         for ($i = 0, $j = count($th); $i < $j; $i++)

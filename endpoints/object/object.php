@@ -295,7 +295,8 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
 
         if (User::canSee(U_GROUP_EMPLOYEE))
         {
-            $spawnData = DB::Aowow()->selectAssoc('SELECT `guid` AS "0", `ScriptName` AS "1", `StringId` AS "2" FROM ::spawns WHERE `type` = %i AND `typeId` = %i AND `ScriptName` IS NOT NULL ORDER BY `guid` ASC', Type::OBJECT, $this->typeId);
+            // aowow - custom: a spawn with a StringId but no ScriptName of its own was dropped (upstream: `ScriptName` IS NOT NULL)
+            $spawnData = DB::Aowow()->selectAssoc('SELECT `guid` AS "0", `ScriptName` AS "1", `StringId` AS "2" FROM ::spawns WHERE `type` = %i AND `typeId` = %i AND (`ScriptName` IS NOT NULL OR `StringId` IS NOT NULL) ORDER BY `guid` ASC', Type::OBJECT, $this->typeId);
 
             // AI
             $scripts = null;
@@ -850,7 +851,9 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
 
         // tab: condition-for
         $cnd = new Conditions();
-        $cnd->getByCondition(Type::OBJECT, $this->typeId)->prepare();
+        $cnd->getByCondition(Type::OBJECT, $this->typeId)
+            ->getByStringId(...$this->stringIds())          // aowow - custom
+            ->prepare();
         if ($tab = $cnd->toListviewTab('condition-for', '$LANG.tab_condition_for'))
         {
             $this->extendGlobalData($cnd->getJSGlobals());
@@ -859,6 +862,18 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
 
         parent::generate();
     }
+
+    // aowow - custom start
+    /** the StringIds of the template and of every spawn - CONDITION_STRING_ID matches either */
+    private function stringIds() : array
+    {
+        $ids = DB::Aowow()->selectCol('SELECT DISTINCT `StringId` FROM ::spawns WHERE `type` = %i AND `typeId` = %i AND `StringId` IS NOT NULL', Type::OBJECT, $this->typeId) ?: [];
+        if ($_ = $this->subject->getField('StringId'))
+            $ids[] = $_;
+
+        return array_map('strval', $ids);
+    }
+    // aowow - custom end
 
     protected function generateMetadata(bool $useArticle = true) : void
     {

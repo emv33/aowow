@@ -1135,7 +1135,7 @@ class SpellBaseResponse extends TemplateResponse implements ICache
     private function tabLinkedWith() : ?Listview
     {
         $rows = DB::World()->selectAssoc(
-           'SELECT  `spell_trigger` AS "trigger", `spell_effect` AS "effect", `type`, IF(ABS(`spell_effect`) = %i, ABS(`spell_trigger`), ABS(`spell_effect`)) AS "related"
+           'SELECT  `spell_trigger` AS "trigger", `spell_effect` AS "effect", `type`, IF(ABS(`spell_effect`) = %i, ABS(`spell_trigger`), ABS(`spell_effect`)) AS "related", `comment`
             FROM    spell_linked_spell
             WHERE   ABS(`spell_effect`) = %i OR ABS(`spell_trigger`) = %i',
             $this->typeId, $this->typeId, $this->typeId
@@ -1160,7 +1160,7 @@ class SpellBaseResponse extends TemplateResponse implements ICache
                 if ($r['related'] != $k)
                     continue;
 
-                $data[] = $lv[$k] + ['linked' => [$r['trigger'], $r['effect'], $r['type']]];
+                $data[] = $lv[$k] + ['linked' => [$r['trigger'], $r['effect'], $r['type']]] + (trim((string)$r['comment']) !== '' ? ['comment' => trim((string)$r['comment'])] : []);  // aowow - custom: + the row's dev comment
                 break;
             }
         }
@@ -1170,7 +1170,8 @@ class SpellBaseResponse extends TemplateResponse implements ICache
             'id'          => 'spell-link',
             'name'        => Lang::spell('linkedWith'),
             'hiddenCols'  => ['skill', 'name'],
-            'visibleCols' => ['linkedTrigger', 'linkedEffect']
+            'visibleCols' => ['linkedTrigger', 'linkedEffect'],
+            'extraCols'   => array_filter(array_column($data, 'comment')) ? ["\$Listview.funcBox.createSimpleCol('comment', '".Lang::main('comment')."', '20%', 'comment')"] : null  // aowow - custom
         ), SpellList::$brickFile);
     }
 

@@ -73,6 +73,10 @@ class OutdoorpvpBaseResponse extends TemplateResponse implements ICache
         if ($comment !== '')
             $infobox[] = Lang::outdoorpvp('comment').Lang::main('colon').$comment;
 
+        // aowow - custom: `disables` (DISABLE_TYPE_OUTDOORPVP)
+        if ($lines = XRef::disables([[5, $this->typeId]]))
+            $infobox[] = Lang::xRef('disabled').Lang::main('colon').implode('[br]', $lines);
+
         $this->infobox = new InfoboxMarkup($infobox, ['allow' => Markup::CLASS_STAFF, 'dbpage' => true], 'infobox-contents0');
 
         parent::generate();

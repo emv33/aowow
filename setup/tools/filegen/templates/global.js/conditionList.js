@@ -248,6 +248,18 @@ var ConditionList = new function() {
         .replace(/\$C(\d+)([^:]*):([^;]*);/g, (_, i, y, n) => (i > 0 ? y : n));
     }
 
+    // the dev comment of a condition row, which the server appends after the value slots (see Conditions::prepareCondition)
+    function _comment(entry)
+    {
+        return entry.length > 5 && entry[5] != null ? String(entry[5]) : '';
+    }
+
+    function _commentMarkup(text)
+    {
+        // world db text: a '[' of its own is escaped so Markup reads it as text
+        return '[small class=q0]' + text.replace(/\[/g, '\\[') + '[/small]';
+    }
+
     function _createTab()
     {
         var buff = '';
@@ -298,6 +310,16 @@ var ConditionList = new function() {
 
                 buff += '[h3][toggler' + (k ? '=hidden' : '') + ' id=' + rand + ']' + $WH.sprintfa(src, srcGroup, srcEntry, srcId) + '[/toggler][/h3][div' + (k++ ? '=hidden' : '') + ' id=' + rand + ']';
 
+                // rows of one source mostly repeat a single comment; that one is shown once, distinct ones per condition
+                let comments = new Set();
+                for (let i in _conditions[g][h])
+                    for (let j in _conditions[g][h][i])
+                        comments.add(_comment(_conditions[g][h][i][j]));
+
+                let perRow = comments.size > 1;
+                if (comments.size == 1 && !comments.has(''))
+                    buff += '[div style="padding-left:15px"]' + _commentMarkup([...comments][0]) + '[/div]';
+
                 if (nGroups > 1)
                 {
                     buff += LANG.note_condition_group + '[br][br]';
@@ -318,7 +340,7 @@ var ConditionList = new function() {
                     // individual conditions
                     buff += '[ol]';
                     for (j in group)
-                        buff += '[li]' + _parseEntry(group[j], targets, target) + '[/li]';
+                        buff += '[li]' + _parseEntry(group[j], targets, target) + (perRow && _comment(group[j]) ? ' ' + _commentMarkup(_comment(group[j])) : '') + '[/li]';
                     buff += '[/ol]';
 
                     if (nGroups > 1)
@@ -381,6 +403,10 @@ var ConditionList = new function() {
 
                         buff += subGroup[j];
                     }
+
+                    let comments = [...new Set(Object.values(group).map(_comment).filter((x) => x))];
+                    if (comments.length)
+                        buff += '[br]' + _commentMarkup(comments.join('; '));
 
                     if (nElseGroups > 1)
                         buff += '[/div]';

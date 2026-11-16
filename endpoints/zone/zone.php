@@ -235,6 +235,10 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
                 $sMax = (int)($bgt['maxlvl'] ?? 0);
                 if (($sMin || $sMax) && ($sMin != $bg['minLevel'] || $sMax != $bg['maxLevel']))
                     $infobox[] = Lang::zone('bgBracketServer').Lang::main('colon').$sMin.' - '.$sMax;
+
+                // the row's dev comment; world db text, so a '[' of its own is escaped for Markup
+                if ($_ = trim((string)($bgt['comment'] ?? '')))
+                    $infobox[] = Lang::main('comment').Lang::main('colon').str_replace('[', '\\[', $_);
             }
 
             // `game_event_battleground_holiday` - the Call to Arms rotation, read nowhere
@@ -243,6 +247,23 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
                 $this->extendGlobalIds(Type::WORLDEVENT, ...$holidays);
                 $infobox[] = Lang::zone('holiday').Lang::main('colon').Lang::concat(array_map(fn($x) => '[event='.$x.']', $holidays), Lang::CONCAT_NONE);
             }
+        }
+
+        // `disables` - the map itself, its battleground and its dungeon finder entry; a continent's rows would repeat on every zone of it
+        if (!in_array($mapId, [0, 1, 530, 571]))
+        {
+            $pairs = [[2, $mapId], [6, $mapId], [7, $mapId], [8, $mapId]];   // DISABLE_TYPE_MAP, _VMAP, _MMAP, _LFG_MAP
+            if ($bg)
+                $pairs[] = [3, $bg['id']];                  // DISABLE_TYPE_BATTLEGROUND
+
+            if ($lines = XRef::disables($pairs))
+                $infobox[] = Lang::xRef('disabled').Lang::main('colon').implode('[br]', $lines);
+
+            // `access_requirement` dev comments - the requirements themselves are set up into ::zones, the comments were not;
+            // world db text, so a '[' of its own is escaped for Markup
+            if (self::hasTable('access_requirement', false))
+                if ($_ = DB::World()->selectCol('SELECT DISTINCT TRIM(`comment`) FROM access_requirement WHERE `mapId` = %i AND TRIM(IFNULL(`comment`, "")) <> ""', $mapId))
+                    $infobox[] = Lang::zone('accessComment').Lang::main('colon').implode('; ', array_map(fn($c) => str_replace('[', '\\[', $c), $_));
         }
 
         if ($lfg = self::getLFGDungeon($mapId))
@@ -1437,7 +1458,15 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
                 $parts[] = Lang::zone('weatherTypes', $what).' '.$max.'%';
         }
 
-        return $parts ? implode(', ', $parts) : null;
+        if (!$parts)
+            return null;
+
+        // the script the weather is handed to (WeatherMgr: `ScriptName`), read nowhere else
+        $out = implode(', ', $parts);
+        if ($_ = trim((string)($lc['scriptname'] ?? '')))
+            $out .= ' [small class=q0](Script'.Lang::main('colon').$_.')[/small]';
+
+        return $out;
     }
     // aowow - custom end
 }

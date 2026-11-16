@@ -383,8 +383,56 @@ class XRef
         }
     }
 
+    /**
+     * `disables` - DisableMgr turns the entity off; the table was only ever folded into CUSTOM_DISABLED,
+     * its flags, params and comment were shown nowhere
+     *
+     * @param  array $pairs  [DISABLE_TYPE_*, entry][]
+     * @return string[]      one markup line per row
+     */
+    public static function disables(array $pairs) : array
+    {
+        if (!$pairs || !self::hasTable('disables'))
+            return [];
+
+        $where = [];
+        foreach ($pairs as [$srcType, $entry])
+            $where[] = [DB::AND, [['`sourceType` = %i', $srcType], ['`entry` = %i', $entry]]];
+
+        $out = [];
+        foreach (DB::World()->selectAssoc('SELECT `sourceType`, `entry`, `flags`, `params_0`, `params_1`, `comment` FROM disables WHERE %or ORDER BY `sourceType`', $where) ?: [] as $r)
+        {
+            $details = [Lang::xRef('disableFlags', [(int)$r['flags']])];
+            foreach (['params_0', 'params_1'] as $p)
+                if (($_ = trim((string)$r[$p])) !== '')
+                    $details[] = $p.Lang::main('colon').$_;
+
+            $kind = (Lang::exist('xRef', 'disableTypes', (string)$r['sourceType']) ?: 'Type '.$r['sourceType']).' #'.$r['entry'];
+
+            // no escaping of the markup itself, as in spawnGroups(); a '[' of the text's own is escaped though
+            $text = trim((string)$r['comment']);
+            $out[] = $kind.($text !== '' ? Lang::main('colon').str_replace('[', '\\[', $text) : '').' [small class=q0]('.str_replace('[', '\\[', implode('; ', $details)).')[/small]';
+        }
+
+        return $out;
+    }
+
+    private function disabled() : void
+    {
+        $srcType = match ($this->type)
+        {
+            Type::SPELL => 0,                               // DISABLE_TYPE_SPELL
+            Type::QUEST => 1,                               // DISABLE_TYPE_QUEST
+            default     => null
+        };
+
+        if ($srcType !== null && ($lines = self::disables([[$srcType, $this->typeId]])))
+            $this->rows[] = [Lang::xRef('disabled'), implode('[br]', $lines)];
+    }
+
     public function getMarkup() : ?Markup
     {
+        $this->disabled();
         $this->smartAI();
         $this->summonedBy();
         $this->summons();
