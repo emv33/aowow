@@ -3263,7 +3263,8 @@ class SpellListFilter extends Filter
         250 => [parent::CR_FLAG,      'auraInterruptFlags', 0x00800000                                                            ], // aurabrokenbypvpcombat [yn]
         251 => [parent::CR_FLAG,      'auraInterruptFlags', 0x01000000                                                            ], // aurabrokenbydirectdamage [yn]
         252 => [parent::CR_FLAG,      'auraInterruptFlags', 0x02000000                                                            ], // aurabrokenbylanding [yn]
-        253 => [parent::CR_FLAG,      'auraInterruptFlags', 0x80000000                                                            ]  // aurabrokenbyleavecombat [yn]
+        253 => [parent::CR_FLAG,      'auraInterruptFlags', 0x80000000                                                            ], // aurabrokenbyleavecombat [yn]
+        254 => [parent::CR_FLAG,      'interruptFlags',     0x10                                                                  ]  // castabortedbydamage [yn]
         // aowow - custom end
     );
 
