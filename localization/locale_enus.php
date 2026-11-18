@@ -2692,6 +2692,7 @@ $lang = array(
         'stackGroup'    => "Stack Group",
         'linkedWith'    => "Linked with",
         'conditionFor'  => "Aura condition for",
+        'reveals'       => "Reveals",                       // aowow - custom
         'apMod'         => " (AP mod: %.3g)",
         'spMod'         => " (SP mod: %.3g)",
         'pointsSpread'  => "%s to %s",                      // INT_SPELL_POINTS_SPREAD_TEMPLATE

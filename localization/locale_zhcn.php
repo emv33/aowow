@@ -2692,6 +2692,7 @@ $lang = array(
         'stackGroup'    => "Stack Group",
         'linkedWith'    => "Linked with",
         'conditionFor'  => "Aura condition for",
+        'reveals'       => "Reveals",                       // aowow - custom
         'apMod'         => "（攻强 mod：%.3g）",
         'spMod'         => "（法力 mod：%.3g）",
         'instantPhys'   => "瞬发",

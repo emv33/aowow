@@ -2692,6 +2692,7 @@ $lang = array(
         'stackGroup'    => "Grupo de aplilamiento",
         'linkedWith'    => "Asociado con",
         'conditionFor'  => "[Aura condition for]",
+        'reveals'       => "[Reveals]",                     // aowow - custom
         'apMod'         => " (Mod AP: %.3g)",
         'spMod'         => " (Mod SP: %.3g)",
         'instantPhys'   => "Instantáneo",

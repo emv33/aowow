@@ -2691,6 +2691,7 @@ $lang = array(
         'stackGroup'    => "Stack Gruppierung",
         'linkedWith'    => "Verknüpft mit",
         'conditionFor'  => "[Aura condition for]",
+        'reveals'       => "Enthüllt",                      // aowow - custom
         'apMod'         => " (AP mod: %.3g)",
         'spMod'         => " (ZM mod: %.3g)",
         'pointsSpread'  => '1$s bis %2$s',

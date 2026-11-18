@@ -53,6 +53,9 @@ class SpellBaseResponse extends TemplateResponse implements ICache
     private array|false|null $procEntry = false;    // aowow - custom: see getProcEntry()
 
     // aowow - custom start
+    private const int INVISIBILITY_TRAP = 3;                // SharedDefines.h InvisibilityType
+    private const int TRAP_INVISIBILITY = 300;              // GameObject::Create(): value an invisible trap is given
+
     private static function hasTable(string $tbl) : bool
     {
         static $known = [];
@@ -402,6 +405,9 @@ class SpellBaseResponse extends TemplateResponse implements ICache
             $this->lvTabs->addListviewTab($tab);
 
         if ($tab = $this->tabAuraConditionFor())            // custom: reverse of casterAuraSpell(Not)/targetAuraSpell(Not)
+            $this->lvTabs->addListviewTab($tab);
+
+        foreach ($this->tabReveals() as $tab)               // aowow - custom: reverse of invisibility detection
             $this->lvTabs->addListviewTab($tab);
 
         if ($tab = $this->tabTriggeredBy())                 //
@@ -1238,6 +1244,101 @@ class SpellBaseResponse extends TemplateResponse implements ICache
             'name' => Lang::spell('conditionFor')
         ), SpellList::$brickFile);
     }
+
+    // aowow - custom start: reverse of SPELL_AURA_MOD_INVISIBILITY_DETECT - what this lets its holder see
+    // WorldObject::CanDetectInvisibilityOf(): an object invisible in a type is seen once the seer's
+    // detection in that type is at least the object's invisibility in it
+    private function tabReveals() : array
+    {
+        $detect = [];                                       // invisibilityType => detection value
+        for ($i = 1; $i < 4; $i++)
+            if ($this->subject->getField('effect'.$i.'AuraId') == SPELL_AURA_MOD_INVISIBILITY_DETECT)
+                $detect[$this->subject->getField('effect'.$i.'MiscValue')] = ($detect[$this->subject->getField('effect'.$i.'MiscValue')] ?? 0) + $this->subject->getField('effect'.$i.'BasePoints') + $this->subject->getField('effect'.$i.'DieSides');
+
+        if (!($detect = array_filter($detect, fn($x) => $x > 0)))
+            return [];
+
+        // spellId => [invisibilityType => value] for every SPELL_AURA_MOD_INVISIBILITY in a detected type
+        $invis = [];
+        foreach (DB::Aowow()->selectAssoc(
+               'SELECT `id` AS ARRAY_KEY, `effect1AuraId`, `effect1MiscValue`, `effect1BasePoints`, `effect1DieSides`, `effect2AuraId`, `effect2MiscValue`, `effect2BasePoints`, `effect2DieSides`, `effect3AuraId`, `effect3MiscValue`, `effect3BasePoints`, `effect3DieSides`
+                FROM   ::spell
+                WHERE  (`effect1AuraId` = %i AND `effect1MiscValue` IN %in) OR (`effect2AuraId` = %i AND `effect2MiscValue` IN %in) OR (`effect3AuraId` = %i AND `effect3MiscValue` IN %in)',
+                SPELL_AURA_MOD_INVISIBILITY, array_keys($detect), SPELL_AURA_MOD_INVISIBILITY, array_keys($detect), SPELL_AURA_MOD_INVISIBILITY, array_keys($detect)
+            ) ?: [] as $id => $s)
+            for ($i = 1; $i < 4; $i++)
+                if ($s['effect'.$i.'AuraId'] == SPELL_AURA_MOD_INVISIBILITY && isset($detect[$s['effect'.$i.'MiscValue']]))
+                    $invis[$id][$s['effect'.$i.'MiscValue']] = ($invis[$id][$s['effect'.$i.'MiscValue']] ?? 0) + $s['effect'.$i.'BasePoints'] + $s['effect'.$i.'DieSides'];
+
+        // an aura string is revealed if, in some detected type, its auras add up to an invisibility this detection covers
+        $isRevealed = function (string $auras) use ($invis, $detect) : bool
+        {
+            $sum = [];
+            foreach (array_filter(array_map('intVal', preg_split('/\D+/', $auras))) as $sId)
+                foreach ($invis[$sId] ?? [] as $type => $val)
+                    $sum[$type] = ($sum[$type] ?? 0) + $val;
+
+            foreach ($sum as $type => $val)
+                if ($val > 0 && $val <= $detect[$type])
+                    return true;
+
+            return false;
+        };
+
+        $result  = [];
+        $npcIds  = [];
+        if ($invis)
+        {
+            $rx = '\\b('.implode('|', array_keys($invis)).')\\b';
+
+            foreach (DB::World()->selectPairs('SELECT `entry`, `auras` FROM creature_template_addon WHERE `auras` REGEXP %s', $rx) ?: [] as $entry => $auras)
+                if ($isRevealed($auras))
+                    $npcIds[] = $entry;
+
+            // Creature::GetCreatureAddon(): a spawn's own row replaces the template's
+            if (self::hasTable('creature_addon'))
+                foreach (DB::World()->selectAssoc('SELECT ca.`guid` AS ARRAY_KEY, c.`id`, ca.`auras` FROM creature_addon ca JOIN creature c ON c.`guid` = ca.`guid` WHERE ca.`auras` REGEXP %s', $rx) ?: [] as $row)
+                    if ($isRevealed($row['auras']))
+                        $npcIds[] = $row['id'];
+        }
+
+        if ($npcIds && !($npcs = new CreatureList([['id', array_unique($npcIds)]]))->error)
+        {
+            $this->addDataLoader('zones');
+            $this->extendGlobalData($npcs->getJSGlobals(GLOBALINFO_SELF));
+
+            $result[] = new Listview(array(
+                'data' => $npcs->getListviewData(),
+                'id'   => 'reveals-npc',
+                'name' => Lang::spell('reveals')
+            ), CreatureList::$brickFile);
+        }
+
+        // GameObject::Create(): gameobject_addon sets a spawn's invisibility directly, and an invisible trap gets INVISIBILITY_TRAP 300
+        $objIds = [];
+        if (self::hasTable('gameobject_addon'))
+            foreach (DB::World()->selectAssoc('SELECT ga.`guid` AS ARRAY_KEY, g.`id`, ga.`invisibilityType` AS "type", ga.`invisibilityValue` AS "val" FROM gameobject_addon ga JOIN gameobject g ON g.`guid` = ga.`guid` WHERE ga.`invisibilityType` IN %in AND ga.`invisibilityValue` > 0', array_keys($detect)) ?: [] as $row)
+                if ($row['val'] <= $detect[$row['type']])
+                    $objIds[] = $row['id'];
+
+        if (($detect[self::INVISIBILITY_TRAP] ?? 0) >= self::TRAP_INVISIBILITY)
+            $objIds = array_merge($objIds, DB::World()->selectCol('SELECT `entry` FROM gameobject_template WHERE `type` = %i AND `Data11` <> 0', OBJECT_TRAP) ?: []);
+
+        if ($objIds && !($objs = new GameObjectList([['id', array_unique($objIds)]]))->error)
+        {
+            $this->addDataLoader('zones');
+            $this->extendGlobalData($objs->getJSGlobals());
+
+            $result[] = new Listview(array(
+                'data' => $objs->getListviewData(),
+                'id'   => 'reveals-object',
+                'name' => Lang::spell('reveals')
+            ), GameObjectList::$brickFile);
+        }
+
+        return $result;
+    }
+    // aowow - custom end
 
     private function tabTriggeredBy() : ?Listview
     {
