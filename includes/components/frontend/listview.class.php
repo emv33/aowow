@@ -45,6 +45,7 @@ class Listview implements \JsonSerializable
         'factionchange'     => ['template' => 'factionchange',     'id' => 'factionchange',                                       ], // aowow - custom
         'spellfocus'        => ['template' => 'spellfocus',        'id' => 'spellfocus',                                          ], // aowow - custom
         'summongroup'       => ['template' => 'summongroup',       'id' => 'summongroup',                                         ], // aowow - custom
+        'summongroupmember' => ['template' => 'summongroupmember', 'id' => 'members',                                             ], // aowow - custom
         'spawnpool'         => ['template' => 'spawnpool',         'id' => 'spawnpool',                                           ], // aowow - custom
         'wardencheck'       => ['template' => 'wardencheck',       'id' => 'wardencheck',                                         ], // aowow - custom
         'spawn'             => ['template' => 'spawn',             'id' => 'spawns',                                              ], // aowow - custom
