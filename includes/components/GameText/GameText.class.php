@@ -283,7 +283,12 @@ class GameText
         if (!self::hasTable('creature_text'))
             return [];
 
-        $where = $like === null ? [['`Text` <> %s', '']] : [['`Text` LIKE %s', $like]];
+        // a BroadcastTextId row is read from broadcast_text, which attributes the line back to the
+        // creature there - list only the rows whose text really lives in creature_text (as npcText()
+        // skips its broadcast slots), or every such line shows up twice, once ct and once bt
+        $where = $like === null
+            ? [['`Text` <> %s', ''],            ['`BroadcastTextId` = %i', 0]]
+            : [['`Text` LIKE %s', $like],       ['`BroadcastTextId` = %i', 0]];
 
         $rows = DB::World()->selectAssoc(
            'SELECT `CreatureID`, `GroupID`, `ID`, `Text`, `Language` FROM creature_text WHERE %and ORDER BY `CreatureID`, `GroupID`, `ID` ASC',
