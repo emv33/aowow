@@ -943,6 +943,7 @@ var mn_database = [
     [13,"Völker","?races",mn_races],
     [1,"Zauber","?spells",mn_spells],
     [100,"Emotes","?emotes",null],
+    [110,"Sprachen","?languages",null],
     [, "Welt"],
     [7,"Fraktionen","?factions",mn_factions],
     [6,"Gebiete","?zones",mn_zones],

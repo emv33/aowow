@@ -943,6 +943,7 @@ var mn_database = [
     [1,"Заклинания","?spells",mn_spells],
     [10,"Звания","?titles",mn_titles],
     [100,"Эмоции","?emotes",null],
+    [110,"Языки","?languages",null],
     [, "Игровой мир"],
     [15,"Валюта","?currencies", mn_currencies],
     [7,"Фракции","?factions",mn_factions],

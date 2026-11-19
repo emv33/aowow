@@ -943,6 +943,7 @@ var mn_database = [
     [1,"Sorts","?spells",mn_spells],
     [10,"Titres","?titles",mn_titles],
     [100,"Emotes","?emotes",null],
+    [110,"Langues","?languages",null],
     [, "Monde"],
     [15,"Monnaies","?currencies", mn_currencies],
     [7,"Factions","?factions",mn_factions],

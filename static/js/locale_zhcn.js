@@ -984,6 +984,7 @@ var mn_database = [
     [9,"成就","?achievements",mn_achievements],
     [12,"职业","?classes",mn_classes],
     [100,"表情","?emotes",null],
+    [110,"语言","?languages",null],
     [8,"猎人宠物","?pets",mn_pets],
     [14,"专业和生活技能","?skills",mn_skills],
     [13,"种族","?races",mn_races],

@@ -530,8 +530,9 @@ class Gossip
                     $body[] = '[span class=gossip-text]'.UIText::format($slot['male'] ?: $slot['female'], Lang::FMT_MARKUP).'[/span]';
 
                 // npc_text.langN, even when a BroadcastTextID supplies the text (QueryHandler.cpp: HandleNpcTextQueryOpcode)
+                // the language has its own listing; Languages.dbc is not part of the db
                 if ($slot['lang'] != LANG_UNIVERSAL)
-                    $body[] = '[i][small class=q0]'.Lang::main('language').Lang::main('colon').(Lang::exist('game', 'languages', $slot['lang']) ?? '#'.$slot['lang']).'[/small][/i]';
+                    $body[] = '[i][small class=q0]'.Lang::main('language').Lang::main('colon').'[url=?languages]'.(Lang::exist('game', 'languages', $slot['lang']) ?? '#'.$slot['lang']).'[/url][/small][/i]';
 
                 if ($slot['emotes'])
                 {

@@ -671,7 +671,7 @@ class ItemBaseResponse extends TemplateResponse implements ICache
             $out[] = Lang::item('rangeMod', [Lang::nf($r['RangedModRange'], 1)]);
 
         if ($r['LanguageID'])
-            $out[] = Lang::item('language').Lang::main('colon').(Lang::exist('game', 'languages', $r['LanguageID']) ?? $r['LanguageID']);
+            $out[] = Lang::item('language').Lang::main('colon').'[url=?languages]'.(Lang::exist('game', 'languages', $r['LanguageID']) ?? $r['LanguageID']).'[/url]';
 
         if ($r['Material'])
             $out[] = Lang::item('material').Lang::main('colon').(Lang::exist('item', 'materials', $r['Material']) ?? $r['Material']);

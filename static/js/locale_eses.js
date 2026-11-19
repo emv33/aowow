@@ -938,6 +938,7 @@ var mn_database = [
     [9,"Logros","?achievements",mn_achievements],
     [12,"Clases","?classes",mn_classes],
     [100,"Emociones","?emotes",null],
+    [110,"Idiomas","?languages",null],
     [8,"Mascotas de cazador","?pets",mn_pets],
     [14,"Profesiones y habilidades","?skills",mn_skills],
     [13,"Razas","?races",mn_races],
