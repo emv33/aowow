@@ -126,17 +126,25 @@ class LanguageBaseResponse extends TemplateResponse implements ICache
             }
         }
 
-        // tab: the spells that reference this language - the teaching spell plus the ones that
-        // force a speaker into it (SPELL_AURA_MOD_LANGUAGE)
+        // tab: every spell that references this language, the three cases effectMVLanguage() on the
+        // spell page resolves - the Learn Language effect the proficiency spell uses, plus the two
+        // language auras (Force Language, Comprehend Language)
+        $langAuras = [SPELL_AURA_MOD_LANGUAGE, SPELL_AURA_COMPREHEND_LANGUAGE];
         $spellIds = $this->spellId ? [$this->spellId] : [];
         $spellIds = array_merge($spellIds, DB::Aowow()->selectCol(
            'SELECT `id` FROM ::spell
-            WHERE (`effect1AuraId` = %i AND `effect1MiscValue` = %i)
-               OR (`effect2AuraId` = %i AND `effect2MiscValue` = %i)
-               OR (`effect3AuraId` = %i AND `effect3MiscValue` = %i)',
-            SPELL_AURA_MOD_LANGUAGE, $this->typeId,
-            SPELL_AURA_MOD_LANGUAGE, $this->typeId,
-            SPELL_AURA_MOD_LANGUAGE, $this->typeId
+            WHERE (`effect1AuraId` IN %in AND `effect1MiscValue` = %i)
+               OR (`effect2AuraId` IN %in AND `effect2MiscValue` = %i)
+               OR (`effect3AuraId` IN %in AND `effect3MiscValue` = %i)
+               OR (`effect1Id` = %i AND `effect1MiscValue` = %i)
+               OR (`effect2Id` = %i AND `effect2MiscValue` = %i)
+               OR (`effect3Id` = %i AND `effect3MiscValue` = %i)',
+            $langAuras, $this->typeId,
+            $langAuras, $this->typeId,
+            $langAuras, $this->typeId,
+            SPELL_EFFECT_LANGUAGE, $this->typeId,
+            SPELL_EFFECT_LANGUAGE, $this->typeId,
+            SPELL_EFFECT_LANGUAGE, $this->typeId
         ) ?: []);
         $spellIds = array_values(array_unique(array_map('intVal', $spellIds)));
 
