@@ -5507,10 +5507,12 @@ var LANG = {
     waypointpath_npc: "NPC",
     fisummongroup: {
         summoner:   "Summoner",
+        npc:        "NPC",
         group:      "Group",
         members:    "Members",
         summonType: "Summon type",
-        summonTime: "Summon time"
+        summonTime: "Summon time",
+        comment:    "Comment"
     },
     // end aowow custom
 

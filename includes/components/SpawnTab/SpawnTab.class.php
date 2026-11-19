@@ -63,6 +63,20 @@ class SpawnTab
         })();
     }
 
+    /**
+     * MapViewer's link to one point, as the [lightbox=map] tag builds it: zone[.floor]:pin, a pin being x and y in tenths of a percent;
+     * null for a zone without a map image, which has nothing to show
+     */
+    public static function mapLink(int $areaId, int $floor, float $posX, float $posY) : ?string
+    {
+        if (!self::hasMapImage($areaId))
+            return null;
+
+        $pin = fn(float $v) : string => str_pad((string)min(999, max(0, (int)round($v * 10))), 3, '0', STR_PAD_LEFT);
+
+        return $areaId.($floor > 1 ? '.'.($floor - 1) : '').':'.$pin($posX).$pin($posY);
+    }
+
     /** world db text set into markup: a '[' of its own is escaped so Markup reads it as text */
     public static function esc(string $text) : string
     {
@@ -149,11 +163,9 @@ class SpawnTab
                 $row['zone']     = (int)$p['areaId'];
                 $row['location'] = '[zone='.(int)$p['areaId'].'] [small class=q0]('.Lang::nf((float)$p['posX'], 1).', '.Lang::nf((float)$p['posY'], 1).')[/small]';
 
-                // MapViewer's link, as the [lightbox=map] tag builds it: zone[.floor]:pins, a pin being x and y in tenths of a percent;
-                // a zone without a map image gets none, so its row is not clickable
-                $pin = fn(float $v) : string => str_pad((string)min(999, max(0, (int)round($v * 10))), 3, '0', STR_PAD_LEFT);
-                if (self::hasMapImage((int)$p['areaId']))
-                    $row['map'] = (int)$p['areaId'].((int)$p['floor'] > 1 ? '.'.((int)$p['floor'] - 1) : '').':'.$pin((float)$p['posX']).$pin((float)$p['posY']);
+                // a zone without a map image gets no link, so its row is not clickable
+                if ($link = self::mapLink((int)$p['areaId'], (int)$p['floor'], (float)$p['posX'], (float)$p['posY']))
+                    $row['map'] = $link;
             }
             else
                 $row['location'] = WorldPosition::getMapNames([(int)$r['map']])[(int)$r['map']] ?? ('Map #'.(int)$r['map']);

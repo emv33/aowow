@@ -53,29 +53,14 @@ class SummongroupBaseResponse extends TemplateResponse implements ICache
         [$sType, $sId, $gId] = array_map('intval', $parts);
 
         $rows = DB::World()->selectAssoc(
-           'SELECT `entry`, `position_x`, `position_y`, `summonType`, `summonTime`, COUNT(*) AS "n"
+           'SELECT `entry`, `position_x`, `position_y`, `position_z`, `orientation`, `summonType`, `summonTime`, TRIM(IFNULL(`Comment`, "")) AS "comment"
             FROM creature_summon_groups
-            WHERE `summonerId` = %i AND `summonerType` = %i AND `groupId` = %i
-            GROUP BY `entry`, `position_x`, `position_y`, `summonType`, `summonTime`',
+            WHERE `summonerId` = %i AND `summonerType` = %i AND `groupId` = %i',
             $sId, $sType, $gId
         ) ?: [];
 
         if (!$rows)
             $this->generateNotFound(Lang::summongroup('title'), Lang::summongroup('notFound'));
-
-        // members grouped by entry (count summed across duplicate spawn points), every distinct
-        // spawn point kept separately for the map below
-        $members    = [];                                   // entry => n
-        $points     = [];                                   // [entry, x, y][]
-        $summonType = (int)$rows[0]['summonType'];
-        $summonTime = (int)$rows[0]['summonTime'];
-
-        foreach ($rows as $r)
-        {
-            $entry = (int)$r['entry'];
-            $members[$entry] = ($members[$entry] ?? 0) + (int)$r['n'];
-            $points[]         = [$entry, (float)$r['position_x'], (float)$r['position_y']];
-        }
 
         $mapId = match ($sType)
         {
@@ -124,69 +109,97 @@ class SummongroupBaseResponse extends TemplateResponse implements ICache
             $infobox[] = Lang::summongroup('summoner').Lang::main('colon').$summonerLabel;
 
         $infobox[] = Lang::summongroup('group').Lang::main('colon').$gId;
-        $infobox[] = Lang::summongroup('summonType').Lang::main('colon').(Lang::smartAI('summonTypes', $summonType) ?? Lang::smartAI('summonTypeUNK', [$summonType]));
-
-        if ($summonTime)
-            $infobox[] = Lang::summongroup('summonTime').Lang::main('colon').DateTime::formatTimeElapsedFloat($summonTime);
-
-        $memberIds = array_keys($members);
-        $this->extendGlobalIds(Type::NPC, ...$memberIds);
-        $infobox[] = Lang::summongroup('members').Lang::main('colon').Lang::concat(
-            array_map(fn($id) => $members[$id].'x [npc='.$id.']', $memberIds)
-        );
-
-        // aowow - custom: the members' dev comments, each distinct one once; world db text, so a '[' of its own is escaped for Markup
-        $comments = DB::World()->selectCol(
-           'SELECT DISTINCT TRIM(`Comment`) FROM creature_summon_groups WHERE `summonerId` = %i AND `summonerType` = %i AND `groupId` = %i AND TRIM(IFNULL(`Comment`, "")) <> ""',
-            $sId, $sType, $gId
-        ) ?: [];
-        if ($comments)
-            $infobox[] = Lang::main('comment').Lang::main('colon').implode('; ', array_map(fn($c) => str_replace('[', '\\[', $c), $comments));
 
         $this->infobox = new InfoboxMarkup($infobox, ['allow' => Markup::CLASS_STAFF, 'dbpage' => true], 'infobox-contents0');
+
+
+        /***********/
+        /* Members */
+        /***********/
+
+        // one row per creature_summon_groups row - what the core summons, where, and for how long; laid out like an npc's Spawns tab
+        $lvData = [];
+        $mapPts = [];                                       // areaId => floor => coords, for the map above
+        foreach ($rows as $i => $r)
+        {
+            $entry = (int)$r['entry'];
+            $type  = (int)$r['summonType'];
+            $time  = (int)$r['summonTime'];
+            $x     = (float)$r['position_x'];
+            $y     = (float)$r['position_y'];
+
+            $this->extendGlobalIds(Type::NPC, $entry);
+
+            $row = array(
+                'id'              => $i + 1,
+                'npc'             => $entry,
+                'position'        => implode(', ', array_map(fn($k) => Lang::nf((float)$r[$k], 2), ['position_x', 'position_y', 'position_z', 'orientation'])),
+                'summonType'      => $type,
+                'summonTypeLabel' => Lang::smartAI('summonTypes', $type) ?? ('#'.$type),
+                'summonTime'      => $time,
+                'comment'         => (string)$r['comment']
+            );
+
+            // map 0 is Eastern Kingdoms, so "unknown" is null
+            $pt = $mapId !== null && ($x || $y) ? (WorldPosition::toZonePos($mapId, $x, $y)[0] ?? null) : null;
+            if ($pt)
+            {
+                $this->extendGlobalIds(Type::ZONE, (int)$pt['areaId']);
+                $row['zone']     = (int)$pt['areaId'];
+                $row['location'] = '[zone='.(int)$pt['areaId'].'] [small class=q0]('.Lang::nf((float)$pt['posX'], 1).', '.Lang::nf((float)$pt['posY'], 1).')[/small]';
+                if ($link = SpawnTab::mapLink((int)$pt['areaId'], (int)$pt['floor'], (float)$pt['posX'], (float)$pt['posY']))
+                    $row['map'] = $link;
+
+                $name = (string)(CreatureList::getName($entry) ?? ('#'.$entry));
+                $mapPts[$pt['areaId']][$pt['floor']]['coords'][] = [$pt['posX'], $pt['posY'], ['label' => "\0$<br /><span class=\"q0\">".htmlspecialchars($name).'</span>']];
+            }
+            else if ($mapId !== null)
+                $row['location'] = WorldPosition::getMapNames([$mapId])[$mapId] ?? ('Map #'.$mapId);
+            else
+                $row['location'] = '';
+
+            $lvData[] = $row;
+        }
+
+        $hidden = [];
+        if (!array_filter(array_column($lvData, 'summonTime')))
+            $hidden[] = 'summonTime';
+        if (!array_filter(array_column($lvData, 'comment')))
+            $hidden[] = 'comment';
+        if (!array_filter(array_column($lvData, 'location')))
+            $hidden[] = 'location';
+
+        $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"], 'tabsRelated', true);
+        $this->lvTabs->addListviewTab(new Listview(array(
+            'data'       => $lvData,
+            'id'         => 'members',
+            'name'       => Lang::summongroup('members'),
+            'hiddenCols' => $hidden ?: null
+        ), 'summongroupmember', 'summongroupmember'));
 
 
         /*******/
         /* Map */
         /*******/
 
-        if ($mapId !== null)                                // map 0 is Eastern Kingdoms, so "unknown" is null
+        if ($mapPts)
         {
-            $data = [];
-            foreach ($points as [$entry, $x, $y])
-            {
-                if (!$x && !$y)
-                    continue;
+            foreach ($mapPts as &$areas)
+                foreach ($areas as &$floor)
+                    $floor['count'] = count($floor['coords']);
+            unset($areas, $floor);
 
-                $pt = WorldPosition::toZonePos($mapId, $x, $y);
-                if (!$pt)
-                    continue;
+            $this->addDataLoader('zones');
+            $this->map = array(
+                ['parent' => 'mapper-generic'],
+                $mapPts,
+                null,
+                [Lang::summongroup('members')]
+            );
+            foreach ($mapPts as $areaId => $__)
+                $this->map[3][$areaId] = ZoneList::getName($areaId);
 
-                $p    = $pt[0];
-                $name = (string)(CreatureList::getName($entry) ?? ('#'.$entry));
-
-                $data[$p['areaId']][$p['floor']]['coords'][] = [$p['posX'], $p['posY'], ['label' => "\0$<br /><span class=\"q0\">".htmlspecialchars($name).'</span>']];
-            }
-
-            if ($data)
-            {
-                foreach ($data as &$areas)
-                    foreach ($areas as &$floor)
-                        $floor['count'] = count($floor['coords']);
-                unset($areas, $floor);
-
-                $this->addDataLoader('zones');
-                $this->map = array(
-                    ['parent' => 'mapper-generic'],
-                    $data,
-                    null,
-                    [Lang::summongroup('members')]
-                );
-                foreach ($data as $areaId => $__)
-                    $this->map[3][$areaId] = ZoneList::getName($areaId);
-
-                $this->extendGlobalIds(Type::ZONE, ...array_keys($data));
-            }
+            $this->extendGlobalIds(Type::ZONE, ...array_keys($mapPts));
         }
 
         parent::generate();
