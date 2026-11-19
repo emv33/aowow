@@ -3505,7 +3505,7 @@ class SpellBaseResponse extends TemplateResponse implements ICache
     private function effectMVLanguage(int $effIdOrAura, int $effMin, int $effMax, int $effMV, int $effMVB) : array
     {
         if ($effMV && ($_ = Lang::game('languages', $effMV)))
-            $nameMV = $this->fmtStaffTip($_, 'MiscValue: '.$effMV);
+            $nameMV = '<a href="?language='.$effMV.'">'.$this->fmtStaffTip($_, 'MiscValue: '.$effMV).'</a>';
 
         return [$nameMV ?? null, null, null, null];
     }
