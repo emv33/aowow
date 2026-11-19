@@ -217,10 +217,6 @@ class NpcBaseResponse extends TemplateResponse implements ICache
             // aowow - custom: vehicle_template; Unit::_ExitVehicle() despawns a summoned vehicle this long after its owner exits (default 1ms)
             if ($_ = DB::World()->selectCell('SELECT `despawnDelayMs` FROM vehicle_template WHERE `creatureId` = %i', $this->typeId))
                 $infobox[] = Lang::npcExtra('vehicleDespawn', [DateTime::formatTimeElapsedFloat($_)]);
-
-            // aowow - custom: `vehicle_seat_addon`, keyed by the VehicleSeat.dbc ids of the vehicle's seats
-            if ($_ = self::getSeatAddons((int)$this->subject->getField('vehicleId')))
-                $infobox[] = Lang::npcExtra('seats').Lang::main('colon').'[ul][li]'.implode('[/li][li]', $_).'[/li][/ul]';
         }
 
         // is visible as ghost (redundant to extraFlags)
@@ -1222,6 +1218,40 @@ class NpcBaseResponse extends TemplateResponse implements ICache
                 $this->lvTabs->addListviewTab(new Listview($tabData, CreatureList::$brickFile));
             }
         }
+
+        // tab: seats - `vehicle_seat_addon`, keyed by the VehicleSeat.dbc ids of the vehicle's seats, with who rides in each
+        if ($seatRows = self::getSeatAddons((int)$this->subject->getField('vehicleId')))
+        {
+            $riders = [];                                   // seat index => [markup, ...]
+            foreach (DB::World()->selectAssoc('SELECT `accessory_entry` AS "0", `seat_id` AS "1" FROM vehicle_template_accessory WHERE `entry` = %i', $this->typeId) ?: [] as [$acc, $seat])
+                $riders[(int)$seat][] = '[npc='.(int)$acc.']';
+
+            if (self::hasTable('vehicle_accessory'))
+                foreach (DB::World()->selectAssoc('SELECT va.`accessory_entry` AS "0", va.`seat_id` AS "1", va.`guid` AS "2" FROM vehicle_accessory va JOIN creature c ON c.`guid` = va.`guid` WHERE c.`id` = %i ORDER BY va.`guid`', $this->typeId) ?: [] as [$acc, $seat, $guid])
+                    $riders[(int)$seat][] = '[npc='.(int)$acc.'] [small class=q0](GUID: '.(int)$guid.')[/small]';
+
+            foreach ($seatRows as &$r)
+            {
+                if ($_ = $riders[$r['seat']] ?? null)
+                {
+                    $r['passenger'] = implode('[br]', array_unique($_));
+                    if (preg_match_all('/\[npc=(\d+)\]/', $r['passenger'], $m))
+                        $this->extendGlobalIds(Type::NPC, ...array_map('intval', $m[1]));
+                }
+            }
+            unset($r);
+
+            $hidden = [];
+            foreach (['passenger', 'facing', 'exit'] as $col)
+                if (!array_filter(array_column($seatRows, $col)))
+                    $hidden[] = $col;
+
+            $this->lvTabs->addListviewTab(new Listview(array(
+                'data'       => $seatRows,
+                'name'       => Lang::npcExtra('seats'),
+                'hiddenCols' => $hidden ?: null
+            ), 'vehicleseat', 'vehicleseat'));
+        }
         // aowow - custom end
 
         /* tab sounds:
@@ -1872,23 +1902,24 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         $rows = DB::World()->selectAssoc('SELECT `SeatEntry` AS ARRAY_KEY, `SeatOrientation`, `ExitParamX`, `ExitParamY`, `ExitParamZ`, `ExitParamO`, `ExitParamValue` FROM vehicle_seat_addon WHERE `SeatEntry` IN %in', $seats) ?: [];
 
         $out = [];
-        foreach ($seats as $idx => $seatId)
+        foreach ($seats as $idx => $seatId)                 // $idx is the seat index vehicle accessories name as seat_id
         {
             if (!($r = $rows[$seatId] ?? null))
                 continue;
 
-            $bits = [];
+            $row = ['id' => $seatId, 'seat' => $idx, 'facing' => '', 'exit' => '', 'passenger' => ''];
+
             if ((float)$r['SeatOrientation'])
-                $bits[] = Lang::npcExtra('seatFacing', [Lang::nf(rad2deg((float)$r['SeatOrientation']), 0)]);
+                $row['facing'] = Lang::nf(rad2deg((float)$r['SeatOrientation']), 0).'°';
 
             $pos = implode(', ', array_map(fn($v) => Lang::nf((float)$v, 2), [$r['ExitParamX'], $r['ExitParamY'], $r['ExitParamZ'], $r['ExitParamO']]));
             if ($r['ExitParamValue'] == 1)
-                $bits[] = Lang::npcExtra('seatExitOffset', [$pos]);
+                $row['exit'] = Lang::npcExtra('seatExitOffset', [$pos]);
             else if ($r['ExitParamValue'] == 2)
-                $bits[] = Lang::npcExtra('seatExitDest', [$pos]);
+                $row['exit'] = Lang::npcExtra('seatExitDest', [$pos]);
 
-            if ($bits)
-                $out[] = Lang::npcExtra('seat', [$idx, $seatId]).Lang::main('colon').implode(', ', $bits);
+            if ($row['facing'] !== '' || $row['exit'] !== '')
+                $out[] = $row;
         }
 
         return $out;

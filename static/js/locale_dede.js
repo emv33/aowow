@@ -5470,6 +5470,31 @@ var LANG = {
         summonTime: "Summon time",
         comment:    "Comment"
     },
+    fivehicleseat: {
+        seatId:    "Seat ID",
+        seat:      "Seat",
+        passenger: "Passenger",
+        facing:    "Facing",
+        facingtip: "Angle the seat turns its passenger by",
+        exit:      "Exit"
+    },
+    fiquestemote: {
+        stage: "Stage",
+        emote: "Emote",
+        delay: "Delay"
+    },
+    fiaccessreq: {
+        map:          "Map",
+        mode:         "Mode",
+        level:        "Level",
+        items:        "Item",
+        quest:        "Quest",
+        achievement:  "Achievement",
+        itemLevel:    "Item level",
+        itemLeveltip: "Average item level the Dungeon Finder requires",
+        failText:     "Message",
+        comment:      "Comment"
+    },
     // end aowow custom
 
     pr_notice:     'Zum ersten Mal hier? &ndash; Seid nicht schüchtern! Schaut ruhig mal auf unserer <a href="?help=profiler" target="_blank">Hilfeseite</a> (zurzeit noch unübersetzt) nach! &nbsp; <small class="q0"><a href="javascript:;">Schließen</a></small>',

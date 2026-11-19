@@ -127,15 +127,6 @@ class AreatriggerBaseResponse extends TemplateResponse implements ICache
             $infobox[] = Lang::areatrigger('destination').Lang::main('colon').sprintf('%.1f, %.1f, %.1f', $dest['x'], $dest['y'], $dest['z']);
         }
 
-        // entering an instance map, however the trigger gets the player there, runs MapManager::CanPlayerEnter() -> Player::Satisfy()
-        // against access_requirement of the target map
-        $targetMaps = self::getSmartTeleportMaps($this->typeId);
-        if ($dest)
-            $targetMaps[] = $dest['mapId'];
-
-        if ($_ = $this->getAccessRequirements(array_unique($targetMaps)))
-            $infobox[] = Lang::areatrigger('entryReqs').Lang::main('colon').'[ul][li]'.implode('[/li][li]', $_).'[/li][/ul]';
-
         $infobox[] = Lang::areatrigger('position').Lang::main('colon').sprintf('%.1f, %.1f, %.1f', $this->subject->getField('posX'), $this->subject->getField('posY'), $this->subject->getField('posZ'));
 
         // Player::IsInAreaTriggerRadius(): a radius makes it a sphere, otherwise it is a box of full length / width / height turned by `orientation`
@@ -166,6 +157,15 @@ class AreatriggerBaseResponse extends TemplateResponse implements ICache
         /**************/
 
         $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"], 'tabsRelated', true);
+
+        // aowow - custom: entering an instance map, however the trigger gets the player there, runs MapManager::CanPlayerEnter() ->
+        // Player::Satisfy() against access_requirement of the target map
+        $targetMaps = self::getSmartTeleportMaps($this->typeId);
+        if ($dest)
+            $targetMaps[] = $dest['mapId'];
+
+        if ($tab = AccessRequirements::getListview($this, $targetMaps))
+            $this->lvTabs->addListviewTab($tab);
 
         // tab: conditions
         $cnd = new Conditions();
@@ -260,101 +260,6 @@ class AreatriggerBaseResponse extends TemplateResponse implements ICache
         ));
     }
 
-    /** access_requirement per target map and difficulty, as Player::Satisfy() and LFGMgr read it */
-    private function getAccessRequirements(array $mapIds) : array
-    {
-        if (!$mapIds || !self::hasTable('access_requirement'))
-            return [];
-
-        $rows = DB::World()->selectAssoc(
-           'SELECT `mapId`, `difficulty`, `level_min`, `level_max`, `item_level`, `item`, `item2`, `quest_done_A`, `quest_done_H`, `completed_achievement`, `quest_failed_text`, `comment`
-            FROM   access_requirement
-            WHERE  `mapId` IN %in
-            ORDER BY `mapId`, `difficulty`', $mapIds
-        );
-        if (!$rows)
-            return [];
-
-        // difficulty names only mean something for maps that have more than one; g_zone_instancetypes as set by the zones setup step
-        $mapTypes = DB::Aowow()->selectCol('SELECT `mapIdBak` AS ARRAY_KEY, `type` FROM ::zones WHERE `mapIdBak` IN %in AND `parentArea` = 0', $mapIds);
-        $mapNames = count(array_unique(array_column($rows, 'mapId'))) > 1 ? WorldPosition::getMapNames($mapIds) : [];
-
-        $out = [];
-        foreach ($rows as $r)
-        {
-            $reqs = [];
-
-            if ($r['level_min'] && $r['level_max'])
-                $reqs[] = Lang::areatrigger('reqLevelRange', [$r['level_min'], $r['level_max']]);
-            else if ($r['level_min'])
-                $reqs[] = Lang::areatrigger('reqLevelMin', [$r['level_min']]);
-            else if ($r['level_max'])
-                $reqs[] = Lang::areatrigger('reqLevelMax', [$r['level_max']]);
-
-            // either of the two items will do
-            if ($items = array_values(array_unique(array_filter([$r['item'], $r['item2']]))))
-            {
-                foreach ($items as $i)
-                    $this->extendGlobalIds(Type::ITEM, $i);
-
-                $reqs[] = Lang::concat($items, Lang::CONCAT_OR, fn($i) => '[item='.$i.']');
-            }
-
-            if ($r['quest_done_A'] && $r['quest_done_A'] == $r['quest_done_H'])
-            {
-                $this->extendGlobalIds(Type::QUEST, $r['quest_done_A']);
-                $reqs[] = Lang::areatrigger('reqQuest', ['[quest='.$r['quest_done_A'].']']);
-            }
-            else
-            {
-                if ($r['quest_done_A'])
-                {
-                    $this->extendGlobalIds(Type::QUEST, $r['quest_done_A']);
-                    $reqs[] = '[span class=icon-alliance]'.Lang::areatrigger('reqQuest', ['[quest='.$r['quest_done_A'].']']).'[/span]';
-                }
-                if ($r['quest_done_H'])
-                {
-                    $this->extendGlobalIds(Type::QUEST, $r['quest_done_H']);
-                    $reqs[] = '[span class=icon-horde]'.Lang::areatrigger('reqQuest', ['[quest='.$r['quest_done_H'].']']).'[/span]';
-                }
-            }
-
-            // checked on the group leader, not the player entering
-            if ($r['completed_achievement'])
-            {
-                $this->extendGlobalIds(Type::ACHIEVEMENT, $r['completed_achievement']);
-                $reqs[] = Lang::areatrigger('reqAchievement', ['[achievement='.$r['completed_achievement'].']']);
-            }
-
-            // only the Dungeon Finder checks this one
-            if ($r['item_level'])
-                $reqs[] = Lang::areatrigger('reqItemLevel', [$r['item_level']]);
-
-            if ($r['quest_failed_text'])
-                $reqs[] = Lang::areatrigger('failText', [strtr($r['quest_failed_text'], ['[' => '(', ']' => ')'])]);
-
-            if (!$reqs)
-                continue;
-
-            // aowow - custom: the row's dev comment; world db text, so a '[' of its own is escaped for Markup
-            if ($_ = trim((string)$r['comment']))
-                $reqs[] = '[small class=q0]'.str_replace('[', '\\[', $_).'[/small]';
-
-            $label = match ((int)($mapTypes[$r['mapId']] ?? -1))
-            {
-                MAP_TYPE_DUNGEON_HC                          => Lang::game('modes', 1, $r['difficulty']),
-                MAP_TYPE_MMODE_RAID, MAP_TYPE_MMODE_RAID_HC  => Lang::game('modes', 2, $r['difficulty']),
-                default                                      => ''
-            };
-
-            if (isset($mapNames[$r['mapId']]))
-                $label = $mapNames[$r['mapId']].($label ? ' ('.$label.')' : '');
-
-            $out[] = ($label ? $label.Lang::main('colon') : '').implode(', ', $reqs);
-        }
-
-        return $out;
-    }
     // aowow - custom end
 }
 

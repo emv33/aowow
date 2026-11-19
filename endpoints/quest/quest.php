@@ -296,9 +296,6 @@ class QuestBaseResponse extends TemplateResponse implements ICache
             $infobox[] = Lang::formatSkillBreakpoints($_);
 
         // id
-        // aowow - custom: the emotes the quest giver plays at each step of the dialogue
-        if ($_ = $this->getGiverEmotes())
-            $infobox[] = Lang::quest('emotes').Lang::main('colon').'[ul][li]'.implode('[/li][li]', $_).'[/li][/ul]';
 
         $infobox[] = Lang::quest('id') . $this->typeId;
 
@@ -923,6 +920,14 @@ class QuestBaseResponse extends TemplateResponse implements ICache
         /**************/
 
         $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"], 'tabsRelated', true);
+
+        // aowow - custom: the emotes the quest giver plays at each step of the dialogue
+        if ($_ = $this->getGiverEmotes())
+            $this->lvTabs->addListviewTab(new Listview(array(
+                'data'       => $_,
+                'name'       => Lang::quest('emotes'),
+                'hiddenCols' => array_filter(array_column($_, 'delay')) ? null : ['delay']
+            ), 'questemote', 'questemote'));
 
         // tab: see also
         $seeAlso = new QuestList(array(['name_loc'.Lang::getLocale()->value, Util::htmlEscape($this->subject->getField('name', true))], ['id', $this->typeId, '!']));
@@ -1678,22 +1683,24 @@ class QuestBaseResponse extends TemplateResponse implements ICache
         if ($r = DB::World()->selectRow('SELECT `Emote1`, `Emote2`, `Emote3`, `Emote4`, `EmoteDelay1`, `EmoteDelay2`, `EmoteDelay3`, `EmoteDelay4` FROM quest_offer_reward WHERE `ID` = %i', $this->typeId))
             $stages['reward'] = [[$r['Emote1'], $r['EmoteDelay1']], [$r['Emote2'], $r['EmoteDelay2']], [$r['Emote3'], $r['EmoteDelay3']], [$r['Emote4'], $r['EmoteDelay4']]];
 
+        // one row per emote, in the order the dialogue plays them
         $out = [];
+        $i   = 0;
         foreach ($stages as $stage => $emotes)
-        {
-            $buff = [];
             foreach ($emotes as [$emote, $delay])
             {
                 if (!$emote)
                     continue;
 
                 $this->extendGlobalIds(Type::EMOTE, -$emote);
-                $buff[] = '[emote='.-$emote.']'.($delay ? Lang::main('parensFmt', ['', Lang::gossip('emoteDelay', [$delay])]) : '');
+                $out[] = array(
+                    'id'        => ++$i,
+                    'stage'     => Lang::quest('emoteStages', $stage),
+                    'emote'     => '[emote='.-$emote.']',
+                    'delay'     => (int)$delay,
+                    'delayText' => $delay ? DateTime::formatTimeElapsedFloat((int)$delay) : ''
+                );
             }
-
-            if ($buff)
-                $out[] = Lang::quest('emoteStages', $stage).Lang::main('colon').implode(', ', $buff);
-        }
 
         return $out;
     }

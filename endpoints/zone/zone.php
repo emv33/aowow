@@ -258,12 +258,6 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
 
             if ($lines = XRef::disables($pairs))
                 $infobox[] = Lang::xRef('disabled').Lang::main('colon').implode('[br]', $lines);
-
-            // `access_requirement` dev comments - the requirements themselves are set up into ::zones, the comments were not;
-            // world db text, so a '[' of its own is escaped for Markup
-            if (self::hasTable('access_requirement', false))
-                if ($_ = DB::World()->selectCol('SELECT DISTINCT TRIM(`comment`) FROM access_requirement WHERE `mapId` = %i AND TRIM(IFNULL(`comment`, "")) <> ""', $mapId))
-                    $infobox[] = Lang::zone('accessComment').Lang::main('colon').implode('; ', array_map(fn($c) => str_replace('[', '\\[', $c), $_));
         }
 
         if ($lfg = self::getLFGDungeon($mapId))
@@ -277,23 +271,6 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
             // `lfg_dungeon_template` - where the Dungeon Finder teleports a group in; LFGMgr falls back to the entrance areatrigger without it
             if ($_ = self::getLFGEntrance($lfg['id'], $mapId))
                 $infobox[] = Lang::zone('lfgEntrance').Lang::main('colon').$_;
-
-            // `lfg_dungeon_rewards` - the reward quest a completed run hands out, which was read nowhere
-            foreach (self::getLFGRewards($lfg['id']) as $rw)
-            {
-                $quests = [];
-                foreach (['firstQuestId' => 'lfgRewardFirst', 'otherQuestId' => 'lfgRewardRepeat'] as $col => $label)
-                {
-                    if (!$rw[$col])
-                        continue;
-
-                    $this->extendGlobalIds(Type::QUEST, $rw[$col]);
-                    $quests[] = Lang::zone($label).Lang::main('colon').'[quest='.$rw[$col].']';
-                }
-
-                if ($quests)
-                    $infobox[] = Lang::zone('lfgReward', [$rw['maxLevel']]).Lang::main('colon').implode(', ', $quests);
-            }
         }
         // aowow - custom end
 
@@ -686,6 +663,48 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
                     'name' => Lang::zone('battlemasters'),
                     'id'   => 'battlemasters'
                 ), CreatureList::$brickFile));
+            }
+        }
+
+        // tab: entry requirements - access_requirement of the instance map, per difficulty; a continent has none
+        if (!in_array($mapId, [0, 1, 530, 571]) && ($tab = AccessRequirements::getListview($this, [$mapId])))
+            $this->lvTabs->addListviewTab($tab);
+
+        // tab: Dungeon Finder rewards - `lfg_dungeon_rewards`, the quest a completed run hands out per level bracket, which was read nowhere
+        if ($lfg && ($rewards = self::getLFGRewards($lfg['id'])))
+        {
+            $runs = [];                                     // questId => [maxLevel, [run label, ...]]
+            foreach ($rewards as $rw)
+                foreach (['firstQuestId' => 'lfgRewardFirst', 'otherQuestId' => 'lfgRewardRepeat'] as $col => $label)
+                    if ($rw[$col])
+                    {
+                        $runs[$rw[$col]][0] ??= $rw['maxLevel'];
+                        $runs[$rw[$col]][1][] = Lang::zone($label);
+                    }
+
+            $quests = $runs ? new QuestList(array(['id', array_keys($runs)])) : null;
+            if ($quests && !$quests->error)
+            {
+                $this->extendGlobalData($quests->getJSGlobals(GLOBALINFO_SELF | GLOBALINFO_REWARDS));
+
+                $data = $quests->getListviewData();
+                foreach ($data as $id => &$row)
+                {
+                    $row['lfgMaxLevel'] = $runs[$id][0];
+                    $row['lfgRun']      = implode(', ', array_unique($runs[$id][1]));
+                }
+                unset($row);
+
+                $this->lvTabs->addListviewTab(new Listview(array(
+                    'data'      => $data,
+                    'id'        => 'lfg-rewards',
+                    'name'      => Lang::zone('lfgRewards'),
+                    'extraCols' => array(
+                        "\$Listview.funcBox.createSimpleCol('lfgMaxLevel', '".Lang::zone('lfgRewardLevel')."', '10%', 'lfgMaxLevel')",
+                        "\$Listview.funcBox.createSimpleCol('lfgRun', '".Lang::zone('lfgRewardRun')."', '10%', 'lfgRun')"
+                    ),
+                    'sort'      => ['lfgMaxLevel']
+                ), QuestList::$brickFile));
             }
         }
         // aowow - custom end
