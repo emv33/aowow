@@ -615,7 +615,7 @@ class GameText
         [$creatureId, $groupId, $rowId] = array_map('intval', $p);
 
         $ct = DB::World()->selectRow(
-           'SELECT `Text`, `comment` FROM creature_text WHERE `CreatureID` = %i AND `GroupID` = %i AND `ID` = %i',
+           'SELECT `Text`, `Language`, `comment` FROM creature_text WHERE `CreatureID` = %i AND `GroupID` = %i AND `ID` = %i',
             $creatureId, $groupId, $rowId
         );
 
@@ -626,6 +626,7 @@ class GameText
 
         $out = self::row(self::SRC_CREATURE_TEXT, $id, $creatureId, $txt, Type::NPC, $creatureId);
         $out['raw']     = $txt;
+        $out['lang']    = (int)$ct['Language'];
         $out['comment'] = trim((string)$ct['comment']);   // aowow - custom: the row's dev comment
 
         return $out;
@@ -640,17 +641,16 @@ class GameText
         if (!$btId)
             return null;
 
-        // spelled Text/Text1 on some revisions and MaleText/FemaleText on others, as browse() tries
-        $row = null;
-        foreach ([['Text', 'Text1'], ['MaleText', 'FemaleText']] as [$male, $female])
-        {
-            $row = DB::World()->selectRow('SELECT `'.$male.'` AS "Text", `'.$female.'` AS "Text1" FROM broadcast_text WHERE `ID` = %i', $btId);
-            if ($row !== null)
-                break;
-        }
-
-        if (!$row)
+        // spelled Text/Text1/LanguageID on some revisions and MaleText/FemaleText/Language on others, as browse() tries
+        $bt = DB::World()->selectRow('SELECT * FROM broadcast_text WHERE `ID` = %i', $btId);
+        if (!$bt)
             return null;
+
+        $row = array(
+            'Text'  => $bt['Text']       ?? $bt['MaleText']   ?? '',
+            'Text1' => $bt['Text1']      ?? $bt['FemaleText'] ?? '',
+            'lang'  => $bt['LanguageID'] ?? $bt['Language']   ?? 0
+        );
 
         $txt = (string)$row['Text'] ?: (string)$row['Text1'];
         if ((string)$row['Text1'] && (string)$row['Text'] && $row['Text'] != $row['Text1'])
@@ -660,7 +660,8 @@ class GameText
         if ($refs = self::broadcastReferrers([$btId])[$btId] ?? [])
             self::attachRefs($out, $refs);
 
-        $out['raw'] = $txt;
+        $out['raw']  = $txt;
+        $out['lang'] = (int)$row['lang'];
 
         return $out;
     }
@@ -680,12 +681,14 @@ class GameText
         if ($slot < 0 || $slot >= GOSSIP_TEXT_SLOT_COUNT || ($gender != 0 && $gender != 1))
             return null;
 
-        $txt = DB::World()->selectCell('SELECT `text'.$slot.'_'.$gender.'` FROM npc_text WHERE `ID` = %i', $ntId);
-        if ($txt === null || (string)$txt === '')
+        $nt  = DB::World()->selectRow('SELECT `text'.$slot.'_'.$gender.'` AS "txt", `lang'.$slot.'` AS "lang" FROM npc_text WHERE `ID` = %i', $ntId);
+        $txt = (string)($nt['txt'] ?? '');
+        if ($txt === '')
             return null;
 
-        $out = self::row(self::SRC_NPC_TEXT, $id, $ntId, (string)$txt, $menuId ? Type::GOSSIP : null, $menuId);
-        $out['raw'] = (string)$txt;
+        $out = self::row(self::SRC_NPC_TEXT, $id, $ntId, $txt, $menuId ? Type::GOSSIP : null, $menuId);
+        $out['raw']  = $txt;
+        $out['lang'] = (int)$nt['lang'];
 
         return $out;
     }

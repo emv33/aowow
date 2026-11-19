@@ -114,6 +114,10 @@ class TextBaseResponse extends TemplateResponse implements ICache
         if ($links)
             $infobox[] = Lang::gameText('owner').Lang::main('colon').implode(', ', $links);
 
+        // creature_text.Language / broadcast_text.LanguageID / npc_text.langN; LANG_UNIVERSAL is everyone's
+        if ($_ = $row['lang'] ?? LANG_UNIVERSAL)
+            $infobox[] = Lang::main('language').Lang::main('colon').(Lang::exist('game', 'languages', $_) ?? '#'.$_);
+
         // aowow - custom: the row's dev comment; world db text, so a '[' of its own is escaped for Markup
         if ($_ = $row['comment'] ?? '')
             $infobox[] = Lang::main('comment').Lang::main('colon').str_replace('[', '\\[', $_);
