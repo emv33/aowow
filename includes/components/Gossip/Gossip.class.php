@@ -193,8 +193,8 @@ class Gossip
                 $emotes = [];
                 for ($j = 0; $j < GOSSIP_TEXT_EMOTE_COUNT; $j++)
                 {
-                    $delay = (int)($this->col($row, 'em'.$i.'_'.($j * 2))     ?? 0);
-                    $emote = (int)($this->col($row, 'em'.$i.'_'.($j * 2 + 1)) ?? 0);
+                    $delay = (int)($this->col($row, 'EmoteDelay'.$i.'_'.$j) ?? $this->col($row, 'em'.$i.'_'.($j * 2))     ?? 0);
+                    $emote = (int)($this->col($row, 'Emote'.$i.'_'.$j)      ?? $this->col($row, 'em'.$i.'_'.($j * 2 + 1)) ?? 0);
                     if ($emote)
                         $emotes[] = [$emote, $delay];
                 }
@@ -523,6 +523,10 @@ class Gossip
                 }
                 else
                     $body[] = '[span class=gossip-text]'.UIText::format($slot['male'] ?: $slot['female'], Lang::FMT_MARKUP).'[/span]';
+
+                // npc_text.langN, even when a BroadcastTextID supplies the text (QueryHandler.cpp: HandleNpcTextQueryOpcode)
+                if ($slot['lang'] != LANG_UNIVERSAL)
+                    $body[] = '[i][small class=q0]'.Lang::main('language').Lang::main('colon').(Lang::exist('game', 'languages', $slot['lang']) ?? '#'.$slot['lang']).'[/small][/i]';
 
                 if ($slot['emotes'])
                 {
