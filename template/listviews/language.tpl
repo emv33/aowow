@@ -24,17 +24,10 @@ Listview.templates.language = {
             }
         },
         {
-            id: 'id',
-            name: 'ID',
-            type: 'num',
-            width: '10%',
-            value: 'id'
-        },
-        {
             id: 'skill',
             name: LANG.tab_skills,
             type: 'text',
-            width: '20%',
+            width: '25%',
             align: 'left',
             compute: function(l, td) {
                 if (!l.skill)
@@ -43,6 +36,12 @@ Listview.templates.language = {
                 var nameCol = 'name_' + Locale.getName(),
                     entry   = g_skills[l.skill],
                     a       = $WH.ce('a');
+
+                // inline icon followed by the link, as the trainer listing does
+                if (entry && entry.icon) {
+                    $WH.ae(td, Icon.create(entry.icon, 0, null, '?skill=' + l.skill, null, null, null, null, true));
+                    $WH.ae(td, $WH.ct(' '));
+                }
 
                 a.className = 'q';
                 a.href = '?skill=' + l.skill;
@@ -63,7 +62,7 @@ Listview.templates.language = {
             id: 'spell',
             name: LANG.tab_spells,
             type: 'text',
-            width: '20%',
+            width: '25%',
             align: 'left',
             compute: function(l, td) {
                 if (!l.spell)
@@ -72,6 +71,12 @@ Listview.templates.language = {
                 var nameCol = 'name_' + Locale.getName(),
                     entry   = g_spells[l.spell],
                     a       = $WH.ce('a');
+
+                // inline icon followed by the link, as the trainer listing does
+                if (entry && entry.icon) {
+                    $WH.ae(td, Icon.create(entry.icon, 0, null, '?spell=' + l.spell, null, null, null, null, true));
+                    $WH.ae(td, $WH.ct(' '));
+                }
 
                 a.className = 'q';
                 a.href = '?spell=' + l.spell;
