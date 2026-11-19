@@ -87,6 +87,22 @@ return {
             }
         },
         {
+            id: 'language',
+            name: LANG.fitext.language,
+            type: 'text',
+            width: '10%',
+            compute: function(t, td) {
+                if (t.language)
+                    $WH.ae(td, $WH.ct(t.language));
+            },
+            getVisibleText: function(t) {
+                return t.language || '';
+            },
+            sortFunc: function(a, b, col) {
+                return $WH.strcmp(this.getVisibleText(a), this.getVisibleText(b));
+            }
+        },
+        {
             id: 'text',
             name: LANG.fitext.text,
             type: 'text',

@@ -43,6 +43,13 @@ class GameText
         return $known[$tbl] ??= (bool)DB::World()->selectCell('SHOW TABLES LIKE %s', $tbl);
     }
 
+    private static function hasColumn(string $tbl, string $col) : bool
+    {
+        static $known = [];
+
+        return $known[$tbl.'.'.$col] ??= self::hasTable($tbl) && DB::World()->selectRow('SHOW COLUMNS FROM %n LIKE %s', $tbl, $col);
+    }
+
     /**
      * @param  array $opts  query: string (empty lists every line), src: int (0 = every source)
      * @return array        list of [src, id, entry, text, ownerType, ownerId, ownerName]
@@ -166,6 +173,7 @@ class GameText
             'kind'      => strtok($id, ':'),                // the id's prefix: ct, bt, br, nt, go, pt - rows of one kind are alike, one source can hold several
             'entry'     => $entry,
             'text'      => self::excerpt($text),
+            'lang'      => LANG_UNIVERSAL,                  // set by the sources that have a language column
             'ownerType' => $ownerType,
             'ownerId'   => $ownerId,
             'ownerName' => $ownerName,
@@ -201,14 +209,18 @@ class GameText
         $where = $like === null ? [['`Text` <> %s', '']] : [['`Text` LIKE %s', $like]];
 
         $rows = DB::World()->selectAssoc(
-           'SELECT `CreatureID`, `GroupID`, `ID`, `Text` FROM creature_text WHERE %and ORDER BY `CreatureID`, `GroupID`, `ID` ASC',
+           'SELECT `CreatureID`, `GroupID`, `ID`, `Text`, `Language` FROM creature_text WHERE %and ORDER BY `CreatureID`, `GroupID`, `ID` ASC',
             $where
         ) ?: [];
 
         $out = [];
         foreach ($rows as $r)
-            $out[] = self::row(self::SRC_CREATURE_TEXT, 'ct:'.$r['CreatureID'].':'.$r['GroupID'].':'.$r['ID'],
-                               (int)$r['CreatureID'], (string)$r['Text'], Type::NPC, (int)$r['CreatureID']);
+        {
+            $row = self::row(self::SRC_CREATURE_TEXT, 'ct:'.$r['CreatureID'].':'.$r['GroupID'].':'.$r['ID'],
+                             (int)$r['CreatureID'], (string)$r['Text'], Type::NPC, (int)$r['CreatureID']);
+            $row['lang'] = (int)$r['Language'];
+            $out[] = $row;
+        }
 
         return $out;
     }
@@ -216,19 +228,24 @@ class GameText
     /**
      * the voiced lines the other tables point at, both genders
      *
-     * spelled Text/Text1 on some revisions and MaleText/FemaleText on others
+     * spelled Text/Text1/LanguageID on some revisions and MaleText/FemaleText/Language on others
      */
     private static function broadcastText(?string $like) : array
     {
         if (!self::hasTable('broadcast_text'))
             return [];
 
+        $lang = '0';
+        foreach (['LanguageID', 'Language'] as $col)
+            if (self::hasColumn('broadcast_text', $col))
+                $lang = '`'.$col.'`';
+
         foreach ([['Text', 'Text1'], ['MaleText', 'FemaleText']] as [$male, $female])
         {
             $where = $like === null ? [[DB::OR, [['`'.$male.'` <> %s', ''], ['`'.$female.'` <> %s', '']]]]
                                     : [[DB::OR, [['`'.$male.'` LIKE %s', $like], ['`'.$female.'` LIKE %s', $like]]]];
 
-            $rows = DB::World()->selectAssoc('SELECT `ID`, `'.$male.'` AS "Text", `'.$female.'` AS "Text1" FROM broadcast_text WHERE %and ORDER BY `ID` ASC', $where);
+            $rows = DB::World()->selectAssoc('SELECT `ID`, `'.$male.'` AS "Text", `'.$female.'` AS "Text1", '.$lang.' AS "lang" FROM broadcast_text WHERE %and ORDER BY `ID` ASC', $where);
             if ($rows !== null)
                 break;
         }
@@ -249,6 +266,7 @@ class GameText
 
             // one row per line, however many tables point at it; what does is listed on the row
             $row = self::row(self::SRC_BROADCAST, 'bt:'.$id, $id, $txt);
+            $row['lang'] = (int)$r['lang'];
             if (isset($refs[$id]))
                 self::attachRefs($row, $refs[$id]);
 
@@ -411,8 +429,12 @@ class GameText
                         continue;
 
                     foreach ($menus[$id] ?? [0] as $menuId)
-                        $out[] = self::row(self::SRC_NPC_TEXT, 'nt:'.$id.':'.$i.':'.$g.':'.$menuId, $id, $txt,
-                                           $menuId ? Type::GOSSIP : null, $menuId);
+                    {
+                        $row = self::row(self::SRC_NPC_TEXT, 'nt:'.$id.':'.$i.':'.$g.':'.$menuId, $id, $txt,
+                                         $menuId ? Type::GOSSIP : null, $menuId);
+                        $row['lang'] = (int)($lc['lang'.$i] ?? LANG_UNIVERSAL);
+                        $out[] = $row;
+                    }
                 }
             }
         }

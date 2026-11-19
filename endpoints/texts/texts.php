@@ -125,7 +125,10 @@ class TextsBaseResponse extends TemplateResponse implements ICache
                 'id'         => self::TAB_IDS[$src],
                 'name'       => Lang::gameText('sources', $src),
                 'data'       => $this->buildListviewData($bySrc[$src] ?? []),
-                'hiddenCols' => $src == GameText::SRC_BROADCAST ? [] : ['src']   // elsewhere the tab says it already
+                'hiddenCols' => array_merge(
+                    $src == GameText::SRC_BROADCAST ? [] : ['src'],                                       // elsewhere the tab says it already
+                    in_array($src, [GameText::SRC_GOSSIP_OPTION, GameText::SRC_PAGE_TEXT]) ? ['language'] : []   // neither table has a language
+                )
             ), 'text', $first ? 'text' : ''));              // the template only needs defining once
             $first = false;
         }
@@ -147,6 +150,10 @@ class TextsBaseResponse extends TemplateResponse implements ICache
                 'entry' => $r['entry'],
                 'text'  => $r['text']
             );
+
+            // named here: the client has no table of language names
+            if ($r['lang'] != LANG_UNIVERSAL)
+                $row['language'] = Lang::exist('game', 'languages', $r['lang']) ?? '#'.$r['lang'];
 
             // a gossip menu has no name of its own and a line nothing references has no page at
             // all, so the component hands over a label for the cases a g_* lookup cannot cover

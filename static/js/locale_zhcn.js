@@ -5436,7 +5436,8 @@ var LANG = {
     fitext: {
         source:     "Source",
         owner:      "Owner",
-        text:       "Text"
+        text:       "Text",
+        language:   "语言"
     },
     text_sources: {
         1: "Creature text",
