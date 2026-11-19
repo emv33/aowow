@@ -11,7 +11,7 @@ if (!defined('AOWOW_REVISION'))
  * grants the language and the SkillLine.dbc row (category 10) that spell awards.
  *
  * creature_text.Language, broadcast_text.LanguageID, npc_text.langN and the language of a
- * readable item all store only the id; there is no page for it anywhere else.
+ * readable item all store only the id; this listing is where those ids resolve.
  */
 class LanguagesBaseResponse extends TemplateResponse implements ICache
 {
@@ -40,26 +40,33 @@ class LanguagesBaseResponse extends TemplateResponse implements ICache
 
         $this->redButtons[BUTTON_WOWHEAD] = false;
 
-        $rows = '';
+        $data    = [];
+        $skills  = [];
+        $spells  = [];
         foreach (Lang::game('languages') as $id => $name)
         {
             $skill = Language::getSkillId($id);
             $spell = Language::getSpellId($id);
 
-            $rows .= '[tr][td]'.$name.'[/td]'
-                   . '[td]'.($skill ? '[skill='.$skill.']' : '[i][small class=q0]-[/small][/i]').'[/td]'
-                   . '[td]'.($spell ? '[spell='.$spell.']' : '[i][small class=q0]-[/small][/i]').'[/td][/tr]';
+            $data[] = array('id' => $id, 'name' => $name, 'skill' => $skill, 'spell' => $spell);
+
+            if ($skill)
+                $skills[$skill] = $skill;
+
+            if ($spell)
+                $spells[$spell] = $spell;
         }
 
-        $table = '[table class=grid]'
-               . '[tr][td header]'.Lang::main('language').'[/td]'
-               . '[td header]'.Util::ucFirst(Lang::game('skill')).'[/td]'
-               . '[td header]'.Util::ucFirst(Lang::game('spell')).'[/td][/tr]'
-               . $rows
-               . '[/table]';
+        // the listview resolves the skill and spell names through their g_* lookups
+        $this->extendGlobalIds(Type::SKILL, ...array_values($skills));
+        $this->extendGlobalIds(Type::SPELL, ...array_values($spells));
 
-        $this->extraText = new Markup($table, ['allow' => Markup::CLASS_ADMIN], 'text-generic');
-        $this->extendGlobalData($this->extraText->getJSGlobals());
+        $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"]);
+        $this->lvTabs->addListviewTab(new Listview(array(
+            'data' => $data,
+            'id'   => 'languages',
+            'name' => $this->h1
+        ), 'language', 'language'));
 
         parent::generate();
     }

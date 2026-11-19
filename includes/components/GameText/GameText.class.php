@@ -51,12 +51,14 @@ class GameText
     }
 
     /**
-     * @param  array $opts  query: string (empty lists every line), src: int (0 = every source)
+     * @param  array $opts  query: string (empty lists every line), src: int (0 = every source),
+     *                       lang: int (Languages.dbc id; 0 = every language)
      * @return array        list of [src, id, entry, text, ownerType, ownerId, ownerName]
      */
     public static function browse(array $opts = []) : array
     {
         $query = trim((string)($opts['query'] ?? ''));
+        $lang  = intVal($opts['lang'] ?? 0);
 
         // no term lists the whole of it, the way the other world DB browsers do; the wildcards in
         // a term that has some are ours, so they must not be spent on it
@@ -83,6 +85,10 @@ class GameText
                 continue;
 
             $seen[$key] = true;
+
+            // a source without a language column is every language's, so it only matches lang 0
+            if ($lang && intVal($r['lang'] ?? LANG_UNIVERSAL) != $lang)
+                continue;
 
             // filtered last: a broadcast text re-attributed to a gossip menu must answer to the
             // gossip filter rather than to the one naming the table it happens to live in
@@ -125,6 +131,77 @@ class GameText
         unset($r);
 
         return $rows;
+    }
+
+    /**
+     * browse() rows shaped for the text listview, shared by the ?texts listing and the language
+     * page's Texts tab
+     *
+     * @param  array $rows  the rows browse() returned
+     * @return array        [listview data, jsGlobals]
+     */
+    public static function getListviewData(array $rows) : array
+    {
+        $jsg  = [];
+        $data = [];
+
+        foreach ($rows as $r)
+        {
+            $row = array(
+                'id'    => substr($r['id'], strlen($r['kind']) + 1),   // the tab is one kind, the prefix is its 'kind'
+                'kind'  => $r['kind'],
+                'src'   => $r['src'],
+                'entry' => $r['entry'],
+                'text'  => $r['text']
+            );
+
+            // named here: the client has no table of language names
+            if ($r['lang'] != LANG_UNIVERSAL)
+                $row['language'] = Lang::exist('game', 'languages', $r['lang']) ?? '#'.$r['lang'];
+
+            // a gossip menu has no name of its own and a line nothing references has no page at
+            // all, so the component hands over a label for the cases a g_* lookup cannot cover
+            if ($r['ownerName'])
+                $row['ownername'] = $r['ownerName'];
+
+            foreach ($r['refs'] as $ref)
+            {
+                $x = ['src' => $ref['src']];
+                if ($ref['ownerName'])
+                    $x['ownername'] = $ref['ownerName'];
+
+                if ($ref['ownerType'] && $ref['ownerId'] > 0)
+                {
+                    $x['ownerid']  = $ref['ownerId'];
+                    $x['ownerurl'] = Type::getFileString($ref['ownerType']);
+
+                    if ($_ = Type::getJSGlobalString($ref['ownerType']))
+                    {
+                        $x['ownerlookup'] = $_;
+                        $jsg[$ref['ownerType']][$ref['ownerId']] = $ref['ownerId'];
+                    }
+                }
+
+                $row['refs'][] = $x;
+            }
+
+            if ($r['ownerType'] && $r['ownerId'] > 0)
+            {
+                $row['ownerid']  = $r['ownerId'];
+                $row['ownerurl'] = Type::getFileString($r['ownerType']);
+
+                // the listview cannot map a Type to its g_* lookup on its own, so name it here
+                if ($_ = Type::getJSGlobalString($r['ownerType']))
+                {
+                    $row['ownerlookup'] = $_;
+                    $jsg[$r['ownerType']][$r['ownerId']] = $r['ownerId'];
+                }
+            }
+
+            $data[] = $row;
+        }
+
+        return [$data, $jsg];
     }
 
     /** an `IN` over the given ids, or a condition that holds for every row when there are none */

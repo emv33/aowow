@@ -138,65 +138,7 @@ class TextsBaseResponse extends TemplateResponse implements ICache
 
     private function buildListviewData(array $rows) : array
     {
-        $jsg  = [];
-        $data = [];
-
-        foreach ($rows as $r)
-        {
-            $row = array(
-                'id'    => substr($r['id'], strlen($r['kind']) + 1),   // the tab is one kind, the prefix is its 'kind'
-                'kind'  => $r['kind'],
-                'src'   => $r['src'],
-                'entry' => $r['entry'],
-                'text'  => $r['text']
-            );
-
-            // named here: the client has no table of language names
-            if ($r['lang'] != LANG_UNIVERSAL)
-                $row['language'] = Lang::exist('game', 'languages', $r['lang']) ?? '#'.$r['lang'];
-
-            // a gossip menu has no name of its own and a line nothing references has no page at
-            // all, so the component hands over a label for the cases a g_* lookup cannot cover
-            if ($r['ownerName'])
-                $row['ownername'] = $r['ownerName'];
-
-            foreach ($r['refs'] as $ref)
-            {
-                $x = ['src' => $ref['src']];
-                if ($ref['ownerName'])
-                    $x['ownername'] = $ref['ownerName'];
-
-                if ($ref['ownerType'] && $ref['ownerId'] > 0)
-                {
-                    $x['ownerid']  = $ref['ownerId'];
-                    $x['ownerurl'] = Type::getFileString($ref['ownerType']);
-
-                    if ($_ = Type::getJSGlobalString($ref['ownerType']))
-                    {
-                        $x['ownerlookup'] = $_;
-                        $jsg[$ref['ownerType']][$ref['ownerId']] = $ref['ownerId'];
-                    }
-                }
-
-                $row['refs'][] = $x;
-            }
-
-            if ($r['ownerType'] && $r['ownerId'] > 0)
-            {
-                $row['ownerid']  = $r['ownerId'];
-                $row['ownerurl'] = Type::getFileString($r['ownerType']);
-
-                // the listview cannot map a Type to its g_* lookup on its own, so name it here
-                if ($_ = Type::getJSGlobalString($r['ownerType']))
-                {
-                    $row['ownerlookup'] = $_;
-                    $jsg[$r['ownerType']][$r['ownerId']] = $r['ownerId'];
-                }
-            }
-
-            $data[] = $row;
-        }
-
+        [$data, $jsg] = GameText::getListviewData($rows);
         $this->extendGlobalData($jsg);
 
         return $data;

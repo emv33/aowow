@@ -34,6 +34,7 @@ class Listview implements \JsonSerializable
         'faction'           => ['template' => 'faction',           'id' => 'factions',        'name' => '$LANG.tab_factions'      ],
         'genericmodel'      => ['template' => 'genericmodel',      'id' => 'same-model-as',   'name' => '$LANG.tab_samemodelas'   ],
         'gossip'            => ['template' => 'gossip',            'id' => 'gossip',                                              ], // aowow - custom
+        'language'          => ['template' => 'language',          'id' => 'languages',                                           ], // aowow - custom
         'smartai'           => ['template' => 'smartai',           'id' => 'smartai',                                             ], // aowow - custom
         'text'              => ['template' => 'text',              'id' => 'texts',                                               ], // aowow - custom
         'teleport'          => ['template' => 'teleport',          'id' => 'teleports',                                           ], // aowow - custom
