@@ -196,7 +196,12 @@ class Gossip
                     $delay = (int)($this->col($row, 'EmoteDelay'.$i.'_'.$j) ?? $this->col($row, 'em'.$i.'_'.($j * 2))     ?? 0);
                     $emote = (int)($this->col($row, 'Emote'.$i.'_'.$j)      ?? $this->col($row, 'em'.$i.'_'.($j * 2 + 1)) ?? 0);
                     if ($emote)
+                    {
+                        // npc_text.EmoteN_M are Emotes.dbc ids, i.e. the negative ids of ?emote=;
+                        // registered here, as buildMarkupFor() collects the globals before the body
+                        $this->jsGlobals[Type::EMOTE][-$emote] = -$emote;
                         $emotes[] = [$emote, $delay];
+                    }
                 }
 
                 $slots[$i] = array(
@@ -532,7 +537,7 @@ class Gossip
                 {
                     $em = [];
                     foreach ($slot['emotes'] as [$emote, $delay])
-                        $em[] = Lang::gossip('emote', [$emote]) . ($delay ? Lang::main('parensFmt', ['', Lang::gossip('emoteDelay', [$delay])]) : '');
+                        $em[] = '[emote='.-$emote.']' . ($delay ? Lang::main('parensFmt', ['', Lang::gossip('emoteDelay', [$delay])]) : '');
 
                     $body[] = '[i][small class=q0]'.Lang::gossip('emotes').Lang::main('colon').Lang::concat($em).'[/small][/i]';
                 }
@@ -804,10 +809,11 @@ class Gossip
      * gossip menu nor quest text and so appeared on no page at all; for a trainer also the line
      * atop its trainer window
      *
-     * @param  int $type   Type::NPC or Type::OBJECT
-     * @param  int $entry  creature or gameobject entry
+     * @param  int    $type       Type::NPC or Type::OBJECT
+     * @param  int    $entry      creature or gameobject entry
+     * @param  array &$jsGlobals  receives the globals referenced by the rendered sections
      */
-    public static function buildGreetingFor(int $type, int $entry) : ?Markup
+    public static function buildGreetingFor(int $type, int $entry, ?array &$jsGlobals = []) : ?Markup
     {
         if ($entry <= 0)
             return null;
@@ -823,7 +829,10 @@ class Gossip
         if (!$sections)
             return null;
 
-        return new Markup('[style]'.strtr(self::BASE_CSS, "\n", ' ').'[/style]'.$sections, ['allow' => Markup::CLASS_ADMIN], 'gossip-generic');
+        $markup = new Markup('[style]'.strtr(self::BASE_CSS, "\n", ' ').'[/style]'.$sections, ['allow' => Markup::CLASS_ADMIN], 'gossip-generic');
+        Util::mergeJsGlobals($jsGlobals, $markup->getJSGlobals());  // the [emote=] tag needs its id as global
+
+        return $markup;
     }
 
     private static function questGreeting(int $type, int $entry) : ?string
@@ -864,8 +873,9 @@ class Gossip
 
         $body = '[span class=gossip-text]'.UIText::format($text, Lang::FMT_MARKUP).'[/span]';
 
+        // quest_greeting.GreetEmoteType is an Emotes.dbc id, the negative ids of ?emote= as well
         if ($emote = (int)($r['greetemotetype'] ?? $r['emote'] ?? 0))
-            $body .= '[br][i][small class=q0]'.Lang::gossip('emote', [$emote]).'[/small][/i]';
+            $body .= '[br][i][small class=q0][emote='.-$emote.'][/small][/i]';
 
         return $body;
     }

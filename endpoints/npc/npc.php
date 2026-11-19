@@ -48,7 +48,9 @@ class NpcBaseResponse extends TemplateResponse implements ICache
     {
         $this->applyXRef();                                 // aowow - custom
         $this->rawRow = RawRow::buildFor($this->type, $this->typeId);   // aowow - custom
-        $this->questGreeting = Gossip::buildGreetingFor(Type::NPC, $this->typeId);   // aowow - custom
+        $greetingJSG = [];
+        $this->questGreeting = Gossip::buildGreetingFor(Type::NPC, $this->typeId, $greetingJSG);   // aowow - custom
+        $this->extendGlobalData($greetingJSG);
 
         $this->subject = new CreatureList(array(['id', $this->typeId]));
         if ($this->subject->error)
