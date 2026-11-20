@@ -199,6 +199,10 @@ $lang = array(
         'translateResult'       => "Was der Leser sieht",
         'translateUnavailable'  => "Die Wortlisten (LanguageWords.dbc) sind nicht extrahiert, Text kann daher noch nicht umgewandelt werden.",
 
+        // language words
+        'words'                 => "Wörter",
+        'letterCount'           => ["%d Buchstabe", "%d Buchstaben"],
+
         // search
         'search'        => "Suche",
         'foundResult'   => "Suchergebnisse für",

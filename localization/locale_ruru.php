@@ -200,6 +200,10 @@ $lang = array(
         'translateResult'       => "Что видит читатель",
         'translateUnavailable'  => "Списки слов (LanguageWords.dbc) не извлечены, текст пока нельзя преобразовать.",
 
+        // language words
+        'words'                 => "Слова",
+        'letterCount'           => ["%d буква", "%d буквы"],
+
         // search
         'search'        => "Поиск",
         'foundResult'   => "Результаты поиска для",

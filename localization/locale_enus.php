@@ -200,6 +200,10 @@ $lang = array(
         'translateResult'       => "What the reader sees",
         'translateUnavailable'  => "The language word lists (LanguageWords.dbc) aren't extracted, so text can't be scrambled yet.",
 
+        // language words
+        'words'                 => "Words",
+        'letterCount'           => ["%d letter", "%d letters"],
+
         // search
         'search'        => "Search",
         'foundResult'   => "Search Results for",

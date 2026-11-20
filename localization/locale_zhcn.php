@@ -200,6 +200,10 @@ $lang = array(
         'translateResult'       => "读者看到的内容",
         'translateUnavailable'  => "尚未提取语言词表（LanguageWords.dbc），暂时无法转换文本。",
 
+        // language words
+        'words'                 => "单词",
+        'letterCount'           => ["%d个字母", "%d个字母"],
+
         // search
         'search'        => "搜索",
         'foundResult'   => "搜索结果关于",

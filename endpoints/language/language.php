@@ -98,25 +98,20 @@ class LanguageBaseResponse extends TemplateResponse implements ICache
 
         $this->lvTabs = new Tabs(['parent' => "\$\$WH.ge('tabs-generic')"], 'tabsRelated', true);
 
-        // tab: the scramble words this language replaces text with (LanguageWords.dbc)
+        // the scramble words this language replaces text with (LanguageWords.dbc), as an inline summary table
         $wordList = LanguageTranslate::getWords()[$this->typeId] ?? [];
         if ($wordList)
         {
-            $data = [];
-            $i    = 0;
             ksort($wordList);                               // order by number of letters
+            $letterCount = Lang::main('letterCount');       // ["%d letter", "%d letters"]
+            $rows = '';
             foreach ($wordList as $len => $words)
             {
                 sort($words);
-                foreach ($words as $word)
-                    $data[] = ['id' => ++$i, 'word' => $word, 'len' => $len];
+                $rows .= '[tr][td][b]'.sprintf($letterCount[$len == 1 ? 0 : 1], $len).'[/b][/td][td]'.implode(', ', $words).'[/td][/tr]';
             }
 
-            $this->lvTabs->addListviewTab(new Listview(array(
-                'data' => $data,
-                'id'   => 'words',
-                'name' => '$LANG.tab_words'
-            ), 'languageword', 'languageword'));
+            $this->extraText = new Markup('[h3 class=clear]'.Lang::main('words').'[/h3][table class=grid]'.$rows.'[/table]', ['dbpage' => true, 'allow' => Markup::CLASS_ADMIN], 'text-generic');
         }
 
         // tab: readable items written in this language

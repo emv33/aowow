@@ -200,6 +200,10 @@ $lang = array(
         'translateResult'       => "Lo que ve el lector",
         'translateUnavailable'  => "Las listas de palabras (LanguageWords.dbc) no están extraídas, aún no se puede transformar el texto.",
 
+        // language words
+        'words'                 => "Palabras",
+        'letterCount'           => ["%d letra", "%d letras"],
+
         // search
         'search'        => "Búsqueda",
         'foundResult'   => "Resultados de busqueda para",
