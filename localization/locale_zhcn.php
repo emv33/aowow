@@ -190,6 +190,16 @@ $lang = array(
         'chooseClass'   => "选择一个职业：",
         'chooseFamily'  => "选择一个宠物家族：",
 
+        // language translator
+        'translate'             => "语言翻译器",
+        'translateText'         => "文本",
+        'translateLang'         => "所说语言",
+        'translateSkill'        => "听者的语言技能",
+        'translateSkillHint'    => "（0 = 完全不懂，300 = 完全理解）",
+        'translateSubmit'       => "翻译",
+        'translateResult'       => "读者看到的内容",
+        'translateUnavailable'  => "尚未提取语言词表（LanguageWords.dbc），暂时无法转换文本。",
+
         // search
         'search'        => "搜索",
         'foundResult'   => "搜索结果关于",

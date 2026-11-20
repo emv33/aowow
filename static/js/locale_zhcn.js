@@ -1051,6 +1051,7 @@ var mn_tools = [
     [0,"天赋模拟器","?talent",mn_talentCalc],
     [2,"猎人宠物模拟器","?petcalc",mn_petCalc],
     [3,"物品比较","?compare"],
+    [9,"语言翻译器","?translate"],
     [5,"Profiler","?profiler",[
         [0,"角色","?profiles"],
         [2,"公会","?guilds"],

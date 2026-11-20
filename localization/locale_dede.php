@@ -189,6 +189,16 @@ $lang = array(
         'chooseClass'   => "Wählt eine Klasse:",
         'chooseFamily'  => "Wählt eine Tierart:",
 
+        // language translator
+        'translate'             => "Sprachübersetzer",
+        'translateText'         => "Text",
+        'translateLang'         => "Gesprochene Sprache",
+        'translateSkill'        => "Sprachfertigkeit des Zuhörers",
+        'translateSkillHint'    => "(0 = versteht nichts, 300 = versteht alles)",
+        'translateSubmit'       => "Übersetzen",
+        'translateResult'       => "Was der Leser sieht",
+        'translateUnavailable'  => "Die Wortlisten (LanguageWords.dbc) sind nicht extrahiert, Text kann daher noch nicht umgewandelt werden.",
+
         // search
         'search'        => "Suche",
         'foundResult'   => "Suchergebnisse für",

@@ -190,6 +190,16 @@ $lang = array(
         'chooseClass'   => "Выберите класс:",
         'chooseFamily'  => "Выберите семейство питомцев:",
 
+        // language translator
+        'translate'             => "Переводчик языков",
+        'translateText'         => "Текст",
+        'translateLang'         => "Разговорный язык",
+        'translateSkill'        => "Навык слушателя",
+        'translateSkillHint'    => "(0 = не понимает, 300 = понимает полностью)",
+        'translateSubmit'       => "Перевести",
+        'translateResult'       => "Что видит читатель",
+        'translateUnavailable'  => "Списки слов (LanguageWords.dbc) не извлечены, текст пока нельзя преобразовать.",
+
         // search
         'search'        => "Поиск",
         'foundResult'   => "Результаты поиска для",

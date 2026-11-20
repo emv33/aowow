@@ -1051,6 +1051,7 @@ var mn_tools = [
     [0,"Talent Calculator","?talent",mn_talentCalc],
     [2,"Hunter Pet Calculator","?petcalc",mn_petCalc],
     [3,"Item Comparison","?compare"],
+    [9,"Language Translator","?translate"],
     [5,"Profiler","?profiler",[
         [0,"Characters","?profiles"],
         [2,"Guilds","?guilds"],

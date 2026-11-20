@@ -190,6 +190,16 @@ $lang = array(
         'chooseClass'   => "Choose a class:",
         'chooseFamily'  => "Choose a pet family:",
 
+        // language translator
+        'translate'             => "Language Translator",
+        'translateText'         => "Text",
+        'translateLang'         => "Spoken language",
+        'translateSkill'        => "Listener's skill",
+        'translateSkillHint'    => "(0 = can't understand, 300 = fully understands)",
+        'translateSubmit'       => "Translate",
+        'translateResult'       => "What the reader sees",
+        'translateUnavailable'  => "The language word lists (LanguageWords.dbc) aren't extracted, so text can't be scrambled yet.",
+
         // search
         'search'        => "Search",
         'foundResult'   => "Search Results for",

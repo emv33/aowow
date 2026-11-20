@@ -190,6 +190,16 @@ $lang = array(
         'chooseClass'   => "Choisissez une classe :",
         'chooseFamily'  => "Choisissez un familier :",
 
+        // language translator
+        'translate'             => "Traducteur de langues",
+        'translateText'         => "Texte",
+        'translateLang'         => "Langue parlée",
+        'translateSkill'        => "Compétence de l'auditeur",
+        'translateSkillHint'    => "(0 = ne comprend pas, 300 = comprend tout)",
+        'translateSubmit'       => "Traduire",
+        'translateResult'       => "Ce que voit le lecteur",
+        'translateUnavailable'  => "Les listes de mots (LanguageWords.dbc) ne sont pas extraites, le texte ne peut pas encore être transformé.",
+
         // search
         'search'        => "Recherche",
         'foundResult'   => "Résultats de recherche pour",

@@ -1005,6 +1005,7 @@ var mn_tools = [
     [0,"Calculateur de talents","?talent",mn_talentCalc],
     [2,"Calculateur de familiers","?petcalc",mn_petCalc],
     [3,"Comparaison d'objets","?compare"],
+    [9,"Traducteur de langues","?translate"],
     [5,"Profiler","?profiler",[
         [0,"Consulter","?profiles"],
         [2,"Guildes","?guilds"],
