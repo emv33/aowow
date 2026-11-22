@@ -2575,6 +2575,7 @@ $lang = array(
             POWER_HEALTH      => "每5秒的生命值恢复 %s",
         ),
         '_forms'        => "形态",
+        '_formsNot'     => "Excluded forms",
         '_aura'         => "光环",
         '_effect'       => "效果",
         '_none'         => "无",
@@ -2680,6 +2681,8 @@ $lang = array(
         ),
         'missileSpeed'  => 'Missile speed: %1$s yd/s',
         'runicPowerGain'=> 'Generates %1$s runic power',
+        'maxTargets'    => 'Affects up to %1$d targets',
+        'baseLevel'     => 'Base level: %1$d',
         'costPerSecondPerLevel' => 'Cost per second grows by %1$d per level',
         // aowow - custom end
         'ppm'           => "%.1f每分钟触发几率",

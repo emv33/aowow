@@ -197,6 +197,17 @@ if ($this->stances):
 <?php
 endif;
 
+if ($this->stancesNot):
+?>
+
+                    <tr>
+                        <th><?=Lang::spell('_formsNot');?></th>
+                        <td colspan="3"><?=$this->stancesNot;?></td>
+                    </tr>
+
+<?php
+endif;
+
 if ($this->items):
 ?>
 

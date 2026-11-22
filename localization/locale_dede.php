@@ -2574,6 +2574,7 @@ $lang = array(
             POWER_HEALTH      => "%s Gesundheit pro 5 Sek.",
         ),
         '_forms'        => "Gestalten",
+        '_formsNot'     => "Excluded forms",
         '_aura'         => "Aura",
         '_effect'       => "Effekt",
         '_none'         => "Nichts",
@@ -2679,6 +2680,8 @@ $lang = array(
         ),
         'missileSpeed'  => 'Missile speed: %1$s yd/s',
         'runicPowerGain'=> 'Generates %1$s runic power',
+        'maxTargets'    => 'Affects up to %1$d targets',
+        'baseLevel'     => 'Base level: %1$d',
         'costPerSecondPerLevel' => 'Cost per second grows by %1$d per level',
         // aowow - custom end
         'ppm'           => "(%.1f Auslösungen pro Minute)",

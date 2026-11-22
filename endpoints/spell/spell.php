@@ -38,6 +38,7 @@ class SpellBaseResponse extends TemplateResponse implements ICache
     public ?string $dispel     = null;
     public ?string $mechanic   = null;
     public  string $stances    = '';
+    public  string $stancesNot = '';
     public  string $cooldown   = '';
     public  string $duration   = '';
     public ?array  $casterAura = null;
@@ -286,6 +287,9 @@ class SpellBaseResponse extends TemplateResponse implements ICache
 
         if (!($this->subject->getField('attributes2') & SPELL_ATTR2_NOT_NEED_SHAPESHIFT))
             $this->stances = Lang::getStances($this->subject->getField('stanceMask'));
+
+        // SpellInfo::CheckShapeshift(): StancesNot is checked before, and regardless of, SPELL_ATTR2_NOT_NEED_SHAPESHIFT
+        $this->stancesNot = Lang::getStances($this->subject->getField('stanceMaskNot'));
 
         if (($_ = $this->subject->getField('recoveryTime')) && $_ > 0)
             $this->cooldown = '<a href="?spells&filter=cr=200;crs=3;crv='.($_ / 1000).'">'.DateTime::formatTimeElapsedFloat($_).'</a>';
@@ -3240,6 +3244,14 @@ class SpellBaseResponse extends TemplateResponse implements ICache
         // Aura::Update(): the per second cost of a channel grows by this much per caster level
         if ($_ = (int)$this->subject->getField('powerPerSecondPerLevel'))
             $out[] = Lang::spell('costPerSecondPerLevel', [$_]);
+
+        // Spell::SelectEffectImplicitTargets(): area effects hit at most this many units
+        if ($_ = (int)$this->subject->getField('maxAffectedTargets'))
+            $out[] = Lang::spell('maxTargets', [$_]);
+
+        // SpellInfo::CalcValue() / Spell::CheckCast(): the level scaling starts here, and items below it are rejected
+        if (($_ = (int)$this->subject->getField('baseLevel')) && $_ != (int)$this->subject->getField('spellLevel'))
+            $out[] = Lang::spell('baseLevel', [$_]);
 
         return $out;
     }
