@@ -18,12 +18,12 @@ class Gossip
     public const int MAX_DEPTH = 3;                         // ActionMenuID chains are cyclic in live data; stop descending here
 
     private const string BASE_CSS = <<<CSS
-        #gossip-generic .grid { clear:left; display: grid; }
-        #gossip-generic .grid thead,
-        #gossip-generic .grid tbody,
-        #gossip-generic .grid tr { display: contents; }
-        #gossip-generic .gossip-text { white-space: pre-wrap; }
-        #gossip-generic .gossip-sub { padding-left: 15px; }
+        [id^=gossip-generic] .grid { clear:left; display: grid; }
+        [id^=gossip-generic] .grid thead,
+        [id^=gossip-generic] .grid tbody,
+        [id^=gossip-generic] .grid tr { display: contents; }
+        [id^=gossip-generic] .gossip-text { white-space: pre-wrap; }
+        [id^=gossip-generic] .gossip-sub { padding-left: 15px; }
     CSS;
 
     public readonly string $uid;                            // id for the [toggler]/[div] pair, so multiple menus can coexist on one page
@@ -830,7 +830,7 @@ class Gossip
         if (!$sections)
             return null;
 
-        $markup = new Markup('[style]'.strtr(self::BASE_CSS, "\n", ' ').'[/style]'.$sections, ['allow' => Markup::CLASS_ADMIN], 'gossip-generic');
+        $markup = new Markup('[style]'.strtr(self::BASE_CSS, "\n", ' ').'[/style]'.$sections, ['allow' => Markup::CLASS_ADMIN], 'gossip-generic-greeting');
         Util::mergeJsGlobals($jsGlobals, $markup->getJSGlobals());  // the [emote=] tag needs its id as global
 
         return $markup;
