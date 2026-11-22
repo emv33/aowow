@@ -197,7 +197,7 @@ final class UIText
     private static function replaceTextVariables(string $text, int $fmt = Lang::FMT_HTML) : string
     {
         $from = array(
-            '/\$g *([^:;]*) *: *([^:;]*) *(:?[^:;]*);/ui',  // $g<male>:<female>:<refVariable>
+            '/\$g *([^:;]*?) *: *([^:;]*?) *(:?[^:;]*);/ui',  // $g<male>:<female>:<refVariable>
             '/\$t([^;]+);/ui',                              // $t<male>:<female>; (maybe male/female if pvp unranked? Gets replaced with current HK rank.)
             '/\$(\d+)w/ui',                                 // $<id>w
             '/\$c/i',
