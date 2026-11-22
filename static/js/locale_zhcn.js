@@ -4056,6 +4056,14 @@ var LANG = {
                             [15, "Ammo"],                           [16, "蓝铁"],                           [17, "蒸汽动力"],                        [18, "Heat"],
                             [19, "Ooze"],                           [20, "Blood Power"],                    [21, "Wrath"]
                         ],
+        aurastate:      [
+                            [1, "Dodged, parried or blocked"], [2, "Health below 20%"], [3, "Berserking"], [4, "Frozen"],
+                            [5, "Judgement"], [6, "Unknown 6"], [7, "Hunter parry"], [8, "Unknown 8"],
+                            [9, "Unknown 9"], [10, "Victory Rush"], [11, "Unknown 11 (Maelstrom Ready!)"], [12, "Faerie Fire"],
+                            [13, "Health below 35%"], [14, "Immolate (Conflagrate)"], [15, "Rejuvenation / Regrowth (Swiftmend)"], [16, "Deadly Poison"],
+                            [17, "Enraged"], [18, "Bleeding"], [19, "Unknown 19"], [20, "Unknown 20 (Suicide)"],
+                            [21, "Unknown 21"], [22, "Unknown 22 (Divine Surge, Evasive Charges)"], [23, "Health above 75%"]
+                        ],
         spellfocus:     [
                             [1, "铁砧"],                              [2, "织布机"],                             [3, "熔炉"],                              [4, "烹饪用火"],                            [663, "炼金实验室"],
                             [883, "月亮井"]
@@ -5098,10 +5106,10 @@ var LANG = {
         // aowow - custom start
         targetcreaturetype:      "Target creature type #...",
         reqfacing:               "Must face the target",
-        casteraurastate:         "Caster aura state #...",
-        targetaurastate:         "Target aura state #...",
-        casteraurastatenot:      "Caster must not be in aura state #...",
-        targetaurastatenot:      "Target must not be in aura state #...",
+        casteraurastate:         "Caster aura state",
+        targetaurastate:         "Target aura state",
+        casteraurastatenot:      "Caster must not be in aura state",
+        targetaurastatenot:      "Target must not be in aura state",
         sepcastaffectedby:       "Cast affected by",
         castinterruptedbymove:   "Movement",
         castpushback:            "Pushback",

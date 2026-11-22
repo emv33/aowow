@@ -559,10 +559,10 @@ var fi_filters = {
         { id: 201,  name: 'duration_stc',           type: 'num'                            }, // aowow - custom
         { id: 202,  name: 'targetcreaturetype',     type: 'num'                            }, // aowow - custom start
         { id: 203,  name: 'reqfacing',              type: 'yn'                             },
-        { id: 204,  name: 'casteraurastate',        type: 'num'                            },
-        { id: 205,  name: 'targetaurastate',        type: 'num'                            },
-        { id: 206,  name: 'casteraurastatenot',     type: 'num'                            },
-        { id: 207,  name: 'targetaurastatenot',     type: 'num'                            },
+        { id: 204,  name: 'casteraurastate',        type: 'aurastate'                    },
+        { id: 205,  name: 'targetaurastate',        type: 'aurastate'                    },
+        { id: 206,  name: 'casteraurastatenot',     type: 'aurastate'                    },
+        { id: 207,  name: 'targetaurastatenot',     type: 'aurastate'                    },
         { id: 216,  name: 'missilespeed',           type: 'num'                            },
         { id: 217,  name: 'runicpowergain',         type: 'num'                            },
         { id: 218,  name: 'hasprocentry',           type: 'yn'                             },

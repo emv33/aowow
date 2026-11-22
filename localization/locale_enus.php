@@ -2846,10 +2846,14 @@ $lang = array(
         'attackTypes'   => ["Main Hand", "Off Hand", "Ranged"], // aowow - custom: SpellInfo::GetAttackType()
         // AuraStateType, as checked by SPELL_AURA_MOD_DAMAGE_DONE_VERSUS_AURASTATE; labels are English in all locales
         'auraStates'    => array(
-             1 => "Dodged, parried or blocked",     2 => "Health below 20%",               3 => "Berserking",                     4 => "Frozen",
-             5 => "Judgement",                      7 => "Hunter parry",                  10 => "Victory Rush",                  12 => "Faerie Fire",
-            13 => "Health below 35%",              14 => "Immolate (Conflagrate)",        15 => "Rejuvenation / Regrowth (Swiftmend)", 16 => "Deadly Poison",
-            17 => "Enraged",                       18 => "Bleeding",                      23 => "Health above 75%"
+             1 => "Dodged, parried or blocked",   2 => "Health below 20%",   3 => "Berserking",
+             4 => "Frozen",   5 => "Judgement",   6 => "Unknown 6",
+             7 => "Hunter parry",   8 => "Unknown 8",   9 => "Unknown 9",
+            10 => "Victory Rush",  11 => "Unknown 11 (Maelstrom Ready!)",  12 => "Faerie Fire",
+            13 => "Health below 35%",  14 => "Immolate (Conflagrate)",  15 => "Rejuvenation / Regrowth (Swiftmend)",
+            16 => "Deadly Poison",  17 => "Enraged",  18 => "Bleeding",
+            19 => "Unknown 19",  20 => "Unknown 20 (Suicide)",  21 => "Unknown 21",
+            22 => "Unknown 22 (Divine Surge, Evasive Charges)",  23 => "Health above 75%"
         ),
         'destructibleState' => ["Intact", "Damaged", "Destroyed", "Rebuilding"], // GameObjectDestructibleState
         // aowow - custom: who/what an effect affects (effectNImplicitTargetA/B); labels are English in all locales

@@ -2530,6 +2530,8 @@ class SpellList extends DBTypeList
 
 class SpellListFilter extends Filter
 {
+    private const array AURA_STATES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]; // aowow - custom: AuraStateType values, labels in LANG.fidropdowns.aurastate
+
     const int MAX_SPELL_EFFECT = 167;
     const int MAX_SPELL_AURA   = 316;
 
@@ -2852,6 +2854,10 @@ class SpellListFilter extends Filter
 
     protected string $type  = 'spells';
     protected static array $enums = array(
+        204 => self::AURA_STATES,                           // aowow - custom: Spell.dbc aura states, crs is the state itself
+        205 => self::AURA_STATES,
+        206 => self::AURA_STATES,
+        207 => self::AURA_STATES,
         9 => array(                                         // sources index
             1  => true,                                     // Any
             2  => false,                                    // None
@@ -3239,10 +3245,10 @@ class SpellListFilter extends Filter
         // aowow - custom start: Spell.dbc fields extracted for the spell page
         202 => [parent::CR_CALLBACK,  'cbMaskBit',          'targetCreatureType'                                                  ], // targetcreaturetype [num]
         203 => [parent::CR_FLAG,      'facingCasterFlags',  0x1                                                                   ], // reqfacing [yn]
-        204 => [parent::CR_NUMERIC,   'casterAuraState',    NUM_CAST_INT                                                          ], // casteraurastate [num]
-        205 => [parent::CR_NUMERIC,   'targetAuraState',    NUM_CAST_INT                                                          ], // targetaurastate [num]
-        206 => [parent::CR_NUMERIC,   'casterAuraStateNot', NUM_CAST_INT                                                          ], // casteraurastatenot [num]
-        207 => [parent::CR_NUMERIC,   'targetAuraStateNot', NUM_CAST_INT                                                          ], // targetaurastatenot [num]
+        204 => [parent::CR_ENUM,      'casterAuraState',            false, true                                           ], // casteraurastate [aurastate]
+        205 => [parent::CR_ENUM,      'targetAuraState',            false, true                                           ], // targetaurastate [aurastate]
+        206 => [parent::CR_ENUM,      'casterAuraStateNot',         false, true                                           ], // casteraurastatenot [aurastate]
+        207 => [parent::CR_ENUM,      'targetAuraStateNot',         false, true                                           ], // targetaurastatenot [aurastate]
         208 => [parent::CR_FLAG,      'interruptFlags',     0x01                                                                  ], // castinterruptedbymove [yn]
         209 => [parent::CR_FLAG,      'interruptFlags',     0x02                                                                  ], // castpushback [yn]
         210 => [parent::CR_FLAG,      'interruptFlags',     0x08                                                                  ], // castinterruptible [yn]
