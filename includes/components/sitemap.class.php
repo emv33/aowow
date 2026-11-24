@@ -402,8 +402,8 @@ class Sitemap
             return $ids;
 
         $ids = [];
-        foreach (DB::Aowow()->selectAssoc('SELECT CONCAT(`kind`, ":", `creatureOrPath`) AS ARRAY_KEY, `kind`, `creatureOrPath` FROM ::creature_waypoints GROUP BY `kind`, `creatureOrPath`') ?: [] as $r)
-            $ids[] = WaypointPathList::encodeId((int)$r['kind'], -(int)$r['creatureOrPath']);
+        foreach (DB::Aowow()->selectAssoc('SELECT CONCAT(`kind`, ":", `pathId`) AS ARRAY_KEY, `kind`, `pathId` FROM ::creature_waypoints GROUP BY `kind`, `pathId`') ?: [] as $r)
+            $ids[] = WaypointPathList::encodeId((int)$r['kind'], (int)$r['pathId']);
 
         sort($ids);
 

@@ -119,11 +119,11 @@ CLISetup::registerSetup("sql", new class extends SetupScript
         $result = [];
         $spawns = DB::Aowow()->selectAssoc(
            'SELECT   s.`typeId`, z.`mapIdBak` AS "mapId", BIT_OR(IF(s.`spawnMask` = 0, %i, s.`spawnMask`)) AS "spawnMask"
-            FROM     ::spawns s
+            FROM     %n s
             JOIN     ::zones z ON z.`id` = s.`areaId`
-            WHERE    s.`type` = %i AND s.`typeId` IN %in
+            WHERE    s.`typeId` IN %in
             GROUP BY s.`typeId`, z.`mapIdBak`',
-            self::ALL_MODES, $type, $ids
+            self::ALL_MODES, WorldPosition::getStorageByType($type), $ids
         );
 
         foreach ($spawns as ['typeId' => $id, 'mapId' => $mapId, 'spawnMask' => $mask])

@@ -208,7 +208,7 @@ class SmartaiBaseResponse extends TemplateResponse implements ICache
                 };
 
                 // a negative entryorguid is a spawn guid, not a template entry; resolve it through
-                // ::spawns so a guid-scoped script still links to the creature/object it overrides
+                // the spawn tables so a guid-scoped script still links to the creature/object it overrides
                 $linkId = $r['entry'] > 0 ? $r['entry'] : ($guidLookup[$r['srcType']][$r['entry']] ?? 0);
 
                 if ($type && $linkId > 0)
@@ -260,7 +260,7 @@ class SmartaiBaseResponse extends TemplateResponse implements ICache
         foreach ($guidsByType as $type => $guids)
         {
             $srcType = $type == Type::NPC ? SmartAI::SRC_TYPE_CREATURE : SmartAI::SRC_TYPE_OBJECT;
-            foreach (DB::Aowow()->selectCol('SELECT `guid` AS ARRAY_KEY, `typeId` FROM ::spawns WHERE `type` = %i AND `guid` IN %in', $type, $guids) ?: [] as $guid => $typeId)
+            foreach (DB::Aowow()->selectCol('SELECT `guid` AS ARRAY_KEY, `typeId` FROM %n WHERE `guid` IN %in', WorldPosition::getStorageByType($type), $guids) ?: [] as $guid => $typeId)
                 $out[$srcType][-$guid] = $typeId;
         }
 

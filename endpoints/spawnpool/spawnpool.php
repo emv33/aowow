@@ -121,14 +121,14 @@ class SpawnpoolBaseResponse extends TemplateResponse implements ICache
             if (!$guids)
                 continue;
 
-            foreach (DB::Aowow()->selectAssoc('SELECT `guid`, `areaId`, `floor`, `posX`, `posY` FROM ::spawns WHERE `type` = %i AND `guid` IN %in AND `posX` > 0 AND `posY` > 0', $type, array_keys($guids)) ?: [] as $s)
+            foreach (DB::Aowow()->selectAssoc('SELECT `guid`, `areaId`, `floor`, `areaX`, `areaY` FROM %n WHERE `guid` IN %in AND `areaX` > 0 AND `areaY` > 0', WorldPosition::getStorageByType($type), array_keys($guids)) ?: [] as $s)
             {
                 $entry = $guids[$s['guid']];
                 $info  = ['GUID'.Lang::main('colon').$s['guid']];
                 if (isset($chance[$type][$s['guid']]))
                     $info[] = '<span class="q0">'.Lang::pool('chance', [$chance[$type][$s['guid']]]).'</span>';
 
-                $data[$s['areaId']][$s['floor']]['coords'][] = [$s['posX'], $s['posY'], array(
+                $data[$s['areaId']][$s['floor']]['coords'][] = [$s['areaX'], $s['areaY'], array(
                     'tooltip' => [($names[$type][$entry] ?? '#'.$entry) => ['info' => $info]],
                     'url'     => '?'.Type::getFileString($type).'='.$entry,
                     'type'    => $type == Type::NPC ? 0 : 3

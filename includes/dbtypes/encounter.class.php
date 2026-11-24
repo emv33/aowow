@@ -139,11 +139,11 @@ class EncounterList extends DBTypeList
 
         $rows = DB::Aowow()->selectAssoc(
            'SELECT s.`typeId` AS ARRAY_KEY, MIN(z.`id`) AS "areaId"
-            FROM   ::spawns s
+            FROM   ::creature_spawns s
             JOIN   ::zones z ON z.`id` = s.`areaId` AND z.`parentArea` = 0
-            WHERE  s.`type` = %i AND s.`typeId` IN %in AND s.`areaId` > 0
+            WHERE  s.`typeId` IN %in AND s.`areaId` > 0
             GROUP BY s.`typeId`',
-            Type::NPC, array_keys($byEntry)
+            array_keys($byEntry)
         ) ?: [];
 
         $out = [];

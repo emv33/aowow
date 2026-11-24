@@ -160,7 +160,7 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
         }
 
         // Instances
-        if ($_ = DB::Aowow()->selectCol('SELECT `typeId` FROM ::spawns WHERE `type`= %i AND `areaId` = %i ', Type::ZONE, $this->typeId))
+        if ($_ = DB::Aowow()->selectCol('SELECT `typeId` FROM ::zones_spawns WHERE `areaId` = %i ', $this->typeId))
         {
             $this->extendGlobalIds(Type::ZONE, ...$_);
             $infobox[] = Lang::maps('Instances').Lang::main('colon').Lang::concat($_, Lang::CONCAT_NONE, fn($x) => "\n[zone=".$x."]");
@@ -179,7 +179,7 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
         parent::generate(); // calls applyGlobals .. probably too early here, but addMoveLocationMenu requires PageTemplate to be initialized
 
         // location (if instance)
-        if ($pa = DB::Aowow()->selectRow('SELECT `areaId`, `posX`, `posY`, `floor` FROM ::spawns WHERE `type`= %i AND `typeId` = %i ', Type::ZONE, $this->typeId))
+        if ($pa = DB::Aowow()->selectRow('SELECT `areaId`, `areaX`, `areaY`, `floor` FROM ::zones_spawns WHERE `typeId` = %i ', $this->typeId))
         {
             $this->addMoveLocationMenu($pa['areaId'], $pa['floor']);
 
@@ -278,7 +278,7 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
         // it is the server's own row for an instance map - whether mounts work inside, which map it
         // is entered from, and the name of the C++ script that runs it
         // a sub-area has no entrance row of its own; it is entered through its parent zone's
-        $entrance = $pa ?: ($_parentArea ? DB::Aowow()->selectRow('SELECT `areaId`, `posX`, `posY`, `floor` FROM ::spawns WHERE `type`= %i AND `typeId` = %i ', Type::ZONE, $_parentArea) : null);
+        $entrance = $pa ?: ($_parentArea ? DB::Aowow()->selectRow('SELECT `areaId`, `areaX`, `areaY`, `floor` FROM ::zones_spawns WHERE `typeId` = %i ', $_parentArea) : null);
         foreach ($this->getInstanceTemplate($mapId, $entrance ?: null) as $line)
             $infobox[] = $line;
         // aowow - custom end
@@ -333,9 +333,11 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
             $this->extraText = new Markup(Lang::zone('continentOutside'), ['dbpage' => true, 'allow' => Markup::CLASS_ADMIN], 'text-generic');
 
         // we cannot fetch spawns via lists. lists are grouped by entry
-        $oSpawns = DB::Aowow()->selectAssoc('SELECT * FROM ::spawns WHERE `areaId` = %i AND `type` = %i AND `posX` > 0 AND `posY` > 0', $this->typeId, Type::OBJECT);
-        $cSpawns = DB::Aowow()->selectAssoc('SELECT * FROM ::spawns WHERE `areaId` = %i AND `type` = %i AND `posX` > 0 AND `posY` > 0', $this->typeId, Type::NPC);
-        $aSpawns = User::canSee(U_GROUP_STAFF) ? DB::Aowow()->selectAssoc('SELECT * FROM ::spawns WHERE `areaId` = %i AND `type` = %i AND `posX` > 0 AND `posY` > 0', $this->typeId, Type::AREATRIGGER) : [];
+        $oSpawns = DB::Aowow()->selectAssoc('SELECT `typeId`, `areaX`, `areaY`, `floor` FROM ::objects_spawns WHERE `areaId` = %i AND `areaX` > 0 AND `areaY` > 0', $this->typeId);
+        $cSpawns = DB::Aowow()->selectAssoc('SELECT `typeId`, `areaX`, `areaY`, `floor` FROM ::creature_spawns WHERE `areaId` = %i AND `areaX` > 0 AND `areaY` > 0', $this->typeId);
+        $aSpawns = [];
+        if (User::canSee(U_GROUP_STAFF))
+            $aSpawns = DB::Aowow()->selectAssoc('SELECT `typeId`, `areaX`, `areaY`, `floor` FROM ::areatrigger_spawns WHERE `areaId` = %i AND `areaX` > 0 AND `areaY` > 0 AND (`flags` & %i) = 0', $this->typeId, SPAWNTYPE_TELEPORTER_DEST);
 
         $conditions = [['s.areaId', $this->typeId]];
         if (!User::canSee(U_GROUP_STAFF))
@@ -425,7 +427,7 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
                 if ($what)
                 {
                     $blob = array(
-                        'coords' => [[$spawn['posX'], $spawn['posY']]],
+                        'coords' => [[$spawn['areaX'], $spawn['areaY']]],
                         'level'  => $spawn['floor'],
                         'name'   => $n,
                         'type'   => Type::OBJECT,
@@ -445,7 +447,7 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
                 {
                     if (($tpl['A'] != -1) && ($_ = $questsStarted->getSOMData($startEndMap[-$tpl['id']], SIDE_ALLIANCE)))
                         $addToSOM('alliancequests', $n, array(
-                            'coords' => [[$spawn['posX'], $spawn['posY']]],
+                            'coords' => [[$spawn['areaX'], $spawn['areaY']]],
                             'level'  => $spawn['floor'],
                             'name'   => $n,
                             'type'   => Type::OBJECT,
@@ -456,7 +458,7 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
 
                     if (($tpl['H'] != -1) && ($_ = $questsStarted->getSOMData($startEndMap[-$tpl['id']], SIDE_HORDE)))
                         $addToSOM('hordequests', $n, array(
-                            'coords' => [[$spawn['posX'], $spawn['posY']]],
+                            'coords' => [[$spawn['areaX'], $spawn['areaY']]],
                             'level'  => $spawn['floor'],
                             'name'   => $n,
                             'type'   => Type::OBJECT,
@@ -478,7 +480,7 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
                 $sn = Util::localizedString($tpl, 'subname');
 
                 $somNPC = array(
-                    'coords'        => [[$spawn['posX'], $spawn['posY']]],
+                    'coords'        => [[$spawn['areaX'], $spawn['areaY']]],
                     'level'         => $spawn['floor'],
                     'name'          => $n,
                     'type'          => Type::NPC,
@@ -513,13 +515,13 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
                     $addToSOM('rare', $n, $somNPC);
 
                 if ($tpl['npcflag'] & NPC_FLAG_FLIGHT_MASTER)
-                    $flightNodes[$tpl['id']] = [$spawn['posX'], $spawn['posY']];
+                    $flightNodes[$tpl['id']] = [$spawn['areaX'], $spawn['areaY']];
 
                 if ($tpl['startsQuests'])
                 {
                     if (($tpl['A'] != -1) && ($_ = $questsStarted->getSOMData($startEndMap[$tpl['id']], SIDE_ALLIANCE)))
                         $addToSOM('alliancequests', $n, array(
-                            'coords'        => [[$spawn['posX'], $spawn['posY']]],
+                            'coords'        => [[$spawn['areaX'], $spawn['areaY']]],
                             'level'         => $spawn['floor'],
                             'name'          => $n,
                             'type'          => Type::NPC,
@@ -532,7 +534,7 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
 
                     if (($tpl['H'] != -1) && ($_ = $questsStarted->getSOMData($startEndMap[$tpl['id']], SIDE_HORDE)))
                         $addToSOM('hordequests', $n, array(
-                            'coords'        => [[$spawn['posX'], $spawn['posY']]],
+                            'coords'        => [[$spawn['areaX'], $spawn['areaY']]],
                             'level'         => $spawn['floor'],
                             'name'          => $n,
                             'type'          => Type::NPC,
@@ -547,16 +549,13 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
 
             foreach ($aSpawns as $spawn)
             {
-                if ($spawn['guid'] < 0)                     // skip teleporter endpoints
-                    continue;
-
                 $tpl = $atSpawns->getEntry($spawn['typeId']);
                 if (!$tpl)
                     continue;
 
                 $n = Util::localizedString($tpl, 'name');
                 $addToSOM('areatrigger', $n, array(
-                    'coords'        => [[$spawn['posX'], $spawn['posY']]],
+                    'coords'        => [[$spawn['areaX'], $spawn['areaY']]],
                     'level'         => $spawn['floor'],
                     'name'          => $n,
                     'type'          => Type::AREATRIGGER,
@@ -798,8 +797,8 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
             $this->lvTabs->addListviewTab(new Listview($tabData, AreaTriggerList::$brickFile, AreaTriggerList::$brickFile));
         }
 
-        // the areatriggers whose teleport target (stored as a spawn with negative guid) lies in this zone
-        if ($inbound = DB::Aowow()->selectCol('SELECT DISTINCT `typeId` FROM ::spawns WHERE `type` = %i AND `guid` < 0 AND `areaId` = %i', Type::AREATRIGGER, $this->typeId))
+        // the areatriggers whose teleport target (stored as a spawn flagged SPAWNTYPE_TELEPORTER_DEST) lies in this zone
+        if ($inbound = DB::Aowow()->selectCol('SELECT DISTINCT `typeId` FROM ::areatrigger_spawns WHERE (`flags` & %i) AND `areaId` = %i', SPAWNTYPE_TELEPORTER_DEST, $this->typeId))
         {
             $atInbound = new AreaTriggerList(array(['id', $inbound]));
             if (!$atInbound->error)
@@ -1065,7 +1064,7 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
             $areaIds, $areaIds, $areaIds, $areaIds, $areaIds
         );
 
-        if ($sSpawns = DB::Aowow()->selectCol('SELECT `typeId` FROM ::spawns WHERE `areaId` = %i AND `type` = %i', $this->typeId, Type::SOUND))
+        if ($sSpawns = DB::Aowow()->selectCol('SELECT `typeId` FROM ::sounds_spawns WHERE `areaId` = %i', $this->typeId))
             $soundIds = array_merge($soundIds, $sSpawns);
 
         if ($zoneMusic)
@@ -1146,11 +1145,11 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
         if (!User::isInGroup(U_GROUP_EMPLOYEE))
             return;
 
-        $worldPos = WorldPosition::getForGUID(Type::ZONE, -$this->typeId);
+        $worldPos = WorldPosition::getForGUID(Type::ZONE, $this->typeId);
         if (!$worldPos)
             return;
 
-        $menu = Util::buildPosFixMenu($worldPos[-$this->typeId]['mapId'], $worldPos[-$this->typeId]['posX'], $worldPos[-$this->typeId]['posY'], Type::ZONE, -$this->typeId, $_parentArea, $parentFloor);
+        $menu = Util::buildPosFixMenu($worldPos[$this->typeId]['mapId'], $worldPos[$this->typeId]['mapX'], $worldPos[$this->typeId]['mapY'], Type::ZONE, $this->typeId, $_parentArea, $parentFloor);
         if (!$menu)
             return;
 
@@ -1316,11 +1315,11 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
     /**
      * a [lightbox=map] link to the map a spawn row sits on, pinned at its position
      * the pin code is the tile position - six digits, zero-padded per axis - the
-     * client side decodes back into the same (posX, posY) the mapper displays
+     * client side decodes back into the same (areaX, areaY) the mapper displays
      */
     private static function makeMapLink(array $spawn) : string
     {
-        $pins = str_pad((int)round($spawn['posX'] * 10), 3, '0', STR_PAD_LEFT) . str_pad((int)round($spawn['posY'] * 10), 3, '0', STR_PAD_LEFT);
+        $pins = str_pad((int)round($spawn['areaX'] * 10), 3, '0', STR_PAD_LEFT) . str_pad((int)round($spawn['areaY'] * 10), 3, '0', STR_PAD_LEFT);
 
         return '[lightbox=map zone='.$spawn['areaId'].' '.($spawn['floor'] > 1 ? 'floor='.($spawn['floor'] - 1) : '').' pins='.$pins.']'.ZoneList::getName($spawn['areaId']).'[/lightbox]';
     }
@@ -1365,7 +1364,7 @@ class ZoneBaseResponse extends TemplateResponse implements ICache
             if (!self::hasTable($tbl, false))
                 return [];
 
-        $guids = DB::Aowow()->selectCol('SELECT `guid` FROM ::spawns WHERE `type` = %i AND `areaId` = %i AND `posX` > 0 AND `posY` > 0', Type::NPC, $areaId);
+        $guids = DB::Aowow()->selectCol('SELECT `guid` FROM ::creature_spawns WHERE `areaId` = %i AND `guid` > 0 AND `areaX` > 0 AND `areaY` > 0', $areaId);
         if (!$guids)
             return [];
 

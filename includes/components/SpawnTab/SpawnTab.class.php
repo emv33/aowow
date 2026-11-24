@@ -106,7 +106,7 @@ class SpawnTab
 
         // the zone and zone coordinates the map pins use; a spawn on several floors keeps its lowest
         $pos = [];
-        foreach (DB::Aowow()->selectAssoc('SELECT `guid`, `areaId`, `floor`, `posX`, `posY` FROM ::spawns WHERE `type` = %i AND `guid` IN %in ORDER BY `floor` DESC', $type, $guids) ?: [] as $p)
+        foreach (DB::Aowow()->selectAssoc('SELECT `guid`, `areaId`, `floor`, `areaX`, `areaY` FROM %n WHERE `guid` IN %in ORDER BY `floor` DESC', WorldPosition::getStorageByType($type), $guids) ?: [] as $p)
             $pos[(int)$p['guid']] = $p;
 
         // spawnMask only means something on a map with several difficulties
@@ -161,10 +161,10 @@ class SpawnTab
             {
                 $resp->extendGlobalIds(Type::ZONE, (int)$p['areaId']);
                 $row['zone']     = (int)$p['areaId'];
-                $row['location'] = '[zone='.(int)$p['areaId'].'] [small class=q0]('.Lang::nf((float)$p['posX'], 1).', '.Lang::nf((float)$p['posY'], 1).')[/small]';
+                $row['location'] = '[zone='.(int)$p['areaId'].'] [small class=q0]('.Lang::nf((float)$p['areaX'], 1).', '.Lang::nf((float)$p['areaY'], 1).')[/small]';
 
                 // a zone without a map image gets no link, so its row is not clickable
-                if ($link = self::mapLink((int)$p['areaId'], (int)$p['floor'], (float)$p['posX'], (float)$p['posY']))
+                if ($link = self::mapLink((int)$p['areaId'], (int)$p['floor'], (float)$p['areaX'], (float)$p['areaY']))
                     $row['map'] = $link;
             }
             else

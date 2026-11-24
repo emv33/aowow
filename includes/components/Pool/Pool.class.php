@@ -85,8 +85,8 @@ class Pool
         {
             [$type, $spawnTbl] = self::MEMBER_TYPES[$t];
             $respawn[$t] = DB::World()->selectPairs('SELECT `guid`, `spawntimesecs` FROM %n WHERE `guid` IN %in', $spawnTbl, $g) ?: [];
-            // the world spawn's zoneId is mostly unset, ::spawns has the area resolved from the position
-            $areas[$t]   = DB::Aowow()->selectPairs('SELECT `guid`, `areaId` FROM ::spawns WHERE `type` = %i AND `guid` IN %in', $type, $g) ?: [];
+            // the world spawn's zoneId is mostly unset, the spawn tables has the area resolved from the position
+            $areas[$t]   = DB::Aowow()->selectPairs('SELECT `guid`, `areaId` FROM %n WHERE `guid` IN %in', WorldPosition::getStorageByType($type), $g) ?: [];
         }
 
         // zones and respawn times of a pool and everything below it

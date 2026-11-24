@@ -63,12 +63,14 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
             'name'   => UIText::unescapeUISequences($this->subject->getField('name', true), Lang::FMT_RAW)
         );
 
+        $_typeCat = $this->subject->getField('typeCat');
+
 
         /*************/
         /* Menu Path */
         /*************/
 
-        $this->breadcrumb[] = $this->subject->getField('typeCat');
+        $this->breadcrumb[] = $_typeCat;
 
 
         /**************/
@@ -81,6 +83,8 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
         /**********************/
         /* Determine Map Type */
         /**********************/
+
+        $spawnData = DB::Aowow()->selectAssoc('SELECT `guid` AS "0", `ScriptName` AS "1", `StringId` AS "2", `areaId` AS "3" FROM ::objects_spawns WHERE `typeId` = %i ORDER BY `guid` ASC', $this->typeId);
 
         if ($objectdifficulty = DB::Aowow()->selectAssoc(        // has difficulty versions of itself
            'SELECT `normal10` AS "0", `normal25` AS "1",
@@ -95,9 +99,9 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
             $this->mapType      = key($objectdifficulty);
             $this->difficulties = array_pop($objectdifficulty);
         }
-        else if ($maps = DB::Aowow()->selectCell('SELECT IF(COUNT(DISTINCT `areaId`) > 1, 0, `areaId`) FROM ::spawns WHERE `type` = %i AND `typeId` = %i', Type::OBJECT, $this->typeId))
+        else if (count($areaId = array_unique(array_column($spawnData, 3))) == 1)
         {
-            $this->mapType = match ((int)DB::Aowow()->selectCell('SELECT `type` FROM ::zones WHERE `id` = %i', $maps))
+            $this->mapType = match ((int)DB::Aowow()->selectCell('SELECT `type` FROM ::zones WHERE `id` = %i', ...$areaId))
             {
                 // MAP_TYPE_DUNGEON,
                 MAP_TYPE_DUNGEON_HC    => 1,
@@ -132,7 +136,7 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
                 $infobox[] = $_;
 
         // reqSkill +  difficulty
-        switch ($this->subject->getField('typeCat'))
+        switch ($_typeCat)
         {
             case -3:                                        // Herbalism
                 $this->metaReqSkill =
@@ -167,7 +171,7 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
                         $l[] = Lang::gameObject('key').Lang::main('colon').$str;
                         break;
                     case LOCK_TYPE_SKILL:                   // don't display lockpicking twice
-                        if ($this->subject->getField('typeCat') != -5 || $property != 1)
+                        if ($_typeCat != -5 || $property != 1)
                             $l[] = Lang::item($reqSkill ? 'reqSkillValue' : 'reqSkill', [$str, $reqSkill]);
                         break;
                     default:
@@ -312,7 +316,7 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
             );
 
         // get spawns and path
-        if ($spawns = $this->subject->getSpawns(SPAWNINFO_FULL))
+        if ($spawns = $this->subject->getSpawns(SPAWNINFO_FULL, false, false, true, false))
         {
             $this->addDataLoader('zones');
             $this->map = array(
@@ -470,7 +474,7 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
         );
 
         // aowow - custom start: legacy scripts respawning one of its spawns; the command points at a spawn guid, not the entry
-        $guids    = DB::Aowow()->selectCol('SELECT `guid` FROM ::spawns WHERE `type` = %i AND `typeId` = %i', Type::OBJECT, $this->typeId) ?: [];
+        $guids    = DB::Aowow()->selectCol('SELECT `guid` FROM ::objects_spawns WHERE `typeId` = %i AND `guid` > 0', $this->typeId) ?: [];
         $lsOwners = LegacyScript::getCommandOwners(LegacyScript::CMD_RESPAWN_GAMEOBJECT, array_map('intVal', $guids));
         if (!empty($lsOwners[Type::SPELL]))
             $conditions[] = ['id', $lsOwners[Type::SPELL]];
@@ -817,6 +821,39 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
         if ($tab = $this->spawnTab->getListview($this->saiBoxOf))   // aowow - custom
             $this->lvTabs->addListviewTab($tab);
 
+        // tab: npc-passengers
+        [$tMap, , , , ] = $this->subject->getField('transport');
+        if ($_typeCat == OBJECT_MO_TRANSPORT && $_ = DB::Aowow()->selectCol('SELECT DISTINCT `typeId` FROM ::creature_spawns WHERE `mapId` = %i', $tMap))
+        {
+            if (!($passengers = new CreatureList(array(['id', $_])))->error)
+            {
+                $this->extendGlobalData($passengers->getJSGlobals());
+
+                $this->addDataLoader('zones');
+                $this->lvTabs->addListviewTab(new Listview(array(
+                    'data' => $passengers->getListviewData(),
+                    'name' => Lang::gameObject('passengers'),
+                    'id'   => 'npc-passengers'
+                ), CreatureList::$brickFile));
+            }
+        }
+
+        // tab: object-passengers
+        if ($_typeCat == OBJECT_MO_TRANSPORT && $_ = DB::Aowow()->selectCol('SELECT DISTINCT `typeId` FROM ::objects_spawns WHERE `mapId` = %i', $tMap))
+        {
+            if (!($passengers = new GameObjectList(array(['id', $_])))->error)
+            {
+                $this->extendGlobalData($passengers->getJSGlobals());
+
+                $this->addDataLoader('zones');
+                $this->lvTabs->addListviewTab(new Listview(array(
+                    'data' => $passengers->getListviewData(),
+                    'name' => Lang::gameObject('passengers'),
+                    'id'   => 'object-passengers'
+                ), GameObjectList::$brickFile));
+            }
+        }
+
         // tab: condition-for
         $cnd = new Conditions();
         $cnd->getByCondition(Type::OBJECT, $this->typeId)
@@ -939,7 +976,7 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
     /** the StringIds of the template and of every spawn - CONDITION_STRING_ID matches either */
     private function stringIds() : array
     {
-        $ids = DB::Aowow()->selectCol('SELECT DISTINCT `StringId` FROM ::spawns WHERE `type` = %i AND `typeId` = %i AND `StringId` IS NOT NULL', Type::OBJECT, $this->typeId) ?: [];
+        $ids = DB::Aowow()->selectCol('SELECT DISTINCT `StringId` FROM ::objects_spawns WHERE `typeId` = %i AND `StringId` IS NOT NULL', $this->typeId) ?: [];
         if ($_ = $this->subject->getField('StringId'))
             $ids[] = $_;
 

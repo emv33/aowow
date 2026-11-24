@@ -971,16 +971,16 @@ class Conditions
     {
         if ($cVal1 == self::TYPEID_UNIT)
         {
-            if ($cVal3 && ($_ = DB::Aowow()->selectCell('SELECT `typeId` FROM ::spawns WHERE `type` = %i AND `guid` = %i', Type::NPC, $cVal3)))
-                $cVal2 = intVal($_);
+            if ($cVal3 && ($_ = DB::Aowow()->selectCell('SELECT `typeId` FROM ::creature_spawns WHERE `guid` = %i', $cVal3)))
+                $cVal2 = $_;
 
             if ($cVal2)
                 $this->jsGlobals[Type::NPC][$cVal2] = $cVal2;
         }
         else if ($cVal1 == self::TYPEID_GAMEOBJECT)
         {
-            if ($cVal3 && ($_ = DB::Aowow()->selectCell('SELECT `typeId` FROM ::spawns WHERE `type` = %i AND `guid` = %i', Type::OBJECT, $cVal3)))
-                $cVal2 = intVal($_);
+            if ($cVal3 && ($_ = DB::Aowow()->selectCell('SELECT `typeId` FROM ::objects_spawns WHERE `guid` = %i', $cVal3)))
+                $cVal2 = $_;
 
             if ($cVal2)
                 $this->jsGlobals[Type::OBJECT][$cVal2] = $cVal2;
@@ -1138,7 +1138,7 @@ class Conditions
 
     // SourceEntry is smart_scripts.entryorguid, SourceId is smart_scripts.source_type (0 creature, 1 gameobject,
     // 2 areatrigger, everything else has no entity page of its own - see SmartAI::getActionListOwners())
-    // a negative entryorguid is a spawn guid rather than a template entry and needs resolving through ::spawns,
+    // a negative entryorguid is a spawn guid rather than a template entry and needs resolving through the spawn tables,
     // same as everywhere else that reads a SmartAI entryorguid
     private function smartEventOwner(int $sType, int $sGroup, int $sEntry, int $sId, int $cTarget) : bool
     {
@@ -1155,7 +1155,7 @@ class Conditions
 
         $entry = $sEntry;
         if ($entry < 0 && $type != Type::AREATRIGGER)
-            $entry = (int)DB::Aowow()->selectCell('SELECT `typeId` FROM ::spawns WHERE `type` = %i AND `guid` = %i', $type, -$sEntry);
+            $entry = (int)DB::Aowow()->selectCell('SELECT `typeId` FROM %n WHERE `guid` = %i', WorldPosition::getStorageByType($type), -$sEntry);
 
         if ($entry <= 0)
             return true;

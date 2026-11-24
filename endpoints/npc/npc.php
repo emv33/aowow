@@ -118,10 +118,12 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         /* Determine Map Type */
         /**********************/
 
+        $spawnData = DB::Aowow()->selectAssoc('SELECT `guid` AS "0", `ScriptName` AS "1", `StringId` AS "2", `areaId` AS "3" FROM ::creature_spawns WHERE `typeId` = %i ORDER BY `guid` ASC', $this->typeId);
+
         $mapType = 0;
-        if ($maps = DB::Aowow()->selectCell('SELECT IF(COUNT(DISTINCT `areaId`) > 1, 0, `areaId`) FROM ::spawns WHERE `type` = %i AND `typeId` = %i', Type::NPC, $this->typeId))
+        if (count($areaId = array_unique(array_column($spawnData, 3))) == 1)
         {
-            $mapType = match (DB::Aowow()->selectCell('SELECT `type` FROM ::zones WHERE `id` = %i', $maps))
+            $mapType = match (DB::Aowow()->selectCell('SELECT `type` FROM ::zones WHERE `id` = %i', ...$areaId))
             {
                 // MAP_TYPE_DUNGEON,
                 MAP_TYPE_DUNGEON_HC    => 1,
@@ -391,7 +393,7 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         /****************/
 
         // get spawns and path
-        if ($spawns = $this->subject->getSpawns(SPAWNINFO_FULL))
+        if ($spawns = $this->subject->getSpawns(SPAWNINFO_FULL, false, false, true, false))
         {
             $this->addDataLoader('zones');
             $this->map = array(
@@ -1331,7 +1333,7 @@ class NpcBaseResponse extends TemplateResponse implements ICache
     /** the StringIds of the template and of every spawn - CONDITION_STRING_ID matches either */
     private function stringIds() : array
     {
-        $ids = DB::Aowow()->selectCol('SELECT DISTINCT `StringId` FROM ::spawns WHERE `type` = %i AND `typeId` = %i AND `StringId` IS NOT NULL', Type::NPC, $this->typeId) ?: [];
+        $ids = DB::Aowow()->selectCol('SELECT DISTINCT `StringId` FROM ::creature_spawns WHERE `typeId` = %i AND `StringId` IS NOT NULL', $this->typeId) ?: [];
         if ($_ = $this->subject->getField('StringId'))
             $ids[] = $_;
 

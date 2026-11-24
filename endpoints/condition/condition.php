@@ -164,7 +164,7 @@ class ConditionBaseResponse extends TemplateResponse implements ICache
 
             $ownerId = $this->entry;
             if ($ownerId < 0 && $ownerType != Type::AREATRIGGER)
-                $ownerId = (int)DB::Aowow()->selectCell('SELECT `typeId` FROM ::spawns WHERE `type` = %i AND `guid` = %i', $ownerType, -$ownerId);
+                $ownerId = (int)DB::Aowow()->selectCell('SELECT `typeId` FROM %n WHERE `guid` = %i', WorldPosition::getStorageByType($ownerType), -$ownerId);
 
             if ($ownerId <= 0 || !($name = Conditions::nameForType($ownerType, $ownerId)))
                 return ['group' => null, 'entry' => null];

@@ -598,6 +598,34 @@ $lang = array(
             "Avenger of Gnomeregan",
             "Voodoo Boss of Sen'jin"
         ),
+        'transports'    => array(                           // Map.dbc/name with slight cleanups
+            582 => "Transport: Rut'theran to Auberdine",
+            584 => "Transport: Menethil to Theramore",
+            586 => "Transport: Exodar to Auberdine",
+            587 => "Transport: Feathermoon Ferry",
+            588 => "Transport: Menethil to Auberdine",
+            589 => "Transport: Orgrimmar to Grom'Gol",
+            590 => "Transport: Grom'Gol to Undercity",
+            591 => "Transport: Undercity to Orgrimmar",
+            593 => "Transport: Booty Bay to Ratchet",
+            594 => "Transport: Howling Fjord Sister Mercy",
+            610 => "Transport: Tirisfal to Vengeance Landing",
+            612 => "Transport: Menethil to Valgarde",
+            613 => "Transport: Orgrimmar to Warsong Hold",
+            614 => "Transport: Stormwind to Valiance Keep",
+            620 => "Transport: Moa'ki to Unu'pe",
+            621 => "Transport: Moa'ki to Kamagua",
+            622 => "Transport: Orgrim's Hammer",
+            623 => "Transport: The Skybreaker",
+            641 => "Transport: Alliance Airship BG",
+            642 => "Transport: Horde Airship BG",
+            647 => "Transport: Orgrimmar to Thunder Bluff",
+            672 => "Transport: The Skybreaker",
+            673 => "Transport: Orgrim's Hammer",
+            712 => "Transport: The Skybreaker",
+            713 => "Transport: Orgrim's Hammer",
+            718 => "Trasnport: The Mighty Wind",
+        ),
         'orientation'   => ['North', 'Northeast', 'East', 'Southeast', 'South', 'Southwest', 'West', 'Northwest']
     ),
     'unit' => array(
@@ -1909,11 +1937,11 @@ $lang = array(
         'notFound'      => "This object doesn't exist.",
         'unnamed'       => "Unnamed object #%d",
         'cat'           => array(
-             0 => "Other", 3 => "Containers", 6 => "Traps", 9 => "Books", 19 => "Mailboxes", 25 => "Fishing Pools",
+             0 => "Other", 3 => "Containers", 6 => "Traps", 9 => "Books", 15 => "Transports", 19 => "Mailboxes", 25 => "Fishing Pools",
             -5 => "Chests", -3 => "Herbs", -4 => "Mineral Veins", -2 => "Quests", -6 => "Tools", -9 => "Interactive Objects"
         ),
         'type'          => array(                           // used for tooltip
-             3 => "Container", 6 => "", 9 => "Book",  19 => "", 25 => "",
+             3 => "Container", 6 => "", 9 => "Book", 15 => "",  19 => "", 25 => "",
             -5 => "Chest", -3 => "Herb", -4 => "Mineral Vein", -2 => "Quest", -6 => "", -9 => ""
         ),
         'unkPosition'   => "The location of this object is unknown.",
@@ -1959,6 +1987,7 @@ $lang = array(
         'castBar'       => "Cast bar",
         'artKits'       => "Art kits",
         'artKit'        => '%1$d: #%2$d',                   // aowow - custom end
+        'passengers'    => "Passengers",
         'goFlags'       => array(
             GO_FLAG_IN_USE           => 'In use',
             GO_FLAG_LOCKED           => 'Locked',
@@ -2014,7 +2043,8 @@ $lang = array(
         'waypoint'      => "Waypoint",
         'wait'          => "Wait",
         'respawnIn'     => "Respawn in: %s",
-        'despawnAfter'  => "Spawned by Script<br />Despawn after: %s",
+        'scriptedSpawn' => "Spawned by script",
+        'despawnAfter'  => "Despawn after: %s",
         'spawnWander'   => 'Wanders up to %1$s yd',
         'spawnModel'    => 'Model: %1$d',
         'spawnEquip'    => 'Equipment set: %1$d',

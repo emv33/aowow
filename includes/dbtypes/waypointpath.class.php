@@ -9,8 +9,8 @@ if (!defined('AOWOW_REVISION'))
 /*
  * A "path" here is one of two things `aowow_creature_waypoints` groups points under:
  *   kind 0 - a `waypoint_data` path (creature_addon/creature_template_addon.path_id, or a
- *            SmartAI ACTION_WP_START target) - `creatureOrPath` is -waypoint_data.id
- *   kind 1 - a `script_waypoint` escort path - `creatureOrPath` is -script_waypoint.entry
+ *            SmartAI ACTION_WP_START target) - `pathId` is waypoint_data.id
+ *   kind 1 - a `script_waypoint` escort path - `pathId` is script_waypoint.entry
  *            (entry is conventionally the creature template id, see LegacyScript::SRC_ESCORT_PATH)
  *
  * Both are plain positive ids handed out independently by TrinityCore content, so they are not
@@ -31,10 +31,10 @@ class WaypointPathList extends DBTypeList
 
     protected string $queryBase =
        'SELECT x.*, x.id AS ARRAY_KEY FROM (
-            SELECT (CASE `kind` WHEN 0 THEN -`creatureOrPath` ELSE '.self::KIND_OFFSET.' - `creatureOrPath` END) AS "id",
-                   `kind`, -`creatureOrPath` AS "sourceId", COUNT(1) AS "numPoints", SUM(`wait`) AS "totalWait", MIN(NULLIF(`areaId`, 0)) AS "areaId", MAX(`viaSmartAI`) AS "viaSmartAI"
+            SELECT (CASE `kind` WHEN 0 THEN `pathId` ELSE '.self::KIND_OFFSET.' + `pathId` END) AS "id",
+                   `kind`, `pathId` AS "sourceId", COUNT(1) AS "numPoints", SUM(`wait`) AS "totalWait", MIN(NULLIF(`areaId`, 0)) AS "areaId", MAX(`viaSmartAI`) AS "viaSmartAI"
             FROM   ::creature_waypoints
-            GROUP BY `kind`, `creatureOrPath`
+            GROUP BY `kind`, `pathId`
         ) x';
 
     public static function encodeId(int $kind, int $sourceId) : int
@@ -52,11 +52,11 @@ class WaypointPathList extends DBTypeList
     public static function getPoints(int $kind, int $sourceId) : array
     {
         return DB::Aowow()->selectAssoc(
-           'SELECT `point` AS ARRAY_KEY, `areaId`, `floor`, `posX`, `posY`, `wait`
+           'SELECT `point` AS ARRAY_KEY, `areaId`, `floor`, `areaX`, `areaY`, `wait`
             FROM   ::creature_waypoints
-            WHERE  `kind` = %i AND `creatureOrPath` = %i
+            WHERE  `kind` = %i AND `pathId` = %i
             ORDER BY `point` ASC',
-            $kind, -$sourceId
+            $kind, $sourceId
         ) ?: [];
     }
 

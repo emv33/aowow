@@ -109,7 +109,7 @@ class WaypointpathBaseResponse extends TemplateResponse implements ICache
 
                 // a creature on a map with no explorable world map (e.g. most instances) gets
                 // its point placed with a zone but no coordinates - nothing to draw a pin at
-                if (!$p['posX'] && !$p['posY'])
+                if (!$p['areaX'] && !$p['areaY'])
                 {
                     $prev = null;
                     continue;
@@ -122,9 +122,9 @@ class WaypointpathBaseResponse extends TemplateResponse implements ICache
                 $opts = ['label' => "\0$<br /><span class=\"q0\">".implode('<br />', $label).'</span>'];
 
                 if ($prev && $prev['areaId'] == $p['areaId'] && $prev['floor'] == $p['floor'])
-                    $opts['lines'] = [[$prev['posX'], $prev['posY']]];
+                    $opts['lines'] = [[$prev['areaX'], $prev['areaY']]];
 
-                $data[$p['areaId']][$p['floor']]['coords'][] = [$p['posX'], $p['posY'], $opts];
+                $data[$p['areaId']][$p['floor']]['coords'][] = [$p['areaX'], $p['areaY'], $opts];
                 $prev = $p;
             }
 

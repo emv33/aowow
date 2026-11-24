@@ -190,7 +190,7 @@ class ConditionsBaseResponse extends TemplateResponse implements ICache
         $data     = [];
 
         // CND_SRC_SMART_EVENT's entry is smart_scripts.entryorguid; a negative one is a spawn guid rather
-        // than a template entry - resolve every one of them through ::spawns up front, batched by type,
+        // than a template entry - resolve every one of them through the spawn tables up front, batched by type,
         // same as Conditions::smartEventOwner() does per-row for the entity's own Conditions tab
         $guidsByType = [];
         foreach ($rows as $r)
@@ -202,7 +202,7 @@ class ConditionsBaseResponse extends TemplateResponse implements ICache
 
         $guidLookup = [];
         foreach ($guidsByType as $type => $guids)
-            $guidLookup[$type] = DB::Aowow()->selectCol('SELECT `guid` AS ARRAY_KEY, `typeId` FROM ::spawns WHERE `type` = %i AND `guid` IN %in', $type, array_values($guids)) ?: [];
+            $guidLookup[$type] = DB::Aowow()->selectCol('SELECT `guid` AS ARRAY_KEY, `typeId` FROM %n WHERE `guid` IN %in', WorldPosition::getStorageByType($type), array_values($guids)) ?: [];
 
         // Conditions::GROUP_NEEDS_LOOKUP sources don't name their owner directly - SourceGroup is
         // an internal loot-template id, resolved only through Conditions::resolveGroupOwners()'s
