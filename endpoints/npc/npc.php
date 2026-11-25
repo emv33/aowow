@@ -718,9 +718,9 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         // tab: summoned by [spell]
         $conditions = array(
             DB::OR,
-            [DB::AND, ['effect1Id', [SPELL_EFFECT_SUMMON, SPELL_EFFECT_SUMMON_PET, SPELL_EFFECT_SUMMON_DEMON]], ['effect1MiscValue', $this->typeId]],
-            [DB::AND, ['effect2Id', [SPELL_EFFECT_SUMMON, SPELL_EFFECT_SUMMON_PET, SPELL_EFFECT_SUMMON_DEMON]], ['effect2MiscValue', $this->typeId]],
-            [DB::AND, ['effect3Id', [SPELL_EFFECT_SUMMON, SPELL_EFFECT_SUMMON_PET, SPELL_EFFECT_SUMMON_DEMON]], ['effect3MiscValue', $this->typeId]]
+            [DB::AND, ['effect1Id', [SPELL_EFFECT_SUMMON, SPELL_EFFECT_SUMMON_PET, SPELL_EFFECT_SUMMON_DEMON, SPELL_EFFECT_CREATE_TAMED_PET]], ['effect1MiscValue', $this->typeId]],
+            [DB::AND, ['effect2Id', [SPELL_EFFECT_SUMMON, SPELL_EFFECT_SUMMON_PET, SPELL_EFFECT_SUMMON_DEMON, SPELL_EFFECT_CREATE_TAMED_PET]], ['effect2MiscValue', $this->typeId]],
+            [DB::AND, ['effect3Id', [SPELL_EFFECT_SUMMON, SPELL_EFFECT_SUMMON_PET, SPELL_EFFECT_SUMMON_DEMON, SPELL_EFFECT_CREATE_TAMED_PET]], ['effect3MiscValue', $this->typeId]]
         );
 
         // aowow - custom: also the spells, objects and creatures whose legacy scripts summon it
@@ -737,6 +737,26 @@ class NpcBaseResponse extends TemplateResponse implements ICache
                 'data' => $sbSpell->getListviewData(),
                 'name' => '$LANG.tab_summonedby',
                 'id'   => 'summoned-by-spell'
+            ), SpellList::$brickFile));
+        }
+
+        // tab: spells - mounting, transforming into or giving kill credit for this creature (the spell page links them by MiscValue)
+        $conditions = [DB::OR];
+        for ($i = 1; $i <= 3; $i++)
+        {
+            $conditions[] = [DB::AND, ['effect'.$i.'Id', [SPELL_EFFECT_KILL_CREDIT, SPELL_EFFECT_KILL_CREDIT2]], ['effect'.$i.'MiscValue', $this->typeId]];
+            $conditions[] = [DB::AND, ['effect'.$i.'AuraId', SpellList::AURAS_MODEL_NPC], ['effect'.$i.'MiscValue', $this->typeId]];
+        }
+
+        $mvSpells = new SpellList($conditions);
+        if (!$mvSpells->error)
+        {
+            $this->extendGlobalData($mvSpells->getJSGlobals());
+
+            $this->lvTabs->addListviewTab(new Listview(array(
+                'data' => $mvSpells->getListviewData(),
+                'name' => '$LANG.tab_spells',
+                'id'   => 'spells'
             ), SpellList::$brickFile));
         }
 
