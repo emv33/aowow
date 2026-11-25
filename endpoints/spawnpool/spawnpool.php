@@ -143,7 +143,7 @@ class SpawnpoolBaseResponse extends TemplateResponse implements ICache
                     $floor['count'] = count($floor['coords']);
             unset($areas, $floor);
 
-            uasort($data, fn($a, $b) => current($b)['count'] <=> current($a)['count']);
+            uasort($data, fn($a, $b) => array_sum(array_column($b, 'count')) <=> array_sum(array_column($a, 'count')));
 
             $this->addDataLoader('zones');
             $this->map = array(
