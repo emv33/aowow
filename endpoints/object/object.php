@@ -295,7 +295,7 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
                 $infobox[] = Lang::game('mode').Lang::game('modes', $this->mapType, $n);
 
         // aowow - custom: the AI / script every spawn runs - a spawn's own ScriptName replaces the template's; one that only some run is in
-        // their row of the Spawns tab (upstream: the template's with the spawns' own in a toggler, and a StringID line built but never shown)
+        // their row of the Spawns tab (upstream: the template's with the spawns' own in a toggler, and a StringID line likewise)
         if (User::canSee(U_GROUP_EMPLOYEE))
             if ($_ = $hasSpawns ? ($common['script'] ?? null) : self::scriptLine((string)$this->subject->getField('ScriptOrAI')))
                 $infobox[] = $_;
@@ -823,7 +823,7 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
 
         // tab: npc-passengers
         [$tMap, , , , ] = $this->subject->getField('transport');
-        if ($_typeCat == OBJECT_MO_TRANSPORT && $_ = DB::Aowow()->selectCol('SELECT DISTINCT `typeId` FROM ::creature_spawns WHERE `mapId` = %i', $tMap))
+        if ($_typeCat == OBJECT_MO_TRANSPORT && $tMap && $_ = DB::Aowow()->selectCol('SELECT DISTINCT `typeId` FROM ::creature_spawns WHERE `mapId` = %i', $tMap))
         {
             if (!($passengers = new CreatureList(array(['id', $_])))->error)
             {
@@ -839,7 +839,7 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
         }
 
         // tab: object-passengers
-        if ($_typeCat == OBJECT_MO_TRANSPORT && $_ = DB::Aowow()->selectCol('SELECT DISTINCT `typeId` FROM ::objects_spawns WHERE `mapId` = %i', $tMap))
+        if ($_typeCat == OBJECT_MO_TRANSPORT && $tMap && $_ = DB::Aowow()->selectCol('SELECT DISTINCT `typeId` FROM ::objects_spawns WHERE `mapId` = %i', $tMap))
         {
             if (!($passengers = new GameObjectList(array(['id', $_])))->error)
             {

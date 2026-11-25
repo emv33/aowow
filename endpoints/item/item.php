@@ -640,8 +640,6 @@ class ItemBaseResponse extends TemplateResponse implements ICache
         if ($_ = $this->getClientData())
             $infobox[] = Lang::item('clientData').Lang::main('colon').'[ul][li]'.implode('[/li][li]', $_).'[/li][/ul]';
 
-        if (User::canSee(U_GROUP_EMPLOYEE) && ($_ = $this->subject->getField('scriptName')))
-            $infobox[] = 'Script'.Lang::main('colon').$_;
         // aowow - custom end
 
         // completion row added by InfoboxMarkup
@@ -649,6 +647,11 @@ class ItemBaseResponse extends TemplateResponse implements ICache
         // original name
         if (Lang::getLocale() != Locale::EN)
             $infobox[] = Util::ucFirst(Lang::lang(Locale::EN->value) . Lang::main('colon')) . '[copy button=false]'.$this->subject->getField('name_loc0').'[/copy][/li]';
+
+        // script
+        if (User::canSee(U_GROUP_STAFF))
+            if ($_ = $this->subject->getField('scriptName'))
+                $infobox[] = 'Script'.Lang::main('colon').$_;
 
         return $infobox;
     }
