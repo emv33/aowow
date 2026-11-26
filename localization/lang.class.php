@@ -367,7 +367,7 @@ class Lang
                             $ids[Type::SKILL][] = $skills[$prop];
                         }
                         else
-                            $name = SkillList::getName($prop);
+                            $name = SkillList::getName($skills[$prop]) ?? $name;
                     }
                     // any other skill-type lock: resolve the actual spell(s) whose Open Lock
                     // effect targets this LockType.dbc id - the same reverse lookup
@@ -416,8 +416,10 @@ class Lang
                     if (($spell = new SpellList(array(['id', $prop])))->error)
                         continue 2;
 
+                    $name = $spell->getField('name', true);
+
                     if ($fmt == self::FMT_HTML)
-                        $name = $interactive ? '<a class="q1" href="?spell='.$prop.'">'.$spell->getField('name', true).'</a>' : '<span class="q1">'.$spell->getField('name', true).'</span>';
+                        $name = $interactive ? '<a class="q1" href="?spell='.$prop.'">'.$name.'</a>' : '<span class="q1">'.$name.'</span>';
                     else if ($interactive && $fmt == self::FMT_MARKUP)
                     {
                         $name = '[spell='.$prop.']';
