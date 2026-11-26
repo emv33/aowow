@@ -213,6 +213,10 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
         if ($_ = $common['phase'] ?? null)
             $infobox[] = $_;
 
+        // aowow - custom: the transport every spawn rides on; differing ones are in the Spawns tab
+        if ($_ = $common['transport'] ?? null)
+            $infobox[] = $_;
+
         // trap for X (note: moved to lv-tabs)
 
         // SpellFocus

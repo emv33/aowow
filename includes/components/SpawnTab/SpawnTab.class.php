@@ -148,6 +148,12 @@ class SpawnTab
             if ($g = array_values(array_unique(array_map(fn($x) => $x[1], array_filter($links, fn($x) => $x[0] == $t)))))
                 $linkedEntries[$t] = DB::World()->selectCol('SELECT `guid` AS ARRAY_KEY, `id` FROM %n WHERE `guid` IN %in', $tbl, $g) ?: [];
 
+        // a spawn on a transport has the transport's own map (gameobject_template.data6 of a MO_TRANSPORT) as its map;
+        // the transport's page lists it as a passenger, this links back. A transport map can be shared by several transports.
+        $transports = [];
+        foreach (DB::World()->selectAssoc('SELECT `entry`, `data6` FROM gameobject_template WHERE `type` = %i AND `data6` <> 0 AND `data6` IN %in', GO_TYPE_MO_TRANSPORT, $maps) ?: [] as $t)
+            $transports[(int)$t['data6']][] = (int)$t['entry'];
+
         $specific = $typeSpecific ? $typeSpecific($rows, $guids) : [];
 
         foreach ($rows as $r)
@@ -205,6 +211,12 @@ class SpawnTab
                     $this->shared[$guid] = $v;
                 else
                     $row[$k] = $v;
+            }
+
+            if ($_ = $transports[(int)$r['map']] ?? null)
+            {
+                $resp->extendGlobalIds(Type::OBJECT, ...$_);
+                $this->shared[$guid]['transport'] = Util::ucFirst(Lang::game('transport')).Lang::main('colon').implode(', ', array_map(fn($x) => '[object='.$x.']', $_));
             }
 
             $tail = [];

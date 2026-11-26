@@ -238,6 +238,9 @@ class NpcBaseResponse extends TemplateResponse implements ICache
         if ($_ = $common['follows'] ?? null)
             $infobox[] = $_;
 
+        if ($_ = $common['transport'] ?? null)
+            $infobox[] = $_;
+
         if ($_ = $common['phase'] ?? null)
             $infobox[] = $_;
 
