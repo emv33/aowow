@@ -100,6 +100,7 @@ class WaypointpathBaseResponse extends TemplateResponse implements ICache
         {
             $data    = [];
             $areaIds = [];
+            $cPoints = [];
             $prev    = null;
 
             foreach ($points as $point => $p)
@@ -120,6 +121,7 @@ class WaypointpathBaseResponse extends TemplateResponse implements ICache
                     $label[] = Lang::npc('wait').Lang::main('colon').DateTime::formatTimeElapsedFloat($p['wait']);
 
                 $opts = ['label' => "\0$<br /><span class=\"q0\">".implode('<br />', $label).'</span>'];
+                $cPoints[] = [$p['mapId'], $p['mapX'], $p['mapY'], $opts];
 
                 if ($prev && $prev['areaId'] == $p['areaId'] && $prev['floor'] == $p['floor'])
                     $opts['lines'] = [[$prev['areaX'], $prev['areaY']]];
@@ -127,6 +129,11 @@ class WaypointpathBaseResponse extends TemplateResponse implements ICache
                 $data[$p['areaId']][$p['floor']]['coords'][] = [$p['areaX'], $p['areaY'], $opts];
                 $prev = $p;
             }
+
+            // the same route on the map of each continent it touches, listed before the zones: the whole route in one
+            // view (as on ?taxipath); a route within one zone is shown on that zone's map, the continent would only shrink it
+            if (count($data) > 1 && ($continents = WorldPosition::toContinentRoute($cPoints)))
+                $data = $continents + $data;
 
             if ($data)
             {

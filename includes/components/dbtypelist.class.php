@@ -670,6 +670,7 @@ trait spawnHelper
             $pathId     = $s['pathId']     ?? 0;
             $scriptName = $s['ScriptName'] ?? null;
             $stringId   = $s['StringId']   ?? null;
+            $continents = [];                               // aowow - custom
 
             // check, if we can attach waypoints to creature
             // we will get a nice clusterfuck of dots if we do this for more GUIDs, than we have colors though
@@ -682,6 +683,11 @@ trait spawnHelper
                     default      => []
 
                 };
+
+                // aowow - custom start: a path crossing zones also goes on the map of each continent it touches, the whole route in one view (as on ?taxipath)
+                $cPoints  = [];
+                $crossing = count(array_unique(array_column($wPoints, 'areaId'))) > 1;
+                // aowow - custom end
 
                 foreach ($wPoints as $i => $p)
                 {
@@ -705,6 +711,15 @@ trait spawnHelper
                     if (self::$type == Type::NPC)
                         $opts['url'] = '?waypointpath='.WaypointPathList::encodeId(WaypointPathList::KIND_MOVEMENT, $pathId);
 
+                    // aowow - custom start: the continent map draws this path's points outside every zone itself
+                    if ($crossing)
+                    {
+                        $cPoints[] = [$p['mapId'], $p['mapX'], $p['mapY'], $opts];
+                        if ($p['areaId'] < 0)
+                            continue;
+                    }
+                    // aowow - custom end
+
                     // connective line
                     if ($i > 0 && $wPoints[$i - 1]['areaId'] == $p['areaId'])
                         $opts['lines'] = [[$wPoints[$i - 1]['areaX'], $wPoints[$i - 1]['areaY']]];
@@ -715,6 +730,15 @@ trait spawnHelper
                     else
                         $wpSum[$p['areaId']][$p['floor']]++;
                 }
+
+                // aowow - custom start
+                if ($cPoints && ($continents = WorldPosition::toContinentRoute($cPoints)))
+                    foreach ($continents as $cId => [0 => ['coords' => $cCoords]])
+                    {
+                        $data[$cId][0]['coords'] = array_merge($data[$cId][0]['coords'] ?? [], $cCoords);
+                        $wpSum[$cId][0] = ($wpSum[$cId][0] ?? 0) + count($cCoords);
+                    }
+                // aowow - custom end
 
                 if ($wPoints)
                     $wpIdx++;
@@ -814,6 +838,10 @@ trait spawnHelper
                 $opts['menu'] = $menu;
 
             $data[$areaId] [$floor] ['coords'] [] = [$posX, $posY, $opts];
+
+            // aowow - custom: the spawn of a path drawn on a continent's map goes there too, unless it already lies there outside every zone
+            if ($continents && ($cp = WorldPosition::toContinentPos($s['mapId'], $s['mapX'], $s['mapY'])) && isset($continents[$cp[0]]) && $cp[0] != $areaId)
+                $data[$cp[0]][0]['coords'][] = [$cp[1], $cp[2], $opts];
         }
 
         foreach ($data as $a => &$areas)

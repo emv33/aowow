@@ -52,7 +52,7 @@ class WaypointPathList extends DBTypeList
     public static function getPoints(int $kind, int $sourceId) : array
     {
         return DB::Aowow()->selectAssoc(
-           'SELECT `point` AS ARRAY_KEY, `areaId`, `floor`, `areaX`, `areaY`, `wait`
+           'SELECT `point` AS ARRAY_KEY, `areaId`, `floor`, `areaX`, `areaY`, `mapId`, `mapX`, `mapY`, `wait`
             FROM   ::creature_waypoints
             WHERE  `kind` = %i AND `pathId` = %i
             ORDER BY `point` ASC',
