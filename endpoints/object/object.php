@@ -1207,6 +1207,33 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
         if ($t == GO_TYPE_MAILBOX || (isset($mounted[$t]) && $d($mounted[$t])))
             $out[] = Lang::gameObject('usableMounted');
 
+        // GameObject::ActivateToQuest(): a chest, goober or generic object sparkles for a player who has the quest in its template
+        // in progress, or still needs the object for a quest objective (Player::HasQuestForGO())
+        $tplQuest = [GO_TYPE_CHEST => 8, GO_TYPE_GOOBER => 1, GO_TYPE_GENERIC => 5];
+        if (isset($tplQuest[$t]))
+        {
+            $tplQuestId = max(0, $d($tplQuest[$t]));
+            $quests     = new QuestList(array(
+                DB::OR,
+                ['id', $tplQuestId],
+                [DB::AND, ['reqNpcOrGo1', -$this->typeId], ['reqNpcOrGoCount1', 0, '>']],
+                [DB::AND, ['reqNpcOrGo2', -$this->typeId], ['reqNpcOrGoCount2', 0, '>']],
+                [DB::AND, ['reqNpcOrGo3', -$this->typeId], ['reqNpcOrGoCount3', 0, '>']],
+                [DB::AND, ['reqNpcOrGo4', -$this->typeId], ['reqNpcOrGoCount4', 0, '>']]
+            ));
+            if ($questIds = $quests->error ? [] : $quests->getFoundIDs())
+            {
+                $this->extendGlobalIds(Type::QUEST, ...$questIds);
+
+                // GameObject::Use(): a goober with its quest not in progress only shows its page or gossip and starts its event;
+                // it does not activate, cast its spell or give credit
+                if ($t == GO_TYPE_GOOBER && in_array($tplQuestId, $questIds))
+                    $out[] = Lang::gameObject('questOnly', ['[quest='.$tplQuestId.']']);
+
+                $out[] = Lang::gameObject('questSparkle', [Lang::concat(array_map(fn($x) => '[quest='.$x.']', $questIds), Lang::CONCAT_OR)]);
+            }
+        }
+
         // GameObjectTemplate::CannotBeUsedUnderImmunity(); every chest is, which is not worth a line on each of them
         $noImmune = [GO_TYPE_DOOR => 3, GO_TYPE_BUTTON => 4, GO_TYPE_QUESTGIVER => 5, GO_TYPE_GOOBER => 11, GO_TYPE_FLAGSTAND => 5, GO_TYPE_FLAGDROP => 3];
         if (isset($noImmune[$t]) && $d($noImmune[$t]))
