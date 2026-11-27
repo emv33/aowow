@@ -1213,14 +1213,31 @@ class ObjectBaseResponse extends TemplateResponse implements ICache
         if (isset($tplQuest[$t]))
         {
             $tplQuestId = max(0, $d($tplQuest[$t]));
-            $quests     = new QuestList(array(
+            $conditions = array(
                 DB::OR,
                 ['id', $tplQuestId],
                 [DB::AND, ['reqNpcOrGo1', -$this->typeId], ['reqNpcOrGoCount1', 0, '>']],
                 [DB::AND, ['reqNpcOrGo2', -$this->typeId], ['reqNpcOrGoCount2', 0, '>']],
                 [DB::AND, ['reqNpcOrGo3', -$this->typeId], ['reqNpcOrGoCount3', 0, '>']],
                 [DB::AND, ['reqNpcOrGo4', -$this->typeId], ['reqNpcOrGoCount4', 0, '>']]
-            ));
+            );
+
+            // ...and a chest whose loot has a quest drop (ObjectMgr::LoadGameObjectForQuests()) also sparkles for a player
+            // with a quest in progress that still needs any item of it (LootTemplate::HasQuestDropForPlayer(),
+            // Player::HasQuestForItem())
+            if ($t == GO_TYPE_CHEST && $d(1))
+            {
+                $loot = new LootByContainer(Loot::GAMEOBJECT, $d(1));
+                if ($loot->hasQuestDrop() && ($items = array_values(array_unique($loot->getItems()))))
+                {
+                    for ($i = 1; $i < 7; $i++)
+                        $conditions[] = ['reqItemId'.$i, $items];
+                    for ($i = 1; $i < 5; $i++)
+                        $conditions[] = ['reqSourceItemId'.$i, $items];
+                }
+            }
+
+            $quests = new QuestList($conditions);
             if ($questIds = $quests->error ? [] : $quests->getFoundIDs())
             {
                 $this->extendGlobalIds(Type::QUEST, ...$questIds);

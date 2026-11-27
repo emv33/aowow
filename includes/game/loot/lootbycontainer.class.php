@@ -13,6 +13,7 @@ class LootByContainer extends Loot
     private array $knownRefs = [];                          // known ref loot results (can be reused)
     private array $rawLoot   = [];
     private array $itemIds   = [];
+    private bool  $questDrop = false;                       // aowow - custom: any item entry, references included, has QuestRequired
 
     /**
      * fetch loot for given loot container and resolve references.
@@ -78,6 +79,16 @@ class LootByContainer extends Loot
     }
 
     /**
+     * aowow - custom: LootTemplate::HasQuestDrop(); only item entries count, a reference's flag is not read
+     *
+     * @return bool any item in the loot, references included, is a quest drop
+     */
+    public function hasQuestDrop() : bool
+    {
+        return $this->questDrop;
+    }
+
+    /**
      * recurse through reference loot while applying modifiers from parent template
      *
      * @param string        $tableName  a known loot template table name
@@ -137,6 +148,9 @@ class LootByContainer extends Loot
             else
             {
                 $this->itemIds[] = $entry['Item'];
+
+                if ($entry['QuestRequired'])                // aowow - custom
+                    $this->questDrop = true;
 
                 $set['content'] = $entry['Item'];
                 $set['min']     = $entry['MinCount'];
