@@ -66,8 +66,6 @@ CLISetup::registerSetup("build", new class extends SetupScript
             return false;
         }
 
-        sleep(2);
-
         [, $realPath, , $tileOrder, $outInfo] = $this->genSteps[0];
 
         foreach (self::SRC_FILES as $destTpl => $srcTpl)

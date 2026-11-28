@@ -110,8 +110,6 @@ CLISetup::registerUtility(new class extends UtilityScript
             }
             else
                 CLI::write('[setup] resuming from step '.($startStep + 1).'...');
-
-            sleep(1);
         }
 
 

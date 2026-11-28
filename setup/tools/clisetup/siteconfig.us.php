@@ -130,7 +130,6 @@ CLISetup::registerUtility(new class extends UtilityScript
                     CLI::write('invalid selection', CLI::LOG_ERROR);
 
                 CLI::write();
-                sleep(1);
             }
             else
             {
@@ -186,8 +185,6 @@ CLISetup::registerUtility(new class extends UtilityScript
         while (true)
         {
             CLI::write();
-            sleep(1);
-
             if (CLI::read(['idx' => ['', true, true, '/[edr]/i']], $uiEDR) && $uiEDR)
             {
                 switch (strtoupper($uiEDR['idx']))

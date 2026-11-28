@@ -120,8 +120,6 @@ CLISetup::registerUtility(new class extends UtilityScript
         $sql   = trim($sql)   ? array_unique(explode(' ', trim(preg_replace('/[^a-z_\-]+/i', ' ', $sql))))   : [];
         $build = trim($build) ? array_unique(explode(' ', trim(preg_replace('/[^a-z_\-]+/i', ' ', $build)))) : [];
 
-        sleep(1);
-
         if ($sql)
             CLI::write('[update] The following sql scripts have been scheduled: '.implode(', ', $sql));
 

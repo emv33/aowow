@@ -131,8 +131,6 @@ CLISetup::registerSetup("build", new class extends SetupScript
             return false;
         }
 
-        sleep(2);
-
         if ($this->prepare())
         {
             $this->buildMaps();

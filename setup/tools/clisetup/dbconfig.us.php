@@ -177,7 +177,6 @@ CLISetup::registerUtility(new class extends UtilityScript
                         {
                             CLI::write("[db] edit canceled! returning to list...", CLI::LOG_INFO);
                             CLI::write();
-                            sleep(1);
                             continue 2;
                         }
                     }

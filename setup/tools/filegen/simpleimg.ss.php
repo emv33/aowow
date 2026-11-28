@@ -165,8 +165,6 @@ CLISetup::registerSetup("build", new class extends SetupScript
             return false;
         }
 
-        sleep(2);
-
         $allPaths = [];
         foreach ($this->genSteps as $i => [, $path, , [$pattern, $isIcon, $tileSize], $outInfo])
         {
